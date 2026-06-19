@@ -241,6 +241,66 @@ const translations: TranslationDict = {
   'onboard.btn_next': { en: 'Next Step', ar: 'الخطوة التالية' },
   'onboard.btn_back': { en: 'Back', ar: 'الرجوع' },
   'onboard.btn_submit': { en: 'Generate My Roadmap ⚡️', ar: 'أنشئ خارطة طريقي الآن ⚡️' },
+
+  // Redesigned Settings
+  'profile.header.search': { en: 'Search...', ar: 'البحث...' },
+  'profile.header.welcome': { en: 'Welcome', ar: 'مرحباً' },
+  'profile.sidebar.home': { en: 'Home', ar: 'الرئيسية' },
+  'profile.sidebar.popular': { en: 'Popular Blogs', ar: 'مقالات شائعة' },
+  'profile.sidebar.activity': { en: 'Your Activity', ar: 'نشاطك' },
+  'profile.sidebar.saved': { en: 'Saved Blogs', ar: 'مقالات محفوظة' },
+  'profile.sidebar.settings': { en: 'Settings', ar: 'الإعدادات' },
+  'profile.sidebar.logout': { en: 'Logout', ar: 'تسجيل الخروج' },
+  'profile.tabs.account': { en: 'Account Settings', ar: 'إعدادات الحساب' },
+  'profile.tabs.security': { en: 'Login & Security', ar: 'الأمان والدخول' },
+  'profile.tabs.notifications': { en: 'Notification Settings', ar: 'إعدادات الإشعارات' },
+  'profile.tabs.interface': { en: 'Interface', ar: 'تخصيص الواجهة' },
+  'profile.tabs.danger': { en: 'Additional Settings', ar: 'إعدادات إضافية' },
+  'profile.form.avatar': { en: 'Your Profile Picture', ar: 'الصورة الشخصية' },
+  'profile.form.upload': { en: 'Upload New', ar: 'تحميل جديد' },
+  'profile.form.remove': { en: 'Remove Profile Picture', ar: 'إزالة الصورة' },
+  'profile.form.name': { en: 'Full name', ar: 'الاسم بالكامل' },
+  'profile.form.email': { en: 'Email address', ar: 'البريد الإلكتروني' },
+  'profile.form.username': { en: 'Username', ar: 'اسم المستخدم' },
+  'profile.form.phone': { en: 'Phone number', ar: 'رقم الهاتف' },
+  'profile.form.bio': { en: 'Bio', ar: 'نبذة تعريفية' },
+  'profile.form.update': { en: 'Update Profile', ar: 'تحديث الحساب' },
+  'profile.form.verified': { en: 'Verified', ar: 'موثق' },
+
+  // Redesigned CV Builder
+  'cv.header.resume': { en: 'Resume', ar: 'السيرة الذاتية' },
+  'cv.header.create': { en: 'Create resume', ar: 'إنشاء سيرة ذاتية' },
+  'cv.header.search': { en: 'Search...', ar: 'البحث...' },
+  'cv.header.upload': { en: 'Upload resume...', ar: 'تحميل سيرة ذاتية...' },
+  'cv.header.cancel': { en: 'Cancel', ar: 'إلغاء' },
+  'cv.header.save': { en: 'Save', ar: 'حفظ' },
+  'cv.form.complication': { en: 'Resume complication', ar: 'نسبة اكتمال السيرة' },
+  'cv.tabs.fillin': { en: 'Fill in', ar: 'ملء البيانات' },
+  'cv.tabs.guidance': { en: 'Guidance', ar: 'توجيهات' },
+  'cv.tabs.analysis': { en: 'Analysis', ar: 'التحليل' },
+  'cv.tabs.matching': { en: 'Matching', ar: 'المطابقة' },
+  'cv.tabs.design': { en: 'Design', ar: 'التصميم' },
+  'cv.tabs.cover': { en: 'Cover letter', ar: 'خطاب التقديم' },
+  'cv.form.basic': { en: 'Basic Information', ar: 'المعلومات الأساسية' },
+  'cv.form.photo_title': { en: 'Upload your photo', ar: 'تحميل صورتك الشخصية' },
+  'cv.form.photo_desc': { en: 'Upload files up to 2.0 MB in size. Only JPG/PNG formatted files are allowed.', ar: 'يصل حجم الملف إلى ٢ ميجابايت كحد أقصى. يُسمح فقط بتنسيق JPG/PNG.' },
+  'cv.form.photo_btn': { en: 'Browse photo', ar: 'تصفح الصور' },
+  'cv.form.first_name': { en: 'First name', ar: 'الاسم الأول' },
+  'cv.form.last_name': { en: 'Last name', ar: 'اسم العائلة' },
+  'cv.form.pro_title': { en: 'Professional Title', ar: 'المسمى المهني' },
+  'cv.form.career_obj': { en: 'Career Objectives', ar: 'الهدف المهني' },
+  'cv.form.add_section': { en: '+ Add section', ar: '+ إضافة قسم' },
+  'cv.sidebar.dashboard': { en: 'Dashboard', ar: 'لوحة التحكم' },
+  'cv.sidebar.resumes': { en: 'Resumes', ar: 'السير الذاتية' },
+  'cv.sidebar.jobs': { en: 'Job offer', ar: 'عروض الوظائف' },
+  'cv.sidebar.applied': { en: 'Applied job', ar: 'الوظائف المقدمة' },
+  'cv.sidebar.saved': { en: 'Saved job', ar: 'الوظائف المحفوظة' },
+  'cv.sidebar.message': { en: 'Message', ar: 'الرسائل' },
+  'cv.sidebar.notification': { en: 'Notification', ar: 'التنبيهات' },
+  'cv.sidebar.profile': { en: 'My profile', ar: 'ملفي الشخصي' },
+  'cv.sidebar.settings': { en: 'Settings', ar: 'الإعدادات' },
+  'cv.sidebar.help': { en: 'Help & Support', ar: 'المساعدة والدعم' },
+  'cv.sidebar.upgrade': { en: 'Experience the improved dashboard. Upgrade plan', ar: 'جرب لوحة التحكم المحسنة بالكامل. ترقية الباقة' },
 };
 
 interface AppContextType {
@@ -278,6 +338,13 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
     } else {
       document.documentElement.setAttribute('lang', 'en');
       document.documentElement.setAttribute('dir', 'ltr');
+    }
+
+    // Register PWA service worker
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => console.log('PWA ServiceWorker registered with scope:', reg.scope))
+        .catch((err) => console.error('PWA ServiceWorker registration failed:', err));
     }
   }, []);
 

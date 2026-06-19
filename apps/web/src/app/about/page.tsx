@@ -47,9 +47,9 @@ function HeadWithIdeas({ className = '' }: { className?: string }) {
 
 export default function AboutPage() {
     return (
-        <div className="bg-[#fbfaf7] text-[#1a2e2c] min-h-screen">
+        <div className="bg-base-100 text-base-content min-h-screen">
             {/* Header */}
-            <section className="max-w-2xl mx-auto px-6 pt-16 pb-10">
+            <section className="max-w-2xl mx-auto px-6 pb-10">
                 <p className="text-xs text-gray-400 mb-3">About SmartRoadmap</p>
                 <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
                     A Story of Mastery and the Future of Hiring

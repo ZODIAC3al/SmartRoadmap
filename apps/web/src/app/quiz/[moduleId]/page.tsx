@@ -205,7 +205,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-base-100 text-base-content py-12 px-4">
+    <div className="flex flex-col min-h-screen bg-base-100 text-base-content pb-12 px-4">
       <div className="max-w-2xl mx-auto w-full">
         {/* Module Header */}
         <div className="mb-8">

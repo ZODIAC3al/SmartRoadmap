@@ -156,7 +156,7 @@ export default function OnboardingPage() {
   const EDUCATION_OPTIONS = ['Bootcamp/Self-Taught', 'College Degree', 'High School Graduate', 'Post-Graduate'];
 
   return (
-    <div className="flex flex-col min-h-screen bg-base-100 text-base-content items-center justify-center p-4 py-10">
+    <div className="flex flex-col min-h-screen bg-base-100 text-base-content items-center justify-start p-4 pb-10">
       {/* New Stepper component, replacing DaisyUI steps */}
       <div className="max-w-2xl w-full mb-8">
         <Stepper steps={STEP_LABELS} currentIndex={step - 1} />

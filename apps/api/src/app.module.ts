@@ -9,17 +9,19 @@ import { AssessmentModule } from './modules/assessment/assessment.module';
 import { CvModule } from './modules/cv/cv.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { HiringModule } from './modules/hiring/hiring.module';
+import { UploadModule } from './modules/upload/upload.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { MessageModule } from './modules/message/message.module';
 import * as dns from 'dns';
 
 async function getMongoUri(): Promise<string> {
-  const cloudUri = 'mongodb://alimaherr47_db_user:1234@ac-mielmfr-shard-00-00.e8mvg0u.mongodb.net:27017,ac-mielmfr-shard-00-01.e8mvg0u.mongodb.net:27017,ac-mielmfr-shard-00-02.e8mvg0u.mongodb.net:27017/smartroadmap?ssl=true&replicaSet=atlas-g67ecj-shard-0&authSource=admin&appName=production';
   const localUri = 'mongodb://localhost:27017/smartroadmap';
-  const targetUri = process.env.MONGODB_URI || cloudUri;
+  const targetUri = process.env.MONGODB_URI || localUri;
 
   if (targetUri.startsWith('mongodb+srv://')) {
     // Extract hostname (e.g. production.e8mvg0u.mongodb.net)
     const host = targetUri.split('@')[1]?.split('/')[0]?.split('?')[0];
-    if (host) {
+    if (host && !host.includes(',')) {
       try {
         // Check if DNS can resolve the SRV record (avoids querySrv ECONNREFUSED crash)
         await dns.promises.resolveSrv(`_mongodb._tcp.${host}`);
@@ -49,6 +51,9 @@ async function getMongoUri(): Promise<string> {
     CvModule,
     AuthModule,
     HiringModule,
+    UploadModule,
+    NotificationModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

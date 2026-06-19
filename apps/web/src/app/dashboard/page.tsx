@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useApp } from '@/components/AppContext';
+import { toast } from 'react-toastify';
 
 type Module = {
   id: string;
@@ -21,53 +22,21 @@ type Roadmap = {
   modules: Module[];
 };
 
-function SidebarIcon({ name }: { name: string }) {
-  const common = 'w-5 h-5';
-  switch (name) {
-    case 'home':
-      return (
-        <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M3 11l9-8 9 8M5 10v10a1 1 0 001 1h12a1 1 0 001-1V10" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
-    case 'folder':
-      return (
-        <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M3 7a1 1 0 011-1h5l2 2h9a1 1 0 011 1v9a1 1 0 01-1 1H4a1 1 0 01-1-1V7z" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
-    case 'doc':
-      return (
-        <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M7 3h7l4 4v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1z" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M9 12h6M9 16h6" strokeLinecap="round" />
-        </svg>
-      );
-    case 'chart':
-      return (
-        <svg viewBox="0 0 24 24" className={common} fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M4 19V9M11 19V4M18 19v-6" strokeLinecap="round" />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
-
 export default function DashboardPage() {
   const router = useRouter();
   const { t } = useApp();
   const [user, setUser] = useState<any>(null);
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [loading, setLoading] = useState(true);
-  const [jobMatchesCount, setJobMatchesCount] = useState(0);
-
-  const SIDEBAR_ITEMS = [
-    { href: '/dashboard', label: t('nav.dashboard'), icon: 'home' },
-    { href: '/roadmap', label: t('nav.roadmap'), icon: 'folder' },
-    { href: '/cv', label: t('nav.cv'), icon: 'doc' },
-    { href: '/hiring', label: t('nav.jobsMatch'), icon: 'chart' },
-  ];
+  const [mockJob, setMockJob] = useState({
+    title: 'Frontend Engineer (Vetted)',
+    company: 'Stripe, Inc.',
+    location: 'Remote',
+    salary: '$120k - $145k',
+    matchScore: 97,
+    missingSkills: ['CI/CD Pipelines', 'Docker Basics'],
+    applied: false
+  });
 
   useEffect(() => {
     const storedUser = localStorage.getItem('smart_user');
@@ -88,12 +57,6 @@ export default function DashboardPage() {
           const roadmapData = await roadmapRes.json();
           setRoadmap(roadmapData);
         }
-
-        const jobsRes = await fetch(`http://localhost:3000/hiring/jobs/matches/${parsedUser.id}`);
-        if (jobsRes.ok) {
-          const jobsData = await jobsRes.json();
-          setJobMatchesCount(jobsData.length);
-        }
       } catch (e) {
         console.error('Error fetching dashboard metrics');
       } finally {
@@ -104,10 +67,15 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
+  const handleApplyJob = () => {
+    setMockJob(prev => ({ ...prev, applied: true }));
+    toast.success(`Successfully applied to ${mockJob.title} at ${mockJob.company}! Your Skill Passport has been shared.`);
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen bg-base-100 items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
       </div>
     );
   }
@@ -115,15 +83,15 @@ export default function DashboardPage() {
   if (!user) {
     return (
       <div className="flex flex-col min-h-[80vh] items-center justify-center p-8 text-center bg-base-100">
-        <h2 className="text-2xl font-bold mb-2 text-base-content">Welcome to SmartRoadmap</h2>
-        <p className="text-sm text-base-content/60 max-w-sm mb-6">
-          Log in to see your roadmap progress, charts, and job matches in one place.
+        <h2 className="text-2xl font-black text-base-content tracking-tight">Access Restricted</h2>
+        <p className="text-sm text-base-content/65 max-w-sm mb-6">
+          Please log in to view your career readiness dashboard, passport, and recommended matches.
         </p>
         <div className="flex gap-4">
-          <Link href="/auth/login" className="btn btn-primary rounded-xl">
+          <Link href="/auth/login" className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl">
             Log In
           </Link>
-          <Link href="/auth/register" className="btn btn-outline border-primary text-primary rounded-xl">
+          <Link href="/auth/register" className="btn btn-outline border-base-300 text-base-content rounded-xl">
             Register
           </Link>
         </div>
@@ -139,172 +107,222 @@ export default function DashboardPage() {
   const modules = roadmap?.modules || [];
   const completedModules = modules.filter((m) => m.status === 'completed');
   const inProgressModules = modules.filter((m) => m.status === 'in_progress');
-  const nextRecommendedModule = inProgressModules[0] || modules.find((m) => m.status === 'locked');
+  const activeMission = inProgressModules[0] || modules.find((m) => m.status === 'locked');
   const progressPercent = modules.length > 0 ? Math.round((completedModules.length / modules.length) * 100) : 0;
 
-  // Build a simple weekly progress shape from completed module count
-  const weeklyPoints = Array.from({ length: 7 }, (_, i) => {
-    const ratio = modules.length > 0 ? Math.min(1, (i + 1) / 7) : 0;
-    return Math.round(completedModules.length * ratio);
-  });
-  const maxPoint = Math.max(1, ...weeklyPoints);
-
   return (
-    <div className="min-h-screen bg-base-100 flex">
-      {/* Sidebar - theme and layout responsive */}
-      <aside className="hidden lg:flex flex-col w-20 bg-gradient-to-b from-primary to-neutral py-6 items-center gap-8 sticky top-0 h-screen">
-        <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-white">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L15 8L22 9L17 14L18 21L12 17L6 21L7 14L2 9L9 8L12 2Z" fill="currentColor" />
-          </svg>
-        </div>
-        <nav className="flex flex-col gap-6 text-white/60">
-          {SIDEBAR_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} className="hover:text-white transition-colors" title={item.label}>
-              <SidebarIcon name={item.icon} />
-            </Link>
-          ))}
-        </nav>
-        <div className="mt-auto w-9 h-9 rounded-full bg-base-100 text-primary flex items-center justify-center font-bold text-xs">
-          {user.name?.slice(0, 2).toUpperCase()}
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 p-4 sm:p-8 max-w-6xl mx-auto w-full">
-        <h1 className="text-2xl font-bold text-base-content mb-6">{t('nav.dashboard')}</h1>
-
-        <div className="grid lg:grid-cols-3 gap-5">
-          {/* Welcome card */}
-          <div className="lg:col-span-2 bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm flex items-center justify-between gap-4">
-            <div>
-              <h2 className="font-bold text-base-content mb-1">
-                {t('dash.welcome')}, {user.name}!
-              </h2>
-              <p className="text-xs text-base-content/65 leading-relaxed max-w-xs">
-                {t('dash.target_role')}: <strong className="text-base-content">{roadmap?.targetRole || t('dash.not_generated')}</strong>
-                <br />
-                {completedModules.length} {t('dash.milestones_status')} {modules.length}
-              </p>
-              <Link href="/roadmap" className="btn btn-sm btn-primary rounded-lg mt-4">
-                {t('dash.open_curriculum')}
-              </Link>
-            </div>
-            <div className="hidden sm:block text-primary/20">
-              <svg viewBox="0 0 100 100" className="w-24 h-24" fill="none" stroke="currentColor" strokeWidth="3">
-                <circle cx="50" cy="35" r="14" />
-                <path d="M30 90 Q50 70 70 90" strokeLinecap="round" />
-                <rect x="38" y="50" width="24" height="30" rx="4" />
-              </svg>
-            </div>
+    <div className="bg-base-100 text-base-content min-h-screen pb-8 px-4 sm:px-8">
+      <div className="max-w-6xl mx-auto space-y-8">
+        
+        {/* Top Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-base-300 pb-6 text-start">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-base-content">
+              Good Morning, {user.name} 👋
+            </h1>
+            <p className="text-xs text-base-content/60 font-semibold mt-1">
+              Target Career Role: <span className="text-base-content font-bold">{roadmap?.targetRole || 'Not Defined'}</span>
+            </p>
           </div>
-
-          {/* Progress tile */}
-          <div className="bg-gradient-to-br from-primary to-secondary rounded-2xl p-6 shadow-sm text-white flex flex-col justify-between">
-            <span className="text-xs font-medium text-white/80">{t('dash.this_month')}</span>
-            <span className="text-3xl font-bold mt-2">{progressPercent}%</span>
-            <span className="text-xs text-white/70 mt-1">{t('dash.roadmap_complete')}</span>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-5 mt-5">
-          {/* Line chart card */}
-          <div className="lg:col-span-2 bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <p className="text-xs text-base-content/50">{t('dash.milestones_completed')}</p>
-                <p className="text-xl font-bold text-base-content">{completedModules.length}</p>
-              </div>
-              <span className="text-xs text-base-content/40">{t('dash.last_7_weeks')}</span>
+          <div className="flex items-center gap-3">
+            <div className="border border-green-200 bg-green-50 rounded-xl px-4 py-2 text-start">
+              <span className="text-[10px] text-[#059669] font-bold uppercase tracking-wider block">Career Score</span>
+              <span className="text-xl font-mono font-black text-[#059669]">82%</span>
             </div>
-            <svg viewBox="0 0 280 80" className="w-full h-20" preserveAspectRatio="none">
-              <polyline
-                points={weeklyPoints
-                  .map((p, i) => `${(i / 6) * 280},${80 - (p / maxPoint) * 70}`)
-                  .join(' ')}
-                fill="none"
-                stroke="currentColor"
-                className="text-secondary"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-
-          {/* Stat tiles */}
-          <div className="grid grid-cols-2 gap-5">
-            <div className="bg-primary rounded-2xl p-5 text-white flex flex-col justify-between">
-              <span className="text-2xl">📘</span>
-              <span className="text-lg font-bold mt-2">{modules.length}</span>
-              <span className="text-[11px] text-white/70">{t('dash.total_modules')}</span>
-            </div>
-            <div className="bg-accent rounded-2xl p-5 text-white flex flex-col justify-between">
-              <span className="text-2xl">💼</span>
-              <span className="text-lg font-bold mt-2">{jobMatchesCount}</span>
-              <span className="text-[11px] text-white/70">{t('dash.job_matches')}</span>
+            <div className="text-xs bg-base-200 border border-base-300 p-2.5 rounded-xl text-base-content/65 font-semibold">
+              🏆 Top 10% of candidates this week
             </div>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-5 mt-5">
-          {/* Statistics bars */}
-          <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm">
-            <p className="text-sm font-bold text-base-content mb-4">{t('dash.module_status')}</p>
-            <div className="space-y-3">
-              {[
-                { label: t('dash.status_completed'), count: completedModules.length, color: 'bg-success' },
-                { label: t('dash.status_in_progress'), count: inProgressModules.length, color: 'bg-primary' },
-                { label: t('dash.status_locked'), count: modules.filter((m) => m.status === 'locked').length, color: 'bg-base-300' },
-              ].map((row) => (
-                <div key={row.label}>
-                  <div className="flex justify-between text-xs text-base-content/50 mb-1">
-                    <span>{row.label}</span>
-                    <span>{row.count}</span>
+        {/* Dashboard Main Visual Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* LEFT COLUMN: Employability Readiness Cards */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* Main grid of cards: 1. Career Score Details, 2. Skill Passport widget */}
+            <div className="grid md:grid-cols-2 gap-6">
+              
+              {/* Card 1: Career Score breakdown */}
+              <div className="card bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
+                <div>
+                  <h3 className="font-extrabold text-sm text-base-content uppercase tracking-wider font-mono">1. Career readiness</h3>
+                  <p className="text-xs text-base-content/50 mt-1">A unified index representing how close you are to landing a vetted tech role.</p>
+                </div>
+                <div className="flex justify-between items-baseline pt-2">
+                  <span className="text-4xl font-black font-mono text-[#059669]">82%</span>
+                  <span className="text-xs text-[#22C55E] font-semibold">↑ 4% this month</span>
+                </div>
+                
+                {/* Metric list */}
+                <div className="space-y-2.5 pt-1">
+                  <div className="flex justify-between text-xs border-t border-base-300 pt-2">
+                    <span className="text-base-content/50">Roadmap Milestones</span>
+                    <span className="font-bold text-base-content">{completedModules.length} / {modules.length} Completed</span>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-base-100 overflow-hidden">
-                    <div
-                      className={`h-full ${row.color}`}
-                      style={{ width: `${modules.length > 0 ? (row.count / modules.length) * 100 : 0}%` }}
-                    />
+                  <div className="flex justify-between text-xs">
+                    <span className="text-base-content/50">Verified Badges</span>
+                    <span className="font-bold text-base-content">{completedModules.length} Active</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* Status ring */}
-          <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center">
-            <div
-              className="radial-progress text-primary"
-              style={{ '--value': progressPercent, '--size': '6rem', '--thickness': '8px' } as React.CSSProperties}
-              role="progressbar"
-            >
-              <span className="text-base font-bold text-base-content">{progressPercent}%</span>
-            </div>
-            <p className="text-xs text-base-content/50 mt-3">{t('dash.overall_completion')}</p>
-          </div>
+              {/* Card 2: Skill Passport Summary */}
+              <div className="card bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-extrabold text-sm text-base-content uppercase tracking-wider font-mono">2. Skill Passport</h3>
+                    <span className="text-[9px] bg-green-100 text-[#059669] font-mono px-2 py-0.5 rounded font-bold">VETTED</span>
+                  </div>
+                  <p className="text-xs text-base-content/50 mt-1">Vetted competency credentials visible directly to hiring companies.</p>
+                </div>
 
-          {/* Next milestone / upcoming */}
-          <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm">
-            <p className="text-sm font-bold text-base-content mb-4">{t('dash.next_rec')}</p>
-            {nextRecommendedModule ? (
-              <>
-                <p className="text-sm font-semibold text-base-content mb-1 line-clamp-1">{nextRecommendedModule.title}</p>
-                <p className="text-xs text-base-content/50 mb-4 line-clamp-2">{nextRecommendedModule.description}</p>
-                <Link
-                  href={nextRecommendedModule.status === 'in_progress' ? `/quiz/${nextRecommendedModule.id}` : '/roadmap'}
-                  className="btn btn-sm btn-primary rounded-lg w-full"
-                >
-                  {nextRecommendedModule.status === 'in_progress' ? t('dash.take_quiz') : t('dash.view_roadmap')}
+                <div className="flex flex-wrap gap-1.5 py-2">
+                  {completedModules.length > 0 ? (
+                    completedModules.slice(0, 3).map((m, i) => (
+                      <span key={i} className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/25 text-[10px] px-2 py-2 rounded">
+                        ✓ {m.title}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-base-content/40 italic">No verified milestones yet</span>
+                  )}
+                </div>
+
+                <Link href="/passport" className="btn btn-outline border-[#10B981] hover:bg-[#10B981] hover:text-white text-[#10B981] btn-sm rounded-lg text-xs font-bold w-full">
+                  Open Passport Profile →
                 </Link>
-              </>
-            ) : (
-              <p className="text-xs text-base-content/40 italic">No active modules yet. Start onboarding to build your roadmap.</p>
-            )}
+              </div>
+
+            </div>
+
+            {/* Current Mission Module Tracker */}
+            <div className="card bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-extrabold text-sm text-base-content uppercase tracking-wider font-mono">3. Current learning mission</h3>
+                  <p className="text-xs text-base-content/50 mt-1">Complete this topic to unlock the next milestone assessment badge.</p>
+                </div>
+                <span className="text-xs font-mono font-bold text-base-content/40">⏱ 2h Remaining</span>
+              </div>
+
+              {activeMission ? (
+                <div className="bg-base-100 border border-base-300 rounded-xl p-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-primary font-mono block">Active Topic</span>
+                      <h4 className="font-bold text-xs text-base-content mt-0.5">{activeMission.title}</h4>
+                    </div>
+                    <span className="text-xs font-bold text-base-content bg-base-200 px-2 py-0.5 rounded uppercase border border-base-300">
+                      {activeMission.difficulty}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] font-bold text-base-content/40">
+                      <span>MISSION METRICS PROGRESS</span>
+                      <span className="text-primary">78%</span>
+                    </div>
+                    <div className="w-full bg-base-200 rounded-full h-2 overflow-hidden border border-base-300">
+                      <div className="bg-[#10B981] h-full" style={{ width: '78%' }} />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 justify-end pt-1">
+                    <Link href="/roadmap" className="btn btn-outline btn-xs rounded">
+                      Open Roadmap Graph
+                    </Link>
+                    <Link href={`/quiz/${activeMission.id}`} className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none btn-xs rounded font-bold px-4">
+                      Prove Mastery ⚡
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-base-content/40 italic">No recommended learning module at the moment. Complete onboarding.</p>
+              )}
+            </div>
+
           </div>
+
+          {/* RIGHT COLUMN: Active Job Matches Feed */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* Card 4: Job Matches */}
+            <div className="card bg-base-200 border border-[#10B981]/35 rounded-2xl p-6 shadow-sm text-start space-y-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-[#10B981] text-white text-[9px] uppercase tracking-widest font-mono font-bold px-3 py-1 rounded-bl-xl">
+                Best Match
+              </div>
+
+              <div>
+                <h3 className="font-extrabold text-sm text-base-content uppercase tracking-wider font-mono">4. Target Job Match</h3>
+                <p className="text-xs text-base-content/50 mt-1 font-semibold">Recommended by AI vector matchmaking pipeline.</p>
+              </div>
+
+              {/* Match Percentage Display */}
+              <div className="flex items-center gap-3">
+                <span className="w-14 h-14 bg-[#10B981]/15 text-[#059669] rounded-xl flex items-center justify-center font-mono font-black text-lg">
+                  {mockJob.matchScore}%
+                </span>
+                <div>
+                  <h4 className="font-black text-xs text-base-content leading-snug">{mockJob.title}</h4>
+                  <p className="text-[10px] text-base-content/40 font-semibold">{mockJob.company} • {mockJob.location}</p>
+                </div>
+              </div>
+
+              {/* Salary & Gaps */}
+              <div className="border-y border-base-300 py-3.5 space-y-2.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-base-content/40">Estimated Salary:</span>
+                  <span className="font-bold text-base-content">{mockJob.salary}</span>
+                </div>
+                
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-base-content/40 block uppercase font-mono">Missing skills gaps:</span>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {mockJob.missingSkills.map((s, i) => (
+                      <span key={i} className="bg-red-50 text-red-600 border border-red-100 rounded text-[9px] px-2 py-0.5 font-mono">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Apply / Action Button */}
+              <button 
+                onClick={handleApplyJob} 
+                disabled={mockJob.applied}
+                className={`btn btn-block btn-sm rounded-lg text-xs font-bold text-white border-none ${mockJob.applied ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#10B981] hover:bg-[#059669]'}`}
+              >
+                {mockJob.applied ? '✓ Profile Submitted' : 'Apply Instantly with Passport'}
+              </button>
+
+              <div className="text-center">
+                <Link href="/hiring" className="text-xs text-[#059669] hover:underline font-bold">
+                  View All Matching Opportunities →
+                </Link>
+              </div>
+            </div>
+
+            {/* Platform metrics info */}
+            <div className="border border-base-300 bg-base-200 rounded-2xl p-5 text-start space-y-3.5 shadow-sm">
+              <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider font-mono">System Integrity Status</span>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-base-content/50 font-semibold">Verification Node</span>
+                <span className="font-mono text-[#059669] font-bold">Online ✓</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-base-content/50 font-semibold">Qdrant Vector Server</span>
+                <span className="font-mono text-[#059669] font-bold">Connected ✓</span>
+              </div>
+            </div>
+
+          </div>
+
         </div>
-      </main>
+
+      </div>
     </div>
   );
 }

@@ -66,7 +66,7 @@ export default function ContactPage() {
   return (
     <div className="flex flex-col min-h-screen bg-base-100 text-base-content">
       {/* Breadcrumb + Hero */}
-      <section className="pt-16 pb-12 px-4">
+      <section className="pb-12 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-xs text-base-content/40 font-bold mb-4 tracking-wide">
             {t('contact.subtitle')}

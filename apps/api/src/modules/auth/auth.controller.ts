@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Headers, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers, UnauthorizedException, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -32,6 +32,16 @@ export class AuthController {
     return this.authService.googleLogin(email, name, avatarUrl);
   }
 
+  @Post('update-profile')
+  @HttpCode(HttpStatus.OK)
+  async updateProfile(
+    @Body('userId') userId: string,
+    @Body('data') data: any,
+  ) {
+    const updated = await this.authService.updateProfile(userId, data);
+    return { success: true, user: updated };
+  }
+
   @Get('me')
   async getMe(@Headers('authorization') authHeader?: string) {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -56,6 +66,24 @@ export class AuthController {
       name: user.name,
       role: user.role,
       avatarUrl: user.avatarUrl,
+      username: user.username,
+      phone: user.phone,
+      bio: user.bio,
+    };
+  }
+
+  @Get('users')
+  async getAllUsers() {
+    const users = await this.authService.findAllUsers();
+    return {
+      success: true,
+      data: users.map(u => ({
+        id: u._id.toString(),
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        avatarUrl: u.avatarUrl,
+      })),
     };
   }
 }

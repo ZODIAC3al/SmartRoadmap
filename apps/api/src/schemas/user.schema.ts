@@ -18,6 +18,15 @@ export class User extends Document {
   @Prop()
   avatarUrl?: string;
 
+  @Prop()
+  username?: string;
+
+  @Prop()
+  phone?: string;
+
+  @Prop()
+  bio?: string;
+
   @Prop({ default: false })
   isVerified!: boolean;
 

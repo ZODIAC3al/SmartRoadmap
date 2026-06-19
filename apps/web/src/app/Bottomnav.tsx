@@ -34,11 +34,29 @@ const TABS: Tab[] = [
     },
     {
         href: '/cv',
-        label: 'Profile',
+        label: 'CV',
         icon: (active) => (
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="8" r="4" fill={active ? 'currentColor' : 'none'} />
                 <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
+            </svg>
+        ),
+    },
+    {
+        href: '/messages',
+        label: 'Messages',
+        icon: (active) => (
+            <svg viewBox="0 0 24 24" className="w-5 h-5" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+        ),
+    },
+    {
+        href: '/notifications',
+        label: 'Alerts',
+        icon: (active) => (
+            <svg viewBox="0 0 24 24" className="w-5 h-5" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
         ),
     },
@@ -56,7 +74,7 @@ export default function BottomNav() {
             className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
             aria-label="Primary mobile navigation"
         >
-            <div className="relative bg-white rounded-[28px] shadow-[0_8px_30px_rgba(124,58,237,0.18)] h-16 grid grid-cols-3 max-w-sm mx-auto">
+            <div className="relative bg-base-200 border border-base-300 rounded-[28px] shadow-[0_8px_30px_rgba(16,185,129,0.1)] h-16 grid grid-cols-5 max-w-sm mx-auto">
                 {TABS.map((tab, i) => {
                     const active = i === activeIndex;
                     return (
@@ -67,18 +85,18 @@ export default function BottomNav() {
                         >
                             {active && (
                                 <span
-                                    className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-white shadow-[0_4px_16px_rgba(124,58,237,0.35)] flex items-center justify-center text-[#7c3aed]"
+                                    className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-base-200 border border-base-300 shadow-[0_4px_16px_rgba(16,185,129,0.25)] flex items-center justify-center text-primary"
                                     aria-hidden="true"
                                 >
-                                    <span className="absolute inset-0 rounded-full bg-[#7c3aed]/10 scale-125" />
+                                    <span className="absolute inset-0 rounded-full bg-primary/10 scale-125" />
                                     <span className="relative">{tab.icon(true)}</span>
                                 </span>
                             )}
-                            <span className={active ? 'opacity-0' : 'text-gray-400'}>
+                            <span className={active ? 'opacity-0' : 'text-base-content/40'}>
                                 {!active && tab.icon(false)}
                             </span>
                             <span
-                                className={`text-[11px] font-medium ${active ? 'text-[#7c3aed] mt-5' : 'text-gray-400'}`}
+                                className={`text-[11px] font-medium ${active ? 'text-primary mt-5' : 'text-base-content/40'}`}
                             >
                                 {tab.label}
                             </span>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/components/AppContext';
+import { toast } from 'react-toastify';
 
 type Module = {
   id: string;
@@ -31,8 +32,7 @@ export default function RoadmapPage() {
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-
-  const [userId, setUserId] = useState('654321098765432109876543'); // Default fallback test ID
+  const [userId, setUserId] = useState('654321098765432109876543');
 
   useEffect(() => {
     const storedUser = localStorage.getItem('smart_user');
@@ -54,7 +54,7 @@ export default function RoadmapPage() {
         const data = await response.json();
         setRoadmap(data);
 
-        // Default select the first active/in-progress module
+        // Select the active/in-progress module by default
         const activeMod = data.modules.find((m: Module) => m.status === 'in_progress') || data.modules[0];
         if (activeMod) setSelectedModule(activeMod);
       } catch (err) {
@@ -66,43 +66,44 @@ export default function RoadmapPage() {
     fetchRoadmap();
   }, []);
 
-  const getStatusBadgeClass = (status: string) => {
+  const handleTriggerQuiz = (mid: string) => {
+    toast.info('Starting adaptive assessment quiz session...');
+  };
+
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed': return 'badge badge-success';
-      case 'in_progress': return 'badge badge-warning animate-pulse';
-      case 'failed': return 'badge badge-error';
-      default: return 'badge badge-ghost border-base-300';
+      case 'completed':
+        return <span className="bg-green-150 text-[#059669] border border-green-200 text-[10px] font-mono font-bold px-2 py-0.5 rounded">VERIFIED ✓</span>;
+      case 'in_progress':
+        return <span className="bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/25 text-[10px] font-mono font-bold px-2 py-0.5 rounded animate-pulse">ACTIVE ⚡</span>;
+      case 'failed':
+        return <span className="bg-red-50 text-red-500 border border-red-100 text-[10px] font-mono font-bold px-2 py-0.5 rounded">RETRY ↺</span>;
+      default:
+        return <span className="bg-base-300 text-base-content/40 border border-base-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded">LOCKED 🔒</span>;
     }
   };
 
-  const translateStatus = (status: string) => {
-    if (locale === 'ar') {
-      switch (status) {
-        case 'completed': return 'مكتمل';
-        case 'in_progress': return 'قيد الدراسة';
-        case 'failed': return 'غير مجتاز';
-        default: return 'مغلق';
-      }
+  const getSkillImpact = (title: string) => {
+    // Generate a premium simulated skill impact metric
+    if (title.toLowerCase().includes('react') || title.toLowerCase().includes('frontend')) {
+      return '+15% React Engineering, +8% Architecture';
     }
-    return status;
-  };
-
-  const translateDifficulty = (diff: string) => {
-    if (locale === 'ar') {
-      switch (diff) {
-        case 'beginner': return 'مبتدئ';
-        case 'intermediate': return 'متوسط';
-        case 'advanced': return 'متقدم';
-        default: return diff;
-      }
+    if (title.toLowerCase().includes('typescript') || title.toLowerCase().includes('javascript')) {
+      return '+20% Type Safety, +12% Programming Logic';
     }
-    return diff;
+    if (title.toLowerCase().includes('docker') || title.toLowerCase().includes('deployment')) {
+      return '+25% Containerization, +10% Cloud Infrastructure';
+    }
+    if (title.toLowerCase().includes('nest') || title.toLowerCase().includes('backend')) {
+      return '+18% API Integration, +15% System Design';
+    }
+    return '+10% Analytical Diagnosis, +8% Competency';
   };
 
   if (loading) {
     return (
       <div className="flex min-h-screen bg-base-100 items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
       </div>
     );
   }
@@ -110,92 +111,118 @@ export default function RoadmapPage() {
   if (error || !roadmap) {
     return (
       <div className="flex flex-col min-h-screen bg-base-100 items-center justify-center p-4 text-center">
-        <h2 className="text-2xl font-bold mb-2 text-base-content">
-          {locale === 'en' ? 'No Active Roadmap Found' : 'لم يتم العثور على خارطة طريق نشطة'}
-        </h2>
-        <p className="text-base-content/70 max-w-sm mb-6">
-          {locale === 'en' 
-            ? 'Start by defining your target role and generating a personalized adaptive path.' 
-            : 'ابدأ بتحديد دورك الوظيفي المستهدف وإنشاء مسار تعليمي تفاعلي ومخصص.'}
+        <h2 className="text-2xl font-black mb-2 text-base-content tracking-tight">No Active Career Roadmap Found</h2>
+        <p className="text-sm text-base-content/50 max-w-sm mb-6">
+          Start by defining your target role and completing the assessment wizard.
         </p>
-        <Link href="/onboarding" className="btn btn-primary">
-          {locale === 'en' ? 'Generate Roadmap Now' : 'أنشئ خارطة الطريق الآن'}
+        <Link href="/onboarding" className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl">
+          Generate Adaptive Roadmap
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-base-100 text-base-content">
-      {/* Top Banner */}
-      <header className="bg-base-200 border-b border-base-300 py-6 px-4 sm:px-8">
+    <div className="min-h-screen bg-base-100 text-base-content flex flex-col">
+      {/* Top Professional Header */}
+      <header className="bg-base-200 border-b border-base-300 py-6 px-4 sm:px-8 text-start">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <div className="text-caption text-primary font-mono mb-1 uppercase">{t('road.target_role')}</div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{roadmap.targetRole}</h1>
-            <p className="text-xs sm:text-sm text-base-content/60 mt-1">
-              {t('road.title_label')} {roadmap.title} • {roadmap.totalEstimatedHours} {t('road.hours')}
+            <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">Dynamic syllabus flow</span>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight mt-1">{roadmap.targetRole} Roadmap</h1>
+            <p className="text-xs text-base-content/50 mt-1 font-semibold">
+              Prerequisite DAG • {roadmap.totalEstimatedHours} hours of targeted learning nodes
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href="/onboarding" className="btn btn-outline btn-sm">
-              {t('road.regenerate')}
+            <Link href="/onboarding" className="btn btn-outline border-base-300 text-base-content btn-sm rounded-lg text-xs">
+              Re-diagnose & Build
             </Link>
-            <Link href="/pricing" className="btn btn-primary btn-sm text-white">
-              {t('road.upgrade')}
+            <Link href="/pricing" className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none btn-sm rounded-lg text-xs font-bold">
+              Upgrade to Premium
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Main Roadmap Workspace */}
-      <main className="flex-grow max-w-6xl mx-auto w-full p-4 sm:p-8 grid md:grid-cols-3 gap-8">
+      {/* Main Workspace split */}
+      <main className="flex-grow max-w-6xl mx-auto w-full p-4 sm:p-8 grid lg:grid-cols-12 gap-8 items-start">
+        
+        {/* LEFT COLUMN: Node Graph Map (Linear Style) */}
+        <section className="lg:col-span-8 space-y-6">
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-bold uppercase tracking-wider text-base-content/40 font-mono">Learning milestones graph</span>
+            <span className="text-xs text-base-content/50 font-semibold">Click node to reveal study guides</span>
+          </div>
 
-        {/* Modules Timeline Node List */}
-        <section className="md:col-span-2 space-y-6">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-base-content/50 mb-4 font-mono">
-            {t('road.milestones')}
-          </h2>
-
-          <div className="relative border-s border-base-300 ms-4 space-y-8 pb-8">
+          {/* Interactive node visual stack */}
+          <div className="relative border-s-2 border-base-300 ms-6 space-y-8 pb-8 text-start">
             {roadmap.modules.map((module, index) => {
               const active = selectedModule?.id === module.id;
+              
+              // Define premium node visual styling states
+              let cardBorderClass = 'border-base-300 bg-base-200 hover:border-primary/50';
+              let circleBg = 'bg-base-200 text-base-content/30 border-base-300';
+              
+              if (module.status === 'completed') {
+                cardBorderClass = 'border-[#10B981]/40 bg-base-200 hover:border-[#10B981]';
+                circleBg = 'bg-green-50 text-[#059669] border-[#10B981]';
+              } else if (module.status === 'in_progress') {
+                cardBorderClass = 'border-[#10B981] bg-base-200 ring-2 ring-[#10B981]/15';
+                circleBg = 'bg-[#10B981] text-white border-[#10B981]';
+              } else if (module.status === 'failed') {
+                cardBorderClass = 'border-red-200 bg-base-200 hover:border-red-300';
+                circleBg = 'bg-red-50 text-red-500 border-red-300';
+              } else {
+                // Locked / Recommended
+                const nextInProg = roadmap.modules.find(m => m.status === 'in_progress');
+                const isRecommended = nextInProg ? false : index === 0;
+                
+                if (isRecommended) {
+                  cardBorderClass = 'border-dashed border-[#10B981] bg-base-200 hover:bg-base-100';
+                  circleBg = 'bg-base-200 text-[#10B981] border-[#10B981]';
+                } else {
+                  cardBorderClass = 'border-base-300 bg-base-200 opacity-60 cursor-not-allowed';
+                  circleBg = 'bg-base-200 text-base-content/20 border-base-300';
+                }
+              }
+
               return (
                 <div key={module.id} className="relative ps-8 group">
-                  {/* Outer circle status ring indicator */}
-                  <span className={`absolute -start-3.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full border-2 ${module.status === 'completed'
-                      ? 'bg-success/10 border-success text-success'
-                      : module.status === 'in_progress'
-                        ? 'bg-warning/10 border-warning text-warning animate-pulse'
-                        : 'bg-base-300 border-base-300 text-base-content/40'
-                    } font-mono text-xs font-bold`}>
+                  {/* Connect circle bullet index */}
+                  <span className={`absolute -start-3.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-full border-2 ${circleBg} font-mono text-[10px] font-black z-10`}>
                     {index + 1}
                   </span>
 
-                  {/* Node Card */}
+                  {/* Vetted Node Card Wrapper */}
                   <div
-                    onClick={() => setSelectedModule(module)}
-                    className={`card bg-base-200 border cursor-pointer transition-all hover:shadow-md hover:border-primary/50 ${active ? 'border-primary border-2 shadow-sm bg-base-200/50' : 'border-base-300'
-                      }`}
+                    onClick={() => {
+                      if (module.status !== 'locked' || index === 0) {
+                        setSelectedModule(module);
+                      } else {
+                        toast.warn('This learning node is locked. Please complete prior prerequisites first.');
+                      }
+                    }}
+                    className={`card border rounded-xl cursor-pointer transition-all duration-200 p-5 ${cardBorderClass} ${active ? 'ring-2 ring-[#10B981]/30 shadow-sm' : 'shadow-xs'}`}
                   >
-                    <div className="card-body p-5">
-                      <div className="flex justify-between items-start gap-4">
-                        <h3 className="font-bold text-sm sm:text-md leading-snug group-hover:text-primary transition-colors">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div>
+                        <h3 className="font-extrabold text-xs text-base-content group-hover:text-[#059669] transition-colors leading-tight">
                           {module.title}
                         </h3>
-                        <span className={getStatusBadgeClass(module.status)}>
-                          {translateStatus(module.status)}
-                        </span>
+                        <p className="text-[10px] text-base-content/40 font-semibold mt-1">
+                          Estimated Hours: <span className="font-bold text-base-content/65">{module.estimatedHours}h</span> • Difficulty: <span className="font-bold uppercase text-base-content/65">{module.difficulty}</span>
+                        </p>
                       </div>
-                      <p className="text-xs text-base-content/70 mt-2 line-clamp-2">{module.description}</p>
+                      <div className="shrink-0 flex items-center gap-2">
+                        {getStatusBadge(module.status)}
+                      </div>
+                    </div>
 
-                      <div className="flex gap-4 mt-4 text-caption text-base-content/50 font-mono">
-                        <span>⏱ {module.estimatedHours} {t('road.hours')}</span>
-                        <span>📶 {translateDifficulty(module.difficulty)}</span>
-                        {module.prerequisites.length > 0 && (
-                          <span>🔗 {locale === 'en' ? 'Prerequisites:' : 'المتطلبات:'} {module.prerequisites.join(', ')}</span>
-                        )}
-                      </div>
+                    {/* Skill Impact Badge */}
+                    <div className="border-t border-base-300 mt-4.5 pt-3.5 flex justify-between items-center text-[10px]">
+                      <span className="text-base-content/40 font-semibold uppercase tracking-wider font-mono">Skill Impact</span>
+                      <span className="font-bold text-[#059669]">{getSkillImpact(module.title)}</span>
                     </div>
                   </div>
                 </div>
@@ -204,84 +231,58 @@ export default function RoadmapPage() {
           </div>
         </section>
 
-        {/* Selected Module Details Drawer/Panel */}
-        <aside className="md:col-span-1">
+        {/* RIGHT COLUMN: Module details drawer panel */}
+        <aside className="lg:col-span-4 lg:sticky lg:top-24">
           {selectedModule ? (
-            <div className="card bg-base-200 border border-base-300 shadow-sm sticky top-8">
-              <div className="card-body p-6">
-                <div className="badge badge-outline badge-primary font-mono text-caption mb-3 uppercase">
-                  {translateDifficulty(selectedModule.difficulty)} {locale === 'en' ? 'Milestone' : 'مرحلة'}
-                </div>
-                <h3 className="text-lg sm:text-xl font-extrabold text-base-content mb-4">{selectedModule.title}</h3>
+            <div className="card bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-6">
+              <div>
+                <span className="text-[10px] text-base-content/40 font-mono font-bold uppercase tracking-wider">Milestone detail panel</span>
+                <h3 className="text-lg font-black text-base-content mt-1">{selectedModule.title}</h3>
+                <p className="text-xs text-base-content/60 mt-2 leading-relaxed">{selectedModule.description}</p>
+              </div>
 
-                <p className="text-xs sm:text-sm text-base-content/80 mb-6 leading-relaxed">
-                  {selectedModule.description}
-                </p>
+              {/* Topics stack */}
+              <div className="space-y-2">
+                <span className="text-[10px] text-base-content/40 font-mono font-bold uppercase tracking-wider block">Syllabus Topics</span>
+                <ul className="space-y-1.5 text-xs text-base-content/75">
+                  {selectedModule.topics.map((t, idx) => (
+                    <li key={idx} className="flex gap-2 items-center">
+                      <span className="text-[#10B981] font-bold">◆</span>
+                      <span>{t}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-                {/* Topics List */}
-                <div className="mb-6">
-                  <h4 className="text-xs font-bold tracking-wider uppercase text-base-content/50 mb-3 font-mono">
-                    {t('road.syllabus')}
-                  </h4>
-                  <ul className="space-y-2 text-xs sm:text-sm">
-                    {selectedModule.topics.map((topic, i) => (
-                      <li key={i} className="flex gap-2 items-center">
-                        <span className="text-primary text-xs">◆</span>
-                        <span>{topic}</span>
-                      </li>
-                    ))}
-                  </ul>
+              {/* Resource List */}
+              <div className="border-t border-base-300 pt-4.5 space-y-2">
+                <span className="text-[10px] text-base-content/40 font-mono font-bold uppercase tracking-wider block">Vetted Study Guides</span>
+                <div className="space-y-2">
+                  <a href={`https://example.com/resources/${selectedModule.id}-guide`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 bg-base-100 border border-base-300 rounded-lg text-xs hover:border-[#10B981] transition-colors">
+                    <span>📚 Comprehensive Study Guide (RAG)</span>
+                    <span className="text-[#10B981] font-bold">→</span>
+                  </a>
+                  <a href={`https://example.com/resources/${selectedModule.id}-videos`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3 bg-base-100 border border-base-300 rounded-lg text-xs hover:border-[#10B981] transition-colors">
+                    <span>🎥 Video Walkthrough Tutorials</span>
+                    <span className="text-[#10B981] font-bold">→</span>
+                  </a>
                 </div>
+              </div>
 
-                {/* Simulated resources */}
-                <div className="mb-8 border-t border-base-300 pt-6">
-                  <h4 className="text-xs font-bold tracking-wider uppercase text-base-content/50 mb-3 font-mono">
-                    {t('road.resources')}
-                  </h4>
-                  <div className="space-y-2">
-                    <a
-                      href={`https://example.com/resources/${selectedModule.id}-articles`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="card bg-base-100 border border-base-300 p-3 hover:border-primary transition-colors flex flex-row items-center justify-between text-xs sm:text-sm"
-                    >
-                      <span>📚 {t('road.study_guide')}</span>
-                      <span className="text-primary text-xs">→</span>
-                    </a>
-                    <a
-                      href={`https://example.com/resources/${selectedModule.id}-videos`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="card bg-base-100 border border-base-300 p-3 hover:border-primary transition-colors flex flex-row items-center justify-between text-xs sm:text-sm"
-                    >
-                      <span>🎥 {t('road.video_tutorial')}</span>
-                      <span className="text-primary text-xs">→</span>
-                    </a>
-                  </div>
-                </div>
-
-                {/* Action CTA */}
-                <div className="card-actions">
-                  {selectedModule.status === 'locked' ? (
-                    <button disabled className="btn btn-block btn-neutral">
-                      {t('road.locked')}
-                    </button>
-                  ) : (
-                    <Link
-                      href={`/quiz/${selectedModule.id}`}
-                      className="btn btn-block btn-primary text-white"
-                    >
-                      {t('road.prove_skill')}
-                    </Link>
-                  )}
-                </div>
+              {/* Test action trigger button */}
+              <div className="pt-2">
+                <Link
+                  href={`/quiz/${selectedModule.id}`}
+                  onClick={() => handleTriggerQuiz(selectedModule.id)}
+                  className="btn btn-block bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-bold text-xs h-11"
+                >
+                  Prove Competency & Verify Skill ⚡
+                </Link>
               </div>
             </div>
           ) : (
-            <div className="card bg-base-200 border border-base-300 p-6 text-center text-base-content/50">
-              {locale === 'en' 
-                ? 'Select a milestone card to view topics and resources.' 
-                : 'حدد بطاقة مرحلة تعليمية لعرض الموضوعات ومصادر المذاكرة المخصصة.'}
+            <div className="border border-base-300 rounded-2xl bg-base-200 p-6 text-center text-base-content/40 text-xs">
+              Select a learning module node to inspect vetted resources.
             </div>
           )}
         </aside>

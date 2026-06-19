@@ -10,7 +10,14 @@ export default function Footer() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
 
-  if (pathname.startsWith('/auth') || pathname.startsWith('/onboarding')) {
+  if (
+    pathname.startsWith('/auth') || 
+    pathname.startsWith('/onboarding') ||
+    pathname === '/cv' ||
+    pathname === '/roadmap' ||
+    pathname === '/dashboard' ||
+    pathname === '/hiring'
+  ) {
     return null;
   }
 

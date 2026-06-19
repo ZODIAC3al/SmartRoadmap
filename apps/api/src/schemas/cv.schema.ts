@@ -14,6 +14,15 @@ export class CVPersonal {
 
   @Prop()
   summary?: string;
+
+  @Prop()
+  photoUrl?: string;
+
+  @Prop()
+  address?: string;
+
+  @Prop()
+  website?: string;
 }
 
 @Schema({ _id: false })
@@ -61,6 +70,21 @@ export class CVProject {
   url?: string;
 }
 
+@Schema({ _id: false })
+export class CVReference {
+  @Prop()
+  name?: string;
+
+  @Prop()
+  relationship?: string;
+
+  @Prop()
+  phone?: string;
+
+  @Prop()
+  email?: string;
+}
+
 @Schema({ timestamps: true })
 export class Cv extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true, index: true })
@@ -81,8 +105,15 @@ export class Cv extends Document {
   @Prop({ type: [CVProject], default: [] })
   projects!: CVProject[];
 
+  @Prop({ type: [CVReference], default: [] })
+  references!: CVReference[];
+
+  @Prop({ type: [String], default: [] })
+  hobbies!: string[];
+
   @Prop()
   fileUrl?: string;
 }
 
 export const CvSchema = SchemaFactory.createForClass(Cv);
+
