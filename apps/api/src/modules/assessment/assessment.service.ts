@@ -4,6 +4,8 @@ import { Model, Types } from 'mongoose';
 import { QuizSession } from '../../schemas/quiz-session.schema';
 import { Roadmap } from '../../schemas/roadmap.schema';
 import { LLMService } from '../../ai/llm.service';
+import type { JwtUser } from '../../common/decorators/current-user.decorator';
+import { assertSelfOrAdmin } from '../../common/guards/ownership.util';
 
 // Memory store for questions since we mock or fetch them dynamically
 // In production, these can be cached in Redis or stored in the QuizSession document
@@ -50,11 +52,17 @@ export class AssessmentService {
     };
   }
 
-  async submitAnswer(sessionId: string, answer: string, timeTaken = 10): Promise<any> {
+  async submitAnswer(
+    sessionId: string,
+    answer: string,
+    timeTaken = 10,
+    user?: JwtUser,
+  ): Promise<any> {
     const session = await this.sessionModel.findById(sessionId);
     if (!session || session.status === 'completed') {
       throw new BadRequestException('Active session not found or already completed.');
     }
+    if (user) assertSelfOrAdmin(user, session.userId.toString());
 
     const questions = sessionQuestionsCache.get(sessionId);
     if (!questions) {
@@ -136,9 +144,12 @@ export class AssessmentService {
       // Clear cached session questions
       sessionQuestionsCache.delete(sessionId);
 
-      // Upgrade active roadmap milestones if passed
+      // Adaptive outcome: passing unlocks what comes next, failing injects a
+      // shorter remedial module instead of leaving the learner stuck.
       if (passed) {
         await this.unlockNextRoadmapModules(session.userId.toString(), session.moduleId);
+      } else {
+        await this.addRemedialModule(session.userId.toString(), session.moduleId, session.answers);
       }
 
       return {
@@ -171,6 +182,57 @@ export class AssessmentService {
         difficulty: nextDifficulty,
       },
     };
+  }
+
+  /**
+   * Failed the quiz? Build a focused remedial module out of the exact questions
+   * that were missed, and drop it right before the module they failed.
+   */
+  private async addRemedialModule(
+    userId: string,
+    failedModuleId: string,
+    answers: any[],
+  ): Promise<void> {
+    const roadmap = await this.roadmapModel.findOne({
+      userId: new Types.ObjectId(userId),
+      status: 'active',
+    });
+    if (!roadmap) return;
+
+    const failedModule = roadmap.modules.find((m) => m.id === failedModuleId);
+    if (!failedModule) return;
+
+    const remedialId = `${failedModuleId}-remedial`;
+    if (roadmap.modules.some((m) => m.id === remedialId)) {
+      this.logger.log(`Remedial module already exists for ${failedModuleId}`);
+      return;
+    }
+
+    // Weakest topics = whatever they answered wrong.
+    const missedTopics = answers
+      .filter((a) => !a.correct)
+      .map((a) => String(a.question).slice(0, 60));
+
+    failedModule.status = 'failed';
+
+    roadmap.modules.push({
+      id: remedialId,
+      title: `Review: ${failedModule.title}`,
+      description:
+        'A shorter, targeted refresher generated from the questions you missed. ' +
+        'Complete it to retry the original module.',
+      difficulty: 'beginner',
+      estimatedHours: Math.max(2, Math.round((failedModule.estimatedHours ?? 8) / 3)),
+      topics: missedTopics.length ? missedTopics : failedModule.topics,
+      prerequisites: failedModule.prerequisites,
+      status: 'in_progress',
+      positionX: (failedModule.positionX ?? 100) - 60,
+      positionY: (failedModule.positionY ?? 150) + 160,
+    } as any);
+
+    roadmap.markModified('modules');
+    await roadmap.save();
+    this.logger.log(`Added remedial module "${remedialId}" for user ${userId}`);
   }
 
   private async unlockNextRoadmapModules(userId: string, completedModuleId: string): Promise<void> {

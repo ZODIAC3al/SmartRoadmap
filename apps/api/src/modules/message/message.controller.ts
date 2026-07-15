@@ -1,48 +1,29 @@
-import { Controller, Get, Post, Param, Body, Headers, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { MessageService } from './message.service';
-import { AuthService } from '../auth/auth.service';
+import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import { SendMessageDto } from './dto/message.dto';
 
+@ApiTags('messages')
+@ApiBearerAuth()
 @Controller('messages')
 export class MessageController {
-  constructor(
-    private readonly messageService: MessageService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly messageService: MessageService) {}
 
-  private getUserIdFromToken(authHeader?: string): string {
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('No token provided');
-    }
-    const token = authHeader.split(' ')[1];
-    const decoded = this.authService.verifyToken(token);
-    if (!decoded || !decoded.sub) {
-      throw new UnauthorizedException('Invalid or expired token');
-    }
-    return decoded.sub;
-  }
-
+  // The hand-rolled `getUserIdFromToken()` helper that used to live in every
+  // controller is gone — the global JwtAuthGuard populates `req.user` instead.
   @Post('send')
-  async sendMessage(
-    @Body('recipientId') recipientId: string,
-    @Body('content') content: string,
-    @Headers('authorization') authHeader?: string,
-  ) {
-    const userId = this.getUserIdFromToken(authHeader);
-    const msg = await this.messageService.send(userId, recipientId, content);
-    return { success: true, data: msg };
+  async send(@CurrentUser() user: JwtUser, @Body() dto: SendMessageDto) {
+    return { success: true, data: await this.messageService.send(user.sub, dto.recipientId, dto.content) };
   }
 
   @Get('conversations')
-  async getConversations(@Headers('authorization') authHeader?: string) {
-    const userId = this.getUserIdFromToken(authHeader);
-    const conversations = await this.messageService.getConversations(userId);
-    return { success: true, data: conversations };
+  async conversations(@CurrentUser() user: JwtUser) {
+    return { success: true, data: await this.messageService.getConversations(user.sub) };
   }
 
   @Get('thread/:partnerId')
-  async getThread(@Param('partnerId') partnerId: string, @Headers('authorization') authHeader?: string) {
-    const userId = this.getUserIdFromToken(authHeader);
-    const thread = await this.messageService.getThread(userId, partnerId);
-    return { success: true, data: thread };
+  async thread(@CurrentUser() user: JwtUser, @Param('partnerId') partnerId: string) {
+    return { success: true, data: await this.messageService.getThread(user.sub, partnerId) };
   }
 }

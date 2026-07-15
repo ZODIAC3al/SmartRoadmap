@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useApp } from '@/components/AppContext';
 import { toast } from 'react-toastify';
+import { apiFetch, getCachedUser, hasSession } from '@/lib/api';
 
 type ScoredJob = {
   _id: string;
@@ -43,21 +44,21 @@ export default function HiringPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
-    const storedToken = localStorage.getItem('smart_token');
+    const storedUser = getCachedUser();
+    const storedToken = hasSession();
 
     if (!storedUser || !storedToken) {
       setLoading(false);
       return;
     }
 
-    const parsedUser = JSON.parse(storedUser);
+    const parsedUser = storedUser;
     setUser(parsedUser);
 
     async function fetchMatches() {
       try {
         const activeUserId = parsedUser.id || parsedUser._id;
-        const res = await fetch(`http://localhost:3000/hiring/jobs/matches/${activeUserId}`);
+        const res = await apiFetch('/hiring/jobs/matches');
         if (!res.ok) throw new Error();
         const data = await res.json();
         
@@ -144,23 +145,34 @@ export default function HiringPage() {
     setSuccessApplyJob(`${jobTitle} at ${company}`);
   };
 
-  const handleAddSkills = async (jobId: string, skills: string[]) => {
+  const handleAddSkills = async (jobId: string, _skills: string[]) => {
     setAddingSkills(prev => [...prev, jobId]);
     try {
-      await new Promise(r => setTimeout(r, 800));
-      setJobs(prevJobs => 
+      // Real gap analysis: the server recomputes the gap against the user's
+      // verified skills and writes the missing ones into the active roadmap.
+      // (This used to be a setTimeout that just repainted the UI.)
+      const res = await apiFetch(`/hiring/jobs/${jobId}/close-gap`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message ?? 'Could not update your roadmap.');
+
+      setJobs(prevJobs =>
         prevJobs.map(job => {
           if (job._id === jobId) {
-            const updated = { ...job, matchScore: 100, skillsGap: [] };
+            const updated = { ...job, skillsGap: [] };
             if (selectedJob?._id === jobId) setSelectedJob(updated);
             return updated;
           }
           return job;
         })
       );
-      toast.success('Successfully added missing skills to your Learning Roadmap!');
-    } catch (e) {
-      console.error(e);
+
+      toast.success(
+        data.added?.length
+          ? `Added ${data.added.length} module(s) to your roadmap: ${data.added.join(', ')}`
+          : data.message
+      );
+    } catch (e: any) {
+      toast.error(e.message ?? 'Something went wrong.');
     } finally {
       setAddingSkills(prev => prev.filter(id => id !== jobId));
     }

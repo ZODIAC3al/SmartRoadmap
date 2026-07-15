@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { useApp } from '@/components/AppContext';
+import { getCachedUser } from '@/lib/api';
 
 type VettedSkill = {
   name: string;
@@ -38,9 +39,9 @@ export default function SkillPassportPage() {
   ]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
+    const storedUser = getCachedUser();
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      setUser(storedUser);
     }
     setLoading(false);
   }, []);

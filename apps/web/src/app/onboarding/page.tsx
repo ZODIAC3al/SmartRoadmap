@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Stepper from '@/components/Stepper';
 import { useApp } from '@/components/AppContext';
+import { apiFetch, getCachedUser } from '@/lib/api';
 
 const PRESET_ROLES = [
   { id: 'fe', title: 'Frontend Engineer', desc: 'Build reactive user interfaces, state managers, and modern layouts.', icon: '⚛️' },
@@ -45,10 +46,10 @@ export default function OnboardingPage() {
   ];
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
+    const storedUser = getCachedUser();
     if (storedUser) {
       try {
-        const u = JSON.parse(storedUser);
+        const u = storedUser;
         if (u.id) {
           setUserId(u.id);
         }
@@ -88,11 +89,10 @@ export default function OnboardingPage() {
     const finalRole = isCustomRole ? customRoleInput : targetRole;
 
     try {
-      const response = await fetch('http://localhost:3000/roadmap/generate', {
+      const response = await apiFetch('/roadmap/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: userId,
           role: finalRole,
           education: education,
           experienceYears: experienceYears,

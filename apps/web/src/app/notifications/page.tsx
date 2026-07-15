@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/components/AppContext';
 import { toast } from 'react-toastify';
+import { apiFetch, hasSession } from '@/lib/api';
 
 export default function NotificationsPage() {
   const { locale, t } = useApp();
@@ -12,14 +13,13 @@ export default function NotificationsPage() {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
   const fetchNotifications = async () => {
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) {
       setLoading(false);
       return;
     }
     try {
-      const res = await fetch('http://localhost:3000/notifications', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await apiFetch('/notifications', {
       });
       if (res.ok) {
         const body = await res.json();
@@ -37,12 +37,11 @@ export default function NotificationsPage() {
   }, []);
 
   const handleMarkRead = async (id: string) => {
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:3000/notifications/${id}/read`, {
+      const res = await apiFetch(`/notifications/${id}/read`, {
         method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setNotifications(prev =>
@@ -53,12 +52,11 @@ export default function NotificationsPage() {
   };
 
   const handleMarkAllRead = async () => {
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3000/notifications/read-all', {
+      const res = await apiFetch('/notifications/read-all', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
@@ -69,12 +67,11 @@ export default function NotificationsPage() {
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:3000/notifications/${id}`, {
+      const res = await apiFetch(`/notifications/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setNotifications(prev => prev.filter(n => n._id !== id));

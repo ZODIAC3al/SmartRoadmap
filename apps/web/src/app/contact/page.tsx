@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useApp } from '@/components/AppContext';
+import { apiFetch } from '@/lib/api';
 
 const INTEREST_OPTIONS = (t: (k: string) => string) => [
   t('contact.interest_opt1'),
@@ -48,7 +49,7 @@ export default function ContactPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const response = await fetch('http://localhost:3000/contact/submit', {
+      const response = await apiFetch('/contact/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),

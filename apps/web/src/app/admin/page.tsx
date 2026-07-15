@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useApp } from '@/components/AppContext';
+import { fetchMe, logout } from '@/lib/api';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -44,35 +45,21 @@ export default function AdminDashboard() {
   ];
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
-    const storedToken = localStorage.getItem('smart_token');
-
-    if (!storedUser || !storedToken) {
+    // Identity now comes from the server (/auth/me), not from a JSON blob the
+    // user can hand-edit in localStorage. The API enforces the role again
+    // on every request via RolesGuard, so this is UX, not the security boundary.
+    (async () => {
+      const me = await fetchMe();
+      setUser(me);
       setLoading(false);
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(storedUser);
-      setUser(parsed);
-    } catch (e) {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
+    })();
   }, []);
 
   const handleSimulateAdmin = () => {
-    const adminUser = {
-      id: 'demo-admin-id',
-      name: 'SmartRoadmap SysAdmin',
-      email: 'admin@smartroadmap.io',
-      role: 'admin'
-    };
-    localStorage.setItem('smart_user', JSON.stringify(adminUser));
-    localStorage.setItem('smart_token', 'demo-token');
-    setUser(adminUser);
-    toast.success('Admin Session Simulator Enabled!');
+    // The fake client-side session ('demo-token') is gone: a role can only ever
+    // come from a JWT the server issued, and the API re-checks it on every call.
+    toast.info('Please sign in with an authorized account.');
+    window.location.href = '/auth/login';
   };
 
   if (loading) {
@@ -132,8 +119,7 @@ export default function AdminDashboard() {
             </Link>
             <button 
               onClick={() => {
-                localStorage.removeItem('smart_user');
-                localStorage.removeItem('smart_token');
+                logout();
                 setUser(null);
                 toast.info('Logged out from admin panel.');
               }}

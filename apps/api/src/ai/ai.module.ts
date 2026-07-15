@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { LLMService } from './llm.service';
 import { EmbeddingService } from './embedding.service';
 import { RAGService } from './rag.service';

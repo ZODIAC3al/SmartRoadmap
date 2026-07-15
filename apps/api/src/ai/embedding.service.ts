@@ -1,41 +1,63 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type OpenAI from 'openai';
+import { createOpenAIClient } from './openai.client';
 
 @Injectable()
 export class EmbeddingService {
   private readonly logger = new Logger(EmbeddingService.name);
   private readonly isMockMode: boolean;
+  private readonly client: OpenAI | null;
 
-  constructor() {
-    const apiKey = process.env.OPENAI_API_KEY;
-    this.isMockMode = !apiKey || apiKey.startsWith('sk-...') || apiKey.includes('placeholder');
-    if (this.isMockMode) {
-      this.logger.warn('OpenAI API Key is missing. Running in MOCK/OFFLINE mode for text embeddings.');
-    }
+  constructor(private readonly config: ConfigService) {
+    const { isMockMode, client } = createOpenAIClient(config, this.logger);
+    this.isMockMode = isMockMode;
+    this.client = client;
+  }
+
+  /** Deterministic pseudo-embedding so mock results are stable across calls. */
+  private mockEmbedding(text: string): number[] {
+    let seed = 0;
+    for (let i = 0; i < text.length; i++) seed = (seed * 31 + text.charCodeAt(i)) % 2 ** 31;
+
+    const vector = Array.from({ length: 1536 }, () => {
+      seed = (seed * 1103515245 + 12345) % 2 ** 31;
+      return seed / 2 ** 31 - 0.5;
+    });
+
+    const magnitude = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0)) || 1;
+    return vector.map((v) => v / magnitude);
   }
 
   async embed(text: string): Promise<number[]> {
-    if (this.isMockMode) {
-      // Return a simulated 1536-dimensional unit vector
-      const vector = Array.from({ length: 1536 }, () => Math.random() - 0.5);
-      const magnitude = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
-      return vector.map(val => val / (magnitude || 1));
-    }
+    if (this.isMockMode || !this.client) return this.mockEmbedding(text);
 
     try {
-      const { OpenAI } = require('openai');
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      const response = await openai.embeddings.create({
-        model: process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small',
+      const response = await this.client.embeddings.create({
+        model: this.config.get<string>('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small'),
         input: text,
       });
-      return response.data[0]?.embedding || [];
+      return response.data[0]?.embedding ?? this.mockEmbedding(text);
     } catch (error: any) {
-      this.logger.error('Failed to retrieve embeddings from OpenAI. Falling back to mock vector.', error.stack);
-      return this.embed(text);
+      // Previously: `return this.embed(text)` → infinite recursion.
+      this.logger.error(`OpenAI embedding failed: ${error.message}`);
+      return this.mockEmbedding(text);
     }
   }
 
   async embedBatch(texts: string[]): Promise<number[][]> {
-    return Promise.all(texts.map(text => this.embed(text)));
+    if (this.isMockMode || !this.client) return texts.map((t) => this.mockEmbedding(t));
+
+    try {
+      // One batched request instead of N sequential ones.
+      const response = await this.client.embeddings.create({
+        model: this.config.get<string>('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small'),
+        input: texts,
+      });
+      return response.data.map((d) => d.embedding);
+    } catch (error: any) {
+      this.logger.error(`OpenAI batch embedding failed: ${error.message}`);
+      return texts.map((t) => this.mockEmbedding(t));
+    }
   }
 }

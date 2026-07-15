@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useApp } from '@/components/AppContext';
+import { apiFetch } from '@/lib/api';
 
 export default function Footer() {
   const { t, locale } = useApp();
@@ -67,7 +68,7 @@ export default function Footer() {
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3000/newsletter/subscribe', {
+      const response = await apiFetch('/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newsletterEmail }),

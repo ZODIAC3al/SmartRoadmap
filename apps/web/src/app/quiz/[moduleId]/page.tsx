@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { apiFetch, getCachedUser } from '@/lib/api';
 
 type QuestionPayload = {
   sessionId: string;
@@ -47,11 +48,11 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
 
   // Fetch module title and start session on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
+    const storedUser = getCachedUser();
     let activeUserId = '654321098765432109876543';
     if (storedUser) {
       try {
-        const u = JSON.parse(storedUser);
+        const u = storedUser;
         if (u.id) {
           activeUserId = u.id;
           setUserId(u.id);
@@ -62,7 +63,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
     async function initQuiz() {
       try {
         // 1. Fetch active roadmap to retrieve the specific module topic title
-        const roadmapRes = await fetch(`http://localhost:3000/roadmap/user/${activeUserId}`);
+        const roadmapRes = await apiFetch('/roadmap/me');
         let moduleTopic = 'General Foundations';
         if (roadmapRes.ok) {
           const roadmapData = await roadmapRes.json();
@@ -74,11 +75,10 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
         }
 
         // 2. Start dynamic quiz session
-        const sessionRes = await fetch('http://localhost:3000/assessment/session/start', {
+        const sessionRes = await apiFetch('/assessment/session/start', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: activeUserId,
             moduleId,
             topic: moduleTopic,
           }),
@@ -132,7 +132,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
     setAnswerSubmitted(true);
 
     try {
-      const response = await fetch(`http://localhost:3000/assessment/session/${session.sessionId}/answer`, {
+      const response = await apiFetch(`/assessment/session/${session.sessionId}/answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

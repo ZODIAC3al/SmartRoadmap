@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { apiFetch, storeSession } from '@/lib/api';
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,7 +14,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +23,7 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMsg('');
     try {
-      const res = await fetch('http://localhost:3000/auth/login', {
+      const res = await apiFetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -31,9 +34,7 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
 
-      localStorage.setItem('smart_token', data.token);
-      localStorage.setItem('smart_user', JSON.stringify(data.user));
-
+      storeSession(data);
       router.push('/dashboard');
     } catch (err: any) {
       setErrorMsg(err.message || 'Invalid credentials');
@@ -42,36 +43,61 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleMockLogin = async (mockEmail: string, mockName: string, role: string) => {
+  /**
+   * Real Google Sign-In.
+   *
+   * The old flow POSTed an arbitrary { email, name } to /auth/google, which let
+   * anyone log in as ANY user. Now Google issues a signed ID token in the browser
+   * and the backend verifies that signature against Google's public keys.
+   */
+  const handleGoogleCredential = async (credential: string) => {
     setLoading(true);
-    setShowGoogleModal(false);
+    setErrorMsg('');
     try {
-      const res = await fetch('http://localhost:3000/auth/google', {
+      const res = await apiFetch('/auth/google', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: mockEmail, name: mockName }),
+        body: JSON.stringify({ idToken: credential }),
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Google Auth failed');
-      }
+      if (!res.ok) throw new Error(data.message || 'Google authentication failed');
 
-      const userPayload = { ...data.user, role };
-      localStorage.setItem('smart_token', data.token);
-      localStorage.setItem('smart_user', JSON.stringify(userPayload));
-
-      if (role === 'company') {
-        router.push('/company');
-      } else {
-        router.push('/dashboard');
-      }
+      storeSession(data);
+      router.push(data.user?.role === 'company' ? '/company' : '/dashboard');
     } catch (err: any) {
-      setErrorMsg(err.message || 'Google Authentication failed');
+      setErrorMsg(err.message || 'Google authentication failed');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID || !googleButtonRef.current) return;
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.onload = () => {
+      const google = (window as any).google;
+      if (!google) return;
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: (response: { credential: string }) => handleGoogleCredential(response.credential),
+      });
+      google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: 'outline',
+        size: 'large',
+        width: 360,
+        text: 'continue_with',
+      });
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      script.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-white flex flex-col md:grid md:grid-cols-12">
@@ -95,30 +121,18 @@ export default function LoginPage() {
             <p className="text-xs text-gray-500 mt-2">Welcome back! Select method to log in:</p>
           </div>
 
-          {/* Social OAuth Buttons */}
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => setShowGoogleModal(true)}
-              className="btn btn-outline border-gray-200 hover:bg-gray-50 text-gray-700 bg-white text-xs font-semibold rounded-xl h-11 flex items-center justify-center gap-2 hover:border-gray-300"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.47 15.02.75 12 .75c-4.66 0-8.62 2.68-10.51 6.59l3.75 2.91C6.12 7.37 8.82 5.04 12 5.04z" />
-                <path fill="#4285F4" d="M23.49 12.27c0-.82-.07-1.61-.21-2.38H12v4.51h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.38-4.88 3.38-8.52z" />
-                <path fill="#FBBC05" d="M5.24 14.65c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.49 7.16C.54 9.12 0 11.31 0 12.64s.54 3.52 1.49 5.48l3.75-2.91C4.86 16.22 4.72 15.45 5.24 14.65z" />
-                <path fill="#34A853" d="M12 23.25c3.24 0 5.97-1.08 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-3.96 1.09-3.18 0-5.88-2.33-6.84-5.48l-3.75 2.91C3.38 20.57 7.34 23.25 12 23.25z" />
-              </svg>
-              Google
-            </button>
-            <button
-              onClick={() => alert('Simulated Facebook Login triggered.')}
-              className="btn btn-outline border-gray-200 hover:bg-gray-50 text-gray-700 bg-white text-xs font-semibold rounded-xl h-11 flex items-center justify-center gap-2 hover:border-gray-300"
-            >
-              <svg className="w-4 h-4 fill-[#1877F2]" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-              Facebook
-            </button>
-          </div>
+          {/* Google Identity Services renders its own (signed) button here.
+              If NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set, we simply don't offer it. */}
+          {GOOGLE_CLIENT_ID ? (
+            <div className="flex justify-center">
+              <div ref={googleButtonRef} />
+            </div>
+          ) : (
+            <p className="text-[11px] text-gray-400 text-center">
+              Google sign-in is not configured on this environment.
+            </p>
+          )}
+
 
           {/* Separator */}
           <div className="relative flex py-2 items-center">
@@ -208,7 +222,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-xs text-gray-500 mt-6">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/auth/register" className="text-[#0f67fd] font-bold hover:underline">
               Create an account
             </Link>
@@ -264,69 +278,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Google Simulated Modal Selector */}
-      {showGoogleModal && (
-        <div className="modal modal-open">
-          <div className="modal-box rounded-2xl bg-base-200 border border-base-300">
-            <h3 className="font-bold text-lg text-primary flex items-center gap-2">
-              <svg className="w-6 h-6" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M23.49 12.27c0-.82-.07-1.61-.21-2.38H12v4.51h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.38-4.88 3.38-8.52z" />
-              </svg>
-              Google Sign-In Selector
-            </h3>
-            <p className="py-4 text-xs text-base-content/75 leading-relaxed">
-              We have configured a simulated Google verification interface so that you can verify both user archetypes instantly without GCP credential bindings.
-            </p>
-
-            <div className="space-y-3 mt-2">
-              <button
-                onClick={() => handleGoogleMockLogin('mohamed.elsaied@gmail.com', 'Mohamed Elsaied', 'learner')}
-                className="btn btn-block justify-start text-left bg-base-100 hover:bg-base-300 rounded-xl"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="avatar placeholder"><div className="bg-success text-success-content rounded-full w-8 font-bold">ME</div></div>
-                  <div>
-                    <div className="font-bold text-xs">Mohamed Elsaied (Learner)</div>
-                    <div className="text-[10px] text-base-content/50">mohamed.elsaied@gmail.com</div>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleGoogleMockLogin('ali.maher@gmail.com', 'Ali Maher', 'learner')}
-                className="btn btn-block justify-start text-left bg-base-100 hover:bg-base-300 rounded-xl"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="avatar placeholder"><div className="bg-info text-info-content rounded-full w-8 font-bold">AM</div></div>
-                  <div>
-                    <div className="font-bold text-xs">Ali Maher (Learner)</div>
-                    <div className="text-[10px] text-base-content/50">ali.maher@gmail.com</div>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => handleGoogleMockLogin('recruiter@lattice.com', 'Lattice Recruiter', 'company')}
-                className="btn btn-block justify-start text-left bg-base-100 hover:bg-base-300 rounded-xl"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="avatar placeholder"><div className="bg-warning text-warning-content rounded-full w-8 font-bold">LR</div></div>
-                  <div>
-                    <div className="font-bold text-xs">Lattice Recruiter (Company)</div>
-                    <div className="text-[10px] text-base-content/50">recruiter@lattice.com</div>
-                  </div>
-                </div>
-              </button>
-            </div>
-
-            <div className="modal-action">
-              <button onClick={() => setShowGoogleModal(false)} className="btn btn-outline btn-sm">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
