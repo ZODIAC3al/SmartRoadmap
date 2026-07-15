@@ -30,6 +30,9 @@ export class ModuleItem {
   })
   status!: 'locked' | 'in_progress' | 'completed' | 'failed';
 
+  @Prop({ default: 0 })
+  requiredChallenges!: number;
+
   @Prop()
   positionX?: number;
 
@@ -38,6 +41,18 @@ export class ModuleItem {
 }
 
 const ModuleItemSchema = SchemaFactory.createForClass(ModuleItem);
+
+@Schema({ _id: false })
+export class Viewport {
+  @Prop({ default: 0 })
+  x!: number;
+
+  @Prop({ default: 0 })
+  y!: number;
+
+  @Prop({ default: 1 })
+  zoom!: number;
+}
 
 @Schema({ timestamps: true })
 export class Roadmap extends Document {
@@ -58,6 +73,12 @@ export class Roadmap extends Document {
 
   @Prop({ type: [ModuleItemSchema], default: [] })
   modules!: ModuleItem[];
+
+  @Prop({ type: Viewport, default: () => ({ x: 0, y: 0, zoom: 1 }) })
+  viewport!: Viewport;
+
+  @Prop({ enum: ['straight', 'curved'], default: 'curved' })
+  edgeStyle!: 'straight' | 'curved';
 }
 
 export const RoadmapSchema = SchemaFactory.createForClass(Roadmap);

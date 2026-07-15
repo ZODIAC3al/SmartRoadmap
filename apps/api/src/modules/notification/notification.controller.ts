@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { NotificationService } from './notification.service';
 import {
@@ -31,6 +31,15 @@ export class NotificationController {
   @Post('read-all')
   markAllRead(@CurrentUser() user: JwtUser) {
     return this.notificationService.markAllRead(user.sub);
+  }
+
+  @Post('push-subscription')
+  async savePushSubscription(
+    @CurrentUser() user: JwtUser,
+    @Body() subscriptionDto: any,
+  ) {
+    await this.notificationService.saveSubscription(user.sub, subscriptionDto);
+    return { success: true };
   }
 
   @Delete(':id')

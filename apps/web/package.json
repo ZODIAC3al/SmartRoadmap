@@ -11,6 +11,7 @@
     "test": "echo \"no web tests yet\""
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@smartroadmap/shared": "*",
     "next": "^14.2.3",
     "react": "^18.3.1",

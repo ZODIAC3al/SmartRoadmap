@@ -43,13 +43,6 @@ export default function LoginPage() {
     }
   };
 
-  /**
-   * Real Google Sign-In.
-   *
-   * The old flow POSTed an arbitrary { email, name } to /auth/google, which let
-   * anyone log in as ANY user. Now Google issues a signed ID token in the browser
-   * and the backend verifies that signature against Google's public keys.
-   */
   const handleGoogleCredential = async (credential: string) => {
     setLoading(true);
     setErrorMsg("");
@@ -89,7 +82,7 @@ export default function LoginPage() {
       google.accounts.id.renderButton(googleButtonRef.current, {
         theme: "outline",
         size: "large",
-        width: 360,
+        width: 320,
         text: "continue_with",
       });
     };
@@ -98,121 +91,59 @@ export default function LoginPage() {
     return () => {
       script.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col md:grid md:grid-cols-12">
-      {/* LEFT COLUMN: AUTH FORM */}
-      <div className="col-span-6 flex flex-col justify-center px-6 sm:px-16 md:px-20 py-12">
-        <div className="max-w-md w-full mx-auto space-y-8">
-          {/* Logo Header */}
-          <div className="flex items-center gap-2 text-xl font-bold tracking-tight text-[#0f67fd]">
-            <div className="w-8 h-8 rounded-lg bg-[#0f67fd] flex items-center justify-center text-white">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <span className="text-gray-900">dotwork</span>
-          </div>
+    <div className="min-h-screen bg-base-100 flex flex-col md:grid md:grid-cols-12 overflow-hidden select-none">
+      {/* LEFT FORM BLOCK */}
+      <div className="col-span-12 md:col-span-5 flex flex-col justify-between px-8 sm:px-16 md:px-12 lg:px-20 py-10 min-h-screen bg-base-100 relative z-10">
+        {/* Brand Header */}
+        <div className="flex items-center gap-2 text-2xl font-bold tracking-tight text-emerald-600">
+          <svg className="w-8 h-8 text-emerald-500 fill-current" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12c0 2.76 1.12 5.26 2.93 7.07L12 11.12l7.07 7.95C20.88 17.26 22 14.76 22 12c0-5.52-4.48-10-10-10zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+          </svg>
+          <span className="text-base-content font-extrabold tracking-wide">SmartRoadmap</span>
+        </div>
 
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-              Log in to your Account
-            </h2>
-            <p className="text-xs text-gray-500 mt-2">
-              Welcome back! Select method to log in:
+        {/* Form panel */}
+        <div className="max-w-md w-full mx-auto space-y-6 my-auto pt-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-extrabold text-base-content tracking-tight">
+              Welcome to SmartRoadmap
+            </h1>
+            <p className="text-sm text-base-content/60">
+              Sign in to manage and optimize your adaptive learning path.
             </p>
-          </div>
-
-          {/* Google Identity Services renders its own (signed) button here.
-              If NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set, we simply don't offer it. */}
-          {GOOGLE_CLIENT_ID ? (
-            <div className="flex justify-center">
-              <div ref={googleButtonRef} />
-            </div>
-          ) : (
-            <p className="text-[11px] text-gray-400 text-center">
-              Google sign-in is not configured on this environment.
-            </p>
-          )}
-
-          {/* Separator */}
-          <div className="relative flex py-2 items-center">
-            <div className="flex-grow border-t border-gray-100"></div>
-            <span className="flex-shrink mx-4 text-[10px] text-gray-400 font-medium uppercase font-mono tracking-wider">
-              or continue with email
-            </span>
-            <div className="flex-grow border-t border-gray-100"></div>
           </div>
 
           {errorMsg && (
-            <div className="bg-red-50 text-red-600 text-xs p-3.5 rounded-xl border border-red-100">
+            <div className="bg-red-50 text-red-600 text-xs p-3 rounded-xl border border-red-100 font-medium">
               ⚠️ {errorMsg}
             </div>
           )}
 
-          {/* Credentials Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="form-control">
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                </span>
-                <input
-                  type="email"
-                  placeholder="Email"
-                  className="input input-bordered w-full pl-10 bg-white border-gray-200 text-gray-800 rounded-xl placeholder-gray-400 text-sm focus:border-[#0f67fd] focus:ring-1 focus:ring-[#0f67fd] h-12"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
+              <label className="label text-xs font-bold text-base-content/70 mb-1">Email / Username</label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="input input-bordered w-full bg-transparent border-base-300 text-base-content rounded-xl focus:border-indigo-650 focus:ring-1 focus:ring-indigo-650 h-11 text-sm"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
 
             <div className="form-control">
+              <div className="flex justify-between items-center mb-1">
+                <label className="label text-xs font-bold text-base-content/70 p-0">Password</label>
+              </div>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
-                </span>
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  className="input input-bordered w-full pl-10 pr-10 bg-white border-gray-200 text-gray-800 rounded-xl placeholder-gray-400 text-sm focus:border-[#0f67fd] focus:ring-1 focus:ring-[#0f67fd] h-12"
+                  placeholder="Enter your password"
+                  className="input input-bordered w-full bg-transparent border-base-300 text-base-content rounded-xl focus:border-indigo-650 focus:ring-1 focus:ring-indigo-650 h-11 text-sm pr-10"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -220,61 +151,25 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-base-content/40 hover:text-base-content/70"
                 >
-                  {showPassword ? (
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                      />
-                    </svg>
-                  )}
+                  {showPassword ? "👁️" : "👁️‍🗨️"}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center justify-between text-xs text-base-content/50 pt-1">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="checkbox checkbox-xs checkbox-primary rounded-md"
+                  className="checkbox checkbox-xs rounded border-base-300 checkbox-primary"
                 />
-                <span>Remember me</span>
+                <span className="text-base-content/50">Remember me</span>
               </label>
               <a
                 href="#"
-                className="font-semibold text-[#0f67fd] hover:underline"
-                onClick={() =>
-                  alert("Verification email reset simulation triggered.")
-                }
+                className="font-bold text-indigo-600 hover:underline"
+                onClick={() => alert("Verification email reset simulation triggered.")}
               >
                 Forgot Password?
               </a>
@@ -282,102 +177,109 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="btn bg-[#0f67fd] hover:bg-[#0d59db] border-none btn-block rounded-xl text-white font-semibold text-sm shadow-md mt-6 h-12"
+              className="btn bg-indigo-650 hover:bg-indigo-700 border-none btn-block rounded-xl text-white font-bold text-sm shadow-md mt-6 h-11"
               disabled={loading}
             >
-              {loading && (
-                <span className="loading loading-spinner loading-sm" />
-              )}
-              Log in
+              {loading && <span className="loading loading-spinner loading-sm mr-2" />}
+              LOGIN
             </button>
           </form>
 
-          <p className="text-center text-xs text-gray-500 mt-6">
+          {GOOGLE_CLIENT_ID && (
+            <div className="flex flex-col items-center pt-2">
+              <div className="relative flex py-2 items-center w-full">
+                <div className="flex-grow border-t border-base-200"></div>
+                <span className="flex-shrink mx-4 text-[10px] text-base-content/40 font-bold uppercase tracking-wider">
+                  or OAuth
+                </span>
+                <div className="flex-grow border-t border-base-200"></div>
+              </div>
+              <div ref={googleButtonRef} className="mt-2" />
+            </div>
+          )}
+
+          <p className="text-center text-xs text-base-content/60 pt-4">
             Don&apos;t have an account?{" "}
-            <Link
-              href="/auth/register"
-              className="text-[#0f67fd] font-bold hover:underline"
-            >
-              Create an account
+            <Link href="/auth/register" className="text-indigo-600 font-extrabold hover:underline">
+              Sign up
             </Link>
           </p>
         </div>
+
+        {/* Footer */}
+        <div className="flex justify-center gap-4 text-xs text-slate-400 font-medium pt-8">
+          <a href="#" className="hover:underline">FAQ</a>
+          <span>|</span>
+          <a href="#" className="hover:underline">Features</a>
+          <span>|</span>
+          <a href="#" className="hover:underline">Support</a>
+        </div>
       </div>
 
-      {/* RIGHT COLUMN: SHOWCASE BLUE PANEL */}
-      <div className="col-span-6 hidden md:flex flex-col justify-center items-center bg-[#0f67fd] text-white p-12 relative">
-        <div className="max-w-md text-center space-y-8 flex flex-col items-center">
-          {/* Linked Application Connected SVG Graphics */}
-          <div className="relative w-64 h-64 flex items-center justify-center">
-            {/* Center target circle representing dotwork */}
-            <div className="absolute w-24 h-24 rounded-full bg-white/10 border border-white/20 flex items-center justify-center animate-pulse">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center font-bold font-mono">
-                DW
+      {/* RIGHT SIDE PANEL: BEAUTIFUL CURVED BLUE VECTOR PANEL */}
+      <div className="col-span-12 md:col-span-7 hidden md:flex flex-col justify-between bg-indigo-600 text-white p-16 relative overflow-hidden">
+        {/* Curving separation SVG absolute overlay */}
+        <svg
+          className="absolute top-0 bottom-0 left-0 w-24 h-full text-white fill-current pointer-events-none -ml-px"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          <path d="M100 0 C30 30, 0 60, 100 100 Z" />
+        </svg>
+
+        <div className="max-w-md space-y-6 pt-10 pl-12 relative z-10">
+          <h2 className="text-3xl font-extrabold tracking-tight">About SmartRoadmap</h2>
+          <p className="text-indigo-100 leading-relaxed text-sm">
+            Everything you need to advance your career. Build diagnostic roadmaps, pass adaptive tests, and lock pre-vetted career profiles mapped to recruiter pipelines.
+          </p>
+          <div className="space-y-4 pt-4">
+            <div className="flex items-start gap-3">
+              <span className="bg-white/20 p-1.5 rounded-lg">🚀</span>
+              <div>
+                <h4 className="font-bold text-sm">AI-Generated Curriculum</h4>
+                <p className="text-xs text-indigo-100">Custom timelines based on target career roles.</p>
               </div>
             </div>
-
-            {/* Surrounding Connected Circles mimicking mockup */}
-            <div className="absolute top-4 left-4 w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg text-black font-bold">
-              💬
+            <div className="flex items-start gap-3">
+              <span className="bg-white/20 p-1.5 rounded-lg">🎯</span>
+              <div>
+                <h4 className="font-bold text-sm">Adaptive Quizzes</h4>
+                <p className="text-xs text-indigo-100">Verify skills via difficulty-scaling assessment engines.</p>
+              </div>
             </div>
-            <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg text-black font-bold">
-              G
-            </div>
-            <div className="absolute top-12 right-0 w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg text-black font-bold">
-              📊
-            </div>
-
-            {/* Connecting lines */}
-            <svg
-              className="absolute inset-0 w-full h-full text-white/20 pointer-events-none"
-              viewBox="0 0 100 100"
-            >
-              <line
-                x1="25"
-                y1="25"
-                x2="50"
-                y2="50"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeDasharray="4"
-              />
-              <line
-                x1="25"
-                y1="75"
-                x2="50"
-                y2="50"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeDasharray="4"
-              />
-              <line
-                x1="75"
-                y1="35"
-                x2="50"
-                y2="50"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeDasharray="4"
-              />
-            </svg>
           </div>
+        </div>
 
-          <div className="space-y-3">
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
-              Connect with every application.
-            </h3>
-            <p className="text-xs text-white/80 max-w-sm mx-auto leading-relaxed">
-              Everything you need in an easily customizable dashboard. Verified
-              credentials, skills gap matching, and recruiter pipelines.
-            </p>
-          </div>
-
-          {/* Slider indicator dots */}
-          <div className="flex gap-2 justify-center mt-6">
-            <span className="w-2.5 h-2.5 rounded-full bg-white"></span>
-            <span className="w-2.5 h-2.5 rounded-full bg-white/35"></span>
-            <span className="w-2.5 h-2.5 rounded-full bg-white/35"></span>
-          </div>
+        {/* SVG ILLUSTRATED FARMLAND & BIRDS GRAPHIC MATCHING MOCKUP */}
+        <div className="w-full h-64 relative mt-auto z-10 select-none">
+          <svg className="absolute bottom-0 right-0 w-full h-full text-indigo-500 fill-current opacity-90" viewBox="0 0 500 200" preserveAspectRatio="none">
+            {/* Hills */}
+            <path d="M0 160 Q150 110 300 150 T500 120 L500 200 L0 200 Z" fill="#4f46e5" />
+            <path d="M0 180 Q100 150 250 180 T500 160 L500 200 L0 200 Z" fill="#4338ca" />
+            
+            {/* Cute vector chickens/birds mimicking mockup */}
+            {/* Chick 1 */}
+            <g transform="translate(120, 130)" fill="#fbbf24">
+              <circle cx="10" cy="10" r="10" />
+              <circle cx="16" cy="6" r="6" />
+              <polygon points="21,5 24,7 21,9" fill="#f59e0b" />
+              <polygon points="12,18 10,24 8,24" stroke="#f59e0b" strokeWidth="2" />
+              <polygon points="16,18 14,24 12,24" stroke="#f59e0b" strokeWidth="2" />
+            </g>
+            {/* Chick 2 */}
+            <g transform="translate(240, 150)" fill="#fef08a">
+              <circle cx="10" cy="10" r="8" />
+              <circle cx="15" cy="7" r="5" />
+              <polygon points="19,6 22,8 19,10" fill="#f59e0b" />
+              <polygon points="11,17 9,22 7,22" stroke="#f59e0b" strokeWidth="1.5" />
+            </g>
+            {/* Barn */}
+            <g transform="translate(380, 110)">
+              <rect x="0" y="20" width="50" height="40" fill="#ef4444" rx="4" />
+              <polygon points="-5,20 25,0 55,20" fill="#991b1b" />
+              <rect x="15" y="35" width="20" height="25" fill="#fee2e2" />
+            </g>
+          </svg>
         </div>
       </div>
     </div>

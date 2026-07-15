@@ -20,9 +20,28 @@ export class Notification extends Document {
 
   @Prop({
     default: 'general',
-    enum: ['general', 'roadmap_update', 'job_match', 'message'],
+    enum: [
+      'general',
+      'roadmap_update',
+      'job_match',
+      'message',
+      'streak_reminder',
+      'calendar_reminder',
+      'achievement',
+      'quiz_result',
+      'system',
+    ],
   })
-  type!: 'general' | 'roadmap_update' | 'job_match' | 'message';
+  type!:
+    | 'general'
+    | 'roadmap_update'
+    | 'job_match'
+    | 'message'
+    | 'streak_reminder'
+    | 'calendar_reminder'
+    | 'achievement'
+    | 'quiz_result'
+    | 'system';
 
   @Prop({ default: false })
   read!: boolean;

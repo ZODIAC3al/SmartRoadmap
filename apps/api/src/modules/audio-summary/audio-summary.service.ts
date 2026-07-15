@@ -1,0 +1,157 @@
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import * as fs from 'fs';
+import * as path from 'path';
+import { AudioSummary } from '../../schemas/audio-summary.schema';
+import { Roadmap } from '../../schemas/roadmap.schema';
+import { AiProviderFactory } from '../../ai/ai-provider.factory';
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+export class AudioSummaryService {
+  private readonly logger = new Logger(AudioSummaryService.name);
+  private readonly audioDir: string;
+
+  constructor(
+    @InjectModel(AudioSummary.name)
+    private readonly audioSummaryModel: Model<AudioSummary>,
+    @InjectModel(Roadmap.name)
+    private readonly roadmapModel: Model<Roadmap>,
+    private readonly aiProviderFactory: AiProviderFactory,
+    private readonly config: ConfigService,
+  ) {
+    // Set up local storage path inside the API workspace
+    this.audioDir = path.join(process.cwd(), 'public', 'audio');
+    if (!fs.existsSync(this.audioDir)) {
+      fs.mkdirSync(this.audioDir, { recursive: true });
+    }
+  }
+
+  async get(userId: string, moduleId: string): Promise<AudioSummary | null> {
+    return this.audioSummaryModel.findOne({
+      userId: new Types.ObjectId(userId),
+      moduleId,
+    }).exec();
+  }
+
+  async getAudioFilePath(filename: string): Promise<string> {
+    const filePath = path.join(this.audioDir, filename);
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('Audio file not found');
+    }
+    return filePath;
+  }
+
+  async generate(userId: string, moduleId: string): Promise<AudioSummary> {
+    const roadmap = await this.roadmapModel.findOne({ userId: new Types.ObjectId(userId), status: 'active' });
+    if (!roadmap) throw new NotFoundException('Active roadmap not found');
+
+    const module = roadmap.modules.find((m) => m.id === moduleId);
+    if (!module) throw new NotFoundException('Roadmap module not found');
+
+    // Create or update status to pending
+    let audioSummary = await this.audioSummaryModel.findOne({
+      userId: new Types.ObjectId(userId),
+      moduleId,
+    });
+
+    if (!audioSummary) {
+      audioSummary = new this.audioSummaryModel({
+        userId: new Types.ObjectId(userId),
+        moduleId,
+        status: 'pending',
+      });
+    } else {
+      audioSummary.status = 'pending';
+    }
+    await audioSummary.save();
+
+    // Trigger async background processing
+    setImmediate(async () => {
+      try {
+        await this.processAudioSynthesis(userId, moduleId, module.title, module.description || '', module.topics);
+      } catch (err: any) {
+        this.logger.error(`Async audio summary processing failed for module ${moduleId}: ${err.message}`);
+        await this.audioSummaryModel.updateOne(
+          { userId: new Types.ObjectId(userId), moduleId },
+          { $set: { status: 'failed' } },
+        );
+      }
+    });
+
+    return audioSummary;
+  }
+
+  private async processAudioSynthesis(
+    userId: string,
+    moduleId: string,
+    title: string,
+    description: string,
+    topics: string[],
+  ) {
+    const isMock = this.config.get<boolean>('MOCK_MODE') === true;
+    const geminiKey = this.config.get<string>('GEMINI_API_KEY');
+
+    if (isMock || !geminiKey) {
+      this.logger.warn(`Mock mode or missing API keys. Failing audio summary generation for module ${moduleId}.`);
+      await this.audioSummaryModel.updateOne(
+        { userId: new Types.ObjectId(userId), moduleId },
+        {
+          $set: {
+            status: 'failed',
+            script: 'Audio summaries require a valid configured Gemini API key.',
+          },
+        },
+      );
+      return;
+    }
+
+    // 1. Generate narration script via Gemini
+    const textProvider = this.aiProviderFactory.getProvider('gemini');
+    const prompt = `
+Generate a clear, highly conversational audio narration script summarizing the learning module:
+Module: "${title}"
+Description: "${description}"
+Topics: ${topics.join(', ')}
+
+The script should sound like a professional podcast narrator explaining the module simply to a student during their commute. Keep it between 150 to 300 words.
+Do not include any sound effect descriptions, titles, or scene directions. Output ONLY the speech narration script.
+`;
+    const system = 'You are a professional audio educator. Narrate lessons clearly and naturally.';
+    
+    this.logger.log(`Synthesizing script for module ${moduleId}...`);
+    const script = await textProvider.generateText(prompt, system);
+
+    // 2. Generate Audio via TTS (Gemini or OpenAI TTS)
+    const ttsProvider = this.aiProviderFactory.getProvider('gemini'); // standard Cloud TTS
+    
+    this.logger.log(`Synthesizing TTS audio buffer for module ${moduleId}...`);
+    const audioBuffer = await ttsProvider.textToSpeech(script, 'en-US-Neural2-F');
+
+    // 3. Save to storage
+    const filename = `${userId}-${moduleId}.mp3`;
+    const localPath = path.join(this.audioDir, filename);
+    fs.writeFileSync(localPath, audioBuffer);
+
+    // Estimate duration: ~130 words per minute (2.1 words per second)
+    const wordCount = script.split(/\s+/).length;
+    const durationSeconds = Math.max(10, Math.round(wordCount / 2.1));
+
+    const audioUrl = `/audio-summaries/play/${filename}`;
+
+    await this.audioSummaryModel.updateOne(
+      { userId: new Types.ObjectId(userId), moduleId },
+      {
+        $set: {
+          status: 'ready',
+          script,
+          audioUrl,
+          durationSeconds,
+          provider: 'gemini',
+        },
+      },
+    );
+    this.logger.log(`Audio summary successfully generated and stored locally: ${localPath}`);
+  }
+}

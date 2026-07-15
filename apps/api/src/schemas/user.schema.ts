@@ -56,6 +56,19 @@ export class User extends Document {
   @Prop({ default: 'smartdark' })
   theme!: string;
 
+  @Prop({ default: 'system' })
+  themePreference!: string;
+
+  @Prop({
+    type: [{
+      dayOfWeek: Number,
+      startHour: Number,
+      endHour: Number,
+    }],
+    default: [],
+  })
+  studyAvailability!: Array<{ dayOfWeek: number; startHour: number; endHour: number }>;
+
   // ── Subscription (set ONLY by verified PayPal captures/webhooks) ──
   @Prop({ default: 'free', enum: ['free', 'pro_learner', 'company_tier'] })
   plan!: 'free' | 'pro_learner' | 'company_tier';
