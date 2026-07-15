@@ -168,4 +168,18 @@ export class RoadmapService {
     }
     return { success: true, message: `Roadmap ${id} deleted successfully.` };
   }
+
+  async updateViewport(
+    id: string,
+    viewport: { x: number; y: number; zoom: number },
+    edgeStyle?: 'straight' | 'curved',
+    user?: JwtUser,
+  ): Promise<Roadmap> {
+    const roadmap = await this.getRoadmapById(id, user);
+    roadmap.viewport = viewport;
+    if (edgeStyle) {
+      roadmap.edgeStyle = edgeStyle;
+    }
+    return roadmap.save();
+  }
 }

@@ -137,7 +137,7 @@ export default function OnboardingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          role: finalRole,
+          targetRole: finalRole,
           education: education,
           experienceYears: experienceYears,
           skills: selectedSkills,

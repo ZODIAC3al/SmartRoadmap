@@ -83,4 +83,17 @@ export class RoadmapController {
   remove(@CurrentUser() user: JwtUser, @Param('id') id: string) {
     return this.roadmapService.deleteRoadmap(id, user);
   }
+
+  @Patch(':id/viewport')
+  async updateViewport(
+    @CurrentUser() user: JwtUser,
+    @Param('id') id: string,
+    @Body() body: { viewport: { x: number; y: number; zoom: number }; edgeStyle?: 'straight' | 'curved' },
+  ) {
+    const updated = await this.roadmapService.updateViewport(id, body.viewport, body.edgeStyle, user);
+    return {
+      success: true,
+      data: updated,
+    };
+  }
 }

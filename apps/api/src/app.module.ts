@@ -4,6 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
+import { EventEmitterModule } from '@nestjs/event-emitter';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { validateEnv } from './config/env.validation';
@@ -20,9 +22,20 @@ import { HiringModule } from './modules/hiring/hiring.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { MessageModule } from './modules/message/message.module';
+import { ProgressModule } from './modules/progress/progress.module';
+import { StreakModule } from './modules/streak/streak.module';
+import { AchievementModule } from './modules/achievement/achievement.module';
+import { CalendarModule } from './modules/calendar/calendar.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { CheatSheetModule } from './modules/cheat-sheet/cheat-sheet.module';
+import { AudioSummaryModule } from './modules/audio-summary/audio-summary.module';
+import { CodeExecutionModule } from './modules/code-execution/code-execution.module';
+import { CodeDraftModule } from './modules/code-draft/code-draft.module';
+import { CodingChallengeModule } from './modules/coding-challenge/coding-challenge.module';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     // Fail fast on bad/missing config instead of silently degrading to mocks.
     ConfigModule.forRoot({
       isGlobal: true,
@@ -61,6 +74,16 @@ import { MessageModule } from './modules/message/message.module';
     UploadModule,
     NotificationModule,
     MessageModule,
+    ProgressModule,
+    StreakModule,
+    AchievementModule,
+    CalendarModule,
+    DashboardModule,
+    CheatSheetModule,
+    AudioSummaryModule,
+    CodeExecutionModule,
+    CodeDraftModule,
+    CodingChallengeModule,
   ],
   controllers: [AppController],
   providers: [

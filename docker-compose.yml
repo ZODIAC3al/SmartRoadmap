@@ -35,6 +35,13 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
 
+  piston:
+    image: engineerman/piston:latest
+    container_name: smartroadmap-piston
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:2000:2000"
+
 volumes:
   mongodb_data:
   redis_data:

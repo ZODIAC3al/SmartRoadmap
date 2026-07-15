@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useApp } from "@/components/AppContext";
 import { toast } from "react-toastify";
-import { apiFetch, getCachedUser } from "@/lib/api";
+import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 
 type Module = {
   id: string;
@@ -19,368 +18,525 @@ type Module = {
   positionY?: number;
 };
 
+type Viewport = {
+  x: number;
+  y: number;
+  zoom: number;
+};
+
 type Roadmap = {
   _id: string;
   title: string;
   targetRole: string;
   totalEstimatedHours: number;
   modules: Module[];
+  viewport?: Viewport;
+  edgeStyle?: "straight" | "curved";
 };
 
 export default function RoadmapPage() {
-  const { t, locale } = useApp();
+  const [user, setUser] = useState<any>(null);
   const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [userId, setUserId] = useState("654321098765432109876543");
+  
+  // Custom camera pan / zoom state
+  const [camera, setCamera] = useState<Viewport>({ x: 0, y: 0, zoom: 1 });
+  const [edgeStyle, setEdgeStyle] = useState<"straight" | "curved">("curved");
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Cheat sheets & Audio summaries integrations
+  const [cheatSheet, setCheatSheet] = useState<any>(null);
+  const [generatingSheet, setGeneratingSheet] = useState(false);
+  const [audioSummary, setAudioSummary] = useState<any>(null);
+  const [generatingAudio, setGeneratingAudio] = useState(false);
+  const [audioPlaybackRate, setAudioPlaybackRate] = useState(1);
+  const audioPlayerRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     const storedUser = getCachedUser();
-    let activeUserId = "654321098765432109876543";
-    if (storedUser) {
-      try {
-        const u = storedUser;
-        if (u.id) {
-          activeUserId = u.id;
-          setUserId(u.id);
-        }
-      } catch (e) {}
+    const token = hasSession();
+    if (!storedUser || !token) {
+      setLoading(false);
+      return;
     }
+    setUser(storedUser);
 
-    async function fetchRoadmap() {
+    async function loadRoadmap() {
       try {
-        const response = await apiFetch("/roadmap/me");
-        if (!response.ok) throw new Error("Not found");
-        const data = await response.json();
-        setRoadmap(data);
+        const res = await apiFetch("/roadmap/me");
+        if (res.ok) {
+          const data = await res.json();
+          setRoadmap(data);
+          
+          if (data.viewport) {
+            setCamera(data.viewport);
+          }
+          if (data.edgeStyle) {
+            setEdgeStyle(data.edgeStyle);
+          }
 
-        // Select the active/in-progress module by default
-        const activeMod =
-          data.modules.find((m: Module) => m.status === "in_progress") ||
-          data.modules[0];
-        if (activeMod) setSelectedModule(activeMod);
+          // Default selection
+          const next = data.modules.find((m: Module) => m.status === "in_progress") || data.modules[0];
+          if (next) setSelectedModule(next);
+        }
       } catch (err) {
-        setError(true);
+        console.error("Failed to load roadmap graph");
       } finally {
         setLoading(false);
       }
     }
-    fetchRoadmap();
+    loadRoadmap();
   }, []);
 
-  const handleTriggerQuiz = (mid: string) => {
-    toast.info("Starting adaptive assessment quiz session...");
+  // Update selected module assets: cheats & audio
+  useEffect(() => {
+    if (!selectedModule) return;
+    const mid = selectedModule.id;
+    setCheatSheet(null);
+    setAudioSummary(null);
+
+    async function loadAssets() {
+      try {
+        // Fetch cheat sheet
+        const sheetRes = await apiFetch(`/cheat-sheets/${mid}`);
+        if (sheetRes.ok) {
+          const sheetData = await sheetRes.json();
+          setCheatSheet(sheetData.data);
+        }
+
+        // Fetch audio summary
+        const audioRes = await apiFetch(`/audio-summaries/${mid}`);
+        if (audioRes.ok) {
+          const audioData = await audioRes.json();
+          setAudioSummary(audioData.data);
+        }
+      } catch (e) {}
+    }
+    loadAssets();
+  }, [selectedModule]);
+
+  // Viewport low-frequency debounced patch update
+  const saveViewport = useRef(
+    debounce(async (id: string, view: Viewport, style: string) => {
+      try {
+        await apiFetch(`/roadmap/${id}/viewport`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ viewport: view, edgeStyle: style }),
+        });
+      } catch (e) {}
+    }, 800)
+  ).current;
+
+  // Viewport dragging handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest(".roadmap-node")) return;
+    isDragging.current = true;
+    dragStart.current = { x: e.clientX - camera.x, y: e.clientY - camera.y };
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return (
-          <span className="bg-green-150 text-[#059669] border border-green-200 text-[10px] font-mono font-bold px-2 py-0.5 rounded">
-            VERIFIED ✓
-          </span>
-        );
-      case "in_progress":
-        return (
-          <span className="bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/25 text-[10px] font-mono font-bold px-2 py-0.5 rounded animate-pulse">
-            ACTIVE ⚡
-          </span>
-        );
-      case "failed":
-        return (
-          <span className="bg-red-50 text-red-500 border border-red-100 text-[10px] font-mono font-bold px-2 py-0.5 rounded">
-            RETRY ↺
-          </span>
-        );
-      default:
-        return (
-          <span className="bg-base-300 text-base-content/40 border border-base-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded">
-            LOCKED 🔒
-          </span>
-        );
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const newX = e.clientX - dragStart.current.x;
+    const newY = e.clientY - dragStart.current.y;
+    const newCam = { ...camera, x: newX, y: newY };
+    setCamera(newCam);
+    
+    if (roadmap) {
+      saveViewport(roadmap._id, newCam, edgeStyle);
     }
   };
 
-  const getSkillImpact = (title: string) => {
-    // Generate a premium simulated skill impact metric
-    if (
-      title.toLowerCase().includes("react") ||
-      title.toLowerCase().includes("frontend")
-    ) {
-      return "+15% React Engineering, +8% Architecture";
+  const handleMouseUp = () => {
+    isDragging.current = false;
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const zoomFactor = 1.05;
+    const nextZoom = e.deltaY < 0 ? camera.zoom * zoomFactor : camera.zoom / zoomFactor;
+    const boundedZoom = Math.max(0.4, Math.min(2, nextZoom));
+    const newCam = { ...camera, zoom: boundedZoom };
+    setCamera(newCam);
+
+    if (roadmap) {
+      saveViewport(roadmap._id, newCam, edgeStyle);
     }
-    if (
-      title.toLowerCase().includes("typescript") ||
-      title.toLowerCase().includes("javascript")
-    ) {
-      return "+20% Type Safety, +12% Programming Logic";
+  };
+
+  // Triggering on-demand generators
+  const handleGenerateCheatSheet = async () => {
+    if (!selectedModule) return;
+    setGeneratingSheet(true);
+    try {
+      const res = await apiFetch(`/cheat-sheets/${selectedModule.id}/generate`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setCheatSheet(data.data);
+        toast.success("AI Cheat Sheet reference guide successfully generated!");
+      }
+    } catch (e) {
+      toast.error("Failed to generate cheat sheet guide.");
+    } finally {
+      setGeneratingSheet(false);
     }
-    if (
-      title.toLowerCase().includes("docker") ||
-      title.toLowerCase().includes("deployment")
-    ) {
-      return "+25% Containerization, +10% Cloud Infrastructure";
+  };
+
+  const handleGenerateAudio = async () => {
+    if (!selectedModule) return;
+    setGeneratingAudio(true);
+    try {
+      const res = await apiFetch(`/audio-summaries/${selectedModule.id}/generate`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setAudioSummary(data.data);
+        toast.success("Generation queued. Synthesizing audio guide narration...");
+        // Poll for ready state
+        pollAudioStatus(selectedModule.id);
+      }
+    } catch (e) {
+      toast.error("Failed to generate audio summary.");
+      setGeneratingAudio(false);
     }
-    if (
-      title.toLowerCase().includes("nest") ||
-      title.toLowerCase().includes("backend")
-    ) {
-      return "+18% API Integration, +15% System Design";
-    }
-    return "+10% Analytical Diagnosis, +8% Competency";
+  };
+
+  const pollAudioStatus = (mid: string) => {
+    const timer = setInterval(async () => {
+      try {
+        const res = await apiFetch(`/audio-summaries/${mid}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.data.status === "ready") {
+            setAudioSummary(data.data);
+            setGeneratingAudio(false);
+            clearInterval(timer);
+            toast.success("Audio guide synthesized successfully!");
+          } else if (data.data.status === "failed") {
+            setGeneratingAudio(false);
+            clearInterval(timer);
+            toast.error("Audio generation failed: provider unconfigured.");
+          }
+        }
+      } catch (e) {
+        clearInterval(timer);
+        setGeneratingAudio(false);
+      }
+    }, 2000);
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-base-100 items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+      <div className="flex min-h-screen bg-slate-50 items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-indigo-600"></span>
       </div>
     );
   }
 
-  if (error || !roadmap) {
+  if (!roadmap) {
     return (
-      <div className="flex flex-col min-h-screen bg-base-100 items-center justify-center p-4 text-center">
-        <h2 className="text-2xl font-black mb-2 text-base-content tracking-tight">
-          No Active Career Roadmap Found
-        </h2>
-        <p className="text-sm text-base-content/50 max-w-sm mb-6">
-          Start by defining your target role and completing the assessment
-          wizard.
-        </p>
-        <Link
-          href="/onboarding"
-          className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl"
-        >
-          Generate Adaptive Roadmap
+      <div className="flex flex-col min-h-screen bg-slate-50 items-center justify-center p-4 text-center">
+        <h2 className="text-2xl font-black mb-2 text-slate-800 tracking-tight">No Active Career Roadmap</h2>
+        <p className="text-sm text-slate-500 max-w-sm mb-6">Define your target role to build your visual learning graph.</p>
+        <Link href="/onboarding" className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none rounded-xl">
+          Generate Path
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-base-100 text-base-content flex flex-col">
-      {/* Top Professional Header */}
-      <header className="bg-base-200 border-b border-base-300 py-6 px-4 sm:px-8 text-start">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
-              Dynamic syllabus flow
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight mt-1">
-              {roadmap.targetRole} Roadmap
-            </h1>
-            <p className="text-xs text-base-content/50 mt-1 font-semibold">
-              Prerequisite DAG • {roadmap.totalEstimatedHours} hours of targeted
-              learning nodes
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Link
-              href="/onboarding"
-              className="btn btn-outline border-base-300 text-base-content btn-sm rounded-lg text-xs"
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col select-none overflow-hidden">
+      
+      {/* Visual edge style toggle toolbar */}
+      <header className="bg-white border-b border-slate-100 py-4 px-6 flex justify-between items-center z-10 shadow-sm text-start">
+        <div>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Interactive canvas</span>
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">{roadmap.targetRole} Path</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex border border-slate-200 rounded-lg overflow-hidden text-xs">
+            <button
+              onClick={() => { setEdgeStyle("curved"); if (roadmap) saveViewport(roadmap._id, camera, "curved"); }}
+              className={`px-3 py-1.5 font-bold ${edgeStyle === "curved" ? "bg-indigo-600 text-white" : "bg-white text-slate-600"}`}
             >
-              Re-diagnose & Build
-            </Link>
-            <Link
-              href="/pricing"
-              className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none btn-sm rounded-lg text-xs font-bold"
+              Curved Path
+            </button>
+            <button
+              onClick={() => { setEdgeStyle("straight"); if (roadmap) saveViewport(roadmap._id, camera, "straight"); }}
+              className={`px-3 py-1.5 font-bold ${edgeStyle === "straight" ? "bg-indigo-600 text-white" : "bg-white text-slate-600"}`}
             >
-              Upgrade to Premium
-            </Link>
+              Straight Path
+            </button>
           </div>
+          <Link href="/practice" className="btn bg-emerald-600 hover:bg-emerald-700 text-white border-none btn-sm rounded-xl font-bold">
+            Sandbox Practice
+          </Link>
         </div>
       </header>
 
-      {/* Main Workspace split */}
-      <main className="flex-grow max-w-6xl mx-auto w-full p-4 sm:p-8 grid lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT COLUMN: Node Graph Map (Linear Style) */}
-        <section className="lg:col-span-8 space-y-6">
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-base-content/40 font-mono">
-              Learning milestones graph
-            </span>
-            <span className="text-xs text-base-content/50 font-semibold">
-              Click node to reveal study guides
-            </span>
-          </div>
+      {/* Main split canvas & drawer panel */}
+      <div className="flex-grow flex relative">
+        
+        {/* SVG GRAPH CANVAS BOX (TIMAPUSHKIN1 ZIGZAG ROUTE MAPPING) */}
+        <div
+          ref={canvasRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onWheel={handleWheel}
+          className="flex-grow h-[85vh] bg-[radial-gradient(#e2e8f0_1px,transparent_1.5px)] [background-size:24px_24px] cursor-grab active:cursor-grabbing relative overflow-hidden"
+        >
+          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            <g transform={`translate(${camera.x}, ${camera.y}) scale(${camera.zoom})`}>
+              
+              {/* Draw prerequisites path connections */}
+              {roadmap.modules.map((mod, index) => {
+                // Calculate automatic default positions in horizontal zigzag if not present
+                const srcX = mod.positionX ?? ((index % 3) * 220 + 120);
+                const srcY = mod.positionY ?? (Math.floor(index / 3) * 160 + 100);
 
-          {/* Interactive node visual stack */}
-          <div className="relative border-s-2 border-base-300 ms-6 space-y-8 pb-8 text-start">
-            {roadmap.modules.map((module, index) => {
-              const active = selectedModule?.id === module.id;
+                return mod.prerequisites.map((prereqId) => {
+                  const targetIndex = roadmap.modules.findIndex((m) => m.id === prereqId);
+                  if (targetIndex === -1) return null;
 
-              // Define premium node visual styling states
-              let cardBorderClass =
-                "border-base-300 bg-base-200 hover:border-primary/50";
-              let circleBg = "bg-base-200 text-base-content/30 border-base-300";
+                  const targetMod = roadmap.modules[targetIndex];
+                  const tgtX = targetMod.positionX ?? ((targetIndex % 3) * 220 + 120);
+                  const tgtY = targetMod.positionY ?? (Math.floor(targetIndex / 3) * 160 + 100);
 
-              if (module.status === "completed") {
-                cardBorderClass =
-                  "border-[#10B981]/40 bg-base-200 hover:border-[#10B981]";
-                circleBg = "bg-green-50 text-[#059669] border-[#10B981]";
-              } else if (module.status === "in_progress") {
-                cardBorderClass =
-                  "border-[#10B981] bg-base-200 ring-2 ring-[#10B981]/15";
-                circleBg = "bg-[#10B981] text-white border-[#10B981]";
-              } else if (module.status === "failed") {
-                cardBorderClass =
-                  "border-red-200 bg-base-200 hover:border-red-300";
-                circleBg = "bg-red-50 text-red-500 border-red-300";
-              } else {
-                // Locked / Recommended
-                const nextInProg = roadmap.modules.find(
-                  (m) => m.status === "in_progress",
-                );
-                const isRecommended = nextInProg ? false : index === 0;
+                  // Curve rendering
+                  const d = edgeStyle === "curved"
+                    ? `M ${tgtX} ${tgtY} C ${(tgtX + srcX) / 2} ${tgtY}, ${(tgtX + srcX) / 2} ${srcY}, ${srcX} ${srcY}`
+                    : `M ${tgtX} ${tgtY} L ${srcX} ${srcY}`;
 
-                if (isRecommended) {
-                  cardBorderClass =
-                    "border-dashed border-[#10B981] bg-base-200 hover:bg-base-100";
-                  circleBg = "bg-base-200 text-[#10B981] border-[#10B981]";
-                } else {
-                  cardBorderClass =
-                    "border-base-300 bg-base-200 opacity-60 cursor-not-allowed";
-                  circleBg = "bg-base-200 text-base-content/20 border-base-300";
+                  return (
+                    <path
+                      key={`${mod.id}-${prereqId}`}
+                      d={d}
+                      stroke={mod.status === "completed" ? "#10b981" : "#cbd5e1"}
+                      strokeWidth={3}
+                      strokeDasharray={mod.status === "locked" ? "6" : "0"}
+                      fill="none"
+                    />
+                  );
+                });
+              })}
+
+              {/* Draw Milestone Node Cards */}
+              {roadmap.modules.map((mod, index) => {
+                const x = mod.positionX ?? ((index % 3) * 220 + 120);
+                const y = mod.positionY ?? (Math.floor(index / 3) * 160 + 100);
+                const selected = selectedModule?.id === mod.id;
+
+                let strokeColor = "#cbd5e1";
+                let fillGrad = "from-slate-200 to-slate-300";
+                
+                if (mod.status === "completed") {
+                  strokeColor = "#10b981";
+                  fillGrad = "from-emerald-400 to-teal-500";
+                } else if (mod.status === "in_progress") {
+                  strokeColor = "#6366f1";
+                  fillGrad = "from-indigo-400 to-violet-500";
+                } else if (mod.status === "failed") {
+                  strokeColor = "#f59e0b";
+                  fillGrad = "from-amber-400 to-amber-600";
                 }
-              }
 
-              return (
-                <div key={module.id} className="relative ps-8 group">
-                  {/* Connect circle bullet index */}
-                  <span
-                    className={`absolute -start-3.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-full border-2 ${circleBg} font-mono text-[10px] font-black z-10`}
+                return (
+                  <g
+                    key={mod.id}
+                    transform={`translate(${x - 40}, ${y - 40})`}
+                    className="roadmap-node cursor-pointer pointer-events-auto"
+                    onClick={() => setSelectedModule(mod)}
                   >
-                    {index + 1}
+                    {/* Ring highlight on active */}
+                    {selected && (
+                      <circle cx="40" cy="40" r="48" fill="none" stroke="#6366f1" strokeWidth="2.5" strokeDasharray="3" className="animate-spin" style={{ animationDuration: '8s' }} />
+                    )}
+
+                    {/* Outer Node Shield */}
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="36"
+                      fill={`url(#grad-${mod.id})`}
+                      stroke={strokeColor}
+                      strokeWidth={selected ? 4 : 2}
+                      className={mod.status === "in_progress" ? "animate-pulse" : ""}
+                    />
+
+                    {/* SVG Gradient declaration */}
+                    <defs>
+                      <linearGradient id={`grad-${mod.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor={mod.status === "completed" ? "#10b981" : mod.status === "in_progress" ? "#6366f1" : "#94a3b8"} />
+                        <stop offset="100%" stopColor={mod.status === "completed" ? "#047857" : mod.status === "in_progress" ? "#4338ca" : "#64748b"} />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Icons representations */}
+                    <text x="40" y="46" textAnchor="middle" fill="#fff" fontSize="20" fontWeight="bold">
+                      {mod.status === "completed" ? "✓" : mod.status === "failed" ? "⚠" : index + 1}
+                    </text>
+
+                    {/* Floating label */}
+                    <text x="40" y="90" textAnchor="middle" fill="#334155" fontSize="10" fontWeight="bold" className="drop-shadow-sm select-none">
+                      {mod.title.substring(0, 16)}...
+                    </text>
+                  </g>
+                );
+              })}
+
+            </g>
+          </svg>
+        </div>
+
+        {/* DETAILS DRAWER ON THE RIGHT */}
+        {selectedModule && (
+          <aside className="w-96 border-l border-slate-100 bg-white shadow-xl flex flex-col justify-between p-6 z-10 text-start h-[85vh] overflow-y-auto">
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-slate-400 font-mono uppercase tracking-wider block">
+                  Module Details
+                </span>
+                <h2 className="text-xl font-extrabold text-slate-800 leading-tight">{selectedModule.title}</h2>
+                <div className="flex gap-2 pt-2">
+                  <span className="text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded border border-slate-200">
+                    {selectedModule.difficulty.toUpperCase()}
                   </span>
-
-                  {/* Vetted Node Card Wrapper */}
-                  <div
-                    onClick={() => {
-                      if (module.status !== "locked" || index === 0) {
-                        setSelectedModule(module);
-                      } else {
-                        toast.warn(
-                          "This learning node is locked. Please complete prior prerequisites first.",
-                        );
-                      }
-                    }}
-                    className={`card border rounded-xl cursor-pointer transition-all duration-200 p-5 ${cardBorderClass} ${active ? "ring-2 ring-[#10B981]/30 shadow-sm" : "shadow-xs"}`}
-                  >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div>
-                        <h3 className="font-extrabold text-xs text-base-content group-hover:text-[#059669] transition-colors leading-tight">
-                          {module.title}
-                        </h3>
-                        <p className="text-[10px] text-base-content/40 font-semibold mt-1">
-                          Estimated Hours:{" "}
-                          <span className="font-bold text-base-content/65">
-                            {module.estimatedHours}h
-                          </span>{" "}
-                          • Difficulty:{" "}
-                          <span className="font-bold uppercase text-base-content/65">
-                            {module.difficulty}
-                          </span>
-                        </p>
-                      </div>
-                      <div className="shrink-0 flex items-center gap-2">
-                        {getStatusBadge(module.status)}
-                      </div>
-                    </div>
-
-                    {/* Skill Impact Badge */}
-                    <div className="border-t border-base-300 mt-4.5 pt-3.5 flex justify-between items-center text-[10px]">
-                      <span className="text-base-content/40 font-semibold uppercase tracking-wider font-mono">
-                        Skill Impact
-                      </span>
-                      <span className="font-bold text-[#059669]">
-                        {getSkillImpact(module.title)}
-                      </span>
-                    </div>
-                  </div>
+                  <span className="text-[10px] bg-indigo-50 text-indigo-600 font-bold px-2 py-0.5 rounded">
+                    ⚡ {selectedModule.status.toUpperCase()}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* RIGHT COLUMN: Module details drawer panel */}
-        <aside className="lg:col-span-4 lg:sticky lg:top-24">
-          {selectedModule ? (
-            <div className="card bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-6">
-              <div>
-                <span className="text-[10px] text-base-content/40 font-mono font-bold uppercase tracking-wider">
-                  Milestone detail panel
-                </span>
-                <h3 className="text-lg font-black text-base-content mt-1">
-                  {selectedModule.title}
-                </h3>
-                <p className="text-xs text-base-content/60 mt-2 leading-relaxed">
-                  {selectedModule.description}
-                </p>
               </div>
 
-              {/* Topics stack */}
+              {/* Description */}
+              <p className="text-xs text-slate-500 leading-relaxed">{selectedModule.description}</p>
+
+              {/* Topics */}
               <div className="space-y-2">
-                <span className="text-[10px] text-base-content/40 font-mono font-bold uppercase tracking-wider block">
-                  Syllabus Topics
-                </span>
-                <ul className="space-y-1.5 text-xs text-base-content/75">
-                  {selectedModule.topics.map((t, idx) => (
-                    <li key={idx} className="flex gap-2 items-center">
-                      <span className="text-[#10B981] font-bold">◆</span>
-                      <span>{t}</span>
-                    </li>
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wide">Key Topics</h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedModule.topics.map((t, i) => (
+                    <span key={i} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                      {t}
+                    </span>
                   ))}
-                </ul>
-              </div>
-
-              {/* Resource List */}
-              <div className="border-t border-base-300 pt-4.5 space-y-2">
-                <span className="text-[10px] text-base-content/40 font-mono font-bold uppercase tracking-wider block">
-                  Vetted Study Guides
-                </span>
-                <div className="space-y-2">
-                  <a
-                    href={`https://example.com/resources/${selectedModule.id}-guide`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 bg-base-100 border border-base-300 rounded-lg text-xs hover:border-[#10B981] transition-colors"
-                  >
-                    <span>📚 Comprehensive Study Guide (RAG)</span>
-                    <span className="text-[#10B981] font-bold">→</span>
-                  </a>
-                  <a
-                    href={`https://example.com/resources/${selectedModule.id}-videos`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 bg-base-100 border border-base-300 rounded-lg text-xs hover:border-[#10B981] transition-colors"
-                  >
-                    <span>🎥 Video Walkthrough Tutorials</span>
-                    <span className="text-[#10B981] font-bold">→</span>
-                  </a>
                 </div>
               </div>
 
-              {/* Test action trigger button */}
-              <div className="pt-2">
-                <Link
-                  href={`/quiz/${selectedModule.id}`}
-                  onClick={() => handleTriggerQuiz(selectedModule.id)}
-                  className="btn btn-block bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-bold text-xs h-11"
-                >
-                  Prove Competency & Verify Skill ⚡
-                </Link>
+              {/* Audio Summaries Section */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wide">Audio Summary</h4>
+                
+                {audioSummary ? (
+                  audioSummary.status === "ready" ? (
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 space-y-3">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span className="font-semibold">Narration Voice: Puck</span>
+                        <span className="font-mono">{audioSummary.durationSeconds}s</span>
+                      </div>
+                      
+                      {/* Audio Speed Rate Controls */}
+                      <div className="flex justify-between items-center gap-2">
+                        <audio
+                          ref={audioPlayerRef}
+                          src={`http://localhost:3000${audioSummary.audioUrl}`}
+                          controls
+                          className="w-full h-8"
+                        />
+                        <select
+                          className="select select-bordered select-xs bg-white text-xs"
+                          value={audioPlaybackRate}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            setAudioPlaybackRate(val);
+                            if (audioPlayerRef.current) audioPlayerRef.current.playbackRate = val;
+                          }}
+                        >
+                          <option value="1">1.0x</option>
+                          <option value="1.5">1.5x</option>
+                          <option value="2">2.0x</option>
+                        </select>
+                      </div>
+                    </div>
+                  ) : audioSummary.status === "pending" || generatingAudio ? (
+                    <div className="flex items-center justify-center gap-2 text-xs text-slate-400 py-3">
+                      <span className="loading loading-spinner loading-xs text-indigo-600"></span>
+                      <span>Synthesizing audio narration...</span>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-red-500">Audio synthesis failed. Config verify missing.</div>
+                  )
+                ) : (
+                  <button
+                    onClick={handleGenerateAudio}
+                    disabled={generatingAudio}
+                    className="btn btn-outline border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white btn-xs font-bold w-full h-8"
+                  >
+                    {generatingAudio ? "Synthesizing..." : "Generate Audio Summaries"}
+                  </button>
+                )}
               </div>
+
+              {/* Cheat Sheets Section */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wide">Cheatsheet Guide</h4>
+                
+                {cheatSheet ? (
+                  <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 max-h-56 overflow-y-auto space-y-3 text-xs leading-relaxed text-slate-600">
+                    <pre className="font-sans whitespace-pre-wrap">{cheatSheet.content}</pre>
+                    <button
+                      onClick={handleGenerateCheatSheet}
+                      disabled={generatingSheet}
+                      className="text-[10px] text-indigo-600 hover:underline font-bold block"
+                    >
+                      Regenerate (Remaining limits apply)
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleGenerateCheatSheet}
+                    disabled={generatingSheet}
+                    className="btn btn-outline border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white btn-xs font-bold w-full h-8"
+                  >
+                    {generatingSheet ? "Generating Guide..." : "Generate Reference Guides"}
+                  </button>
+                )}
+              </div>
+
             </div>
-          ) : (
-            <div className="border border-base-300 rounded-2xl bg-base-200 p-6 text-center text-base-content/40 text-xs">
-              Select a learning module node to inspect vetted resources.
+
+            {/* CTAs */}
+            <div className="border-t border-slate-100 pt-4 space-y-2">
+              <Link
+                href={`/quiz/${selectedModule.id}`}
+                className={`btn btn-block btn-sm rounded-xl font-bold border-none text-white ${
+                  selectedModule.status === "locked"
+                    ? "bg-slate-350 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-700"
+                }`}
+                onClick={(e) => { if (selectedModule.status === "locked") e.preventDefault(); }}
+              >
+                Start Adaptive Quiz
+              </Link>
             </div>
-          )}
-        </aside>
-      </main>
+          </aside>
+        )}
+
+      </div>
     </div>
   );
+}
+
+// Simple debounce helper
+function debounce<T extends (...args: any[]) => any>(fn: T, delay: number) {
+  let timeout: NodeJS.Timeout;
+  return function (this: any, ...args: Parameters<T>) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fn.apply(this, args), delay);
+  } as unknown as T;
 }

@@ -4,6 +4,10 @@ import {
   Notification,
   NotificationSchema,
 } from '../../schemas/notification.schema';
+import {
+  PushSubscription,
+  PushSubscriptionSchema,
+} from '../../schemas/push-subscription.schema';
 import { NotificationService } from './notification.service';
 import { NotificationController } from './notification.controller';
 import { AuthModule } from '../auth/auth.module';
@@ -12,6 +16,7 @@ import { AuthModule } from '../auth/auth.module';
   imports: [
     MongooseModule.forFeature([
       { name: Notification.name, schema: NotificationSchema },
+      { name: PushSubscription.name, schema: PushSubscriptionSchema },
     ]),
     AuthModule,
   ],
