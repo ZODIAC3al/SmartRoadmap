@@ -50,7 +50,9 @@ export class NotificationService {
     return updated;
   }
 
-  async markAllRead(userId: string): Promise<{ success: boolean; modifiedCount: number }> {
+  async markAllRead(
+    userId: string,
+  ): Promise<{ success: boolean; modifiedCount: number }> {
     const res = await this.notificationModel.updateMany(
       { recipient: new Types.ObjectId(userId), read: false },
       { $set: { read: true } },

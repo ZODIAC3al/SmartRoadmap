@@ -1,9 +1,26 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoadmapService } from './roadmap.service';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 import { assertSelfOrAdmin } from '../../common/guards/ownership.util';
-import { ExtendRoadmapDto, GenerateRoadmapDto, UpdateModuleStatusDto } from './dto/roadmap.dto';
+import {
+  ExtendRoadmapDto,
+  GenerateRoadmapDto,
+  UpdateModuleStatusDto,
+} from './dto/roadmap.dto';
 
 @ApiTags('roadmap')
 @ApiBearerAuth()
@@ -14,7 +31,11 @@ export class RoadmapController {
   @Post('generate')
   @HttpCode(HttpStatus.CREATED)
   generate(@CurrentUser() user: JwtUser, @Body() dto: GenerateRoadmapDto) {
-    return this.roadmapService.generateRoadmap(user.sub, dto.targetRole, dto.skills ?? []);
+    return this.roadmapService.generateRoadmap(
+      user.sub,
+      dto.targetRole,
+      dto.skills ?? [],
+    );
   }
 
   /** Kept for backwards compatibility, but the id is now authorization-checked. */
@@ -50,7 +71,11 @@ export class RoadmapController {
   }
 
   @Post(':id/extend')
-  extend(@CurrentUser() user: JwtUser, @Param('id') id: string, @Body() dto: ExtendRoadmapDto) {
+  extend(
+    @CurrentUser() user: JwtUser,
+    @Param('id') id: string,
+    @Body() dto: ExtendRoadmapDto,
+  ) {
     return this.roadmapService.extendRoadmap(id, dto.skills, user);
   }
 

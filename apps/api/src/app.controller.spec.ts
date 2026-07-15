@@ -31,7 +31,9 @@ describe('AppController', () => {
   });
 
   it('accepts a newsletter subscription', async () => {
-    await expect(appController.subscribe({ email: 'a@b.com' } as any)).resolves.toMatchObject({
+    await expect(
+      appController.subscribe({ email: 'a@b.com' } as any),
+    ).resolves.toMatchObject({
       success: true,
     });
   });

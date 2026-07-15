@@ -11,7 +11,9 @@ describe('assertSelfOrAdmin', () => {
   });
 
   it('blocks access to another user resource (the old IDOR)', () => {
-    expect(() => assertSelfOrAdmin(learner, 'user-2')).toThrow(ForbiddenException);
+    expect(() => assertSelfOrAdmin(learner, 'user-2')).toThrow(
+      ForbiddenException,
+    );
   });
 
   it('allows admins', () => {

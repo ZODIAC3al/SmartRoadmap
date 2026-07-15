@@ -24,7 +24,10 @@ export class ModuleItem {
   @Prop({ type: [String], default: [] })
   prerequisites!: string[];
 
-  @Prop({ enum: ['locked', 'in_progress', 'completed', 'failed'], default: 'locked' })
+  @Prop({
+    enum: ['locked', 'in_progress', 'completed', 'failed'],
+    default: 'locked',
+  })
   status!: 'locked' | 'in_progress' | 'completed' | 'failed';
 
   @Prop()

@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AssessmentController } from './assessment.controller';
 import { AssessmentService } from './assessment.service';
-import { QuizSession, QuizSessionSchema } from '../../schemas/quiz-session.schema';
+import {
+  QuizSession,
+  QuizSessionSchema,
+} from '../../schemas/quiz-session.schema';
 import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
 
 @Module({

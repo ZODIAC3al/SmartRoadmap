@@ -18,9 +18,16 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { REFRESH_COOKIE, clearRefreshCookie, setRefreshCookie } from '../../common/cookies';
+import {
+  REFRESH_COOKIE,
+  clearRefreshCookie,
+  setRefreshCookie,
+} from '../../common/cookies';
 import {
   ChangeRoleDto,
   ForgotPasswordDto,
@@ -37,6 +44,7 @@ import {
  * so the (legitimate) test suite doesn't throttle itself.
  */
 const AUTH_LIMIT = Number(process.env.AUTH_THROTTLE_LIMIT ?? 5);
+const FORGOT_LIMIT = Number(process.env.AUTH_THROTTLE_LIMIT ?? 3);
 
 @ApiTags('auth')
 @Controller('auth')
@@ -58,7 +66,10 @@ export class AuthController {
   @Public()
   @Throttle({ default: { limit: AUTH_LIMIT, ttl: 60_000 } })
   @Post('register')
-  async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     return this.withCookie(res, await this.authService.register(dto));
   }
 
@@ -66,8 +77,14 @@ export class AuthController {
   @Throttle({ default: { limit: AUTH_LIMIT, ttl: 60_000 } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
-    return this.withCookie(res, await this.authService.login(dto.email, dto.password));
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.withCookie(
+      res,
+      await this.authService.login(dto.email, dto.password),
+    );
   }
 
   /** Expects a Google Identity Services ID token — verified against Google. */
@@ -75,15 +92,24 @@ export class AuthController {
   @Throttle({ default: { limit: AUTH_LIMIT * 2, ttl: 60_000 } })
   @Post('google')
   @HttpCode(HttpStatus.OK)
-  async google(@Body() dto: GoogleLoginDto, @Res({ passthrough: true }) res: Response) {
-    return this.withCookie(res, await this.authService.googleLogin(dto.idToken));
+  async google(
+    @Body() dto: GoogleLoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.withCookie(
+      res,
+      await this.authService.googleLogin(dto.idToken),
+    );
   }
 
   /** Rotates the session using the httpOnly cookie. No token in the request body. */
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const token = req.cookies?.[REFRESH_COOKIE];
     if (!token) throw new UnauthorizedException('No refresh session');
     return this.withCookie(res, await this.authService.refresh(token));
@@ -98,7 +124,8 @@ export class AuthController {
       // Burn this device's refresh token server-side too, not just the cookie.
       try {
         const payload: any = await this.authService.decodeRefresh(token);
-        if (payload?.sub) await this.authService.revokeSession(payload.sub, token);
+        if (payload?.sub)
+          await this.authService.revokeSession(payload.sub, token);
       } catch {
         /* an unparsable cookie is not an error worth surfacing on logout */
       }
@@ -111,7 +138,10 @@ export class AuthController {
   @ApiBearerAuth()
   @Post('logout-all')
   @HttpCode(HttpStatus.OK)
-  async logoutAll(@CurrentUser() user: JwtUser, @Res({ passthrough: true }) res: Response) {
+  async logoutAll(
+    @CurrentUser() user: JwtUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     await this.authService.revokeSession(user.sub, undefined, true);
     clearRefreshCookie(res);
     return { success: true };
@@ -128,7 +158,7 @@ export class AuthController {
   }
 
   @ApiBearerAuth()
-  @Throttle({ default: { limit: 3, ttl: 300_000 } })
+  @Throttle({ default: { limit: FORGOT_LIMIT, ttl: 300_000 } })
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   async resendVerification(@CurrentUser() user: JwtUser) {
@@ -140,7 +170,7 @@ export class AuthController {
 
   /** Always 200, whether the email exists or not (no user enumeration). */
   @Public()
-  @Throttle({ default: { limit: 3, ttl: 300_000 } })
+  @Throttle({ default: { limit: FORGOT_LIMIT, ttl: 300_000 } })
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   forgotPassword(@Body() dto: ForgotPasswordDto) {
@@ -151,8 +181,14 @@ export class AuthController {
   @Throttle({ default: { limit: AUTH_LIMIT, ttl: 60_000 } })
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  async resetPassword(@Body() dto: ResetPasswordDto, @Res({ passthrough: true }) res: Response) {
-    const result = await this.authService.resetPassword(dto.token, dto.password);
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.resetPassword(
+      dto.token,
+      dto.password,
+    );
     clearRefreshCookie(res); // every old session is dead; force a clean login
     return result;
   }
@@ -169,8 +205,14 @@ export class AuthController {
   @ApiBearerAuth()
   @Patch('me')
   @HttpCode(HttpStatus.OK)
-  async updateProfile(@CurrentUser() user: JwtUser, @Body() dto: UpdateProfileDto) {
-    return { success: true, user: await this.authService.updateProfile(user.sub, dto) };
+  async updateProfile(
+    @CurrentUser() user: JwtUser,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return {
+      success: true,
+      user: await this.authService.updateProfile(user.sub, dto),
+    };
   }
 
   @ApiBearerAuth()
@@ -186,6 +228,9 @@ export class AuthController {
   @Roles('admin')
   @Patch('users/role')
   async changeRole(@Body() dto: ChangeRoleDto) {
-    return { success: true, user: await this.authService.changeRole(dto.userId, dto.role) };
+    return {
+      success: true,
+      user: await this.authService.changeRole(dto.userId, dto.role),
+    };
   }
 }

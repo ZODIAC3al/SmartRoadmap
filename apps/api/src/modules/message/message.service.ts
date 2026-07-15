@@ -13,7 +13,11 @@ export class MessageService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  async send(senderId: string, recipientId: string, content: string): Promise<Message> {
+  async send(
+    senderId: string,
+    recipientId: string,
+    content: string,
+  ): Promise<Message> {
     const [sender, recipient] = await Promise.all([
       this.userModel.findById(senderId).exec(),
       this.userModel.findById(recipientId).exec(),
@@ -58,11 +62,7 @@ export class MessageService {
       {
         $group: {
           _id: {
-            $cond: [
-              { $eq: ['$sender', id] },
-              '$recipient',
-              '$sender',
-            ],
+            $cond: [{ $eq: ['$sender', id] }, '$recipient', '$sender'],
           },
           lastMessage: { $first: '$content' },
           lastMessageSender: { $first: '$sender' },

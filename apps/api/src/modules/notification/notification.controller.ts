@@ -1,7 +1,10 @@
 import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { NotificationService } from './notification.service';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 
 @ApiTags('notifications')
 @ApiBearerAuth()
@@ -11,12 +14,18 @@ export class NotificationController {
 
   @Get()
   async list(@CurrentUser() user: JwtUser) {
-    return { success: true, data: await this.notificationService.getForUser(user.sub) };
+    return {
+      success: true,
+      data: await this.notificationService.getForUser(user.sub),
+    };
   }
 
   @Patch(':id/read')
   async markRead(@CurrentUser() user: JwtUser, @Param('id') id: string) {
-    return { success: true, data: await this.notificationService.markRead(id, user.sub) };
+    return {
+      success: true,
+      data: await this.notificationService.markRead(id, user.sub),
+    };
   }
 
   @Post('read-all')

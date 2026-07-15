@@ -19,12 +19,16 @@ export class CvService {
     const apiKey = process.env.AFFINDA_API_KEY;
     this.isMockMode = !apiKey || apiKey.includes('placeholder');
     if (this.isMockMode) {
-      this.logger.warn('Affinda API key is missing. Running in hybrid offline parser mode.');
+      this.logger.warn(
+        'Affinda API key is missing. Running in hybrid offline parser mode.',
+      );
     }
   }
 
   async getCvByUserId(userId: string): Promise<Cv> {
-    const cv = await this.cvModel.findOne({ userId: new Types.ObjectId(userId) });
+    const cv = await this.cvModel.findOne({
+      userId: new Types.ObjectId(userId),
+    });
     if (!cv) {
       throw new NotFoundException(`No CV found for user: ${userId}`);
     }
@@ -33,7 +37,7 @@ export class CvService {
 
   async saveCv(userId: string, data: any): Promise<Cv> {
     this.logger.log(`Saving CV profile for user ${userId}`);
-    
+
     let cv = await this.cvModel.findOne({ userId: new Types.ObjectId(userId) });
     if (!cv) {
       cv = new this.cvModel({
@@ -68,15 +72,24 @@ export class CvService {
   }
 
   private parseTextHeuristically(text: string): any {
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    
+    const lines = text
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
     let name = '';
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
     const phoneRegex = /\+?[0-9\s-()]{8,20}/;
-    
+
     // Find candidate name
     for (const line of lines.slice(0, 5)) {
-      if (!emailRegex.test(line) && !phoneRegex.test(line) && !line.toLowerCase().includes('resume') && !line.toLowerCase().includes('cv') && line.split(' ').length <= 4) {
+      if (
+        !emailRegex.test(line) &&
+        !phoneRegex.test(line) &&
+        !line.toLowerCase().includes('resume') &&
+        !line.toLowerCase().includes('cv') &&
+        line.split(' ').length <= 4
+      ) {
         name = line;
         break;
       }
@@ -94,12 +107,22 @@ export class CvService {
     let startCollecting = false;
     for (const line of lines) {
       const lower = line.toLowerCase();
-      if (lower.includes('summary') || lower.includes('profile') || lower.includes('objective') || lower.includes('about me')) {
+      if (
+        lower.includes('summary') ||
+        lower.includes('profile') ||
+        lower.includes('objective') ||
+        lower.includes('about me')
+      ) {
         startCollecting = true;
         continue;
       }
       if (startCollecting) {
-        if (lower.includes('experience') || lower.includes('education') || lower.includes('skills') || lower.includes('projects')) {
+        if (
+          lower.includes('experience') ||
+          lower.includes('education') ||
+          lower.includes('skills') ||
+          lower.includes('projects')
+        ) {
           break;
         }
         summaryLines.push(line);
@@ -108,22 +131,100 @@ export class CvService {
     if (summaryLines.length > 0) {
       summary = summaryLines.join(' ');
     } else {
-      const candidateSummaryLine = lines.find(l => l.length > 40 && !l.includes('@') && !l.includes('http'));
-      summary = candidateSummaryLine || 'Sociable Frontend Developer. Experienced in creating modern designs, setting up grid layouts, and managing state stores.';
+      const candidateSummaryLine = lines.find(
+        (l) => l.length > 40 && !l.includes('@') && !l.includes('http'),
+      );
+      summary =
+        candidateSummaryLine ||
+        'Sociable Frontend Developer. Experienced in creating modern designs, setting up grid layouts, and managing state stores.';
     }
 
     const skillKeywords = [
-      'React', 'Angular', 'Vue', 'Next.js', 'NextJS', 'Nuxt', 'Svelte',
-      'JavaScript', 'TypeScript', 'ES6', 'HTML', 'CSS', 'Sass', 'Tailwind', 'TailwindCSS', 'Bootstrap',
-      'Node.js', 'NodeJS', 'Express', 'NestJS', 'Nest.js', 'Koa', 'Fastify',
-      'Python', 'Django', 'Flask', 'FastAPI', 'Ruby', 'Rails', 'PHP', 'Laravel',
-      'Java', 'Spring', 'Spring Boot', 'Kotlin', 'Swift', 'Objective-C', 'Flutter', 'React Native',
-      'Go', 'Golang', 'Rust', 'C++', 'C#', '.NET',
-      'SQL', 'MySQL', 'PostgreSQL', 'SQLite', 'MongoDB', 'Redis', 'Cassandra', 'Elasticsearch', 'DynamoDB',
-      'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'Firebase', 'Supabase', 'Heroku', 'Netlify', 'Vercel',
-      'Git', 'GitHub', 'GitLab', 'CI/CD', 'Jenkins', 'GitHub Actions',
-      'REST', 'GraphQL', 'gRPC', 'WebSockets', 'Microservices', 'Serverless',
-      'Agile', 'Scrum', 'Jira', 'Figma', 'UI/UX', 'Jest', 'Mocha', 'Cypress', 'Playwright'
+      'React',
+      'Angular',
+      'Vue',
+      'Next.js',
+      'NextJS',
+      'Nuxt',
+      'Svelte',
+      'JavaScript',
+      'TypeScript',
+      'ES6',
+      'HTML',
+      'CSS',
+      'Sass',
+      'Tailwind',
+      'TailwindCSS',
+      'Bootstrap',
+      'Node.js',
+      'NodeJS',
+      'Express',
+      'NestJS',
+      'Nest.js',
+      'Koa',
+      'Fastify',
+      'Python',
+      'Django',
+      'Flask',
+      'FastAPI',
+      'Ruby',
+      'Rails',
+      'PHP',
+      'Laravel',
+      'Java',
+      'Spring',
+      'Spring Boot',
+      'Kotlin',
+      'Swift',
+      'Objective-C',
+      'Flutter',
+      'React Native',
+      'Go',
+      'Golang',
+      'Rust',
+      'C++',
+      'C#',
+      '.NET',
+      'SQL',
+      'MySQL',
+      'PostgreSQL',
+      'SQLite',
+      'MongoDB',
+      'Redis',
+      'Cassandra',
+      'Elasticsearch',
+      'DynamoDB',
+      'Docker',
+      'Kubernetes',
+      'AWS',
+      'Azure',
+      'GCP',
+      'Firebase',
+      'Supabase',
+      'Heroku',
+      'Netlify',
+      'Vercel',
+      'Git',
+      'GitHub',
+      'GitLab',
+      'CI/CD',
+      'Jenkins',
+      'GitHub Actions',
+      'REST',
+      'GraphQL',
+      'gRPC',
+      'WebSockets',
+      'Microservices',
+      'Serverless',
+      'Agile',
+      'Scrum',
+      'Jira',
+      'Figma',
+      'UI/UX',
+      'Jest',
+      'Mocha',
+      'Cypress',
+      'Playwright',
     ];
     const skills: string[] = [];
     const lowerText = text.toLowerCase();
@@ -133,13 +234,23 @@ export class CvService {
         skills.push(kw);
       }
     }
-    const finalSkills = skills.length > 0 ? skills : ['React', 'TypeScript', 'TailwindCSS', 'Figma', 'Grid Layouts'];
+    const finalSkills =
+      skills.length > 0
+        ? skills
+        : ['React', 'TypeScript', 'TailwindCSS', 'Figma', 'Grid Layouts'];
 
     const experience: any[] = [];
     let expText = '';
     const expIndex = lowerText.indexOf('experience');
     if (expIndex !== -1) {
-      const nextHeaders = ['education', 'skills', 'projects', 'languages', 'references', 'certifications'];
+      const nextHeaders = [
+        'education',
+        'skills',
+        'projects',
+        'languages',
+        'references',
+        'certifications',
+      ];
       let endIdx = text.length;
       for (const header of nextHeaders) {
         const idx = lowerText.indexOf(header, expIndex + 10);
@@ -151,7 +262,10 @@ export class CvService {
     }
 
     if (expText) {
-      const expLines = expText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const expLines = expText
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
       let currentCompany = '';
       let currentRole = '';
       let currentDesc = '';
@@ -159,8 +273,10 @@ export class CvService {
 
       for (const line of expLines) {
         const dateMatch = line.match(/\b(19|20)\d{2}\b/);
-        const hasPresent = line.toLowerCase().includes('present') || line.toLowerCase().includes('current');
-        
+        const hasPresent =
+          line.toLowerCase().includes('present') ||
+          line.toLowerCase().includes('current');
+
         if (dateMatch || hasPresent) {
           if (currentCompany || currentRole) {
             experience.push({
@@ -168,16 +284,26 @@ export class CvService {
               role: currentRole || 'Software Engineer',
               startDate: currentDates.split(/[-–]/)[0]?.trim() || '2023-01',
               endDate: currentDates.split(/[-–]/)[1]?.trim() || 'Present',
-              description: currentDesc.trim() || 'Contributed to core product features and frontend implementation.',
+              description:
+                currentDesc.trim() ||
+                'Contributed to core product features and frontend implementation.',
             });
           }
           currentDates = line;
           currentCompany = '';
           currentRole = '';
           currentDesc = '';
-        } else if (!currentRole && line.length < 50 && line.split(' ').length <= 4) {
+        } else if (
+          !currentRole &&
+          line.length < 50 &&
+          line.split(' ').length <= 4
+        ) {
           currentRole = line;
-        } else if (!currentCompany && line.length < 50 && line.split(' ').length <= 4) {
+        } else if (
+          !currentCompany &&
+          line.length < 50 &&
+          line.split(' ').length <= 4
+        ) {
           currentCompany = line;
         } else {
           currentDesc += ' ' + line;
@@ -189,7 +315,9 @@ export class CvService {
           role: currentRole || 'Software Engineer',
           startDate: currentDates.split(/[-–]/)[0]?.trim() || '2023-01',
           endDate: currentDates.split(/[-–]/)[1]?.trim() || 'Present',
-          description: currentDesc.trim() || 'Contributed to core product features and frontend implementation.',
+          description:
+            currentDesc.trim() ||
+            'Contributed to core product features and frontend implementation.',
         });
       }
     }
@@ -200,7 +328,8 @@ export class CvService {
         role: 'Junior Frontend Developer',
         startDate: '2024-01',
         endDate: 'Present',
-        description: 'Maintained core UI components, integrated responsive designs, and collaborated on mockup wireframe translations.'
+        description:
+          'Maintained core UI components, integrated responsive designs, and collaborated on mockup wireframe translations.',
       });
     }
 
@@ -208,7 +337,14 @@ export class CvService {
     let eduText = '';
     const eduIndex = lowerText.indexOf('education');
     if (eduIndex !== -1) {
-      const nextHeaders = ['experience', 'skills', 'projects', 'languages', 'references', 'certifications'];
+      const nextHeaders = [
+        'experience',
+        'skills',
+        'projects',
+        'languages',
+        'references',
+        'certifications',
+      ];
       let endIdx = text.length;
       for (const header of nextHeaders) {
         const idx = lowerText.indexOf(header, eduIndex + 10);
@@ -220,27 +356,52 @@ export class CvService {
     }
 
     if (eduText) {
-      const eduLines = eduText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const eduLines = eduText
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
       let school = '';
       let degree = '';
       let gradDate = '';
       for (const line of eduLines) {
         const lowerLine = line.toLowerCase();
-        if (lowerLine.includes('university') || lowerLine.includes('college') || lowerLine.includes('school') || lowerLine.includes('institute')) {
+        if (
+          lowerLine.includes('university') ||
+          lowerLine.includes('college') ||
+          lowerLine.includes('school') ||
+          lowerLine.includes('institute')
+        ) {
           if (school) {
-            education.push({ school, degree: degree || 'Bachelor of Computer Science', fieldOfStudy: 'Engineering', graduateDate: gradDate || '2023-06' });
+            education.push({
+              school,
+              degree: degree || 'Bachelor of Computer Science',
+              fieldOfStudy: 'Engineering',
+              graduateDate: gradDate || '2023-06',
+            });
             degree = '';
             gradDate = '';
           }
           school = line;
-        } else if (lowerLine.includes('bachelor') || lowerLine.includes('master') || lowerLine.includes('phd') || lowerLine.includes('b.s') || lowerLine.includes('b.sc') || lowerLine.includes('m.s')) {
+        } else if (
+          lowerLine.includes('bachelor') ||
+          lowerLine.includes('master') ||
+          lowerLine.includes('phd') ||
+          lowerLine.includes('b.s') ||
+          lowerLine.includes('b.sc') ||
+          lowerLine.includes('m.s')
+        ) {
           degree = line;
         } else if (line.match(/\b(19|20)\d{2}\b/)) {
           gradDate = line;
         }
       }
       if (school) {
-        education.push({ school, degree: degree || 'Bachelor of Computer Science', fieldOfStudy: 'Engineering', graduateDate: gradDate || '2023-06' });
+        education.push({
+          school,
+          degree: degree || 'Bachelor of Computer Science',
+          fieldOfStudy: 'Engineering',
+          graduateDate: gradDate || '2023-06',
+        });
       }
     }
 
@@ -249,7 +410,7 @@ export class CvService {
         school: 'Alexandria University',
         degree: 'Bachelor of Computer Science',
         fieldOfStudy: 'Engineering',
-        graduateDate: '2023-06'
+        graduateDate: '2023-06',
       });
     }
 
@@ -261,18 +422,21 @@ export class CvService {
       projects: [
         {
           name: 'SmartRoadmap Dashboard',
-          description: 'Built a custom workflow planning dashboard utilizing d3 nodes and reactive state synchronization.',
-          url: 'https://github.com/developia/smartroadmap'
-        }
+          description:
+            'Built a custom workflow planning dashboard utilizing d3 nodes and reactive state synchronization.',
+          url: 'https://github.com/developia/smartroadmap',
+        },
       ],
       references: [],
-      hobbies: ['Coding', 'Cycling', 'Photography']
+      hobbies: ['Coding', 'Cycling', 'Photography'],
     };
   }
 
   async parseCvFile(fileBuffer: Buffer, fileName: string): Promise<any> {
-    this.logger.log(`Parsing CV file: "${fileName}" with length ${fileBuffer.length} bytes`);
-    
+    this.logger.log(
+      `Parsing CV file: "${fileName}" with length ${fileBuffer.length} bytes`,
+    );
+
     let plainText = '';
     try {
       if (fileName.toLowerCase().endsWith('.pdf')) {
@@ -283,7 +447,9 @@ export class CvService {
         plainText = fileBuffer.toString('utf8');
       }
     } catch (err: any) {
-      this.logger.error(`pdf-parse failed on CV file "${fileName}": ${err.message}. Falling back to default mock parser.`);
+      this.logger.error(
+        `pdf-parse failed on CV file "${fileName}": ${err.message}. Falling back to default mock parser.`,
+      );
     }
 
     // If text extraction was completely empty or failed, use heuristic on a mock template or fallback
@@ -319,7 +485,9 @@ Hobbies: Coding, Cycling, Photography`;
           return parsedJson;
         }
       } catch (err: any) {
-        this.logger.error(`LLM returned invalid JSON while parsing a resume: ${err.message}`);
+        this.logger.error(
+          `LLM returned invalid JSON while parsing a resume: ${err.message}`,
+        );
       }
     }
 
@@ -327,4 +495,3 @@ Hobbies: Coding, Cycling, Photography`;
     return this.parseTextHeuristically(plainText);
   }
 }
-

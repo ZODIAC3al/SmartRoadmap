@@ -5,7 +5,13 @@ export type AuthProvider = 'local' | 'google';
 
 @Schema({ timestamps: true })
 export class User extends Document {
-  @Prop({ required: true, unique: true, index: true, lowercase: true, trim: true })
+  @Prop({
+    required: true,
+    unique: true,
+    index: true,
+    lowercase: true,
+    trim: true,
+  })
   email!: string;
 
   /** bcrypt hash. Never returned by the API (see `select: false`). */
@@ -15,7 +21,11 @@ export class User extends Document {
   @Prop({ required: true })
   name!: string;
 
-  @Prop({ default: 'learner', enum: ['learner', 'company', 'admin'], index: true })
+  @Prop({
+    default: 'learner',
+    enum: ['learner', 'company', 'admin'],
+    index: true,
+  })
   role!: 'learner' | 'company' | 'admin';
 
   /** Prevents account-linking attacks: a google account cannot be password-logged-in. */

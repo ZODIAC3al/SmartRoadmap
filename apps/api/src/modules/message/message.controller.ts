@@ -1,7 +1,10 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { MessageService } from './message.service';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 import { SendMessageDto } from './dto/message.dto';
 
 @ApiTags('messages')
@@ -14,16 +17,32 @@ export class MessageController {
   // controller is gone — the global JwtAuthGuard populates `req.user` instead.
   @Post('send')
   async send(@CurrentUser() user: JwtUser, @Body() dto: SendMessageDto) {
-    return { success: true, data: await this.messageService.send(user.sub, dto.recipientId, dto.content) };
+    return {
+      success: true,
+      data: await this.messageService.send(
+        user.sub,
+        dto.recipientId,
+        dto.content,
+      ),
+    };
   }
 
   @Get('conversations')
   async conversations(@CurrentUser() user: JwtUser) {
-    return { success: true, data: await this.messageService.getConversations(user.sub) };
+    return {
+      success: true,
+      data: await this.messageService.getConversations(user.sub),
+    };
   }
 
   @Get('thread/:partnerId')
-  async thread(@CurrentUser() user: JwtUser, @Param('partnerId') partnerId: string) {
-    return { success: true, data: await this.messageService.getThread(user.sub, partnerId) };
+  async thread(
+    @CurrentUser() user: JwtUser,
+    @Param('partnerId') partnerId: string,
+  ) {
+    return {
+      success: true,
+      data: await this.messageService.getThread(user.sub, partnerId),
+    };
   }
 }

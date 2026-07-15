@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface Step {
   label: string;
@@ -22,7 +22,7 @@ export default function Stepper({ steps, currentIndex }: StepperProps) {
         style={{
           left: `${lineInsetPercent}%`,
           right: `${lineInsetPercent}%`,
-          top: '20px', // Center alignment with the 40px (w-10) step circle
+          top: "20px", // Center alignment with the 40px (w-10) step circle
         }}
       >
         {/* Progress fill line */}
@@ -39,15 +39,18 @@ export default function Stepper({ steps, currentIndex }: StepperProps) {
         const isActive = idx === currentIndex;
 
         return (
-          <div key={idx} className="flex flex-col items-center relative z-10 flex-1">
+          <div
+            key={idx}
+            className="flex flex-col items-center relative z-10 flex-1"
+          >
             {/* Step Circle Indicator */}
             <div
               className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold font-mono text-sm border-2 transition-all duration-300 ${
                 isCompleted
-                  ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
+                  ? "bg-primary border-primary text-white shadow-lg shadow-primary/20"
                   : isActive
-                  ? 'bg-base-100 border-primary text-primary ring-4 ring-primary/20 scale-110'
-                  : 'bg-base-200 border-base-300 text-base-content/40'
+                    ? "bg-base-100 border-primary text-primary ring-4 ring-primary/20 scale-110"
+                    : "bg-base-200 border-base-300 text-base-content/40"
               }`}
             >
               {isCompleted ? (
@@ -72,10 +75,10 @@ export default function Stepper({ steps, currentIndex }: StepperProps) {
             <span
               className={`mt-3 text-xs font-bold whitespace-nowrap transition-all duration-300 ${
                 isActive
-                  ? 'text-primary scale-105'
+                  ? "text-primary scale-105"
                   : isCompleted
-                  ? 'text-base-content/85'
-                  : 'text-base-content/40'
+                    ? "text-base-content/85"
+                    : "text-base-content/40"
               }`}
             >
               {step.label}

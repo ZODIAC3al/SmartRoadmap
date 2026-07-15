@@ -41,7 +41,8 @@ export class OnboardingService {
           email: 'support@smartroadmap.dev',
           name: 'SmartRoadmap Support Team',
           // Unusable hash — this system account can never be logged into.
-          passwordHash: '$2b$12$system.account.no.login.allowed.placeholder.hash.value',
+          passwordHash:
+            '$2b$12$system.account.no.login.allowed.placeholder.hash.value',
           role: 'admin',
           provider: 'local',
           avatarUrl: '/logo.svg',
@@ -70,7 +71,9 @@ export class OnboardingService {
         read: false,
       });
     } catch (e: any) {
-      this.logger.error(`Failed to seed onboarding data for ${userId}: ${e.message}`);
+      this.logger.error(
+        `Failed to seed onboarding data for ${userId}: ${e.message}`,
+      );
     }
   }
 }

@@ -18,7 +18,8 @@ export class EmbeddingService {
   /** Deterministic pseudo-embedding so mock results are stable across calls. */
   private mockEmbedding(text: string): number[] {
     let seed = 0;
-    for (let i = 0; i < text.length; i++) seed = (seed * 31 + text.charCodeAt(i)) % 2 ** 31;
+    for (let i = 0; i < text.length; i++)
+      seed = (seed * 31 + text.charCodeAt(i)) % 2 ** 31;
 
     const vector = Array.from({ length: 1536 }, () => {
       seed = (seed * 1103515245 + 12345) % 2 ** 31;
@@ -34,7 +35,10 @@ export class EmbeddingService {
 
     try {
       const response = await this.client.embeddings.create({
-        model: this.config.get<string>('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small'),
+        model: this.config.get<string>(
+          'OPENAI_EMBEDDING_MODEL',
+          'text-embedding-3-small',
+        ),
         input: text,
       });
       return response.data[0]?.embedding ?? this.mockEmbedding(text);
@@ -46,12 +50,16 @@ export class EmbeddingService {
   }
 
   async embedBatch(texts: string[]): Promise<number[][]> {
-    if (this.isMockMode || !this.client) return texts.map((t) => this.mockEmbedding(t));
+    if (this.isMockMode || !this.client)
+      return texts.map((t) => this.mockEmbedding(t));
 
     try {
       // One batched request instead of N sequential ones.
       const response = await this.client.embeddings.create({
-        model: this.config.get<string>('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small'),
+        model: this.config.get<string>(
+          'OPENAI_EMBEDDING_MODEL',
+          'text-embedding-3-small',
+        ),
         input: texts,
       });
       return response.data.map((d) => d.embedding);

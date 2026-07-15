@@ -23,32 +23,33 @@ packages/
   shared/   Zod schemas & TypeScript types shared by both apps
 ```
 
-| Layer | Technology | Why |
-|---|---|---|
-| Backend framework | **NestJS 11** | Modular DI, guards, pipes, lifecycle hooks |
-| Database | **MongoDB + Mongoose** | Flexible document model for CVs, roadmaps, sessions |
-| Vector search | **Qdrant** (`@qdrant/js-client-rest`) | Semantic retrieval layer — implemented, index not yet populated |
-| AI | **OpenAI** (`gpt-4o`, `gpt-4o-mini`, `text-embedding-3-small`) | Roadmap/quiz generation, CV parsing, embeddings |
-| Auth | **@nestjs/jwt + bcrypt + google-auth-library** | Access/refresh JWTs, hashed passwords, verified Google sign-in |
-| Validation | **class-validator + Zod** | Per-endpoint DTOs and fail-fast config validation |
-| Rate limiting | **@nestjs/throttler** | Brute-force protection |
-| Security headers | **helmet** | Standard hardening |
-| API docs | **@nestjs/swagger** | Auto-generated `/docs` |
-| Frontend | **Next.js 14 (App Router) + React 18** | File-based routing, RSC-ready |
-| Styling | **Tailwind CSS + DaisyUI** | Utility-first, theme tokens |
-| i18n | Custom `AppContext` | English (LTR) + Arabic (RTL) |
-| File storage | **Cloudinary** | Image uploads (avatars) |
-| Payments | **PayPal REST + signed webhooks** | Subscriptions |
-| Email | **Resend** (console transport in dev) | Password resets, email verification |
-| Infra (dev) | **Docker Compose** | MongoDB, Redis, Qdrant |
-| Infra (prod) | **Multi-stage Dockerfiles** + `docker-compose.prod.yml` | Non-root images, Next.js standalone output, healthchecks |
-| CI | **GitHub Actions** | lint → build → test → audit |
+| Layer             | Technology                                                     | Why                                                             |
+| ----------------- | -------------------------------------------------------------- | --------------------------------------------------------------- |
+| Backend framework | **NestJS 11**                                                  | Modular DI, guards, pipes, lifecycle hooks                      |
+| Database          | **MongoDB + Mongoose**                                         | Flexible document model for CVs, roadmaps, sessions             |
+| Vector search     | **Qdrant** (`@qdrant/js-client-rest`)                          | Semantic retrieval layer — implemented, index not yet populated |
+| AI                | **OpenAI** (`gpt-4o`, `gpt-4o-mini`, `text-embedding-3-small`) | Roadmap/quiz generation, CV parsing, embeddings                 |
+| Auth              | **@nestjs/jwt + bcrypt + google-auth-library**                 | Access/refresh JWTs, hashed passwords, verified Google sign-in  |
+| Validation        | **class-validator + Zod**                                      | Per-endpoint DTOs and fail-fast config validation               |
+| Rate limiting     | **@nestjs/throttler**                                          | Brute-force protection                                          |
+| Security headers  | **helmet**                                                     | Standard hardening                                              |
+| API docs          | **@nestjs/swagger**                                            | Auto-generated `/docs`                                          |
+| Frontend          | **Next.js 14 (App Router) + React 18**                         | File-based routing, RSC-ready                                   |
+| Styling           | **Tailwind CSS + DaisyUI**                                     | Utility-first, theme tokens                                     |
+| i18n              | Custom `AppContext`                                            | English (LTR) + Arabic (RTL)                                    |
+| File storage      | **Cloudinary**                                                 | Image uploads (avatars)                                         |
+| Payments          | **PayPal REST + signed webhooks**                              | Subscriptions                                                   |
+| Email             | **Resend** (console transport in dev)                          | Password resets, email verification                             |
+| Infra (dev)       | **Docker Compose**                                             | MongoDB, Redis, Qdrant                                          |
+| Infra (prod)      | **Multi-stage Dockerfiles** + `docker-compose.prod.yml`        | Non-root images, Next.js standalone output, healthchecks        |
+| CI                | **GitHub Actions**                                             | lint → build → test → audit                                     |
 
 ---
 
 ## 2. Features and the technology behind each
 
 ### 2.1 Authentication & session management
+
 **What it does:** email/password and Google sign-up & login, with persistent
 sessions that survive a page reload.
 
@@ -66,6 +67,7 @@ sessions that survive a page reload.
   A client-supplied email is never trusted.
 
 ### 2.1b Password reset, email verification & session revocation
+
 **What it does:** the standard account-recovery flows — which previously existed only as a
 simulated UI.
 
@@ -78,7 +80,7 @@ simulated UI.
 - **Email verification:** a 24-hour token is emailed at signup; `POST /auth/verify-email`
   confirms it. `POST /auth/resend-verification` is throttled to 3 per 5 minutes.
 - **Email delivery:** `MailService` — logs to the console in development, sends via **Resend**
-  in production (`RESEND_API_KEY` is *required* under `NODE_ENV=production` so a reset email
+  in production (`RESEND_API_KEY` is _required_ under `NODE_ENV=production` so a reset email
   can never silently disappear).
 - **Refresh-token rotation + theft detection:** every refresh burns the old token and issues a
   new one. Refresh tokens are stored **hashed** (SHA-256, one entry per device, capped at 10).
@@ -87,6 +89,7 @@ simulated UI.
   `POST /auth/logout` burns just this device; `POST /auth/logout-all` burns all of them.
 
 ### 2.2 Authorization (roles & ownership)
+
 **What it does:** decides who can see and do what.
 
 - A global **`JwtAuthGuard`** makes the API **deny-by-default**: every route needs a
@@ -99,7 +102,8 @@ simulated UI.
   body. `admin` cannot be self-assigned at registration, and `role`/`email` are not
   self-editable.
 
-### 2.3 Adaptive learning roadmap  *(core feature)*
+### 2.3 Adaptive learning roadmap _(core feature)_
+
 **What it does:** generates a personalized, dependency-ordered set of learning modules
 for a target role, and **reshapes it based on quiz performance**.
 
@@ -115,6 +119,7 @@ for a target role, and **reshapes it based on quiz performance**.
 - **Rendering:** the frontend draws the roadmap as a dependency tree.
 
 ### 2.4 Skill assessment (adaptive quiz)
+
 **What it does:** verifies a skill with a short adaptive quiz.
 
 - **Question generation:** `LLMService.generateQuiz()` via **OpenAI (gpt-4o-mini)**,
@@ -125,6 +130,7 @@ for a target role, and **reshapes it based on quiz performance**.
   (`assertSelfOrAdmin` inside `AssessmentService`).
 
 ### 2.5 CV builder & AI parser
+
 **What it does:** upload a résumé to auto-fill a structured CV, edit it live, get AI-improved
 bullet points, and export to PDF.
 
@@ -138,7 +144,8 @@ bullet points, and export to PDF.
   `useCvEditor` hook + icon/type modules.
 
 ### 2.6 Job matching & skill-gap analysis
-**What it does:** ranks jobs against a candidate's *verified* skills and turns the gap into
+
+**What it does:** ranks jobs against a candidate's _verified_ skills and turns the gap into
 learning modules.
 
 - **Scoring (today):** a deterministic skill-overlap score in `HiringService.matchJobsForLearner()`.
@@ -155,6 +162,7 @@ learning modules.
   to populate the index. See `AI-ARCHITECTURE.md` §4.
 
 ### 2.7 Payments & subscriptions
+
 **What it does:** paid Pro (learner) and Company tiers.
 
 - **PayPal REST**: `createOrder` (price resolved **server-side** from the plan — the client
@@ -168,28 +176,33 @@ learning modules.
   creds are missing under `NODE_ENV=production`).
 
 ### 2.8 Recruiter side
+
 **What it does:** companies browse candidates and (future) manage a hiring pipeline.
 
 - `/company` dashboard + `/hiring/candidates` (company/admin only).
 - Candidate data is protected personal data, gated by `RolesGuard`.
 
 ### 2.9 Messaging & notifications
+
 - In-app **notifications** (`NotificationService`) with unread counts and mark-all-read.
 - Direct **messages** between users (`MessageService`), all owner-scoped from the JWT.
 - **Newsletter** subscription endpoint (upserts into MongoDB) — the footer used to call a
   route that didn't exist; it now does.
 
 ### 2.10 Onboarding content
+
 - New users get a welcome notification + support chat, seeded **once at signup** (moved off
   the login hot path) and **disabled in production** unless `SEED_DEMO_CONTENT=true`, so demo
   data never reaches real users.
 
 ### 2.11 Internationalization & theming
+
 - Full **English (LTR)** and **Arabic (RTL)** support via a custom `AppContext`, with logical
   margin/padding utilities and direction toggling.
 - Two themes (`smartlight`, `smartdark`) via **DaisyUI**, persisted in `localStorage`.
 
 ### 2.12 Platform & operations
+
 - **Config validation** with **Zod** (`env.validation.ts`): the API refuses to boot with an
   invalid/missing config instead of silently degrading. `MOCK_MODE` is an explicit opt-in and
   is rejected in production.
@@ -203,25 +216,25 @@ learning modules.
 
 ## 3. How each feature is verified
 
-| Feature area | Automated (`npm run smoke`) | Manual (`QA-CHECKLIST.md`) |
-|---|---|---|
-| Health | §0 | — |
-| Auth + cookies + tokens | §1 (7 checks) | A1–A9 |
-| Refresh rotation + theft detection | §1b (2 checks) | I2, I3 |
-| Password reset + email verification | §1c (5 checks) | A10–A13 |
-| Deny-by-default authz | §2 (8 checks) | B3 |
-| Privilege escalation | §3 (4 checks) | B1, B2, B5 |
-| Google anti-spoofing | §4 (2 checks) | A7, A8 |
-| IDOR / ownership | §5 (4 checks) | B4 |
-| Roadmap + adaptive quiz | §6 (7 checks) | C1–C7 |
-| Skill gap → roadmap | §6b (2 checks) | E4 |
-| Payments | §7 (5 checks) | F1–F3 |
-| Uploads, newsletter, throttling | §8 (4 checks) | D4–D6, G3 |
-| CV builder UI | — | D1–D7 |
-| Matching / recruiter | partial (§5) | E1–E3 |
-| Messaging / notifications | — | G1–G2 |
-| i18n / theming | — | H1–H2 |
-| Resilience | — | I1–I3 |
+| Feature area                        | Automated (`npm run smoke`) | Manual (`QA-CHECKLIST.md`) |
+| ----------------------------------- | --------------------------- | -------------------------- |
+| Health                              | §0                          | —                          |
+| Auth + cookies + tokens             | §1 (7 checks)               | A1–A9                      |
+| Refresh rotation + theft detection  | §1b (2 checks)              | I2, I3                     |
+| Password reset + email verification | §1c (5 checks)              | A10–A13                    |
+| Deny-by-default authz               | §2 (8 checks)               | B3                         |
+| Privilege escalation                | §3 (4 checks)               | B1, B2, B5                 |
+| Google anti-spoofing                | §4 (2 checks)               | A7, A8                     |
+| IDOR / ownership                    | §5 (4 checks)               | B4                         |
+| Roadmap + adaptive quiz             | §6 (7 checks)               | C1–C7                      |
+| Skill gap → roadmap                 | §6b (2 checks)              | E4                         |
+| Payments                            | §7 (5 checks)               | F1–F3                      |
+| Uploads, newsletter, throttling     | §8 (4 checks)               | D4–D6, G3                  |
+| CV builder UI                       | —                           | D1–D7                      |
+| Matching / recruiter                | partial (§5)                | E1–E3                      |
+| Messaging / notifications           | —                           | G1–G2                      |
+| i18n / theming                      | —                           | H1–H2                      |
+| Resilience                          | —                           | I1–I3                      |
 
 Unit tests (`npm test`, 15 tests) cover the auth service (bcrypt, no admin self-assign,
 Google-on-local-account rejection, refresh-vs-access separation), the ownership utility,

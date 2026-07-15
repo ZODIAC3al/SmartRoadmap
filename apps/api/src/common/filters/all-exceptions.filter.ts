@@ -34,7 +34,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
         exception instanceof Error ? exception.stack : String(exception),
       );
     } else {
-      this.logger.warn(`[${requestId}] ${request.method} ${request.url} -> ${status}`);
+      this.logger.warn(
+        `[${requestId}] ${request.method} ${request.url} -> ${status}`,
+      );
     }
 
     response.status(status).json({

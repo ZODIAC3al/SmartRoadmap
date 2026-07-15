@@ -24,7 +24,11 @@ import { MessageModule } from './modules/message/message.module';
 @Module({
   imports: [
     // Fail fast on bad/missing config instead of silently degrading to mocks.
-    ConfigModule.forRoot({ isGlobal: true, validate: validateEnv, cache: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate: validateEnv,
+      cache: true,
+    }),
 
     MongooseModule.forRootAsync({
       inject: [ConfigService],

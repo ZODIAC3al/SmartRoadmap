@@ -10,6 +10,33 @@
  * not a mock — behaves correctly. Exit code 1 if anything fails.
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Load .env from root if it exists
+try {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const envPath = path.join(__dirname, '../.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    for (const line of envContent.split(/\r?\n/)) {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let value = match[2] || '';
+        if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+        if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1);
+        if (process.env[key] === undefined) {
+          process.env[key] = value.trim();
+        }
+      }
+    }
+  }
+} catch (e) {
+  // Ignore
+}
+
 const API = process.env.API_URL ?? 'http://localhost:3000';
 
 let passed = 0;

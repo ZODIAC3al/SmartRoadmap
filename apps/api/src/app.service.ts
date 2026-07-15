@@ -16,7 +16,12 @@ export class AppService {
     const collection = this.connection.collection('newsletter_subscribers');
     await collection.updateOne(
       { email: email.toLowerCase().trim() },
-      { $setOnInsert: { email: email.toLowerCase().trim(), createdAt: new Date() } },
+      {
+        $setOnInsert: {
+          email: email.toLowerCase().trim(),
+          createdAt: new Date(),
+        },
+      },
       { upsert: true },
     );
     this.logger.log(`Newsletter subscription stored for ${email}`);

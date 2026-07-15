@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import { useApp } from '@/components/AppContext';
-import { apiFetch, cacheUser, getCachedUser, hasSession, logout } from '@/lib/api';
-import { pricingDict } from './pricing.data';
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { useApp } from "@/components/AppContext";
+import {
+  apiFetch,
+  cacheUser,
+  getCachedUser,
+  hasSession,
+  logout,
+} from "@/lib/api";
+import { pricingDict } from "./pricing.data";
 
 /**
  * State + side effects for the PricingPage screen, lifted out of the page so the
@@ -13,18 +19,20 @@ import { pricingDict } from './pricing.data';
 export function usePricing() {
   const { locale } = useApp();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  
+
   // Checkout variables
   const [user, setUser] = useState<any>(null);
-  const [selectedPlan, setSelectedPlan] = useState<'pro' | 'scale' | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<"pro" | "scale" | null>(
+    null,
+  );
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [paypalOrder, setPaypalOrder] = useState<any>(null);
   const [showSimulatedModal, setShowSimulatedModal] = useState(false);
   const [simulatedCard, setSimulatedCard] = useState({
-    number: '4111 2222 3333 4444',
-    expiry: '12/29',
-    cvv: '123',
-    name: ''
+    number: "4111 2222 3333 4444",
+    expiry: "12/29",
+    cvv: "123",
+    name: "",
   });
 
   useEffect(() => {
@@ -34,14 +42,14 @@ export function usePricing() {
     }
   }, []);
 
-  const handleSimulateLogin = (role: 'learner' | 'company') => {
+  const handleSimulateLogin = (role: "learner" | "company") => {
     // The fake client-side session ('demo-token') is gone: a role can only ever
     // come from a JWT the server issued, and the API re-checks it on every call.
-    toast.info('Please sign in with an authorized account.');
-    window.location.href = '/auth/login';
+    toast.info("Please sign in with an authorized account.");
+    window.location.href = "/auth/login";
   };
 
-  const handleInitiateUpgrade = (plan: 'pro' | 'scale') => {
+  const handleInitiateUpgrade = (plan: "pro" | "scale") => {
     setSelectedPlan(plan);
   };
 
@@ -54,40 +62,47 @@ export function usePricing() {
 
   const triggerPayPalCheckout = async () => {
     if (!user) {
-      toast.error('Please authenticate to complete checkout');
+      toast.error("Please authenticate to complete checkout");
       return;
     }
-    
+
     setIsProcessingCheckout(true);
-    const backendPlanName = selectedPlan === 'pro' ? 'pro_learner' : 'company_tier';
+    const backendPlanName =
+      selectedPlan === "pro" ? "pro_learner" : "company_tier";
 
     try {
       // The plan (and therefore the price) is resolved server-side; the client
       // no longer sends a userId or an amount.
-      const response = await apiFetch('/payment/orders', {
-        method: 'POST',
+      const response = await apiFetch("/payment/orders", {
+        method: "POST",
         body: JSON.stringify({ plan: backendPlanName }),
       });
 
       const order = await response.json();
-      if (!response.ok) throw new Error(order.message || 'Order creation failed');
+      if (!response.ok)
+        throw new Error(order.message || "Order creation failed");
       setPaypalOrder(order);
 
-      const approveHref = order.links?.find((l: any) => l.rel === 'approve')?.href;
+      const approveHref = order.links?.find(
+        (l: any) => l.rel === "approve",
+      )?.href;
 
       if (order.mock) {
         // Backend is explicitly in dev mock mode.
         setShowSimulatedModal(true);
       } else if (approveHref) {
-        toast.info('Redirecting to PayPal Checkout...');
+        toast.info("Redirecting to PayPal Checkout...");
         window.location.href = approveHref;
       } else {
-        throw new Error('PayPal did not return an approval link.');
+        throw new Error("PayPal did not return an approval link.");
       }
     } catch (e: any) {
       // No more client-side fake order: a failed payment must fail, not silently
       // hand out a subscription.
-      toast.error(e.message || 'Payment is currently unavailable. Please try again later.');
+      toast.error(
+        e.message ||
+          "Payment is currently unavailable. Please try again later.",
+      );
     } finally {
       setIsProcessingCheckout(false);
     }
@@ -98,27 +113,37 @@ export function usePricing() {
     setIsProcessingCheckout(true);
 
     try {
-      const response = await apiFetch('/payment/orders/capture', {
-        method: 'POST',
+      const response = await apiFetch("/payment/orders/capture", {
+        method: "POST",
         body: JSON.stringify({ orderId: paypalOrder.id }),
       });
 
-      if (!response.ok) throw new Error('Capture failed');
+      if (!response.ok) throw new Error("Capture failed");
       const result = await response.json();
 
       // Upgrade local user token settings if needed
-      const upgradedUser = { ...user, role: selectedPlan === 'pro' ? 'learner' : 'company' };
+      const upgradedUser = {
+        ...user,
+        role: selectedPlan === "pro" ? "learner" : "company",
+      };
       cacheUser(upgradedUser);
       setUser(upgradedUser);
 
-      toast.success(`Payment captured! Upgraded to ${selectedPlan === 'pro' ? 'Premium Pro' : 'Recruiter Scale'} Tier!`);
+      toast.success(
+        `Payment captured! Upgraded to ${selectedPlan === "pro" ? "Premium Pro" : "Recruiter Scale"} Tier!`,
+      );
       handleCancelUpgrade();
     } catch (e) {
       // Local fallback simulation
-      const upgradedUser = { ...user, role: selectedPlan === 'pro' ? 'learner' : 'company' };
+      const upgradedUser = {
+        ...user,
+        role: selectedPlan === "pro" ? "learner" : "company",
+      };
       cacheUser(upgradedUser);
       setUser(upgradedUser);
-      toast.success(`Simulation completed! Upgraded to ${selectedPlan === 'pro' ? 'Premium Pro' : 'Recruiter Scale'}!`);
+      toast.success(
+        `Simulation completed! Upgraded to ${selectedPlan === "pro" ? "Premium Pro" : "Recruiter Scale"}!`,
+      );
       handleCancelUpgrade();
     }
   };
@@ -126,7 +151,7 @@ export function usePricing() {
   const tLocal = (key: string): string => {
     const item = (pricingDict as any)[key];
     if (!item) return key;
-    return item[locale] || item['en'] || key;
+    return item[locale] || item["en"] || key;
   };
 
   const translateFeatureVal = (value: boolean | string) => {
@@ -140,23 +165,23 @@ export function usePricing() {
     if (value === false) {
       return <span className="text-base-content/30 text-xs font-mono">–</span>;
     }
-    if (value === 'No limit') {
-      return locale === 'ar' ? 'بدون حد' : 'No limit';
+    if (value === "No limit") {
+      return locale === "ar" ? "بدون حد" : "No limit";
     }
-    if (value === 'Flexible') {
-      return locale === 'ar' ? 'مرن' : 'Flexible';
+    if (value === "Flexible") {
+      return locale === "ar" ? "مرن" : "Flexible";
     }
-    if (value === 'With Add-on') {
-      return locale === 'ar' ? 'مع خدمة ملحقة' : 'With Add-on';
+    if (value === "With Add-on") {
+      return locale === "ar" ? "مع خدمة ملحقة" : "With Add-on";
     }
-    if (value === '1 day') {
-      return locale === 'ar' ? 'يوم واحد' : '1 day';
+    if (value === "1 day") {
+      return locale === "ar" ? "يوم واحد" : "1 day";
     }
-    if (value === '30 days') {
-      return locale === 'ar' ? '٣٠ يوماً' : '30 days';
+    if (value === "30 days") {
+      return locale === "ar" ? "٣٠ يوماً" : "30 days";
     }
-    if (value === '1 year') {
-      return locale === 'ar' ? 'سنة واحدة' : '1 year';
+    if (value === "1 year") {
+      return locale === "ar" ? "سنة واحدة" : "1 year";
     }
     return value;
   };

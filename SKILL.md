@@ -1,4 +1,5 @@
 # SmartRoadmap — Master SKILL.md
+
 > AI-Powered Personalized Learning & Hiring Platform  
 > Team: Developia · Mohamed Elsaied · Ali Maher · Marina George · Nada Nasr  
 > Supervisor: Noha Salah
@@ -25,6 +26,7 @@
 ## 1. Project Overview
 
 ### What It Is
+
 SmartRoadmap is a full-stack EdTech / HR-Tech platform with three core loops:
 
 1. **Learn** — AI generates a personalised, adaptive learning roadmap per user based on their current skill level, background, and target career goal.
@@ -33,13 +35,14 @@ SmartRoadmap is a full-stack EdTech / HR-Tech platform with three core loops:
 
 ### The Three AI Pillars
 
-| Pillar | What It Does |
-|--------|-------------|
-| **LLM (Intelligence)** | Interprets diagnostics, generates roadmaps with dependency graphs, produces adaptive quiz questions per learner level |
-| **RAG (Knowledge)** | Semantic retrieval over curated learning resources, live job postings, and historical assessment data |
-| **Agents (Action)** | Scrapes and re-ranks job-market skill demands, auto-matches CVs to company requirements, triggers reinforcement content on failure |
+| Pillar                 | What It Does                                                                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **LLM (Intelligence)** | Interprets diagnostics, generates roadmaps with dependency graphs, produces adaptive quiz questions per learner level              |
+| **RAG (Knowledge)**    | Semantic retrieval over curated learning resources, live job postings, and historical assessment data                              |
+| **Agents (Action)**    | Scrapes and re-ranks job-market skill demands, auto-matches CVs to company requirements, triggers reinforcement content on failure |
 
 ### Target Users
+
 - **Learners** — university students, fresh graduates, career switchers
 - **Companies** — HR teams at tech and non-tech companies seeking verified talent
 
@@ -48,71 +51,75 @@ SmartRoadmap is a full-stack EdTech / HR-Tech platform with three core loops:
 ## 2. Full Tech Stack
 
 ### Frontend
-| Library / Tool | Version | Purpose |
-|----------------|---------|---------|
-| Next.js | 14 (App Router) | SSR, SSG, routing, layout system |
-| React | 18 | Component model, hooks, context |
-| TypeScript | 5.x | Full strict mode across all files |
-| Tailwind CSS | 3.x | Utility-first styling |
-| DaisyUI | 4.x | Component library — all colors via semantic tokens only |
-| Framer Motion | 11.x | Page transitions, micro-animations, roadmap reveals |
-| React Hook Form | 7.x | All form state, validation, multi-step wizard |
-| Zod | 3.x | Schema validation — shared with backend DTOs |
-| TanStack Query | 5.x | Server state, caching, optimistic mutations |
-| TanStack Table | 8.x | Admin/company data tables with sorting/filtering |
-| Recharts | 2.x | Progress charts, skill gap visualisations, score timelines |
-| React Flow | 11.x | Interactive roadmap graph (nodes = modules, edges = prerequisites) |
-| React PDF | 3.x | In-browser CV preview and PDF export |
-| next-intl | 3.x | i18n — Arabic (RTL) + English (LTR) |
-| Zustand | 4.x | Lightweight client state (auth slice, UI state) |
-| next-themes | — | Dark/light theme switcher |
-| Lottie React | — | Animated illustrations (empty states, success, loading) |
-| Socket.io-client | 4.x | Real-time notifications, live quiz timer sync |
-| GSAP | 3.x | Hero animations, roadmap entrance sequences |
+
+| Library / Tool   | Version         | Purpose                                                            |
+| ---------------- | --------------- | ------------------------------------------------------------------ |
+| Next.js          | 14 (App Router) | SSR, SSG, routing, layout system                                   |
+| React            | 18              | Component model, hooks, context                                    |
+| TypeScript       | 5.x             | Full strict mode across all files                                  |
+| Tailwind CSS     | 3.x             | Utility-first styling                                              |
+| DaisyUI          | 4.x             | Component library — all colors via semantic tokens only            |
+| Framer Motion    | 11.x            | Page transitions, micro-animations, roadmap reveals                |
+| React Hook Form  | 7.x             | All form state, validation, multi-step wizard                      |
+| Zod              | 3.x             | Schema validation — shared with backend DTOs                       |
+| TanStack Query   | 5.x             | Server state, caching, optimistic mutations                        |
+| TanStack Table   | 8.x             | Admin/company data tables with sorting/filtering                   |
+| Recharts         | 2.x             | Progress charts, skill gap visualisations, score timelines         |
+| React Flow       | 11.x            | Interactive roadmap graph (nodes = modules, edges = prerequisites) |
+| React PDF        | 3.x             | In-browser CV preview and PDF export                               |
+| next-intl        | 3.x             | i18n — Arabic (RTL) + English (LTR)                                |
+| Zustand          | 4.x             | Lightweight client state (auth slice, UI state)                    |
+| next-themes      | —               | Dark/light theme switcher                                          |
+| Lottie React     | —               | Animated illustrations (empty states, success, loading)            |
+| Socket.io-client | 4.x             | Real-time notifications, live quiz timer sync                      |
+| GSAP             | 3.x             | Hero animations, roadmap entrance sequences                        |
 
 ### Backend
-| Library / Tool | Version | Purpose |
-|----------------|---------|---------|
-| NestJS | 10.x | Modular backend framework |
-| Node.js | 20 LTS | Runtime |
-| TypeScript | 5.x | Strict mode |
-| TypeORM | 0.3.x | ORM — entities, migrations, relations |
-| PostgreSQL | 15 | Primary relational database |
-| pgvector | 0.7.x | Vector column on PostgreSQL (fallback if Qdrant unavailable) |
-| Qdrant | Cloud | Primary vector database for RAG |
-| Socket.io | 4.x | WebSocket gateway — notifications, quiz sessions |
-| Bull / BullMQ | 5.x | Job queues — agent tasks, email, PDF generation |
-| Redis | 7 | Bull queue backend + API response cache |
-| Passport.js | — | JWT strategy, local strategy |
-| @nestjs/jwt | — | JWT signing/verification |
-| class-validator | — | DTO validation |
-| class-transformer | — | DTO serialisation |
-| Swagger / OpenAPI | — | Auto-generated API docs at `/api/docs` |
-| Multer | — | File upload handling |
-| Sharp | — | Image optimisation (profile photos) |
-| PDFKit | — | Server-side PDF generation (certificates, CV export) |
-| Nodemailer + Resend | — | Transactional email |
-| LangChain.js | 0.2.x | LLM chains, RAG pipeline, agent orchestration |
-| OpenAI Node SDK | 4.x | GPT-4o / GPT-4o-mini / text-embedding-3-small |
-| @qdrant/js-client-rest | — | Qdrant vector DB client |
+
+| Library / Tool         | Version | Purpose                                                      |
+| ---------------------- | ------- | ------------------------------------------------------------ |
+| NestJS                 | 10.x    | Modular backend framework                                    |
+| Node.js                | 20 LTS  | Runtime                                                      |
+| TypeScript             | 5.x     | Strict mode                                                  |
+| TypeORM                | 0.3.x   | ORM — entities, migrations, relations                        |
+| PostgreSQL             | 15      | Primary relational database                                  |
+| pgvector               | 0.7.x   | Vector column on PostgreSQL (fallback if Qdrant unavailable) |
+| Qdrant                 | Cloud   | Primary vector database for RAG                              |
+| Socket.io              | 4.x     | WebSocket gateway — notifications, quiz sessions             |
+| Bull / BullMQ          | 5.x     | Job queues — agent tasks, email, PDF generation              |
+| Redis                  | 7       | Bull queue backend + API response cache                      |
+| Passport.js            | —       | JWT strategy, local strategy                                 |
+| @nestjs/jwt            | —       | JWT signing/verification                                     |
+| class-validator        | —       | DTO validation                                               |
+| class-transformer      | —       | DTO serialisation                                            |
+| Swagger / OpenAPI      | —       | Auto-generated API docs at `/api/docs`                       |
+| Multer                 | —       | File upload handling                                         |
+| Sharp                  | —       | Image optimisation (profile photos)                          |
+| PDFKit                 | —       | Server-side PDF generation (certificates, CV export)         |
+| Nodemailer + Resend    | —       | Transactional email                                          |
+| LangChain.js           | 0.2.x   | LLM chains, RAG pipeline, agent orchestration                |
+| OpenAI Node SDK        | 4.x     | GPT-4o / GPT-4o-mini / text-embedding-3-small                |
+| @qdrant/js-client-rest | —       | Qdrant vector DB client                                      |
 
 ### Infrastructure & DevOps
-| Tool | Purpose |
-|------|---------|
+
+| Tool                    | Purpose                                         |
+| ----------------------- | ----------------------------------------------- |
 | Docker + docker-compose | Local dev environment (Postgres, Redis, Qdrant) |
-| Cloudflare R2 | Object storage (CVs, generated PDFs, images) |
-| Supabase | Managed Postgres + Auth (optional Auth layer) |
-| Vercel | Next.js hosting (frontend) |
-| Railway / Render | NestJS API hosting |
-| GitHub Actions | CI — lint, typecheck, test, build |
-| ESLint + Prettier | Code quality |
-| Husky + lint-staged | Pre-commit hooks |
+| Cloudflare R2           | Object storage (CVs, generated PDFs, images)    |
+| Supabase                | Managed Postgres + Auth (optional Auth layer)   |
+| Vercel                  | Next.js hosting (frontend)                      |
+| Railway / Render        | NestJS API hosting                              |
+| GitHub Actions          | CI — lint, typecheck, test, build               |
+| ESLint + Prettier       | Code quality                                    |
+| Husky + lint-staged     | Pre-commit hooks                                |
 
 ---
 
 ## 3. Design System
 
 ### Philosophy
+
 - **DaisyUI semantic tokens only** — never hardcode hex values; always use `bg-base-100`, `text-primary`, `border-base-300`, etc.
 - **Bilingual by default** — every layout must work in both LTR (English) and RTL (Arabic) via `next-intl` + `dir` attribute on `<html>`
 - **Dark / Light** — DaisyUI `data-theme` attribute; default dark for learner dashboards, light optional
@@ -121,62 +128,62 @@ SmartRoadmap is a full-stack EdTech / HR-Tech platform with three core loops:
 ### DaisyUI Theme Configuration (`tailwind.config.ts`)
 
 ```ts
-import type { Config } from 'tailwindcss'
+import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ['./src/**/*.{ts,tsx}'],
-  plugins: [require('daisyui')],
+  content: ["./src/**/*.{ts,tsx}"],
+  plugins: [require("daisyui")],
   daisyui: {
     themes: [
       {
         smartdark: {
-          'primary':          '#6366f1',   // indigo-500 — roadmap nodes, CTAs
-          'primary-content':  '#ffffff',
-          'secondary':        '#818cf8',   // indigo-400 — secondary actions
-          'secondary-content':'#ffffff',
-          'accent':           '#22c55e',   // green-500 — success, completed modules
-          'accent-content':   '#ffffff',
-          'neutral':          '#1e293b',   // slate-800 — cards, surfaces
-          'neutral-content':  '#cbd5e1',
-          'base-100':         '#0f172a',   // slate-900 — page background
-          'base-200':         '#1e293b',   // slate-800 — card background
-          'base-300':         '#334155',   // slate-700 — borders, dividers
-          'base-content':     '#f1f5f9',   // slate-100 — body text
-          'info':             '#38bdf8',   // sky-400
-          'success':          '#22c55e',   // green-500
-          'warning':          '#eab308',   // yellow-500
-          'error':            '#ef4444',   // red-500
+          primary: "#6366f1", // indigo-500 — roadmap nodes, CTAs
+          "primary-content": "#ffffff",
+          secondary: "#818cf8", // indigo-400 — secondary actions
+          "secondary-content": "#ffffff",
+          accent: "#22c55e", // green-500 — success, completed modules
+          "accent-content": "#ffffff",
+          neutral: "#1e293b", // slate-800 — cards, surfaces
+          "neutral-content": "#cbd5e1",
+          "base-100": "#0f172a", // slate-900 — page background
+          "base-200": "#1e293b", // slate-800 — card background
+          "base-300": "#334155", // slate-700 — borders, dividers
+          "base-content": "#f1f5f9", // slate-100 — body text
+          info: "#38bdf8", // sky-400
+          success: "#22c55e", // green-500
+          warning: "#eab308", // yellow-500
+          error: "#ef4444", // red-500
         },
       },
       {
         smartlight: {
-          'primary':          '#4f46e5',   // indigo-600
-          'primary-content':  '#ffffff',
-          'secondary':        '#7c3aed',   // violet-600
-          'secondary-content':'#ffffff',
-          'accent':           '#16a34a',   // green-600
-          'accent-content':   '#ffffff',
-          'neutral':          '#f1f5f9',   // slate-100
-          'neutral-content':  '#1e293b',
-          'base-100':         '#ffffff',
-          'base-200':         '#f8fafc',
-          'base-300':         '#e2e8f0',
-          'base-content':     '#0f172a',
-          'info':             '#0ea5e9',
-          'success':          '#16a34a',
-          'warning':          '#d97706',
-          'error':            '#dc2626',
+          primary: "#4f46e5", // indigo-600
+          "primary-content": "#ffffff",
+          secondary: "#7c3aed", // violet-600
+          "secondary-content": "#ffffff",
+          accent: "#16a34a", // green-600
+          "accent-content": "#ffffff",
+          neutral: "#f1f5f9", // slate-100
+          "neutral-content": "#1e293b",
+          "base-100": "#ffffff",
+          "base-200": "#f8fafc",
+          "base-300": "#e2e8f0",
+          "base-content": "#0f172a",
+          info: "#0ea5e9",
+          success: "#16a34a",
+          warning: "#d97706",
+          error: "#dc2626",
         },
       },
     ],
-    darkTheme: 'smartdark',
+    darkTheme: "smartdark",
     base: true,
     styled: true,
     utils: true,
   },
-}
+};
 
-export default config
+export default config;
 ```
 
 ### Typography Scale
@@ -184,24 +191,50 @@ export default config
 ```css
 /* globals.css — extend DaisyUI base */
 :root {
-  --font-display: 'Cal Sans', 'Inter', sans-serif;   /* headings */
-  --font-body:    'Inter', sans-serif;                /* body text */
-  --font-mono:    'JetBrains Mono', monospace;        /* code, badges */
+  --font-display: "Cal Sans", "Inter", sans-serif; /* headings */
+  --font-body: "Inter", sans-serif; /* body text */
+  --font-mono: "JetBrains Mono", monospace; /* code, badges */
 }
 
 /* Type scale */
-.text-display-xl { font-size: 3.5rem;  line-height: 1.1; font-weight: 800; }
-.text-display-lg { font-size: 2.5rem;  line-height: 1.2; font-weight: 700; }
-.text-display-md { font-size: 1.875rem;line-height: 1.3; font-weight: 700; }
-.text-body-lg    { font-size: 1.125rem;line-height: 1.75; }
-.text-body-md    { font-size: 1rem;    line-height: 1.7; }
-.text-body-sm    { font-size: 0.875rem;line-height: 1.6; }
-.text-caption    { font-size: 0.75rem; line-height: 1.5; letter-spacing: 0.05em; }
+.text-display-xl {
+  font-size: 3.5rem;
+  line-height: 1.1;
+  font-weight: 800;
+}
+.text-display-lg {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+.text-display-md {
+  font-size: 1.875rem;
+  line-height: 1.3;
+  font-weight: 700;
+}
+.text-body-lg {
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+.text-body-md {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.text-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.text-caption {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  letter-spacing: 0.05em;
+}
 ```
 
 ### Component Patterns
 
 #### Cards
+
 ```tsx
 // Standard card — always bg-base-200, border border-base-300
 <div className="card bg-base-200 border border-base-300 shadow-sm hover:shadow-md transition-shadow">
@@ -213,6 +246,7 @@ export default config
 ```
 
 #### Badges / Status Pills
+
 ```tsx
 // Module status
 const statusMap = {
@@ -225,6 +259,7 @@ const statusMap = {
 ```
 
 #### Buttons
+
 ```tsx
 // Primary CTA
 <button className="btn btn-primary">Start Learning</button>
@@ -240,17 +275,22 @@ const statusMap = {
 ```
 
 #### RTL Support
+
 ```tsx
 // layout.tsx
-import { getLocale } from 'next-intl/server'
+import { getLocale } from "next-intl/server";
 
 export default async function RootLayout({ children }) {
-  const locale = await getLocale()
+  const locale = await getLocale();
   return (
-    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} data-theme="smartdark">
+    <html
+      lang={locale}
+      dir={locale === "ar" ? "rtl" : "ltr"}
+      data-theme="smartdark"
+    >
       <body>{children}</body>
     </html>
-  )
+  );
 }
 ```
 
@@ -259,26 +299,34 @@ export default async function RootLayout({ children }) {
 ```tsx
 // Page entrance — every route uses this
 export const pageVariants = {
-  hidden:  { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
-  exit:    { opacity: 0, y: -8, transition: { duration: 0.2 } },
-}
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: "easeOut" },
+  },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.2 } },
+};
 
 // Stagger children (module cards, quiz options)
 export const containerVariants = {
-  hidden:  { opacity: 0 },
+  hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
-}
+};
 export const itemVariants = {
-  hidden:  { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0 },
-}
+};
 
 // Roadmap node reveal (React Flow + Framer)
 export const nodeEntrance = {
-  initial:  { scale: 0.7, opacity: 0 },
-  animate:  { scale: 1,   opacity: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } },
-}
+  initial: { scale: 0.7, opacity: 0 },
+  animate: {
+    scale: 1,
+    opacity: 1,
+    transition: { type: "spring", stiffness: 260, damping: 20 },
+  },
+};
 ```
 
 ---
@@ -309,6 +357,7 @@ export const nodeEntrance = {
 ```
 
 ### Data Flow — Roadmap Generation
+
 ```
 User submits diagnostic → NestJS /roadmap/generate
   → LangChain chain: diagnostic prompt → GPT-4o
@@ -320,6 +369,7 @@ User submits diagnostic → NestJS /roadmap/generate
 ```
 
 ### Data Flow — RAG Resource Retrieval
+
 ```
 User opens module → NestJS /resources?moduleId=X
   → Embed module topic → OpenAI text-embedding-3-small
@@ -328,6 +378,7 @@ User opens module → NestJS /resources?moduleId=X
 ```
 
 ### Data Flow — Job Matching
+
 ```
 Agent (Bull queue, daily) → fetch Adzuna jobs by country/specialisation
   → Embed each job description → Qdrant (jobs collection)
@@ -373,6 +424,7 @@ Agent (Bull queue, daily) → fetch Adzuna jobs by country/specialisation
 **Purpose:** Convert visitors to registered users. SSG for performance.
 
 **Sections:**
+
 1. **Hero** — Headline + animated roadmap preview (GSAP path draw), CTA: "Start for free"
 2. **Problem Statement** — Split card: "For Learners" / "For Companies"
 3. **How It Works** — 3-step visual: Diagnose → Learn → Get Hired
@@ -382,6 +434,7 @@ Agent (Bull queue, daily) → fetch Adzuna jobs by country/specialisation
 7. **Footer** — Links, language toggle, theme switcher
 
 **Key components:**
+
 ```tsx
 <HeroSection />          // GSAP animated roadmap line drawing
 <ProblemCards />         // motion.div stagger entrance
@@ -396,6 +449,7 @@ Agent (Bull queue, daily) → fetch Adzuna jobs by country/specialisation
 #### `/auth/register` — Multi-Step Registration Wizard
 
 **Steps:**
+
 1. Basic info (name, email, password)
 2. Role selection (Learner / Company)
 3. Background (education, current role, years experience)
@@ -405,12 +459,13 @@ Agent (Bull queue, daily) → fetch Adzuna jobs by country/specialisation
 **Libraries:** React Hook Form + Zod per step, TanStack Query mutation, `useMultiStepForm` custom hook
 
 **Validation schema (example — step 1):**
+
 ```ts
 const step1Schema = z.object({
-  name:     z.string().min(2).max(60),
-  email:    z.string().email(),
+  name: z.string().min(2).max(60),
+  email: z.string().email(),
   password: z.string().min(8).regex(/[A-Z]/).regex(/[0-9]/),
-})
+});
 ```
 
 ---
@@ -418,6 +473,7 @@ const step1Schema = z.object({
 #### `/onboarding` — Diagnostic Quiz → Roadmap Generation
 
 **Flow:**
+
 1. Dynamic diagnostic questions (5–10 questions, GPT-4o generated per target goal)
 2. Real-time progress bar
 3. Submit → loading state with animated roadmap being "built" (Lottie)
@@ -434,26 +490,29 @@ const step1Schema = z.object({
 **Core library:** React Flow 11
 
 **Node types:**
+
 ```ts
 type ModuleNode = {
-  id: string
-  type: 'module'
+  id: string;
+  type: "module";
   data: {
-    title: string
-    status: 'locked' | 'in_progress' | 'completed' | 'failed'
-    estimatedHours: number
-    prerequisites: string[]
-  }
-}
+    title: string;
+    status: "locked" | "in_progress" | "completed" | "failed";
+    estimatedHours: number;
+    prerequisites: string[];
+  };
+};
 ```
 
 **Visual encoding:**
+
 - `completed` → `bg-success` node, solid border
 - `in_progress` → `bg-warning` node, pulsing ring (Framer Motion)
 - `locked` → `bg-base-300` node, lock icon overlay
 - `failed` → `bg-error` node, retry badge
 
 **Interactions:**
+
 - Click node → slide-over panel with module detail
 - Hover node → tooltip with estimated time + prerequisite list
 - Mini-map in bottom-right corner
@@ -466,6 +525,7 @@ type ModuleNode = {
 #### `/quiz/[moduleId]` — Adaptive Quiz Session
 
 **Features:**
+
 - Question count: 5–15 (dynamic based on module complexity)
 - Question types: MCQ, True/False, Code snippet (syntax highlighted), Short answer
 - Adaptive difficulty: if 2 consecutive correct → harder; 2 consecutive wrong → easier (tracked in local state + sent to API)
@@ -475,15 +535,16 @@ type ModuleNode = {
 - Anti-cheat: tab-switch detection, time-per-question logged
 
 **State machine (Zustand):**
+
 ```ts
 type QuizState = {
-  status: 'idle' | 'in_progress' | 'reviewing' | 'completed'
-  currentQuestionIndex: number
-  answers: Record<number, string>
-  difficulty: 'easy' | 'medium' | 'hard'
-  timePerQuestion: number[]
-  score: number | null
-}
+  status: "idle" | "in_progress" | "reviewing" | "completed";
+  currentQuestionIndex: number;
+  answers: Record<number, string>;
+  difficulty: "easy" | "medium" | "hard";
+  timePerQuestion: number[];
+  score: number | null;
+};
 ```
 
 ---
@@ -493,6 +554,7 @@ type QuizState = {
 **Sections:** Personal info, Summary, Experience, Education, Skills, Projects, Certifications
 
 **Features:**
+
 - Upload existing CV → Affinda parse → auto-fill form fields
 - AI enhancement: per-section "Improve with AI" button → GPT-4o-mini rewrites the bullet
 - Skill tagging: autocomplete from platform's verified skills taxonomy
@@ -505,6 +567,7 @@ type QuizState = {
 #### `/hiring` — Job Matches (Learner View)
 
 **Features:**
+
 - Ranked job list from Adzuna — sorted by semantic similarity to learner profile
 - Match percentage badge per job (Qdrant cosine similarity score → normalised)
 - Skill gap per job: "You're missing: Docker, Kubernetes — add these to your roadmap"
@@ -517,6 +580,7 @@ type QuizState = {
 #### `/company` — Company Portal
 
 **Features:**
+
 - Dashboard: total candidates in pipeline, average match score, active job postings
 - Candidate search: filter by skill, min score, available for hire, location
 - Candidate card: profile photo, target role, top 5 skills with scores, completed modules, download CV
@@ -528,6 +592,7 @@ type QuizState = {
 #### `/admin` — Admin Dashboard
 
 **Features:**
+
 - User management: TanStack Table — search, sort, role change, ban, delete
 - Content management: CRUD for learning resources (video, article, project links)
 - Analytics: Recharts — daily signups, module completion rates, quiz pass rates, job match conversions
@@ -589,15 +654,15 @@ charts/
 ```ts
 // queryKeys.ts
 export const keys = {
-  roadmap:    (userId: string)       => ['roadmap', userId],
-  module:     (moduleId: string)     => ['module', moduleId],
-  quiz:       (moduleId: string)     => ['quiz', moduleId],
-  resources:  (moduleId: string)     => ['resources', moduleId],
-  jobs:       (filters: JobFilters)  => ['jobs', filters],
-  candidates: (filters: CandidateFilters) => ['candidates', filters],
-  cv:         (userId: string)       => ['cv', userId],
-  profile:    (userId: string)       => ['profile', userId],
-}
+  roadmap: (userId: string) => ["roadmap", userId],
+  module: (moduleId: string) => ["module", moduleId],
+  quiz: (moduleId: string) => ["quiz", moduleId],
+  resources: (moduleId: string) => ["resources", moduleId],
+  jobs: (filters: JobFilters) => ["jobs", filters],
+  candidates: (filters: CandidateFilters) => ["candidates", filters],
+  cv: (userId: string) => ["cv", userId],
+  profile: (userId: string) => ["profile", userId],
+};
 ```
 
 ---
@@ -626,6 +691,7 @@ modules/
 ### Auth Module
 
 **Endpoints:**
+
 ```
 POST /auth/register        Create account, send verification email
 POST /auth/login           Returns { accessToken, refreshToken }
@@ -638,6 +704,7 @@ GET  /auth/me              Current user profile
 ```
 
 **JWT Strategy:**
+
 ```ts
 // Access token: 15 minutes
 // Refresh token: 30 days, stored in Redis with userId mapping
@@ -645,6 +712,7 @@ GET  /auth/me              Current user profile
 ```
 
 **Guards:**
+
 ```ts
 @UseGuards(JwtAuthGuard)              // any authenticated user
 @UseGuards(JwtAuthGuard, RolesGuard)  // role-restricted
@@ -657,6 +725,7 @@ GET  /auth/me              Current user profile
 ### Roadmap Module
 
 **Endpoints:**
+
 ```
 POST   /roadmap/generate           Generate personalised roadmap (AI)
 GET    /roadmap/:id                Get full roadmap with modules
@@ -667,6 +736,7 @@ DELETE /roadmap/:id                Delete roadmap
 ```
 
 **Generation flow:**
+
 ```ts
 async generateRoadmap(dto: GenerateRoadmapDto): Promise<Roadmap> {
   // 1. Build system prompt from user background + target goal
@@ -679,20 +749,23 @@ async generateRoadmap(dto: GenerateRoadmapDto): Promise<Roadmap> {
 ```
 
 **GPT-4o Structured Output Schema:**
+
 ```ts
 const roadmapSchema = z.object({
   title: z.string(),
   totalEstimatedHours: z.number(),
-  modules: z.array(z.object({
-    id: z.string(),
-    title: z.string(),
-    description: z.string(),
-    prerequisites: z.array(z.string()),   // IDs of prerequisite modules
-    estimatedHours: z.number(),
-    topics: z.array(z.string()),
-    difficulty: z.enum(['beginner', 'intermediate', 'advanced']),
-  })),
-})
+  modules: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      description: z.string(),
+      prerequisites: z.array(z.string()), // IDs of prerequisite modules
+      estimatedHours: z.number(),
+      topics: z.array(z.string()),
+      difficulty: z.enum(["beginner", "intermediate", "advanced"]),
+    }),
+  ),
+});
 ```
 
 ---
@@ -700,6 +773,7 @@ const roadmapSchema = z.object({
 ### Assessment Module
 
 **Endpoints:**
+
 ```
 POST   /assessment/quiz/generate    Generate quiz for a module (AI)
 POST   /assessment/session/start    Start a quiz session
@@ -709,17 +783,19 @@ GET    /assessment/history/:userId  All past quiz sessions
 ```
 
 **Adaptive difficulty logic:**
+
 ```ts
 // In session processor
 function adjustDifficulty(history: Answer[]): Difficulty {
-  const last2 = history.slice(-2)
-  if (last2.every(a => a.correct)) return 'hard'
-  if (last2.every(a => !a.correct)) return 'easy'
-  return 'medium'
+  const last2 = history.slice(-2);
+  if (last2.every((a) => a.correct)) return "hard";
+  if (last2.every((a) => !a.correct)) return "easy";
+  return "medium";
 }
 ```
 
 **Scoring:**
+
 - Pass threshold: 70%
 - Score stored per question (difficulty weight: easy=1, medium=1.5, hard=2)
 - Weighted score determines module unlock
@@ -733,29 +809,29 @@ function adjustDifficulty(history: Answer[]): Difficulty {
 ```ts
 // LLMService — wraps OpenAI SDK
 class LLMService {
-  async complete(prompt: string, schema?: ZodSchema): Promise<any>
-  async stream(prompt: string): Promise<AsyncIterable<string>>
+  async complete(prompt: string, schema?: ZodSchema): Promise<any>;
+  async stream(prompt: string): Promise<AsyncIterable<string>>;
 }
 
 // EmbeddingService — text → vector
 class EmbeddingService {
-  async embed(text: string): Promise<number[]>
-  async embedBatch(texts: string[]): Promise<number[][]>
+  async embed(text: string): Promise<number[]>;
+  async embedBatch(texts: string[]): Promise<number[][]>;
 }
 
 // RAGService — retrieve relevant context
 class RAGService {
-  async retrieveResources(topic: string, topK = 5): Promise<Resource[]>
-  async retrieveJobs(skillProfile: string[], topK = 10): Promise<Job[]>
-  async indexResource(resource: Resource): Promise<void>
-  async indexJob(job: Job): Promise<void>
+  async retrieveResources(topic: string, topK = 5): Promise<Resource[]>;
+  async retrieveJobs(skillProfile: string[], topK = 10): Promise<Job[]>;
+  async indexResource(resource: Resource): Promise<void>;
+  async indexJob(job: Job): Promise<void>;
 }
 
 // AgentService — autonomous task runners
 class AgentService {
-  async runJobScraperAgent(): Promise<void>      // Bull queue, daily cron
-  async runCVMatcherAgent(userId: string): Promise<JobMatch[]>
-  async runGapDetectorAgent(sessionId: string): Promise<string[]>
+  async runJobScraperAgent(): Promise<void>; // Bull queue, daily cron
+  async runCVMatcherAgent(userId: string): Promise<JobMatch[]>;
+  async runGapDetectorAgent(sessionId: string): Promise<string[]>;
 }
 ```
 
@@ -764,6 +840,7 @@ class AgentService {
 ### Hiring Module
 
 **Endpoints:**
+
 ```
 GET    /hiring/jobs                 All jobs (paginated, filtered)
 GET    /hiring/jobs/matches/:userId Ranked job matches for learner
@@ -777,6 +854,7 @@ PATCH  /hiring/applications/:id     Update application status
 ```
 
 **Match algorithm:**
+
 ```
 1. Embed learner skill profile (skills[] + scores[])
 2. Qdrant ANN search in jobs collection
@@ -792,17 +870,19 @@ PATCH  /hiring/applications/:id     Update application status
 **Namespace:** `/notifications`
 
 **Events emitted to client:**
+
 ```ts
-'notification:new'      // { id, type, message, timestamp }
-'quiz:timer:tick'       // { secondsRemaining }
-'roadmap:updated'       // { moduleId, newStatus }
-'match:found'           // { jobId, score }
+"notification:new"; // { id, type, message, timestamp }
+"quiz:timer:tick"; // { secondsRemaining }
+"roadmap:updated"; // { moduleId, newStatus }
+"match:found"; // { jobId, score }
 ```
 
 **Events received from client:**
+
 ```ts
-'quiz:answer:submit'    // { sessionId, questionId, answer }
-'notification:read'     // { notificationId }
+"quiz:answer:submit"; // { sessionId, questionId, answer }
+"notification:read"; // { notificationId }
 ```
 
 ---
@@ -868,15 +948,19 @@ Rules:
 - Difficulty should progress: beginner → intermediate → advanced
 - Include practical projects at the end of each major section
 - Output ONLY valid JSON matching the provided schema
-`
+`;
 
 // Quiz generation — user prompt template
-export const QUIZ_PROMPT = (topic: string, difficulty: string, count: number) => `
+export const QUIZ_PROMPT = (
+  topic: string,
+  difficulty: string,
+  count: number,
+) => `
 Generate ${count} quiz questions about "${topic}" at ${difficulty} level.
 Mix question types: MCQ (70%), True/False (20%), Code snippet (10%).
 Each question must include: question, options (for MCQ), correct_answer, explanation.
 Output ONLY valid JSON.
-`
+`;
 ```
 
 ### Qdrant Collections
@@ -1095,16 +1179,16 @@ CREATE INDEX idx_job_postings_country ON job_postings(country);
 
 ## 9. External Services & API Keys
 
-| Service | Purpose | Free Tier | API Key Env Var |
-|---------|---------|-----------|-----------------|
-| OpenAI | LLM + embeddings | $5 credit | `OPENAI_API_KEY` |
-| Qdrant Cloud | Vector database | 1 GB free | `QDRANT_URL`, `QDRANT_API_KEY` |
-| Adzuna | Live job postings | 250 req/mo | `ADZUNA_APP_ID`, `ADZUNA_API_KEY` |
-| Affinda | CV parsing | 50 docs/mo | `AFFINDA_API_KEY`, `AFFINDA_WORKSPACE_ID` |
-| Supabase | Postgres + auth | 500 MB free | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
-| Cloudflare R2 | File storage | 10 GB free | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` |
-| Resend | Transactional email | 3,000/mo free | `RESEND_API_KEY` |
-| Redis (Upstash) | Queues + cache | 10,000 req/day | `REDIS_URL` |
+| Service         | Purpose             | Free Tier      | API Key Env Var                              |
+| --------------- | ------------------- | -------------- | -------------------------------------------- |
+| OpenAI          | LLM + embeddings    | $5 credit      | `OPENAI_API_KEY`                             |
+| Qdrant Cloud    | Vector database     | 1 GB free      | `QDRANT_URL`, `QDRANT_API_KEY`               |
+| Adzuna          | Live job postings   | 250 req/mo     | `ADZUNA_APP_ID`, `ADZUNA_API_KEY`            |
+| Affinda         | CV parsing          | 50 docs/mo     | `AFFINDA_API_KEY`, `AFFINDA_WORKSPACE_ID`    |
+| Supabase        | Postgres + auth     | 500 MB free    | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`  |
+| Cloudflare R2   | File storage        | 10 GB free     | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` |
+| Resend          | Transactional email | 3,000/mo free  | `RESEND_API_KEY`                             |
+| Redis (Upstash) | Queues + cache      | 10,000 req/day | `REDIS_URL`                                  |
 
 **Estimated MVP monthly cost: $17–$93** (dominant variable: Adzuna at scale — cache job results with 24h TTL)
 
@@ -1240,35 +1324,38 @@ smartroadmap/
 ## 12. Development Conventions
 
 ### API Response Envelope
+
 ```ts
 // All endpoints return this shape
 type ApiResponse<T> = {
-  success: boolean
-  data: T
-  message?: string
+  success: boolean;
+  data: T;
+  message?: string;
   meta?: {
-    page?: number
-    limit?: number
-    total?: number
-  }
-}
+    page?: number;
+    limit?: number;
+    total?: number;
+  };
+};
 ```
 
 ### Error Codes
+
 ```ts
 // Global exception filter maps to these
 export enum ErrorCode {
-  UNAUTHORIZED        = 'UNAUTHORIZED',
-  FORBIDDEN           = 'FORBIDDEN',
-  NOT_FOUND           = 'NOT_FOUND',
-  VALIDATION_ERROR    = 'VALIDATION_ERROR',
-  AI_GENERATION_FAILED= 'AI_GENERATION_FAILED',
-  QUOTA_EXCEEDED      = 'QUOTA_EXCEEDED',
-  EXTERNAL_API_ERROR  = 'EXTERNAL_API_ERROR',
+  UNAUTHORIZED = "UNAUTHORIZED",
+  FORBIDDEN = "FORBIDDEN",
+  NOT_FOUND = "NOT_FOUND",
+  VALIDATION_ERROR = "VALIDATION_ERROR",
+  AI_GENERATION_FAILED = "AI_GENERATION_FAILED",
+  QUOTA_EXCEEDED = "QUOTA_EXCEEDED",
+  EXTERNAL_API_ERROR = "EXTERNAL_API_ERROR",
 }
 ```
 
 ### Branch Naming
+
 ```
 feat/roadmap-generation
 fix/quiz-timer-sync
@@ -1276,6 +1363,7 @@ chore/update-qdrant-client
 ```
 
 ### Commit Convention (Conventional Commits)
+
 ```
 feat(roadmap): add module prerequisite validation
 fix(quiz): resolve timer desync on tab switch
@@ -1284,12 +1372,14 @@ docs(api): add swagger annotations to hiring module
 ```
 
 ### DaisyUI Rules (enforced in code review)
+
 - ❌ Never: `className="bg-[#6366f1]"` or `style={{ color: '#6366f1' }}`
 - ✅ Always: `className="bg-primary"` or `className="text-base-content"`
 - ❌ Never: hardcode dark/light variants manually
 - ✅ Always: use `data-theme` attribute on root, let DaisyUI handle theming
 
 ### TypeScript Strictness
+
 ```json
 // tsconfig.json (both apps)
 {
@@ -1302,28 +1392,30 @@ docs(api): add swagger annotations to hiring module
 ```
 
 ### TanStack Query Patterns
+
 ```ts
 // Always define query/mutation in /hooks — never inline in components
 export function useRoadmap(userId: string) {
   return useQuery({
     queryKey: keys.roadmap(userId),
     queryFn: () => api.get(`/roadmap?userId=${userId}`),
-    staleTime: 5 * 60 * 1000,    // 5 minutes
-  })
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 }
 
 export function useGenerateRoadmap() {
-  const qc = useQueryClient()
+  const qc = useQueryClient();
   return useMutation({
-    mutationFn: (dto: GenerateRoadmapDto) => api.post('/roadmap/generate', dto),
+    mutationFn: (dto: GenerateRoadmapDto) => api.post("/roadmap/generate", dto),
     onSuccess: (data) => {
-      qc.setQueryData(keys.roadmap(data.userId), data)
+      qc.setQueryData(keys.roadmap(data.userId), data);
     },
-  })
+  });
 }
 ```
 
 ### Bilingual (RTL/LTR) Rules
+
 - All user-facing strings go in `/i18n/en.json` and `/i18n/ar.json` — no hardcoded strings in components
 - Directional spacing: use `ms-` (margin-start) and `me-` (margin-end) instead of `ml-` / `mr-`
 - Icon flip: icons that indicate direction (arrows, chevrons) must use `rtl:rotate-180` where applicable
@@ -1331,4 +1423,4 @@ export function useGenerateRoadmap() {
 
 ---
 
-*SmartRoadmap · Developia · June 2026 · Supervised by Noha Salah*
+_SmartRoadmap · Developia · June 2026 · Supervised by Noha Salah_
