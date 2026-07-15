@@ -13,7 +13,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CvService } from './cv.service';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 import { assertSelfOrAdmin } from '../../common/guards/ownership.util';
 import { EnhanceDto, SaveCvDto } from './dto/cv.dto';
 
@@ -32,7 +35,10 @@ export class CvController {
       fileFilter: (_req, file, cb) =>
         file.mimetype === 'application/pdf'
           ? cb(null, true)
-          : cb(new BadRequestException('Only PDF resumes are supported.'), false),
+          : cb(
+              new BadRequestException('Only PDF resumes are supported.'),
+              false,
+            ),
     }),
   )
   uploadCv(@UploadedFile() file?: Express.Multer.File) {
@@ -46,13 +52,19 @@ export class CvController {
   @Post('enhance')
   @HttpCode(HttpStatus.OK)
   async enhance(@Body() dto: EnhanceDto) {
-    return { success: true, text: await this.cvService.enhanceDescription(dto.text) };
+    return {
+      success: true,
+      text: await this.cvService.enhanceDescription(dto.text),
+    };
   }
 
   @Post('save')
   @HttpCode(HttpStatus.OK)
   async save(@CurrentUser() user: JwtUser, @Body() dto: SaveCvDto) {
-    return { success: true, data: await this.cvService.saveCv(user.sub, dto.data) };
+    return {
+      success: true,
+      data: await this.cvService.saveCv(user.sub, dto.data),
+    };
   }
 
   @Get('me')

@@ -5,11 +5,7 @@ import { CvService } from './cv.service';
 import { Cv, CvSchema } from '../../schemas/cv.schema';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: Cv.name, schema: CvSchema },
-    ]),
-  ],
+  imports: [MongooseModule.forFeature([{ name: Cv.name, schema: CvSchema }])],
   controllers: [CvController],
   providers: [CvService],
   exports: [CvService],

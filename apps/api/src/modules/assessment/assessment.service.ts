@@ -1,4 +1,9 @@
-import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { QuizSession } from '../../schemas/quiz-session.schema';
@@ -17,18 +22,29 @@ export class AssessmentService {
   private readonly TOTAL_QUESTIONS = 5;
 
   constructor(
-    @InjectModel(QuizSession.name) private readonly sessionModel: Model<QuizSession>,
+    @InjectModel(QuizSession.name)
+    private readonly sessionModel: Model<QuizSession>,
     @InjectModel(Roadmap.name) private readonly roadmapModel: Model<Roadmap>,
     private readonly llmService: LLMService,
   ) {}
 
-  async startSession(userId: string, moduleId: string, topic: string): Promise<any> {
-    this.logger.log(`Starting quiz session for user ${userId}, module ${moduleId} (topic: "${topic}")`);
+  async startSession(
+    userId: string,
+    moduleId: string,
+    topic: string,
+  ): Promise<any> {
+    this.logger.log(
+      `Starting quiz session for user ${userId}, module ${moduleId} (topic: "${topic}")`,
+    );
 
     // 1. Generate questions pool (falls back to mock if OpenAI offline)
     // We generate 5 questions at 'medium' difficulty as starting baseline
-    const questions = await this.llmService.generateQuiz(topic, 'medium', this.TOTAL_QUESTIONS);
-    
+    const questions = await this.llmService.generateQuiz(
+      topic,
+      'medium',
+      this.TOTAL_QUESTIONS,
+    );
+
     // 2. Create the session in MongoDB
     const session = new this.sessionModel({
       userId: new Types.ObjectId(userId),
@@ -60,24 +76,30 @@ export class AssessmentService {
   ): Promise<any> {
     const session = await this.sessionModel.findById(sessionId);
     if (!session || session.status === 'completed') {
-      throw new BadRequestException('Active session not found or already completed.');
+      throw new BadRequestException(
+        'Active session not found or already completed.',
+      );
     }
     if (user) assertSelfOrAdmin(user, session.userId.toString());
 
     const questions = sessionQuestionsCache.get(sessionId);
     if (!questions) {
-      throw new BadRequestException('Session questions cache expired. Please restart quiz.');
+      throw new BadRequestException(
+        'Session questions cache expired. Please restart quiz.',
+      );
     }
 
     const currentIndex = session.answers.length;
     const currentQuestion = questions[currentIndex];
-    
+
     if (!currentQuestion) {
       throw new BadRequestException('Invalid question index.');
     }
 
     // Evaluate answer correctness
-    const correct = currentQuestion.correctAnswer.toLowerCase().trim() === answer.toLowerCase().trim();
+    const correct =
+      currentQuestion.correctAnswer.toLowerCase().trim() ===
+      answer.toLowerCase().trim();
 
     // Log answer sub-document
     session.answers.push({
@@ -96,8 +118,8 @@ export class AssessmentService {
 
     if (answersHistory.length >= 2) {
       const lastTwo = answersHistory.slice(-2);
-      const allCorrect = lastTwo.every(ans => ans.correct);
-      const allIncorrect = lastTwo.every(ans => !ans.correct);
+      const allCorrect = lastTwo.every((ans) => ans.correct);
+      const allIncorrect = lastTwo.every((ans) => !ans.correct);
 
       const currentDifficulty = lastTwo[1]?.difficulty || 'medium';
 
@@ -126,15 +148,17 @@ export class AssessmentService {
       let totalWeight = 0;
       let earnedWeight = 0;
 
-      session.answers.forEach(ans => {
-        const weight = ans.difficulty === 'easy' ? 1 : ans.difficulty === 'medium' ? 1.5 : 2;
+      session.answers.forEach((ans) => {
+        const weight =
+          ans.difficulty === 'easy' ? 1 : ans.difficulty === 'medium' ? 1.5 : 2;
         totalWeight += weight;
         if (ans.correct) {
           earnedWeight += weight;
         }
       });
 
-      const finalScorePercent = totalWeight > 0 ? Math.round((earnedWeight / totalWeight) * 100) : 0;
+      const finalScorePercent =
+        totalWeight > 0 ? Math.round((earnedWeight / totalWeight) * 100) : 0;
       const passed = finalScorePercent >= 70;
 
       session.score = finalScorePercent;
@@ -147,9 +171,16 @@ export class AssessmentService {
       // Adaptive outcome: passing unlocks what comes next, failing injects a
       // shorter remedial module instead of leaving the learner stuck.
       if (passed) {
-        await this.unlockNextRoadmapModules(session.userId.toString(), session.moduleId);
+        await this.unlockNextRoadmapModules(
+          session.userId.toString(),
+          session.moduleId,
+        );
       } else {
-        await this.addRemedialModule(session.userId.toString(), session.moduleId, session.answers);
+        await this.addRemedialModule(
+          session.userId.toString(),
+          session.moduleId,
+          session.answers,
+        );
       }
 
       return {
@@ -159,7 +190,7 @@ export class AssessmentService {
         results: {
           score: finalScorePercent,
           passed,
-          correctAnswers: session.answers.filter(a => a.correct).length,
+          correctAnswers: session.answers.filter((a) => a.correct).length,
           totalQuestions: this.TOTAL_QUESTIONS,
         },
       };
@@ -222,7 +253,10 @@ export class AssessmentService {
         'A shorter, targeted refresher generated from the questions you missed. ' +
         'Complete it to retry the original module.',
       difficulty: 'beginner',
-      estimatedHours: Math.max(2, Math.round((failedModule.estimatedHours ?? 8) / 3)),
+      estimatedHours: Math.max(
+        2,
+        Math.round((failedModule.estimatedHours ?? 8) / 3),
+      ),
       topics: missedTopics.length ? missedTopics : failedModule.topics,
       prerequisites: failedModule.prerequisites,
       status: 'in_progress',
@@ -235,7 +269,10 @@ export class AssessmentService {
     this.logger.log(`Added remedial module "${remedialId}" for user ${userId}`);
   }
 
-  private async unlockNextRoadmapModules(userId: string, completedModuleId: string): Promise<void> {
+  private async unlockNextRoadmapModules(
+    userId: string,
+    completedModuleId: string,
+  ): Promise<void> {
     const roadmap = await this.roadmapModel.findOne({
       userId: new Types.ObjectId(userId),
       status: 'active',
@@ -245,23 +282,28 @@ export class AssessmentService {
 
     // 1. Mark completed module as completed
     const modules = roadmap.modules;
-    const completedModule = modules.find(m => m.id === completedModuleId);
+    const completedModule = modules.find((m) => m.id === completedModuleId);
     if (completedModule) {
       completedModule.status = 'completed';
     }
 
     // 2. Identify modules dependent on the completed module and unlock them
-    modules.forEach(mod => {
-      if (mod.status === 'locked' && mod.prerequisites.includes(completedModuleId)) {
+    modules.forEach((mod) => {
+      if (
+        mod.status === 'locked' &&
+        mod.prerequisites.includes(completedModuleId)
+      ) {
         // Verify if all other prerequisites for this locked module are completed
-        const allPrereqsMet = mod.prerequisites.every(prereqId => {
-          const prereqMod = modules.find(m => m.id === prereqId);
+        const allPrereqsMet = mod.prerequisites.every((prereqId) => {
+          const prereqMod = modules.find((m) => m.id === prereqId);
           return prereqMod && prereqMod.status === 'completed';
         });
 
         if (allPrereqsMet) {
           mod.status = 'in_progress';
-          this.logger.log(`Roadmap auto-unlocked module: "${mod.title}" (ID: ${mod.id})`);
+          this.logger.log(
+            `Roadmap auto-unlocked module: "${mod.title}" (ID: ${mod.id})`,
+          );
         }
       }
     });

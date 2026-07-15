@@ -3,7 +3,13 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class LearnerProfile extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true, index: true })
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true,
+    index: true,
+  })
   userId!: Types.ObjectId;
 
   @Prop()
@@ -25,4 +31,5 @@ export class LearnerProfile extends Document {
   availableForHire!: boolean;
 }
 
-export const LearnerProfileSchema = SchemaFactory.createForClass(LearnerProfile);
+export const LearnerProfileSchema =
+  SchemaFactory.createForClass(LearnerProfile);

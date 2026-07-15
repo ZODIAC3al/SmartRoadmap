@@ -87,7 +87,13 @@ export class CVReference {
 
 @Schema({ timestamps: true })
 export class Cv extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true, index: true })
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true,
+    index: true,
+  })
   userId!: Types.ObjectId;
 
   @Prop({ type: CVPersonal })
@@ -116,4 +122,3 @@ export class Cv extends Document {
 }
 
 export const CvSchema = SchemaFactory.createForClass(Cv);
-

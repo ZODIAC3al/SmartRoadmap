@@ -31,11 +31,16 @@ export class PaymentService {
     const clientSecret = this.config.get<string>('PAYPAL_CLIENT_SECRET');
     const isProd = this.config.get<string>('NODE_ENV') === 'production';
 
-    this.isMockMode = !clientId || !clientSecret || this.config.get<boolean>('MOCK_MODE') === true;
+    this.isMockMode =
+      !clientId ||
+      !clientSecret ||
+      this.config.get<boolean>('MOCK_MODE') === true;
 
     // Hard stop: a production build must never be able to hand out free upgrades.
     if (isProd && this.isMockMode) {
-      throw new Error('PayPal credentials are required in production (mock payments are disabled).');
+      throw new Error(
+        'PayPal credentials are required in production (mock payments are disabled).',
+      );
     }
 
     this.apiUrl =
@@ -44,7 +49,9 @@ export class PaymentService {
         : 'https://api-m.sandbox.paypal.com';
 
     if (this.isMockMode) {
-      this.logger.warn('PayPal not configured — payments are SIMULATED (development only).');
+      this.logger.warn(
+        'PayPal not configured — payments are SIMULATED (development only).',
+      );
     }
   }
 
@@ -114,7 +121,9 @@ export class PaymentService {
       // Previously this recursed into createOrder() forever AND silently
       // downgraded to a free mock order. Now it fails loudly.
       this.logger.error(`PayPal order creation failed: ${error.message}`);
-      throw new ServiceUnavailableException('Could not reach the payment provider. Try again.');
+      throw new ServiceUnavailableException(
+        'Could not reach the payment provider. Try again.',
+      );
     }
   }
 
@@ -127,12 +136,22 @@ export class PaymentService {
       throw new ForbiddenException('This order does not belong to you.');
     }
     if (payment.status === 'completed') {
-      return { id: orderId, status: 'COMPLETED', plan: payment.plan, alreadyCaptured: true };
+      return {
+        id: orderId,
+        status: 'COMPLETED',
+        plan: payment.plan,
+        alreadyCaptured: true,
+      };
     }
 
     if (this.isMockMode) {
       await this.markCompleted(payment);
-      return { id: orderId, status: 'COMPLETED', plan: payment.plan, mock: true };
+      return {
+        id: orderId,
+        status: 'COMPLETED',
+        plan: payment.plan,
+        mock: true,
+      };
     }
 
     try {
@@ -146,7 +165,9 @@ export class PaymentService {
       if (data.status !== 'COMPLETED') {
         payment.status = 'failed';
         await payment.save();
-        throw new BadRequestException(`Payment not completed (status: ${data.status}).`);
+        throw new BadRequestException(
+          `Payment not completed (status: ${data.status}).`,
+        );
       }
 
       // Verify the captured amount actually matches the plan price.
@@ -159,14 +180,18 @@ export class PaymentService {
         this.logger.error(
           `Amount mismatch for order ${orderId}: captured ${captured}, expected ${payment.amount}`,
         );
-        throw new BadRequestException('Captured amount does not match the order.');
+        throw new BadRequestException(
+          'Captured amount does not match the order.',
+        );
       }
 
       await this.markCompleted(payment);
       return data;
     } catch (error: any) {
       if (error instanceof BadRequestException) throw error;
-      this.logger.error(`PayPal capture failed for ${orderId}: ${error.message}`);
+      this.logger.error(
+        `PayPal capture failed for ${orderId}: ${error.message}`,
+      );
       throw new BadRequestException('PayPal payment capture failed.');
     }
   }
@@ -176,7 +201,8 @@ export class PaymentService {
    * signature with PayPal before trusting anything in the body.
    */
   async handleWebhook(headers: Record<string, string>, body: any) {
-    if (this.isMockMode) throw new ForbiddenException('Webhooks are disabled in mock mode.');
+    if (this.isMockMode)
+      throw new ForbiddenException('Webhooks are disabled in mock mode.');
 
     const token = await this.accessToken();
     const { data } = await axios.post(
@@ -199,8 +225,11 @@ export class PaymentService {
     }
 
     const orderId =
-      body?.resource?.supplementary_data?.related_ids?.order_id ?? body?.resource?.id;
-    const payment = orderId ? await this.paymentModel.findOne({ paypalOrderId: orderId }) : null;
+      body?.resource?.supplementary_data?.related_ids?.order_id ??
+      body?.resource?.id;
+    const payment = orderId
+      ? await this.paymentModel.findOne({ paypalOrderId: orderId })
+      : null;
     if (!payment) return { received: true, matched: false };
 
     switch (body.event_type) {
@@ -239,6 +268,8 @@ export class PaymentService {
         subscriptionExpiresAt: expiresAt,
       },
     );
-    this.logger.log(`Activated plan "${payment.plan}" for user ${payment.userId.toString()}`);
+    this.logger.log(
+      `Activated plan "${payment.plan}" for user ${payment.userId.toString()}`,
+    );
   }
 }

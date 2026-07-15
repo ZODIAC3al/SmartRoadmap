@@ -18,12 +18,14 @@ export class UploadService {
         api_secret: apiSecret,
       });
       this.isCloudinaryConfigured = true;
-      this.logger.log('Cloudinary successfully configured for secure image uploads.');
+      this.logger.log(
+        'Cloudinary successfully configured for secure image uploads.',
+      );
     } else {
       this.isCloudinaryConfigured = false;
       this.logger.warn(
         'Cloudinary environment keys missing (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET). ' +
-        'Defaulting to dynamic base64/local uploader fallback.'
+          'Defaulting to dynamic base64/local uploader fallback.',
       );
     }
   }
@@ -44,19 +46,26 @@ export class UploadService {
             },
             (error, result) => {
               if (error) {
-                this.logger.error('Cloudinary upload stream failed:', error.message);
+                this.logger.error(
+                  'Cloudinary upload stream failed:',
+                  error.message,
+                );
                 return reject(error);
               }
               if (!result || !result.secure_url) {
-                return reject(new Error('Cloudinary response missing secure URL link.'));
+                return reject(
+                  new Error('Cloudinary response missing secure URL link.'),
+                );
               }
               resolve(result.secure_url);
-            }
+            },
           );
           uploadStream.end(file.buffer);
         });
       } catch (err: any) {
-        this.logger.error(`Cloudinary upload failed: ${err.message}. Falling back to base64 encoding.`);
+        this.logger.error(
+          `Cloudinary upload failed: ${err.message}. Falling back to base64 encoding.`,
+        );
         return this.encodeAsBase64(file);
       }
     } else {

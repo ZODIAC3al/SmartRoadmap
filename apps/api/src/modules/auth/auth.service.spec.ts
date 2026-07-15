@@ -46,7 +46,10 @@ describe('AuthService', () => {
         { provide: OnboardingService, useValue: { seedForUser: jest.fn() } },
         {
           provide: MailService,
-          useValue: { sendVerification: jest.fn(), sendPasswordReset: jest.fn() },
+          useValue: {
+            sendVerification: jest.fn(),
+            sendPasswordReset: jest.fn(),
+          },
         },
         {
           provide: ConfigService,
@@ -63,10 +66,18 @@ describe('AuthService', () => {
   });
 
   it('stores refresh tokens hashed, never in plaintext', async () => {
-    FakeUserModel.findById.mockResolvedValueOnce({ _id: { toString: () => 'user-1' } });
-    await service.register({ email: 'r@test.com', name: 'R', password: 'password123' } as any);
+    FakeUserModel.findById.mockResolvedValueOnce({
+      _id: { toString: () => 'user-1' },
+    });
+    await service.register({
+      email: 'r@test.com',
+      name: 'R',
+      password: 'password123',
+    } as any);
 
-    const push = FakeUserModel.updateOne.mock.calls.find(([, u]) => u?.$push?.refreshTokenHashes);
+    const push = FakeUserModel.updateOne.mock.calls.find(
+      ([, u]) => u?.$push?.refreshTokenHashes,
+    );
     expect(push).toBeDefined();
     const [hash] = push[1].$push.refreshTokenHashes.$each;
     expect(hash).toMatch(/^[a-f0-9]{64}$/); // sha256 hex, not a JWT
@@ -75,7 +86,9 @@ describe('AuthService', () => {
 
   it('never reveals whether an email exists on password reset', async () => {
     FakeUserModel.findOne.mockResolvedValueOnce(null);
-    await expect(service.requestPasswordReset('ghost@test.com')).resolves.toEqual({ success: true });
+    await expect(
+      service.requestPasswordReset('ghost@test.com'),
+    ).resolves.toEqual({ success: true });
   });
 
   it('hashes passwords with bcrypt (never stores plaintext)', async () => {
@@ -104,10 +117,12 @@ describe('AuthService', () => {
   });
 
   it('rejects a login for an unknown email with a generic error', async () => {
-    FakeUserModel.findOne.mockReturnValueOnce({ select: () => Promise.resolve(null) });
-    await expect(service.login('ghost@test.com', 'whatever')).rejects.toBeInstanceOf(
-      UnauthorizedException,
-    );
+    FakeUserModel.findOne.mockReturnValueOnce({
+      select: () => Promise.resolve(null),
+    });
+    await expect(
+      service.login('ghost@test.com', 'whatever'),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it('rejects google sign-in when the server has no GOOGLE_CLIENT_ID', async () => {
@@ -129,14 +144,21 @@ describe('AuthService', () => {
     const svc: any = service;
     svc.googleClient = {
       verifyIdToken: async () => ({
-        getPayload: () => ({ email: 'local@test.com', email_verified: true, sub: 'g1' }),
+        getPayload: () => ({
+          email: 'local@test.com',
+          email_verified: true,
+          sub: 'g1',
+        }),
       }),
     };
     (svc.config as any).getOrThrow = (k: string) => CONFIG[k] ?? 'client-id';
-    FakeUserModel.findOne.mockResolvedValueOnce({ provider: 'local', email: 'local@test.com' });
+    FakeUserModel.findOne.mockResolvedValueOnce({
+      provider: 'local',
+      email: 'local@test.com',
+    });
 
-    await expect(service.googleLogin('valid.google.token')).rejects.toBeInstanceOf(
-      ForbiddenException,
-    );
+    await expect(
+      service.googleLogin('valid.google.token'),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

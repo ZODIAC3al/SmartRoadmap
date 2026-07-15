@@ -31,7 +31,11 @@ export class LLMService {
           description: `Core fundamentals, tools and environment setup for ${targetRole}.`,
           prerequisites: [],
           estimatedHours: 10,
-          topics: ['Environment Setup', 'Foundational Concepts', 'Hello World Projects'],
+          topics: [
+            'Environment Setup',
+            'Foundational Concepts',
+            'Hello World Projects',
+          ],
           difficulty: 'beginner',
           status: 'in_progress',
           positionX: 100,
@@ -40,10 +44,15 @@ export class LLMService {
         {
           id: 'mod-2',
           title: `Intermediate ${targetRole} & Best Practices`,
-          description: 'Core patterns, architecture, and clean code principles.',
+          description:
+            'Core patterns, architecture, and clean code principles.',
           prerequisites: ['mod-1'],
           estimatedHours: 15,
-          topics: ['Core Patterns', 'Routing & Data Fetching', 'State Management'],
+          topics: [
+            'Core Patterns',
+            'Routing & Data Fetching',
+            'State Management',
+          ],
           difficulty: 'intermediate',
           status: 'locked',
           positionX: 300,
@@ -52,10 +61,15 @@ export class LLMService {
         {
           id: 'mod-3',
           title: `Advanced ${targetRole} & Deployment`,
-          description: 'Testing, CI/CD, production bundling, scalability and performance.',
+          description:
+            'Testing, CI/CD, production bundling, scalability and performance.',
           prerequisites: ['mod-2'],
           estimatedHours: 20,
-          topics: ['Unit & Integration Testing', 'Dockerization', 'Cloud Deployment'],
+          topics: [
+            'Unit & Integration Testing',
+            'Dockerization',
+            'Cloud Deployment',
+          ],
           difficulty: 'advanced',
           status: 'locked',
           positionX: 500,
@@ -83,7 +97,10 @@ export class LLMService {
 
   // ───────────────────────────── Public API ─────────────────────────────
 
-  async generateRoadmap(targetRole: string, skills: string[] = []): Promise<any> {
+  async generateRoadmap(
+    targetRole: string,
+    skills: string[] = [],
+  ): Promise<any> {
     if (this.isMockMode || !this.client) return this.mockRoadmap(targetRole);
 
     try {
@@ -130,9 +147,13 @@ export class LLMService {
     try {
       const response = await this.client.chat.completions.create({
         model: this.config.get<string>('OPENAI_MODEL_FAST', 'gpt-4o-mini'),
-        ...(options.json ? { response_format: { type: 'json_object' as const } } : {}),
+        ...(options.json
+          ? { response_format: { type: 'json_object' as const } }
+          : {}),
         messages: [
-          ...(options.system ? [{ role: 'system' as const, content: options.system }] : []),
+          ...(options.system
+            ? [{ role: 'system' as const, content: options.system }]
+            : []),
           { role: 'user' as const, content: prompt },
         ],
       });
@@ -143,8 +164,13 @@ export class LLMService {
     }
   }
 
-  async generateQuiz(topic: string, difficulty: string, count = 5): Promise<any[]> {
-    if (this.isMockMode || !this.client) return this.mockQuiz(topic, difficulty, count);
+  async generateQuiz(
+    topic: string,
+    difficulty: string,
+    count = 5,
+  ): Promise<any[]> {
+    if (this.isMockMode || !this.client)
+      return this.mockQuiz(topic, difficulty, count);
 
     try {
       const response = await this.client.chat.completions.create({

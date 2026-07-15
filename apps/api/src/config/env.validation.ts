@@ -7,7 +7,9 @@ import { z } from 'zod';
  */
 export const envSchema = z
   .object({
-    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    NODE_ENV: z
+      .enum(['development', 'test', 'production'])
+      .default('development'),
     PORT: z.coerce.number().default(3000),
 
     // Comma separated list of allowed origins for CORS
@@ -18,7 +20,9 @@ export const envSchema = z
     // Auth — no fallback secrets allowed, ever.
     JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
     JWT_EXPIRY: z.string().default('15m'),
-    JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
+    JWT_REFRESH_SECRET: z
+      .string()
+      .min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
     JWT_REFRESH_EXPIRY: z.string().default('30d'),
     BCRYPT_ROUNDS: z.coerce.number().min(10).max(15).default(12),
 

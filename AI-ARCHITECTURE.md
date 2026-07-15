@@ -66,7 +66,7 @@ produces a dependency-ordered learning graph.
 Each module carries: `id`, `title`, `description`, `prerequisites[]`, `estimatedHours`,
 `topics[]`, `difficulty`, `status`, and `positionX/positionY` (so the frontend can draw the graph).
 
-- **Model:** `gpt-4o` (`OPENAI_MODEL_SMART`) — the *only* place we use the expensive model.
+- **Model:** `gpt-4o` (`OPENAI_MODEL_SMART`) — the _only_ place we use the expensive model.
 - **Why the stronger model here:** this output is a **graph**, not a list. If the model emits
   an inconsistent prerequisite edge (module 3 requires module 5, which requires module 3),
   the learner gets an unlearnable path. Correctness matters more than cost on this one call,
@@ -90,14 +90,14 @@ Each module carries: `id`, `title`, `description`, `prerequisites[]`, `estimated
 - **Weighted scoring:** easy = 1, medium = 1.5, hard = 2. Pass threshold = 70%
   (`assessment.service.ts:138`).
 
-### ④ Adaptive outcome — the feedback loop  `assessment.service.ts:149`
+### ④ Adaptive outcome — the feedback loop `assessment.service.ts:149`
 
-This is the part that makes the roadmap *adaptive* rather than *generated once*:
+This is the part that makes the roadmap _adaptive_ rather than _generated once_:
 
-| Outcome | What the system does | Code |
-|---|---|---|
-| **Pass** (≥70%) | Unlocks every module whose prerequisites are now all satisfied | `unlockNextRoadmapModules()` — line 238 |
-| **Fail** (<70%) | Builds a **remedial module** from the exact questions the learner got wrong, and marks the failed module `failed` | `addRemedialModule()` — line 191 |
+| Outcome         | What the system does                                                                                              | Code                                    |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| **Pass** (≥70%) | Unlocks every module whose prerequisites are now all satisfied                                                    | `unlockNextRoadmapModules()` — line 238 |
+| **Fail** (<70%) | Builds a **remedial module** from the exact questions the learner got wrong, and marks the failed module `failed` | `addRemedialModule()` — line 191        |
 
 The remedial module's `topics[]` are literally the missed questions. The learner is never
 left stuck at a wall — the roadmap reshapes itself around the evidence.
@@ -131,6 +131,7 @@ Every AI service is constructed through `createOpenAIClient(config, logger)`, wh
 either a real `OpenAI` instance or `{ isMockMode: true, client: null }`.
 
 Mock mode is entered only when:
+
 - `MOCK_MODE=true` is set **explicitly**, or
 - there is no usable `OPENAI_API_KEY` **and we are not in production**.
 
@@ -202,13 +203,13 @@ infrastructure is already in place — what is missing is a job importer to popu
 
 ## 5. Model selection & cost
 
-| Call | Model | Frequency | Why this model |
-|---|---|---|---|
-| Roadmap generation | `gpt-4o` | Once per user | Graph consistency; a bad prerequisite edge breaks the product |
-| Quiz generation | `gpt-4o-mini` | Every module | High volume; a slightly weaker question is recoverable |
-| CV parsing | `gpt-4o-mini` | Once per upload | Extraction, not reasoning |
-| Bullet enhancement | `gpt-4o-mini` | Many per CV | Short, cheap, high volume |
-| Embeddings | `text-embedding-3-small` | Per indexed doc | Cheapest adequate embedding model |
+| Call               | Model                    | Frequency       | Why this model                                                |
+| ------------------ | ------------------------ | --------------- | ------------------------------------------------------------- |
+| Roadmap generation | `gpt-4o`                 | Once per user   | Graph consistency; a bad prerequisite edge breaks the product |
+| Quiz generation    | `gpt-4o-mini`            | Every module    | High volume; a slightly weaker question is recoverable        |
+| CV parsing         | `gpt-4o-mini`            | Once per upload | Extraction, not reasoning                                     |
+| Bullet enhancement | `gpt-4o-mini`            | Many per CV     | Short, cheap, high volume                                     |
+| Embeddings         | `text-embedding-3-small` | Per indexed doc | Cheapest adequate embedding model                             |
 
 Model names are **configuration, not constants** (`OPENAI_MODEL_SMART`, `OPENAI_MODEL_FAST`,
 `OPENAI_EMBEDDING_MODEL`) — they can be swapped without a code change.
@@ -220,13 +221,13 @@ Model names are **configuration, not constants** (`OPENAI_MODEL_SMART`, `OPENAI_
 LLM output is non-deterministic, so we don't assert on its content. We assert on the
 **contract** and on the **system's reaction** to it:
 
-| Check | Where | What it proves |
-|---|---|---|
-| A roadmap is generated with ≥1 module | `smoke-test.mjs` §6 | The prompt → JSON → persistence path works end to end |
-| The roadmap reacts to the quiz outcome | `smoke-test.mjs` §6 | Either the next module unlocked, or a remedial module was added |
-| Closing a gap really writes modules | `smoke-test.mjs` §6b | The reported skills actually appear in the roadmap in the DB |
-| Empty/invalid AI output is rejected | `llm.service.ts` | An empty `modules[]` throws and falls back to the mock |
-| The whole platform runs with no API key | `MOCK_MODE=true` | Graceful degradation; the demo can't be broken by a provider |
+| Check                                   | Where                | What it proves                                                  |
+| --------------------------------------- | -------------------- | --------------------------------------------------------------- |
+| A roadmap is generated with ≥1 module   | `smoke-test.mjs` §6  | The prompt → JSON → persistence path works end to end           |
+| The roadmap reacts to the quiz outcome  | `smoke-test.mjs` §6  | Either the next module unlocked, or a remedial module was added |
+| Closing a gap really writes modules     | `smoke-test.mjs` §6b | The reported skills actually appear in the roadmap in the DB    |
+| Empty/invalid AI output is rejected     | `llm.service.ts`     | An empty `modules[]` throws and falls back to the mock          |
+| The whole platform runs with no API key | `MOCK_MODE=true`     | Graceful degradation; the demo can't be broken by a provider    |
 
 The full suite (53 live checks) runs against a **running server**, so it verifies the deployed
 behaviour rather than a mock: `npm run smoke`.
@@ -241,7 +242,7 @@ behaviour rather than a mock: `npm run smoke`.
 > in a single `ai/` layer behind typed service methods, so no feature module depends on a
 > provider. Every generative call uses JSON mode with a validated schema, and every call has
 > a deterministic, terminating fallback, so the platform degrades in quality rather than
-> failing when the provider is unavailable. The *adaptivity* — unlocking modules, generating
+> failing when the provider is unavailable. The _adaptivity_ — unlocking modules, generating
 > remedial content on failure, folding a job's skill gap back into the roadmap — is
 > deliberately implemented in plain, auditable code, not delegated to the model. The AI
 > produces content; the system decides what to do with it.

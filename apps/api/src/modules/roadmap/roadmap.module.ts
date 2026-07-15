@@ -6,9 +6,7 @@ import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Roadmap.name, schema: RoadmapSchema },
-    ]),
+    MongooseModule.forFeature([{ name: Roadmap.name, schema: RoadmapSchema }]),
   ],
   controllers: [RoadmapController],
   providers: [RoadmapService],

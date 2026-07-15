@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { toast } from 'react-toastify';
-import { useApp } from '@/components/AppContext';
-import { fetchMe } from '@/lib/api';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { toast } from "react-toastify";
+import { useApp } from "@/components/AppContext";
+import { fetchMe } from "@/lib/api";
 
 type ResourceEntry = {
   id: string;
   title: string;
-  type: 'video' | 'article' | 'project';
-  language: 'en' | 'ar';
+  type: "video" | "article" | "project";
+  language: "en" | "ar";
   moduleTopic: string;
   url: string;
 };
@@ -19,34 +19,78 @@ export default function AdminContentPage() {
   const { locale } = useApp();
   const [adminUser, setAdminUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   // Modal form states
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newType, setNewType] = useState<'video' | 'article' | 'project'>('article');
-  const [newLang, setNewLang] = useState<'en' | 'ar'>('en');
-  const [newTopic, setNewTopic] = useState('React Framework Architecture');
-  const [newUrl, setNewUrl] = useState('');
+  const [newTitle, setNewTitle] = useState("");
+  const [newType, setNewType] = useState<"video" | "article" | "project">(
+    "article",
+  );
+  const [newLang, setNewLang] = useState<"en" | "ar">("en");
+  const [newTopic, setNewTopic] = useState("React Framework Architecture");
+  const [newUrl, setNewUrl] = useState("");
 
   // Initial mockup resources list matching Qdrant schema
   const [resources, setResources] = useState<ResourceEntry[]>([
-    { id: '1', title: 'Comprehensive React rendering guide', type: 'article', language: 'en', moduleTopic: 'React Framework Architecture', url: 'https://react.dev/reference/react' },
-    { id: '2', title: 'Advanced React State Patterns video', type: 'video', language: 'en', moduleTopic: 'React Framework Architecture', url: 'https://youtube.com/react-patterns' },
-    { id: '3', title: 'Strict Type Compilation manual', type: 'article', language: 'en', moduleTopic: 'TypeScript Strict Mode Interfaces', url: 'https://typescriptlang.org/docs/handbook/2/everyday-types.html' },
-    { id: '4', title: 'NestJS Event Gateway boilerplate', type: 'project', language: 'en', moduleTopic: 'NestJS WebSockets', url: 'https://github.com/nestjs/gateway-boilerplate' },
-    { id: '5', title: 'Docker containerization guidelines', type: 'article', language: 'en', moduleTopic: 'Docker Containerization', url: 'https://docs.docker.com' },
-    { id: '6', title: 'شرح أساسيات رياكت للمبتدئين فيديو', type: 'video', language: 'ar', moduleTopic: 'React Framework Architecture', url: 'https://youtube.com/react-arabic-intro' }
+    {
+      id: "1",
+      title: "Comprehensive React rendering guide",
+      type: "article",
+      language: "en",
+      moduleTopic: "React Framework Architecture",
+      url: "https://react.dev/reference/react",
+    },
+    {
+      id: "2",
+      title: "Advanced React State Patterns video",
+      type: "video",
+      language: "en",
+      moduleTopic: "React Framework Architecture",
+      url: "https://youtube.com/react-patterns",
+    },
+    {
+      id: "3",
+      title: "Strict Type Compilation manual",
+      type: "article",
+      language: "en",
+      moduleTopic: "TypeScript Strict Mode Interfaces",
+      url: "https://typescriptlang.org/docs/handbook/2/everyday-types.html",
+    },
+    {
+      id: "4",
+      title: "NestJS Event Gateway boilerplate",
+      type: "project",
+      language: "en",
+      moduleTopic: "NestJS WebSockets",
+      url: "https://github.com/nestjs/gateway-boilerplate",
+    },
+    {
+      id: "5",
+      title: "Docker containerization guidelines",
+      type: "article",
+      language: "en",
+      moduleTopic: "Docker Containerization",
+      url: "https://docs.docker.com",
+    },
+    {
+      id: "6",
+      title: "شرح أساسيات رياكت للمبتدئين فيديو",
+      type: "video",
+      language: "ar",
+      moduleTopic: "React Framework Architecture",
+      url: "https://youtube.com/react-arabic-intro",
+    },
   ]);
 
   const modulePresets = [
-    'React Framework Architecture',
-    'TypeScript Strict Mode Interfaces',
-    'Tailwind Design System Tokens',
-    'NestJS WebSockets',
-    'Docker Containerization',
-    'MongoDB Indexes'
+    "React Framework Architecture",
+    "TypeScript Strict Mode Interfaces",
+    "Tailwind Design System Tokens",
+    "NestJS WebSockets",
+    "Docker Containerization",
+    "MongoDB Indexes",
   ];
 
   useEffect(() => {
@@ -63,13 +107,13 @@ export default function AdminContentPage() {
   const handleSimulateAdmin = () => {
     // The fake client-side session ('demo-token') is gone: a role can only ever
     // come from a JWT the server issued, and the API re-checks it on every call.
-    toast.info('Please sign in with an authorized account.');
-    window.location.href = '/auth/login';
+    toast.info("Please sign in with an authorized account.");
+    window.location.href = "/auth/login";
   };
 
   const handleDeleteResource = (id: string, title: string) => {
     if (confirm(`Are you sure you want to permanently delete: ${title}?`)) {
-      setResources(prev => prev.filter(r => r.id !== id));
+      setResources((prev) => prev.filter((r) => r.id !== id));
       toast.error(`Deleted resource: ${title}`);
     }
   };
@@ -77,7 +121,7 @@ export default function AdminContentPage() {
   const handleAddResource = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newUrl.trim()) {
-      toast.error('Please enter all required fields');
+      toast.error("Please enter all required fields");
       return;
     }
 
@@ -87,24 +131,24 @@ export default function AdminContentPage() {
       type: newType,
       language: newLang,
       moduleTopic: newTopic,
-      url: newUrl
+      url: newUrl,
     };
 
     setResources([...resources, newRes]);
     setShowAddModal(false);
-    setNewTitle('');
-    setNewUrl('');
-    toast.success(`Successfully index updated! "${newRes.title}" is now mapped to Qdrant semantic indexes.`);
+    setNewTitle("");
+    setNewUrl("");
+    toast.success(
+      `Successfully index updated! "${newRes.title}" is now mapped to Qdrant semantic indexes.`,
+    );
   };
 
-  const filteredResources = resources.filter(res => {
-    const matchesSearch = 
+  const filteredResources = resources.filter((res) => {
+    const matchesSearch =
       res.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       res.moduleTopic.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesType = 
-      typeFilter === 'all' || 
-      res.type === typeFilter;
+    const matchesType = typeFilter === "all" || res.type === typeFilter;
 
     return matchesSearch && matchesType;
   });
@@ -117,7 +161,7 @@ export default function AdminContentPage() {
     );
   }
 
-  if (!adminUser || adminUser.role !== 'admin') {
+  if (!adminUser || adminUser.role !== "admin") {
     return (
       <div className="flex flex-col min-h-[85vh] items-center justify-center p-8 text-center bg-base-100">
         <div className="max-w-md bg-base-200 border border-base-300 p-8 rounded-2xl shadow-sm space-y-6">
@@ -125,9 +169,12 @@ export default function AdminContentPage() {
             🛡️
           </div>
           <div className="space-y-2">
-            <h2 className="text-display-md font-extrabold text-base-content leading-tight">Admin Gate Restriction</h2>
+            <h2 className="text-display-md font-extrabold text-base-content leading-tight">
+              Admin Gate Restriction
+            </h2>
             <p className="text-xs text-base-content/50">
-              Only master system operations and platform controllers are authorized to access the content index.
+              Only master system operations and platform controllers are
+              authorized to access the content index.
             </p>
           </div>
           <div className="flex flex-col gap-3 pt-2">
@@ -137,7 +184,10 @@ export default function AdminContentPage() {
             >
               Simulate Administrator Login (Demo)
             </button>
-            <Link href="/auth/login" className="btn btn-outline border-base-300 text-base-content hover:bg-base-100 rounded-xl h-12 w-full">
+            <Link
+              href="/auth/login"
+              className="btn btn-outline border-base-300 text-base-content hover:bg-base-100 rounded-xl h-12 w-full"
+            >
               Sign In with Admin Credentials
             </Link>
           </div>
@@ -149,10 +199,12 @@ export default function AdminContentPage() {
   return (
     <div className="min-h-screen bg-base-100 text-base-content pb-8 px-4 sm:px-8 text-start font-sans">
       <div className="max-w-6xl mx-auto space-y-6">
-        
         {/* Breadcrumb nav */}
         <div className="flex justify-between items-center">
-          <Link href="/admin" className="text-caption text-primary hover:underline font-mono">
+          <Link
+            href="/admin"
+            className="text-caption text-primary hover:underline font-mono"
+          >
             ← BACK TO COMMAND
           </Link>
           <button
@@ -165,8 +217,13 @@ export default function AdminContentPage() {
 
         {/* Title */}
         <div className="border-b border-base-300 pb-5">
-          <h1 className="text-3xl font-black tracking-tight text-base-content">Learning resource database</h1>
-          <p className="text-xs text-base-content/50 mt-1">Configure external video guides, articles, and syllabus projects mapped to dynamic nodes.</p>
+          <h1 className="text-3xl font-black tracking-tight text-base-content">
+            Learning resource database
+          </h1>
+          <p className="text-xs text-base-content/50 mt-1">
+            Configure external video guides, articles, and syllabus projects
+            mapped to dynamic nodes.
+          </p>
         </div>
 
         {/* Searching & Filter toolbar */}
@@ -201,41 +258,67 @@ export default function AdminContentPage() {
             <table className="table w-full text-xs text-start">
               <thead>
                 <tr className="border-b border-base-300 bg-base-300">
-                  <th className="font-bold text-base-content/50 py-3.5 px-4 font-mono">Resource Title</th>
-                  <th className="font-bold text-base-content/50 py-3.5 px-4 font-mono text-center">Material Type</th>
-                  <th className="font-bold text-base-content/50 py-3.5 px-4 font-mono text-center">Language</th>
-                  <th className="font-bold text-base-content/50 py-3.5 px-4 font-mono">Target Syllabus Node</th>
-                  <th className="font-bold text-base-content/50 py-3.5 px-4 font-mono text-end">Actions</th>
+                  <th className="font-bold text-base-content/50 py-3.5 px-4 font-mono">
+                    Resource Title
+                  </th>
+                  <th className="font-bold text-base-content/50 py-3.5 px-4 font-mono text-center">
+                    Material Type
+                  </th>
+                  <th className="font-bold text-base-content/50 py-3.5 px-4 font-mono text-center">
+                    Language
+                  </th>
+                  <th className="font-bold text-base-content/50 py-3.5 px-4 font-mono">
+                    Target Syllabus Node
+                  </th>
+                  <th className="font-bold text-base-content/50 py-3.5 px-4 font-mono text-end">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {filteredResources.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-8 text-base-content/40 italic">
+                    <td
+                      colSpan={5}
+                      className="text-center py-8 text-base-content/40 italic"
+                    >
                       No material records matched your active query.
                     </td>
                   </tr>
                 ) : (
                   filteredResources.map((res) => (
-                    <tr key={res.id} className="border-b border-base-300/60 hover:bg-base-100/35 transition-colors">
-                      
+                    <tr
+                      key={res.id}
+                      className="border-b border-base-300/60 hover:bg-base-100/35 transition-colors"
+                    >
                       {/* Title & Link */}
                       <td className="py-3 px-4 max-w-xs truncate">
                         <div>
-                          <a href={res.url} target="_blank" rel="noopener noreferrer" className="font-bold text-primary hover:underline text-xs block truncate">
+                          <a
+                            href={res.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-bold text-primary hover:underline text-xs block truncate"
+                          >
                             {res.title}
                           </a>
-                          <span className="text-[9px] text-base-content/40 font-mono block truncate mt-0.5">{res.url}</span>
+                          <span className="text-[9px] text-base-content/40 font-mono block truncate mt-0.5">
+                            {res.url}
+                          </span>
                         </div>
                       </td>
 
                       {/* Type Badge */}
                       <td className="py-3 px-4 text-center">
-                        <span className={`badge font-bold font-mono text-[9px] py-2 px-2.5 rounded-full ${
-                          res.type === 'video' ? 'bg-blue-100 text-blue-600 border-blue-200' :
-                          res.type === 'project' ? 'bg-purple-100 text-purple-600 border-purple-200' :
-                          'bg-gray-100 text-gray-600 border-gray-200'
-                        }`}>
+                        <span
+                          className={`badge font-bold font-mono text-[9px] py-2 px-2.5 rounded-full ${
+                            res.type === "video"
+                              ? "bg-blue-100 text-blue-600 border-blue-200"
+                              : res.type === "project"
+                                ? "bg-purple-100 text-purple-600 border-purple-200"
+                                : "bg-gray-100 text-gray-600 border-gray-200"
+                          }`}
+                        >
                           {res.type.toUpperCase()}
                         </span>
                       </td>
@@ -254,14 +337,15 @@ export default function AdminContentPage() {
                       <td className="py-3 px-4 text-end">
                         <div className="flex justify-end gap-1.5">
                           <button
-                            onClick={() => handleDeleteResource(res.id, res.title)}
+                            onClick={() =>
+                              handleDeleteResource(res.id, res.title)
+                            }
                             className="btn btn-error btn-outline btn-xs rounded"
                           >
                             Delete
                           </button>
                         </div>
                       </td>
-
                     </tr>
                   ))
                 )}
@@ -274,13 +358,16 @@ export default function AdminContentPage() {
         {showAddModal && (
           <div className="modal modal-open">
             <div className="modal-box rounded-2xl bg-white border border-gray-200 p-6 text-start space-y-4">
-              <h3 className="font-extrabold text-lg text-gray-900">Index Syllabus Material</h3>
-              
+              <h3 className="font-extrabold text-lg text-gray-900">
+                Index Syllabus Material
+              </h3>
+
               <form onSubmit={handleAddResource} className="space-y-4">
-                
                 {/* Title */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 font-mono">Resource Title</label>
+                  <label className="text-[10px] font-bold text-gray-400 font-mono">
+                    Resource Title
+                  </label>
                   <input
                     type="text"
                     required
@@ -293,7 +380,9 @@ export default function AdminContentPage() {
 
                 {/* URL */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 font-mono">Resource Link (URL)</label>
+                  <label className="text-[10px] font-bold text-gray-400 font-mono">
+                    Resource Link (URL)
+                  </label>
                   <input
                     type="url"
                     required
@@ -307,7 +396,9 @@ export default function AdminContentPage() {
                 {/* Split grid for type & lang */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 font-mono">Type</label>
+                    <label className="text-[10px] font-bold text-gray-400 font-mono">
+                      Type
+                    </label>
                     <select
                       className="select select-bordered w-full rounded-xl bg-gray-50 border-gray-200 text-xs h-10 min-h-0 text-gray-800"
                       value={newType}
@@ -319,7 +410,9 @@ export default function AdminContentPage() {
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-gray-400 font-mono">Language</label>
+                    <label className="text-[10px] font-bold text-gray-400 font-mono">
+                      Language
+                    </label>
                     <select
                       className="select select-bordered w-full rounded-xl bg-gray-50 border-gray-200 text-xs h-10 min-h-0 text-gray-800"
                       value={newLang}
@@ -333,39 +426,41 @@ export default function AdminContentPage() {
 
                 {/* Module Topic Presets */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 font-mono">Mapped Roadmap Node</label>
+                  <label className="text-[10px] font-bold text-gray-400 font-mono">
+                    Mapped Roadmap Node
+                  </label>
                   <select
                     className="select select-bordered w-full rounded-xl bg-gray-50 border-gray-200 text-xs h-10 min-h-0 text-gray-800"
                     value={newTopic}
                     onChange={(e) => setNewTopic(e.target.value)}
                   >
                     {modulePresets.map((t, i) => (
-                      <option key={i} value={t}>{t}</option>
+                      <option key={i} value={t}>
+                        {t}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2 border-t border-gray-150">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setShowAddModal(false)}
                     className="btn btn-outline border-gray-200 text-xs h-9 min-h-0 rounded-lg px-4"
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn bg-[#10B981] hover:bg-[#059669] border-none text-white text-xs h-9 min-h-0 rounded-lg px-4"
                   >
                     Index Material
                   </button>
                 </div>
-
               </form>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

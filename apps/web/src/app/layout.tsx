@@ -23,13 +23,23 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "SmartRoadmap — AI-Powered Personalized Learning & Hiring Platform",
-  description: "Verify your tech skills. SmartRoadmap designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
-  keywords: ["AI Roadmap", "Career assessment", "Skill verification", "Technical learning", "SaaS recruitment", "Software engineer jobs", "Verified talent ecosystem"],
+  description:
+    "Verify your tech skills. SmartRoadmap designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
+  keywords: [
+    "AI Roadmap",
+    "Career assessment",
+    "Skill verification",
+    "Technical learning",
+    "SaaS recruitment",
+    "Software engineer jobs",
+    "Verified talent ecosystem",
+  ],
   authors: [{ name: "Developia Team" }],
   manifest: "/manifest.json",
   openGraph: {
     title: "SmartRoadmap — AI-Powered Personalized Learning & Hiring Platform",
-    description: "Verify your tech skills. SmartRoadmap designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
+    description:
+      "Verify your tech skills. SmartRoadmap designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
     url: "https://smartroadmap.dev",
     siteName: "SmartRoadmap",
     type: "website",
@@ -38,7 +48,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "SmartRoadmap — AI-Powered Personalized Learning & Hiring Platform",
-    description: "Verify your tech skills. SmartRoadmap designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
+    description:
+      "Verify your tech skills. SmartRoadmap designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
   },
 };
 
@@ -54,14 +65,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" dir="ltr" data-theme="smartlight" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="en"
+      dir="ltr"
+      data-theme="smartlight"
+      className={`${inter.variable} ${jetbrainsMono.variable}`}
+    >
       <body className="bg-base-100 text-base-content min-h-screen font-sans antialiased flex flex-col">
         <AppContextProvider>
           <Navbar />
           <main className="flex-grow pt-24 pb-16 md:pb-0">{children}</main>
           <Footer />
           <BottomNav />
-          <ToastContainer position="bottom-right" autoClose={3000} theme="colored" />
+          <ToastContainer
+            position="bottom-right"
+            autoClose={3000}
+            theme="colored"
+          />
         </AppContextProvider>
       </body>
     </html>
