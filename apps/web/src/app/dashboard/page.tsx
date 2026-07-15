@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useApp } from '@/components/AppContext';
 import { toast } from 'react-toastify';
+import { apiFetch, getCachedUser, hasSession } from '@/lib/api';
 
 type Module = {
   id: string;
@@ -39,20 +40,20 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
-    const storedToken = localStorage.getItem('smart_token');
+    const storedUser = getCachedUser();
+    const storedToken = hasSession();
 
     if (!storedUser || !storedToken) {
       setLoading(false);
       return;
     }
 
-    const parsedUser = JSON.parse(storedUser);
+    const parsedUser = storedUser;
     setUser(parsedUser);
 
     async function loadData() {
       try {
-        const roadmapRes = await fetch(`http://localhost:3000/roadmap/user/${parsedUser.id}`);
+        const roadmapRes = await apiFetch('/roadmap/me');
         if (roadmapRes.ok) {
           const roadmapData = await roadmapRes.json();
           setRoadmap(roadmapData);

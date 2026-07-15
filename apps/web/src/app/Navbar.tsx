@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useApp } from '@/components/AppContext';
+import { apiFetch, getCachedUser, hasSession, logout } from '@/lib/api';
 
 // Crisp SVG Icons representing OS Platforms for PWA download
 const WindowsIcon = () => (
@@ -55,11 +56,10 @@ export default function Navbar() {
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
   const fetchNotifications = async () => {
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3000/notifications', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await apiFetch('/notifications', {
       });
       if (res.ok) {
         const body = await res.json();
@@ -71,12 +71,11 @@ export default function Navbar() {
   };
 
   const handleMarkAllNotificationsRead = async () => {
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3000/notifications/read-all', {
+      const res = await apiFetch('/notifications/read-all', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         fetchNotifications();
@@ -85,12 +84,11 @@ export default function Navbar() {
   };
 
   const handleMarkNotificationRead = async (id: string, link?: string) => {
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) return;
     try {
-      const res = await fetch(`http://localhost:3000/notifications/${id}/read`, {
+      const res = await apiFetch(`/notifications/${id}/read`, {
         method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         fetchNotifications();
@@ -108,11 +106,11 @@ export default function Navbar() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
-    const storedToken = localStorage.getItem('smart_token');
+    const storedUser = getCachedUser();
+    const storedToken = hasSession();
     if (storedUser && storedToken) {
       try {
-        setUser(JSON.parse(storedUser));
+        setUser(storedUser);
       } catch (e) {
         setUser(null);
       }
@@ -176,8 +174,7 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('smart_token');
-    localStorage.removeItem('smart_user');
+    logout();
     setUser(null);
     router.push('/');
   };

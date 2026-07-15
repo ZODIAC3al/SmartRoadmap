@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { useApp } from '@/components/AppContext';
+import { fetchMe } from '@/lib/api';
 
 type UserEntry = {
   id: string;
@@ -34,35 +35,21 @@ export default function AdminUsersPage() {
   ]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
-    const storedToken = localStorage.getItem('smart_token');
-
-    if (!storedUser || !storedToken) {
+    // Identity now comes from the server (/auth/me), not from a JSON blob the
+    // user can hand-edit in localStorage. The API enforces the role again
+    // on every request via RolesGuard, so this is UX, not the security boundary.
+    (async () => {
+      const me = await fetchMe();
+      setAdminUser(me);
       setLoading(false);
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(storedUser);
-      setAdminUser(parsed);
-    } catch (e) {
-      setAdminUser(null);
-    } finally {
-      setLoading(false);
-    }
+    })();
   }, []);
 
   const handleSimulateAdmin = () => {
-    const adminSession = {
-      id: 'demo-admin-id',
-      name: 'SmartRoadmap SysAdmin',
-      email: 'admin@smartroadmap.io',
-      role: 'admin'
-    };
-    localStorage.setItem('smart_user', JSON.stringify(adminSession));
-    localStorage.setItem('smart_token', 'demo-token');
-    setAdminUser(adminSession);
-    toast.success('Admin Session Simulator Enabled!');
+    // The fake client-side session ('demo-token') is gone: a role can only ever
+    // come from a JWT the server issued, and the API re-checks it on every call.
+    toast.info('Please sign in with an authorized account.');
+    window.location.href = '/auth/login';
   };
 
   const handleRoleChange = (userId: string, newRole: 'learner' | 'company' | 'admin') => {

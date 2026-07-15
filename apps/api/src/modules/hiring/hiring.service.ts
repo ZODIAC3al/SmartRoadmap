@@ -1,4 +1,5 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Job } from '../../schemas/job.schema';
@@ -8,7 +9,7 @@ import { QuizSession } from '../../schemas/quiz-session.schema';
 import { Cv } from '../../schemas/cv.schema';
 
 @Injectable()
-export class HiringService {
+export class HiringService implements OnModuleInit {
   private readonly logger = new Logger(HiringService.name);
 
   constructor(
@@ -17,9 +18,19 @@ export class HiringService {
     @InjectModel(Roadmap.name) private readonly roadmapModel: Model<Roadmap>,
     @InjectModel(QuizSession.name) private readonly quizSessionModel: Model<QuizSession>,
     @InjectModel(Cv.name) private readonly cvModel: Model<Cv>,
-  ) {
-    // Seed some mock jobs on launch if database is empty
-    this.seedMockJobs();
+    private readonly config: ConfigService,
+  ) {}
+
+  /**
+   * Seeding moved out of the constructor into the lifecycle hook (a constructor
+   * must never fire un-awaited DB writes), and disabled in production so fake
+   * job listings never reach real users.
+   */
+  async onModuleInit(): Promise<void> {
+    const allowSeed =
+      this.config.get('SEED_DEMO_CONTENT') === 'true' ||
+      this.config.get('NODE_ENV') !== 'production';
+    if (allowSeed) await this.seedMockJobs();
   }
 
   private async seedMockJobs() {
@@ -146,6 +157,79 @@ export class HiringService {
 
     // Sort by match score descending
     return scoredJobs.sort((a, b) => b.matchScore - a.matchScore);
+  }
+
+  /**
+   * Gap analysis → roadmap.
+   *
+   * "You're a 78% match for this job; you're missing Docker and CI" is only useful
+   * if the learner can act on it. This folds the missing skills straight into their
+   * active roadmap as new modules.
+   */
+  async closeSkillGap(userId: string, jobId: string): Promise<any> {
+    const job = await this.jobModel.findById(jobId);
+    if (!job) throw new NotFoundException(`Job not found: ${jobId}`);
+
+    const roadmap = await this.roadmapModel.findOne({
+      userId: new Types.ObjectId(userId),
+      status: 'active',
+    });
+    if (!roadmap) {
+      throw new NotFoundException('You need an active roadmap before closing a skill gap.');
+    }
+
+    const verified = new Set<string>();
+    roadmap.modules.forEach((mod) => {
+      if (mod.status === 'completed') {
+        verified.add(mod.title.toLowerCase());
+        mod.topics.forEach((t) => verified.add(t.toLowerCase()));
+      }
+    });
+
+    const gap = job.requiredSkills.filter((skill) => {
+      const s = skill.toLowerCase();
+      const alreadyKnown = [...verified].some((v) => v.includes(s) || s.includes(v));
+      const alreadyPlanned = roadmap.modules.some(
+        (m) => m.title.toLowerCase() === s || m.topics.some((t) => t.toLowerCase() === s),
+      );
+      return !alreadyKnown && !alreadyPlanned;
+    });
+
+    if (gap.length === 0) {
+      return {
+        success: true,
+        added: [],
+        message: 'No gap left — your roadmap already covers everything this job asks for.',
+      };
+    }
+
+    let x = 300;
+    gap.forEach((skill) => {
+      roadmap.modules.push({
+        id: `gap-${skill.toLowerCase().replace(/\s+/g, '-')}`,
+        title: skill,
+        description: `Added to close the skill gap for "${job.title}" at ${job.company}.`,
+        difficulty: 'intermediate',
+        estimatedHours: 8,
+        topics: [skill],
+        prerequisites: [],
+        status: 'in_progress',
+        positionX: x,
+        positionY: 340,
+      } as any);
+      x += 200;
+    });
+
+    roadmap.markModified('modules');
+    await roadmap.save();
+
+    this.logger.log(`Added ${gap.length} gap module(s) for user ${userId} (job ${jobId})`);
+    return {
+      success: true,
+      added: gap,
+      jobTitle: job.title,
+      message: `Added ${gap.length} module(s) to your roadmap.`,
+    };
   }
 
   async getCandidates(): Promise<any[]> {

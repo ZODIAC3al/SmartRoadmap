@@ -1,297 +1,417 @@
-import { Injectable, UnauthorizedException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
+import { createHash, randomBytes, randomUUID } from 'crypto';
+import { OAuth2Client, type TokenPayload } from 'google-auth-library';
 import { User } from '../../schemas/user.schema';
-import * as crypto from 'crypto';
+import type { AppRole } from '../../common/decorators/roles.decorator';
+import { RegisterDto, UpdateProfileDto } from './dto/auth.dto';
+import { OnboardingService } from './onboarding.service';
+import { MailService } from '../mail/mail.service';
+
+export interface PublicUser {
+  id: string;
+  email: string;
+  name: string;
+  role: AppRole;
+  avatarUrl?: string;
+  username?: string;
+  phone?: string;
+  bio?: string;
+  plan: string;
+  subscriptionStatus: string;
+}
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private readonly jwtSecret: string;
+  private readonly googleClient?: OAuth2Client;
 
-  constructor(@InjectModel(User.name) private readonly userModel: Model<User>) {
-    this.jwtSecret = process.env.JWT_SECRET || 'smartroadmap_ultra_secret_key_2026_xyz';
-  }
-
-  // Pure cryptographic PBKDF2 hashing
-  private hashPassword(password: string): string {
-    const salt = crypto.randomBytes(16).toString('hex');
-    const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-    return `${salt}:${hash}`;
-  }
-
-  private verifyPassword(password: string, passwordHash: string): boolean {
-    const parts = passwordHash.split(':');
-    if (parts.length !== 2) return false;
-    const [salt, hash] = parts;
-    const verifyHash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
-    return hash === verifyHash;
-  }
-
-  // Pure token signing in Base64Url JSON
-  private generateToken(user: User): string {
-    const header = { alg: 'HS256', typ: 'JWT' };
-    const payload = {
-      sub: user._id.toString(),
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hours
-    };
-
-    const headerBase64 = Buffer.from(JSON.stringify(header)).toString('base64url');
-    const payloadBase64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
-
-    const signature = crypto
-      .createHmac('sha256', this.jwtSecret)
-      .update(`${headerBase64}.${payloadBase64}`)
-      .digest('base64url');
-
-    return `${headerBase64}.${payloadBase64}.${signature}`;
-  }
-
-  // Parse and verify standard Base64Url JWT signature
-  verifyToken(token: string): any {
-    try {
-      const parts = token.split('.');
-      if (parts.length !== 3) return null;
-      const [header, payload, signature] = parts;
-
-      const expectedSignature = crypto
-        .createHmac('sha256', this.jwtSecret)
-        .update(`${header}.${payload}`)
-        .digest('base64url');
-
-      if (signature !== expectedSignature) {
-        return null;
-      }
-
-      const decodedPayload = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-      if (decodedPayload.exp && decodedPayload.exp < Math.floor(Date.now() / 1000)) {
-        return null; // Expired
-      }
-      return decodedPayload;
-    } catch (e) {
-      return null;
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+    private readonly jwt: JwtService,
+    private readonly config: ConfigService,
+    private readonly onboarding: OnboardingService,
+    private readonly mail: MailService,
+  ) {
+    const clientId = this.config.get<string>('GOOGLE_CLIENT_ID');
+    this.googleClient = clientId ? new OAuth2Client(clientId) : undefined;
+    if (!this.googleClient) {
+      this.logger.warn('GOOGLE_CLIENT_ID is not set — Google sign-in is disabled.');
     }
   }
 
-  async register(email: string, name: string, password: string, role: 'learner' | 'company' = 'learner'): Promise<any> {
-    const existing = await this.userModel.findOne({ email: email.toLowerCase().trim() });
-    if (existing) {
+  // ────────────────────────────── Tokens ──────────────────────────────
+
+  /** One-way hash for anything we persist but must never be able to read back. */
+  private sha256(value: string): string {
+    return createHash('sha256').update(value).digest('hex');
+  }
+
+  private async issueTokens(user: User) {
+    const base = { sub: user._id.toString(), email: user.email, role: user.role };
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwt.signAsync(
+        { ...base, type: 'access' },
+        {
+          secret: this.config.getOrThrow<string>('JWT_SECRET'),
+          expiresIn: this.config.get<string>('JWT_EXPIRY', '15m') as any,
+        },
+      ),
+      this.jwt.signAsync(
+        { sub: base.sub, type: 'refresh', jti: randomUUID() },
+        {
+          secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
+          expiresIn: this.config.get<string>('JWT_REFRESH_EXPIRY', '30d') as any,
+        },
+      ),
+    ]);
+
+    // Remember this refresh token (hashed). One entry per device, capped at 10.
+    await this.userModel.updateOne(
+      { _id: user._id },
+      {
+        $push: {
+          refreshTokenHashes: { $each: [this.sha256(refreshToken)], $slice: -10 },
+        },
+      },
+    );
+
+    return { accessToken, refreshToken };
+  }
+
+  /**
+   * Refresh with ROTATION + REUSE DETECTION.
+   *
+   * Every refresh burns the old token and issues a new one. If a token that is
+   * cryptographically valid shows up but is no longer in the user's list, it has
+   * already been spent — which means someone replayed a stolen token. We then
+   * revoke every session for that account rather than serve the attacker.
+   */
+  async refresh(refreshToken: string) {
+    let payload: any;
+    try {
+      payload = await this.jwt.verifyAsync(refreshToken, {
+        secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+    if (payload.type !== 'refresh') {
+      throw new UnauthorizedException('Not a refresh token');
+    }
+
+    const user = await this.userModel.findById(payload.sub).select('+refreshTokenHashes');
+    if (!user) throw new UnauthorizedException('User no longer exists');
+
+    // Revoked by a password change / logout-all?
+    // NOTE: `iat` is whole seconds while `tokensValidFrom` has millisecond
+    // precision, so a token minted in the same second as the revocation looks
+    // "older" than it is. The 1s tolerance stops us from revoking valid tokens.
+    const issuedAtMs = (payload.iat ?? 0) * 1000;
+    if (user.tokensValidFrom && issuedAtMs + 1000 < user.tokensValidFrom.getTime()) {
+      throw new UnauthorizedException('Refresh token has been revoked');
+    }
+
+    const hash = this.sha256(refreshToken);
+    if (!user.refreshTokenHashes?.includes(hash)) {
+      this.logger.warn(
+        `Refresh token REPLAY detected for user ${user._id.toString()} — revoking all sessions.`,
+      );
+      await this.userModel.updateOne(
+        { _id: user._id },
+        { refreshTokenHashes: [], tokensValidFrom: new Date() },
+      );
+      throw new UnauthorizedException('Refresh token has already been used. All sessions revoked.');
+    }
+
+    // Burn the used token, then mint a fresh pair.
+    await this.userModel.updateOne({ _id: user._id }, { $pull: { refreshTokenHashes: hash } });
+
+    const tokens = await this.issueTokens(user);
+    return { ...tokens, user: this.toPublicUser(user) };
+  }
+
+  /** Verifies a refresh token without rotating it (used by logout). */
+  async decodeRefresh(refreshToken: string): Promise<any> {
+    return this.jwt.verifyAsync(refreshToken, {
+      secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
+    });
+  }
+
+  /** Signs the user out of this device (or all of them). */
+  async revokeSession(userId: string, refreshToken?: string, allDevices = false): Promise<void> {
+    if (allDevices) {
+      await this.userModel.updateOne(
+        { _id: userId },
+        { refreshTokenHashes: [], tokensValidFrom: new Date() },
+      );
+      return;
+    }
+    if (refreshToken) {
+      await this.userModel.updateOne(
+        { _id: userId },
+        { $pull: { refreshTokenHashes: this.sha256(refreshToken) } },
+      );
+    }
+  }
+
+  // ────────────────────────────── Passwords ───────────────────────────
+
+  private hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, this.config.get<number>('BCRYPT_ROUNDS', 12));
+  }
+
+  // bcrypt.compare is constant-time — no manual `!==` comparisons anymore.
+  private verifyPassword(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash);
+  }
+
+  // ────────────────────────────── Auth flows ──────────────────────────
+
+  async register(dto: RegisterDto) {
+    const email = dto.email.toLowerCase().trim();
+
+    if (await this.userModel.exists({ email })) {
       throw new BadRequestException('User with this email already exists.');
     }
 
-    const passwordHash = this.hashPassword(password);
-    const user = new this.userModel({
-      email: email.toLowerCase().trim(),
-      name: name.trim(),
-      passwordHash,
-      role,
-      isVerified: true,
-    });
+    const user = await new this.userModel({
+      email,
+      name: dto.name.trim(),
+      passwordHash: await this.hashPassword(dto.password),
+      // Defence in depth: even if the DTO layer were bypassed, only these two
+      // roles are reachable through public registration. 'admin' never is.
+      role: dto.role === 'company' ? 'company' : 'learner',
+      provider: 'local',
+      isVerified: false,
+    }).save();
 
-    const saved = await user.save();
-    await this.seedUserOnboarding(saved._id.toString());
-    const token = this.generateToken(saved);
+    // Demo/onboarding content is seeded once, on signup only — never on the
+    // login hot path (it used to add 6 DB writes to every single login).
+    void this.onboarding.seedForUser(user._id.toString());
+    void this.sendVerificationEmail(user._id.toString());
 
-    return {
-      token,
-      user: {
-        id: saved._id.toString(),
-        email: saved.email,
-        name: saved.name,
-        role: saved.role,
-      },
-    };
+    const tokens = await this.issueTokens(user);
+    return { ...tokens, user: this.toPublicUser(user) };
   }
 
-  async login(email: string, password: string): Promise<any> {
-    const user = await this.userModel.findOne({ email: email.toLowerCase().trim() });
-    if (!user) {
+  async login(email: string, password: string) {
+    // `passwordHash` is select:false on the schema — request it explicitly.
+    const user = await this.userModel
+      .findOne({ email: email.toLowerCase().trim() })
+      .select('+passwordHash');
+
+    // Generic message + a dummy compare so we don't leak account existence
+    // through either the response text or the response time.
+    if (!user || user.provider !== 'local') {
+      await bcrypt.compare(password, '$2b$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidin');
       throw new UnauthorizedException('Invalid email or password.');
     }
 
-    const valid = this.verifyPassword(password, user.passwordHash);
-    if (!valid) {
+    if (!(await this.verifyPassword(password, user.passwordHash))) {
       throw new UnauthorizedException('Invalid email or password.');
     }
 
-    const token = this.generateToken(user);
-    await this.seedUserOnboarding(user._id.toString());
-
-    return {
-      token,
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-    };
+    const tokens = await this.issueTokens(user);
+    return { ...tokens, user: this.toPublicUser(user) };
   }
 
-  async googleLogin(email: string, name: string, avatarUrl?: string): Promise<any> {
-    this.logger.log(`Google auth login payload received: ${email}`);
+  /**
+   * Google sign-in.
+   * The client sends the Google-issued ID token; we verify its signature and
+   * audience against Google's public keys. We NEVER trust a client-supplied email.
+   */
+  async googleLogin(idToken: string) {
+    if (!this.googleClient) {
+      throw new BadRequestException('Google sign-in is not configured on this server.');
+    }
 
-    // If user already exists, authenticate them. Otherwise, register them dynamically.
-    let user = await this.userModel.findOne({ email: email.toLowerCase().trim() });
-
-    if (!user) {
-      this.logger.log(`User does not exist, creating new social login user profile for: ${email}`);
-      const mockPasswordHash = this.hashPassword(crypto.randomBytes(32).toString('hex'));
-      user = new this.userModel({
-        email: email.toLowerCase().trim(),
-        name: name.trim(),
-        passwordHash: mockPasswordHash,
-        role: 'learner', // Default social signup is a learner
-        avatarUrl: avatarUrl || '',
-        isVerified: true,
+    let payload: TokenPayload | undefined;
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken,
+        audience: this.config.getOrThrow<string>('GOOGLE_CLIENT_ID'),
       });
-      await user.save();
+      payload = ticket.getPayload();
+    } catch (err: any) {
+      this.logger.warn(`Rejected Google ID token: ${err.message}`);
+      throw new UnauthorizedException('Invalid Google credential.');
     }
 
-    const token = this.generateToken(user);
-    await this.seedUserOnboarding(user._id.toString());
-    return {
-      token,
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-    };
+    if (!payload?.email || !payload.email_verified) {
+      throw new UnauthorizedException('Google account has no verified email.');
+    }
+
+    const email = payload.email.toLowerCase();
+    let user = await this.userModel.findOne({ email });
+
+    if (user && user.provider !== 'google') {
+      // The email already belongs to a password account — do not silently take it over.
+      throw new ForbiddenException(
+        'This email is registered with a password. Please sign in with your password.',
+      );
+    }
+
+    if (!user) {
+      user = await new this.userModel({
+        email,
+        name: payload.name?.trim() || email.split('@')[0],
+        // Random unusable hash: this account can only ever log in via Google.
+        passwordHash: await this.hashPassword(randomUUID()),
+        role: 'learner',
+        provider: 'google',
+        googleId: payload.sub,
+        avatarUrl: payload.picture,
+        isVerified: true,
+      }).save();
+      void this.onboarding.seedForUser(user._id.toString());
+    }
+
+    const tokens = await this.issueTokens(user);
+    return { ...tokens, user: this.toPublicUser(user) };
   }
 
-  async updateProfile(userId: string, updateData: any): Promise<any> {
+  // ──────────────────── Email verification & password reset ────────────────
+
+  /** Generates a raw token for the email + the hash we actually store. */
+  private oneTimeToken(): { raw: string; hash: string } {
+    const raw = randomBytes(32).toString('hex');
+    return { raw, hash: this.sha256(raw) };
+  }
+
+  async sendVerificationEmail(userId: string): Promise<void> {
     const user = await this.userModel.findById(userId);
-    if (!user) {
-      throw new BadRequestException('User profile not found.');
+    if (!user || user.isVerified) return;
+
+    const { raw, hash } = this.oneTimeToken();
+    await this.userModel.updateOne(
+      { _id: user._id },
+      {
+        verificationTokenHash: hash,
+        verificationExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h
+      },
+    );
+    await this.mail.sendVerification(user.email, user.name, raw);
+  }
+
+  async verifyEmail(rawToken: string): Promise<{ success: true }> {
+    const user = await this.userModel.findOne({
+      verificationTokenHash: this.sha256(rawToken),
+      verificationExpiresAt: { $gt: new Date() },
+    });
+    if (!user) throw new BadRequestException('This verification link is invalid or has expired.');
+
+    await this.userModel.updateOne(
+      { _id: user._id },
+      {
+        isVerified: true,
+        $unset: { verificationTokenHash: 1, verificationExpiresAt: 1 },
+      },
+    );
+    return { success: true };
+  }
+
+  /**
+   * Always returns the same response, whether or not the email exists —
+   * otherwise this endpoint becomes a free user-enumeration oracle.
+   */
+  async requestPasswordReset(email: string): Promise<{ success: true }> {
+    const user = await this.userModel.findOne({ email: email.toLowerCase().trim() });
+
+    if (user && user.provider === 'local') {
+      const { raw, hash } = this.oneTimeToken();
+      await this.userModel.updateOne(
+        { _id: user._id },
+        {
+          resetTokenHash: hash,
+          resetExpiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1h
+        },
+      );
+      await this.mail.sendPasswordReset(user.email, user.name, raw);
     }
 
-    if (updateData.name !== undefined) user.name = updateData.name.trim();
-    if (updateData.email !== undefined) {
-      const emailLower = updateData.email.toLowerCase().trim();
-      if (emailLower !== user.email) {
-        const existing = await this.userModel.findOne({ email: emailLower });
-        if (existing) {
-          throw new BadRequestException('A user with this email address already exists.');
-        }
-        user.email = emailLower;
-      }
-    }
-    if (updateData.role !== undefined) user.role = updateData.role;
-    if (updateData.avatarUrl !== undefined) user.avatarUrl = updateData.avatarUrl;
-    if (updateData.username !== undefined) user.username = updateData.username.trim();
-    if (updateData.phone !== undefined) user.phone = updateData.phone.trim();
-    if (updateData.bio !== undefined) user.bio = updateData.bio;
-    if (updateData.theme !== undefined) user.theme = updateData.theme;
-    if (updateData.locale !== undefined) user.locale = updateData.locale;
+    return { success: true };
+  }
 
-    const saved = await user.save();
-    return {
-      id: saved._id.toString(),
-      email: saved.email,
-      name: saved.name,
-      role: saved.role,
-      avatarUrl: saved.avatarUrl,
-      username: saved.username,
-      phone: saved.phone,
-      bio: saved.bio,
-      theme: saved.theme,
-      locale: saved.locale,
-    };
+  async resetPassword(rawToken: string, newPassword: string): Promise<{ success: true }> {
+    const user = await this.userModel.findOne({
+      resetTokenHash: this.sha256(rawToken),
+      resetExpiresAt: { $gt: new Date() },
+    });
+    if (!user) throw new BadRequestException('This reset link is invalid or has expired.');
+
+    await this.userModel.updateOne(
+      { _id: user._id },
+      {
+        passwordHash: await this.hashPassword(newPassword),
+        // Changing the password kills every existing session, everywhere.
+        tokensValidFrom: new Date(),
+        refreshTokenHashes: [],
+        $unset: { resetTokenHash: 1, resetExpiresAt: 1 },
+      },
+    );
+
+    this.logger.log(`Password reset completed for ${user.email}; all sessions revoked.`);
+    return { success: true };
+  }
+
+  // ────────────────────────────── Profile ─────────────────────────────
+
+  /** userId ALWAYS comes from the verified JWT, never from the request body. */
+  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<PublicUser> {
+    const user = await this.userModel.findByIdAndUpdate(
+      userId,
+      { $set: dto }, // dto is whitelisted: role/email/plan can't sneak in
+      { new: true },
+    );
+    if (!user) throw new NotFoundException('User profile not found.');
+    return this.toPublicUser(user);
   }
 
   async findUserById(id: string): Promise<User | null> {
     return this.userModel.findById(id);
   }
 
-  async seedUserOnboarding(userId: string): Promise<void> {
-    try {
-      const notificationModel = this.userModel.db.model('Notification');
-      const messageModel = this.userModel.db.model('Message');
-
-      const userObjectId = new Types.ObjectId(userId);
-      const count = await notificationModel.countDocuments({ recipient: userObjectId }).exec();
-      if (count > 0) return; // Already seeded
-
-      // Find or create the Support Team user
-      let supportUser = await this.userModel.findOne({ email: 'support@smartroadmap.dev' }).exec();
-      if (!supportUser) {
-        supportUser = new this.userModel({
-          email: 'support@smartroadmap.dev',
-          name: 'SmartRoadmap Support Team',
-          passwordHash: 'support_system_account_no_password',
-          role: 'admin',
-          avatarUrl: '/logo.svg',
-          isVerified: true,
-          bio: 'AI-Powered SmartRoadmap Platform Guide & Helpdesk',
-        });
-        await supportUser.save();
-      }
-
-      // Seed welcome notification
-      const welcomeNotif = new notificationModel({
-        recipient: userObjectId,
-        titleEn: 'Welcome to SmartRoadmap!',
-        titleAr: 'مرحباً بك في SmartRoadmap!',
-        contentEn: 'Verify your tech skills, generate adaptive learning roadmaps, and match directly with top hiring teams.',
-        contentAr: 'قم بطلب تقييم لمهاراتك، واحصل على خارطة طريق مخصصة للتعلم بالذكاء الاصطناعي، وطابق ملفك مع جهات التوظيف.',
-        type: 'general',
-        link: '/roadmap',
-        read: false,
-      });
-      await welcomeNotif.save();
-
-      // Seed a second notification about Job Matching
-      const jobNotif = new notificationModel({
-        recipient: userObjectId,
-        titleEn: 'Job Match Alert',
-        titleAr: 'تنبيه مطابقة وظيفة',
-        contentEn: 'You have a 97% match rating for the Frontend Engineer role at Stripe!',
-        contentAr: 'لديك نسبة مطابقة تبلغ ٩٧٪ لوظيفة مهندس واجهات (Frontend Engineer) لدى شركة Stripe!',
-        type: 'job_match',
-        link: '/hiring',
-        read: false,
-      });
-      await jobNotif.save();
-
-      // Seed welcome chat messages
-      const msg1 = new messageModel({
-        sender: supportUser._id,
-        recipient: userObjectId,
-        content: 'Welcome to SmartRoadmap! I am your career pilot. I see you registered your profile successfully. Have you tried uploading your resume to let our AI parser fill in your skills?',
-        read: false,
-        createdAt: new Date(Date.now() - 600000), // 10 mins ago
-      });
-      await msg1.save();
-
-      const msg2 = new messageModel({
-        sender: userObjectId,
-        recipient: supportUser._id,
-        content: 'Thanks! I will try that right now.',
-        read: true,
-        createdAt: new Date(Date.now() - 300000), // 5 mins ago
-      });
-      await msg2.save();
-
-      const msg3 = new messageModel({
-        sender: supportUser._id,
-        recipient: userObjectId,
-        content: 'Excellent. Once you upload it, you can take a skill assessment to verify your passport, which unlocks direct recruiter interview offers!',
-        read: false,
-        createdAt: new Date(Date.now() - 6000), // just now
-      });
-      await msg3.save();
-    } catch (e: any) {
-      this.logger.error(`Failed to seed onboarding data for user ${userId}: ${e.message}`);
-    }
+  async findAllUsers(): Promise<PublicUser[]> {
+    const users = await this.userModel.find().sort({ createdAt: -1 }).limit(500);
+    return users.map((u) => this.toPublicUser(u));
   }
 
-  async findAllUsers(): Promise<User[]> {
-    return this.userModel.find().exec();
+  /** Admin-only role change. */
+  async changeRole(userId: string, role: AppRole): Promise<PublicUser> {
+    const user = await this.userModel.findByIdAndUpdate(
+      userId,
+      { role, tokensValidFrom: new Date() },
+      { new: true },
+    );
+    if (!user) throw new NotFoundException('User not found.');
+    return this.toPublicUser(user);
+  }
+
+  toPublicUser(user: User): PublicUser {
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      avatarUrl: user.avatarUrl,
+      username: user.username,
+      phone: user.phone,
+      bio: user.bio,
+      plan: user.plan ?? 'free',
+      subscriptionStatus: user.subscriptionStatus ?? 'inactive',
+    };
   }
 }

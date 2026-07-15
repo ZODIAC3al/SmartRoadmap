@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/components/AppContext';
 import { toast } from 'react-toastify';
+import { apiFetch, getCachedUser } from '@/lib/api';
 
 type Module = {
   id: string;
@@ -35,11 +36,11 @@ export default function RoadmapPage() {
   const [userId, setUserId] = useState('654321098765432109876543');
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
+    const storedUser = getCachedUser();
     let activeUserId = '654321098765432109876543';
     if (storedUser) {
       try {
-        const u = JSON.parse(storedUser);
+        const u = storedUser;
         if (u.id) {
           activeUserId = u.id;
           setUserId(u.id);
@@ -49,7 +50,7 @@ export default function RoadmapPage() {
 
     async function fetchRoadmap() {
       try {
-        const response = await fetch(`http://localhost:3000/roadmap/user/${activeUserId}`);
+        const response = await apiFetch('/roadmap/me');
         if (!response.ok) throw new Error('Not found');
         const data = await response.json();
         setRoadmap(data);

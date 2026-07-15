@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
+import { apiFetch } from '@/lib/api';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -17,11 +18,20 @@ export default function ForgotPasswordPage() {
     }
 
     setIsSubmitting(true);
-    // Simulate API delay for Resend email dispatch
-    await new Promise(r => setTimeout(r, 800));
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    toast.success('Simulation: Password reset link dispatched via Resend!');
+    try {
+      // The API always answers 200 here — on purpose. Telling the caller whether
+      // the address exists would turn this form into a user-enumeration oracle.
+      await apiFetch('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      });
+      setIsSuccess(true);
+      toast.success('If that email is registered, a reset link is on its way.');
+    } catch {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

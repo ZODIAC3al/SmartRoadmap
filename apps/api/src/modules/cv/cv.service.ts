@@ -56,24 +56,15 @@ export class CvService {
 
   async enhanceDescription(text: string): Promise<string> {
     this.logger.log('Enhancing resume bullet point description using AI');
-    
-    const prompt = `You are a professional resume writer. Rewrite the following description to sound highly impactful, utilizing active verbs and highlighting results: "${text}". Provide ONLY the improved description as output, keep it short and professional (1-2 sentences).`;
-    
-    if (process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.includes('placeholder')) {
-      try {
-        const { OpenAI } = require('openai');
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        const response = await openai.chat.completions.create({
-          model: process.env.OPENAI_MODEL_FAST || 'gpt-4o-mini',
-          messages: [{ role: 'user', content: prompt }],
-        });
-        return response.choices[0]?.message?.content?.trim() || text;
-      } catch (error) {
-        this.logger.error('Failed to enhance description with OpenAI. Falling back to mock enhancement.', error);
-      }
-    }
 
-    return `Designed and deployed highly scalable systems, resulting in a 25% improvement in processing performance: ${text}`;
+    const enhanced = await this.llmService.complete(
+      `Rewrite this resume bullet to be impactful, active-voice and results-driven. ` +
+        `Return ONLY the rewritten sentence (1-2 sentences):\n\n"${text}"`,
+      { system: 'You are a professional resume writer.' },
+    );
+
+    // llmService owns the OpenAI client + failure handling; no ad-hoc require('openai') here.
+    return enhanced ?? text;
   }
 
   private parseTextHeuristically(text: string): any {
@@ -312,38 +303,23 @@ Skills: React, TypeScript, TailwindCSS, Figma, Grid Layouts
 Hobbies: Coding, Cycling, Photography`;
     }
 
-    // Try OpenAI LLM parser if key is configured
-    if (process.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY.includes('placeholder')) {
+    // Try the LLM parser (returns null in mock mode / on failure).
+    const raw = await this.llmService.complete(
+      `Extract structured JSON from this resume text. Keys: personal {name,email,phone,summary,address,website}, ` +
+        `experience[] {company,role,startDate,endDate,description}, education[] {school,degree,fieldOfStudy,graduateDate}, ` +
+        `skills[], projects[] {name,description,url}, references[] {name,relationship,phone,email}, hobbies[].` +
+        `\n\nResume text:\n${plainText}`,
+      { json: true },
+    );
+
+    if (raw) {
       try {
-        const { OpenAI } = require('openai');
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        const prompt = `Analyze the following raw resume text and extract structured information in JSON format matching the schema.
-Schema keys:
-- personal: { name: string, email: string, phone: string, summary: string, address: string, website: string }
-- experience: array of { company: string, role: string, startDate: string, endDate: string, description: string }
-- education: array of { school: string, degree: string, fieldOfStudy: string, graduateDate: string }
-- skills: array of string
-- projects: array of { name: string, description: string, url: string }
-- references: array of { name: string, relationship: string, phone: string, email: string }
-- hobbies: array of string
-
-Raw resume text:
-"""
-${plainText}
-"""`;
-
-        const response = await openai.chat.completions.create({
-          model: process.env.OPENAI_MODEL_FAST || 'gpt-4o-mini',
-          messages: [{ role: 'user', content: prompt }],
-          response_format: { type: 'json_object' },
-        });
-
-        const parsedJson = JSON.parse(response.choices[0]?.message?.content || '{}');
-        if (parsedJson.personal?.name || (parsedJson.skills && parsedJson.skills.length > 0)) {
+        const parsedJson = JSON.parse(raw);
+        if (parsedJson.personal?.name || parsedJson.skills?.length) {
           return parsedJson;
         }
       } catch (err: any) {
-        this.logger.error('Failed to parse resume text using OpenAI. Falling back to heuristic rules.', err.stack);
+        this.logger.error(`LLM returned invalid JSON while parsing a resume: ${err.message}`);
       }
     }
 

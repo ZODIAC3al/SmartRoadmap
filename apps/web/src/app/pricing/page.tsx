@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '@/components/AppContext';
 import { toast } from 'react-toastify';
+import { apiFetch, cacheUser, fetchMe, getCachedUser } from '@/lib/api';
 
 type FeatureRow = {
   label: string;
@@ -18,79 +19,6 @@ type FeatureSection = {
 };
 
 // Local dictionary for translations
-const pricingDict = {
-  'pricing.title': { en: 'SaaS Career Intelligence Pricing', ar: 'أسعار باقات الذكاء المهني' },
-  'pricing.subtitle': { en: 'Unlock premium AI career diagnostics, verified skill badges, and recruiter talent matching.', ar: 'افتح مزايا التشخيص المهني بالذكاء الاصطناعي، شارات المهارات المعتمدة، ومطابقة التوظيف.' },
-  
-  // Tiers
-  'free.title': { en: 'Starter Free', ar: 'الباقة المجانية' },
-  'free.desc': { en: 'Construct your first career roadmap.', ar: 'ابنِ خارطة طريقك المهنية الأولى.' },
-  'free.price': { en: '$0', ar: '٠ دولار' },
-  'free.period': { en: '/ month', ar: ' / شهرياً' },
-  'free.cta': { en: 'Active Plan', ar: 'الباقة النشطة' },
-
-  'pro.title': { en: 'Premium Pro', ar: 'المحترفة Pro' },
-  'pro.desc': { en: 'Unlimited custom roadmaps & RAG guides.', ar: 'خرائط طريق غير محدودة وأدلة RAG مخصصة.' },
-  'pro.price': { en: '$19.99', ar: '١٩.٩٩ دولار' },
-  'pro.period': { en: '/ month', ar: ' / شهرياً' },
-  'pro.cta': { en: 'Upgrade to Pro', ar: 'الترقية إلى Pro' },
-
-  'scale.title': { en: 'Recruiter Scale', ar: 'الشركات Scale' },
-  'scale.desc': { en: 'Access pre-vetted candidate list.', ar: 'تصفح وفلترة قائمة المرشحين المؤهلين.' },
-  'scale.price': { en: '$99.99', ar: '٩٩.٩٩ دولار' },
-  'scale.period': { en: '/ month', ar: ' / شهرياً' },
-  'scale.cta': { en: 'Access Sourcing', ar: 'باقة التوظيف' },
-
-  'ent.title': { en: 'Enterprise Custom', ar: 'المؤسسات الكبرى' },
-  'ent.desc': { en: 'Tailored ATS integrations & SLAs.', ar: 'تكاملات ATS مخصصة واتفاقيات مستوى خدمة.' },
-  'ent.price': { en: 'Custom', ar: 'مخصص' },
-  'ent.period': { en: '', ar: '' },
-  'ent.cta': { en: 'Contact Enterprise', ar: 'اتصل بنا للمؤسسات' },
-
-  // Features list
-  'free.f1': { en: '1 AI Roadmap generation', ar: 'خارطة طريق واحدة بالذكاء الاصطناعي' },
-  'free.f2': { en: 'Basic adaptive quizzes', ar: 'اختبارات تقييم مهارات أساسية' },
-  'free.f3': { en: '1 day data retention', ar: 'حفظ سجلات التعلم لمدة يوم' },
-  'free.f4': { en: 'Single team member', ar: 'عضو مستخدم واحد' },
-  'free.f5': { en: 'Public sharing link', ar: 'رابط مشاركة خارجي' },
-
-  'pro.f1': { en: 'Unlimited roadmaps', ar: 'خرائط طريق غير محدودة' },
-  'pro.f2': { en: 'RAG-backed study guides', ar: 'أدلة دراسية ذكية (RAG)' },
-  'pro.f3': { en: '30 days data retention', ar: 'حفظ السجلات لمدة ٣٠ يوماً' },
-  'pro.f4': { en: 'Verified skill badge on passport', ar: 'شارة المهارات المعتمدة في الـ Passport' },
-
-  'scale.f1': { en: 'Pre-vetted candidate index', ar: 'تصفح قائمة الكوادر المؤهلة مسبقاً' },
-  'scale.f2': { en: 'Vector skill match algorithm', ar: 'خوارزمية مطابقة المهارات الدلالية' },
-  'scale.f3': { en: 'Unlimited active job postings', ar: 'وظائف معروضة غير محدودة' },
-  'scale.f4': { en: 'Direct candidate contact requests', ar: 'طلبات اتصال وتواصل مباشرة مع المرشحين' },
-
-  'ent.f1': { en: 'Priority support SLA', ar: 'أولوية دعم فني فائقة الاتفاق' },
-  'ent.f2': { en: 'Dedicated success manager', ar: 'مدير نجاح عملاء مخصص' },
-  'ent.f3': { en: 'Custom vector training indices', ar: 'فهارس تدريب دلالية مخصصة' },
-  'ent.f4': { en: 'Unlimited user seats', ar: 'حسابات مستخدمين غير محدودة' },
-
-  // Add-ons
-  'addons.title': { en: 'Add-ons & Services', ar: 'الإضافات والخدمات الخاصة' },
-  'addons.box_title': { en: 'Proctored assessments — $15 / session pack', ar: 'اختبارات مراقبة موثقة — ١٥ دولاراً لباقة الجلسات' },
-  'addons.box_desc': { en: 'Add identity verification and screen monitoring to any quiz on the Scale plan, so recruiters can trust verification scores at face value.', ar: 'أضف ميزة التحقق من الهوية ومراقبة الشاشة لأي اختبار في باقة Scale، لكي يثق مسؤولو التوظيف بالنتائج مباشرة.' },
-  'addons.btn': { en: 'Request proctoring', ar: 'طلب اختبار مراقب' },
-
-  // Comparative sections
-  'comp.learning': { en: 'Learning & Roadmaps', ar: 'التعلم وخرائط الطريق' },
-  'comp.assess': { en: 'Assessments & Verification', ar: 'التقييمات والتوثيق' },
-  'comp.hiring': { en: 'Hiring & Talent Tools', ar: 'أدوات التوظيف واستقطاب المواهب' },
-  'comp.security': { en: 'Security & Privacy', ar: 'الأمان والخصوصية' },
-  'comp.support': { en: 'Customer Support', ar: 'دعم ومساعدة العملاء' },
-  'comp.support_desc': { en: 'Support channels per tier', ar: 'قنوات الدعم لكل باقة' },
-
-  // FAQs
-  'faq.title': { en: 'Frequently Asked Questions', ar: 'الأسئلة الشائعة والاستفسارات' },
-  
-  // CTA bottom
-  'cta.title': { en: 'Start proving your expertise today', ar: 'ابدأ في إثبات خبرتك اليوم' },
-  'cta.desc': { en: 'Build your vetted career passport profile in minutes.', ar: 'أنشئ ملف جواز سفرك المهني المعتمد في دقائق.' },
-  'cta.btn': { en: 'Get Started Free', ar: 'ابدأ مجاناً الآن' },
-};
 
 const FEATURE_SECTIONS = (t: (k: string) => string): FeatureSection[] => [
   {
@@ -189,170 +117,33 @@ const TESTIMONIALS = [
 
 const LOGOS = ['ANTHROPIC', 'ROBINHOOD', 'LOOM', 'DUOLINGO', 'DISCORD', 'GUSTO', 'NOTION', 'FIGMA'];
 
+import { usePricing } from './usePricing';
+
 export default function PricingPage() {
-  const { locale } = useApp();
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  
-  // Checkout variables
-  const [user, setUser] = useState<any>(null);
-  const [selectedPlan, setSelectedPlan] = useState<'pro' | 'scale' | null>(null);
-  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
-  const [paypalOrder, setPaypalOrder] = useState<any>(null);
-  const [showSimulatedModal, setShowSimulatedModal] = useState(false);
-  const [simulatedCard, setSimulatedCard] = useState({
-    number: '4111 2222 3333 4444',
-    expiry: '12/29',
-    cvv: '123',
-    name: ''
-  });
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-
-  const handleSimulateLogin = (role: 'learner' | 'company') => {
-    const mockUser = {
-      id: `demo-${role}-${Math.random().toString(36).substring(2, 6)}`,
-      name: role === 'learner' ? 'Mohamed Elsaied (Learner)' : 'Lattice HR (Employer)',
-      email: role === 'learner' ? 'mohamed@smart.com' : 'recruiter@lattice.com',
-      role: role
-    };
-    localStorage.setItem('smart_user', JSON.stringify(mockUser));
-    localStorage.setItem('smart_token', 'demo-token');
-    setUser(mockUser);
-    toast.success(`Logged in as ${mockUser.name}!`);
-  };
-
-  const handleInitiateUpgrade = (plan: 'pro' | 'scale') => {
-    setSelectedPlan(plan);
-  };
-
-  const handleCancelUpgrade = () => {
-    setSelectedPlan(null);
-    setPaypalOrder(null);
-    setShowSimulatedModal(false);
-    setIsProcessingCheckout(false);
-  };
-
-  const triggerPayPalCheckout = async () => {
-    if (!user) {
-      toast.error('Please authenticate to complete checkout');
-      return;
-    }
-    
-    setIsProcessingCheckout(true);
-    const backendPlanName = selectedPlan === 'pro' ? 'pro_learner' : 'company_tier';
-
-    try {
-      const response = await fetch('http://localhost:3000/payment/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          plan: backendPlanName
-        })
-      });
-
-      if (!response.ok) throw new Error('Order creation failed');
-      const order = await response.json();
-      setPaypalOrder(order);
-
-      const approveLinkObj = order.links.find((l: any) => l.rel === 'approve');
-      const approveHref = approveLinkObj ? approveLinkObj.href : '#';
-
-      if (approveHref === '#') {
-        // Mock mode is enabled on the backend. Open the high-fidelity mock payment terminal
-        setShowSimulatedModal(true);
-      } else {
-        // Real PayPal Sandbox/Live integration. Redirect to the PayPal authorization portal
-        toast.info('Redirecting to PayPal Checkout Sandbox...');
-        window.location.href = approveHref;
-      }
-    } catch (e) {
-      console.warn('Backend payment integration unavailable. Defaulting to local simulator interface.');
-      // Create a mock order client-side to ensure the checkout always remains fully testable
-      const clientMockOrder = {
-        id: 'PAYPAL-MOCK-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
-        status: 'CREATED',
-        links: [{ href: '#', rel: 'approve', method: 'GET' }]
-      };
-      setPaypalOrder(clientMockOrder);
-      setShowSimulatedModal(true);
-    } finally {
-      setIsProcessingCheckout(false);
-    }
-  };
-
-  const captureSimulatedPayment = async () => {
-    if (!paypalOrder) return;
-    setIsProcessingCheckout(true);
-
-    try {
-      const response = await fetch(`http://localhost:3000/payment/orders/${paypalOrder.id}/capture`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (!response.ok) throw new Error('Capture failed');
-      const result = await response.json();
-
-      // Upgrade local user token settings if needed
-      const upgradedUser = { ...user, role: selectedPlan === 'pro' ? 'learner' : 'company' };
-      localStorage.setItem('smart_user', JSON.stringify(upgradedUser));
-      setUser(upgradedUser);
-
-      toast.success(`Payment captured! Upgraded to ${selectedPlan === 'pro' ? 'Premium Pro' : 'Recruiter Scale'} Tier!`);
-      handleCancelUpgrade();
-    } catch (e) {
-      // Local fallback simulation
-      const upgradedUser = { ...user, role: selectedPlan === 'pro' ? 'learner' : 'company' };
-      localStorage.setItem('smart_user', JSON.stringify(upgradedUser));
-      setUser(upgradedUser);
-      toast.success(`Simulation completed! Upgraded to ${selectedPlan === 'pro' ? 'Premium Pro' : 'Recruiter Scale'}!`);
-      handleCancelUpgrade();
-    }
-  };
-
-  const tLocal = (key: string): string => {
-    const item = (pricingDict as any)[key];
-    if (!item) return key;
-    return item[locale] || item['en'] || key;
-  };
-
-  const translateFeatureVal = (value: boolean | string) => {
-    if (value === true) {
-      return (
-        <span className="inline-flex w-5 h-5 rounded-full bg-[#10B981]/15 text-[#059669] items-center justify-center text-xs font-bold font-mono">
-          ✓
-        </span>
-      );
-    }
-    if (value === false) {
-      return <span className="text-base-content/30 text-xs font-mono">–</span>;
-    }
-    if (value === 'No limit') {
-      return locale === 'ar' ? 'بدون حد' : 'No limit';
-    }
-    if (value === 'Flexible') {
-      return locale === 'ar' ? 'مرن' : 'Flexible';
-    }
-    if (value === 'With Add-on') {
-      return locale === 'ar' ? 'مع خدمة ملحقة' : 'With Add-on';
-    }
-    if (value === '1 day') {
-      return locale === 'ar' ? 'يوم واحد' : '1 day';
-    }
-    if (value === '30 days') {
-      return locale === 'ar' ? '٣٠ يوماً' : '30 days';
-    }
-    if (value === '1 year') {
-      return locale === 'ar' ? 'سنة واحدة' : '1 year';
-    }
-    return value;
-  };
+  const {
+    captureSimulatedPayment,
+    handleCancelUpgrade,
+    handleInitiateUpgrade,
+    handleSimulateLogin,
+    isProcessingCheckout,
+    locale,
+    openFaq,
+    paypalOrder,
+    selectedPlan,
+    setIsProcessingCheckout,
+    setOpenFaq,
+    setPaypalOrder,
+    setSelectedPlan,
+    setShowSimulatedModal,
+    setSimulatedCard,
+    setUser,
+    showSimulatedModal,
+    simulatedCard,
+    tLocal,
+    translateFeatureVal,
+    triggerPayPalCheckout,
+    user,
+  } = usePricing();
 
   return (
     <div className="bg-base-100 text-base-content min-h-screen font-sans selection:bg-[#10B981] selection:text-white">

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { apiFetch, storeSession } from '@/lib/api';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function RegisterPage() {
     setErrorMsg('');
 
     try {
-      const regRes = await fetch('http://localhost:3000/auth/register', {
+      const regRes = await apiFetch('/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, name, password, role }),
@@ -54,24 +55,10 @@ export default function RegisterPage() {
 
       if (role === 'learner') {
         localStorage.setItem('learner_onboarding', JSON.stringify({ targetGoal, education }));
-      } else {
-        await fetch('http://localhost:3000/hiring/jobs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: 'Mock Initial Position',
-            company: companyName || name,
-            location: 'Remote',
-            country: 'US',
-            requiredSkills: ['JavaScript', 'React'],
-            remote: true,
-            description: `Initial listing for ${companyName || name}.`
-          })
-        });
       }
 
-      localStorage.setItem('smart_token', regData.token);
-      localStorage.setItem('smart_user', JSON.stringify(regData.user));
+      // storeSession keeps the access token, refresh token and user in one place.
+      storeSession(regData);
 
       if (role === 'learner') {
         router.push('/onboarding');
