@@ -1,51 +1,31 @@
-import { Controller, Get, Patch, Post, Delete, Param, Headers, UnauthorizedException } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { NotificationService } from './notification.service';
-import { AuthService } from '../auth/auth.service';
+import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
 
+@ApiTags('notifications')
+@ApiBearerAuth()
 @Controller('notifications')
 export class NotificationController {
-  constructor(
-    private readonly notificationService: NotificationService,
-    private readonly authService: AuthService,
-  ) {}
-
-  private getUserIdFromToken(authHeader?: string): string {
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('No token provided');
-    }
-    const token = authHeader.split(' ')[1];
-    const decoded = this.authService.verifyToken(token);
-    if (!decoded || !decoded.sub) {
-      throw new UnauthorizedException('Invalid or expired token');
-    }
-    return decoded.sub;
-  }
+  constructor(private readonly notificationService: NotificationService) {}
 
   @Get()
-  async getNotifications(@Headers('authorization') authHeader?: string) {
-    const userId = this.getUserIdFromToken(authHeader);
-    const notifications = await this.notificationService.getForUser(userId);
-    return { success: true, data: notifications };
+  async list(@CurrentUser() user: JwtUser) {
+    return { success: true, data: await this.notificationService.getForUser(user.sub) };
   }
 
   @Patch(':id/read')
-  async markRead(@Param('id') id: string, @Headers('authorization') authHeader?: string) {
-    const userId = this.getUserIdFromToken(authHeader);
-    const notification = await this.notificationService.markRead(id, userId);
-    return { success: true, data: notification };
+  async markRead(@CurrentUser() user: JwtUser, @Param('id') id: string) {
+    return { success: true, data: await this.notificationService.markRead(id, user.sub) };
   }
 
   @Post('read-all')
-  async markAllRead(@Headers('authorization') authHeader?: string) {
-    const userId = this.getUserIdFromToken(authHeader);
-    const result = await this.notificationService.markAllRead(userId);
-    return result;
+  markAllRead(@CurrentUser() user: JwtUser) {
+    return this.notificationService.markAllRead(user.sub);
   }
 
   @Delete(':id')
-  async deleteNotification(@Param('id') id: string, @Headers('authorization') authHeader?: string) {
-    const userId = this.getUserIdFromToken(authHeader);
-    const result = await this.notificationService.delete(id, userId);
-    return result;
+  remove(@CurrentUser() user: JwtUser, @Param('id') id: string) {
+    return this.notificationService.delete(id, user.sub);
   }
 }

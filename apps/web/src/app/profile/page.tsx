@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '@/components/AppContext';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
+import { apiFetch, cacheUser, getCachedUser, logout } from '@/lib/api';
 
 // Crisp, professional SVG icons replacing keyboard emojis
 const HomeIcon = () => (
@@ -97,10 +98,10 @@ export default function ProfilePage() {
   const [notifyNewsletter, setNotifyNewsletter] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
+    const storedUser = getCachedUser();
     if (storedUser) {
       try {
-        const u = JSON.parse(storedUser);
+        const u = storedUser;
         setUser(u);
         setName(u.name || '');
         setEmail(u.email || '');
@@ -119,20 +120,12 @@ export default function ProfilePage() {
     setIsSaving(true);
 
     try {
-      const response = await fetch('http://localhost:3000/auth/update-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id || user._id,
-          data: {
-            name,
-            email,
-            username,
-            phone,
-            bio,
-            role,
-          }
-        }),
+      // The server derives the user from the JWT — `userId` is no longer accepted.
+      // Email and role are not self-editable (email needs re-verification,
+      // role is an admin operation).
+      const response = await apiFetch('/auth/me', {
+        method: 'PATCH',
+        body: JSON.stringify({ name, username, phone, bio }),
       });
 
       if (!response.ok) {
@@ -146,7 +139,7 @@ export default function ProfilePage() {
         ...result.user
       };
 
-      localStorage.setItem('smart_user', JSON.stringify(updatedUser));
+      cacheUser(updatedUser);
       setUser(updatedUser);
       setAvatarChar(name.split(' ').map(n => n[0]).join(''));
       
@@ -166,7 +159,7 @@ export default function ProfilePage() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:3000/upload/image', {
+      const response = await apiFetch('/upload/image', {
         method: 'POST',
         body: formData,
       });
@@ -175,13 +168,9 @@ export default function ProfilePage() {
       const result = await response.json();
 
       // Update backend user profile model with the new Cloudinary URL
-      const updateResponse = await fetch('http://localhost:3000/auth/update-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id || user._id,
-          data: { avatarUrl: result.url }
-        }),
+      const updateResponse = await apiFetch('/auth/me', {
+        method: 'PATCH',
+        body: JSON.stringify({ avatarUrl: result.url }),
       });
 
       if (!updateResponse.ok) throw new Error('Failed to save profile picture URL.');
@@ -191,7 +180,7 @@ export default function ProfilePage() {
         avatarUrl: result.url
       };
 
-      localStorage.setItem('smart_user', JSON.stringify(updatedUser));
+      cacheUser(updatedUser);
       setUser(updatedUser);
       toast.success(locale === 'en' ? 'Avatar updated successfully!' : 'تم تحديث الصورة الشخصية بنجاح!');
     } catch (err: any) {
@@ -203,13 +192,9 @@ export default function ProfilePage() {
     if (!confirm(locale === 'en' ? 'Are you sure you want to remove your profile picture?' : 'هل أنت متأكد من إزالة الصورة الشخصية؟')) return;
 
     try {
-      const response = await fetch('http://localhost:3000/auth/update-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id || user._id,
-          data: { avatarUrl: '' }
-        }),
+      const response = await apiFetch('/auth/me', {
+        method: 'PATCH',
+        body: JSON.stringify({ avatarUrl: '' }),
       });
 
       if (!response.ok) throw new Error('Failed to remove avatar');
@@ -218,7 +203,7 @@ export default function ProfilePage() {
         ...user,
         avatarUrl: ''
       };
-      localStorage.setItem('smart_user', JSON.stringify(updatedUser));
+      cacheUser(updatedUser);
       setUser(updatedUser);
       toast.success(locale === 'en' ? 'Profile picture removed.' : 'تم إزالة الصورة الشخصية.');
     } catch (err: any) {
@@ -227,8 +212,7 @@ export default function ProfilePage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('smart_token');
-    localStorage.removeItem('smart_user');
+    logout();
     toast.success(locale === 'en' ? 'Logged out successfully.' : 'تم تسجيل الخروج بنجاح.');
     window.location.href = '/';
   };

@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Roadmap } from '../../schemas/roadmap.schema';
 import { LLMService } from '../../ai/llm.service';
+import type { JwtUser } from '../../common/decorators/current-user.decorator';
+import { assertSelfOrAdmin } from '../../common/guards/ownership.util';
 
 @Injectable()
 export class RoadmapService {
@@ -62,16 +64,18 @@ export class RoadmapService {
     return roadmap;
   }
 
-  async getRoadmapById(id: string): Promise<Roadmap> {
+  /** Every by-id lookup is now ownership-checked (was a plain IDOR before). */
+  async getRoadmapById(id: string, user?: JwtUser): Promise<Roadmap> {
     const roadmap = await this.roadmapModel.findById(id);
     if (!roadmap) {
       throw new NotFoundException(`Roadmap not found with ID: ${id}`);
     }
+    if (user) assertSelfOrAdmin(user, roadmap.userId.toString());
     return roadmap;
   }
 
-  async getRoadmapProgress(id: string): Promise<any> {
-    const roadmap = await this.getRoadmapById(id);
+  async getRoadmapProgress(id: string, user?: JwtUser): Promise<any> {
+    const roadmap = await this.getRoadmapById(id, user);
     const totalModules = roadmap.modules.length;
     const completedModules = roadmap.modules.filter(m => m.status === 'completed').length;
     const progressPercent = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
@@ -85,8 +89,13 @@ export class RoadmapService {
     };
   }
 
-  async updateModuleStatus(id: string, moduleId: string, status: 'locked' | 'in_progress' | 'completed' | 'failed'): Promise<Roadmap> {
-    const roadmap = await this.getRoadmapById(id);
+  async updateModuleStatus(
+    id: string,
+    moduleId: string,
+    status: 'locked' | 'in_progress' | 'completed' | 'failed',
+    user?: JwtUser,
+  ): Promise<Roadmap> {
+    const roadmap = await this.getRoadmapById(id, user);
     const mod = roadmap.modules.find(m => m.id === moduleId);
     if (!mod) {
       throw new NotFoundException(`Module with ID ${moduleId} not found in roadmap ${id}`);
@@ -97,9 +106,9 @@ export class RoadmapService {
     return roadmap.save();
   }
 
-  async extendRoadmap(id: string, skills: string[]): Promise<Roadmap> {
+  async extendRoadmap(id: string, skills: string[], user?: JwtUser): Promise<Roadmap> {
     this.logger.log(`Extending roadmap ${id} with gap skills: ${skills.join(', ')}`);
-    const roadmap = await this.getRoadmapById(id);
+    const roadmap = await this.getRoadmapById(id, user);
 
     skills.forEach(skill => {
       // Check if skill already exists in roadmap modules
@@ -124,7 +133,8 @@ export class RoadmapService {
     return roadmap.save();
   }
 
-  async deleteRoadmap(id: string): Promise<any> {
+  async deleteRoadmap(id: string, user?: JwtUser): Promise<any> {
+    await this.getRoadmapById(id, user); // ownership check before destructive op
     const result = await this.roadmapModel.deleteOne({ _id: new Types.ObjectId(id) });
     if (result.deletedCount === 0) {
       throw new NotFoundException(`Roadmap not found with ID: ${id}`);

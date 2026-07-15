@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/components/AppContext';
 import { toast } from 'react-toastify';
+import { apiFetch, getCachedUser, hasSession } from '@/lib/api';
 
 type Conversation = {
   partnerId: string;
@@ -58,21 +59,20 @@ export default function MessagesPage() {
 
   // Load user details
   useEffect(() => {
-    const storedUser = localStorage.getItem('smart_user');
+    const storedUser = getCachedUser();
     if (storedUser) {
       try {
-        setCurrentUser(JSON.parse(storedUser));
+        setCurrentUser(storedUser);
       } catch (e) {}
     }
   }, []);
 
   // Fetch conversations list
   const fetchConversations = async (silent = false) => {
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3000/messages/conversations', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await apiFetch('/messages/conversations', {
       });
       if (res.ok) {
         const body = await res.json();
@@ -87,11 +87,10 @@ export default function MessagesPage() {
 
   // Fetch all users to support searching new partners
   const fetchAllUsers = async () => {
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3000/auth/users', {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await apiFetch('/auth/users', {
       });
       if (res.ok) {
         const body = await res.json();
@@ -104,12 +103,11 @@ export default function MessagesPage() {
 
   // Fetch thread messages
   const fetchThread = async (partnerId: string, silent = false) => {
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) return;
     if (!silent) setLoadingThread(true);
     try {
-      const res = await fetch(`http://localhost:3000/messages/thread/${partnerId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await apiFetch(`/messages/thread/${partnerId}`, {
       });
       if (res.ok) {
         const body = await res.json();
@@ -153,18 +151,17 @@ export default function MessagesPage() {
     if (e) e.preventDefault();
     if (!messageText.trim() || !activePartner) return;
 
-    const token = localStorage.getItem('smart_token');
+    const token = hasSession();
     if (!token) return;
 
     const content = messageText.trim();
     setMessageText(''); // Optimistic input clear
 
     try {
-      const res = await fetch('http://localhost:3000/messages/send', {
+      const res = await apiFetch('/messages/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           recipientId: activePartner.id,
