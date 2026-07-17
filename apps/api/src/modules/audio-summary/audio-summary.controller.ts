@@ -14,12 +14,9 @@ export class AudioSummaryController {
   @Get(':moduleId')
   async getAudioSummary(@CurrentUser() user: JwtUser, @Param('moduleId') moduleId: string) {
     const summary = await this.audioSummaryService.get(user.sub, moduleId);
-    if (!summary) {
-      throw new NotFoundException('Audio summary not yet generated');
-    }
     return {
       success: true,
-      data: summary,
+      data: summary || null,
     };
   }
 

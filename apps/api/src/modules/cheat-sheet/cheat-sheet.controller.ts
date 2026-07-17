@@ -13,8 +13,7 @@ export class CheatSheetController {
   @Get(':moduleId')
   async getCheatSheet(@CurrentUser() user: JwtUser, @Param('moduleId') moduleId: string) {
     const sheet = await this.cheatSheetService.get(user.sub, moduleId);
-    if (!sheet) throw new NotFoundException('Speech notes not yet generated');
-    return { success: true, data: sheet };
+    return { success: true, data: sheet || null };
   }
 
   /** GET /cheat-sheets/:moduleId/history — fetch version history */
