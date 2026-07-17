@@ -34,6 +34,7 @@ import { CodeDraftModule } from './modules/code-draft/code-draft.module';
 import { CodingChallengeModule } from './modules/coding-challenge/coding-challenge.module';
 import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
 import { AudioModule } from './modules/audio/audio.module';
+import { ContactModule } from './modules/contact/contact.module';
 
 @Module({
   imports: [
@@ -88,6 +89,7 @@ import { AudioModule } from './modules/audio/audio.module';
     CodingChallengeModule,
     VoiceAgentModule,
     AudioModule,
+    ContactModule,
   ],
   controllers: [AppController],
   providers: [
