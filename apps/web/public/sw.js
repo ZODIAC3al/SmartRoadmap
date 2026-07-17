@@ -30,6 +30,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Disable caching on localhost/development to prevent stale chunks
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    return;
+  }
+
   // Stale-while-revalidate for dashboard and roadmap GET requests
   if (request.method === 'GET' && (url.pathname.includes('/roadmap') || url.pathname.includes('/dashboard'))) {
     event.respondWith(

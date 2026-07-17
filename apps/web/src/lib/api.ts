@@ -45,16 +45,25 @@ export function storeSession(data: {
   accessToken = data.accessToken;
   localStorage.setItem(SESSION_FLAG, "1");
   localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("user-updated"));
+  }
 }
 
 export function cacheUser(user: unknown): void {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("user-updated"));
+  }
 }
 
 export function clearSession(): void {
   accessToken = null;
   localStorage.removeItem(SESSION_FLAG);
   localStorage.removeItem(USER_KEY);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("user-updated"));
+  }
 }
 
 /** Exchanges the httpOnly cookie for a fresh access token. De-duplicated. */
@@ -98,10 +107,38 @@ export async function logout(): Promise<void> {
  * Drop-in replacement for `fetch` against the API:
  * base URL + bearer token + JSON headers + transparent refresh.
  */
+function getOfflineCache(path: string): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(`offline_cache:${path}`);
+}
+
+function setOfflineCache(path: string, value: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(`offline_cache:${path}`, value);
+  } catch (e) {
+    console.error("Cache limit reached", e);
+  }
+}
+
 export async function apiFetch(
   path: string,
   init: RequestInit = {},
 ): Promise<Response> {
+  const method = (init.method || "GET").toUpperCase();
+  const isGet = method === "GET";
+
+  // Check offline state before dispatching
+  if (typeof window !== "undefined" && !navigator.onLine && isGet) {
+    const cached = getOfflineCache(path);
+    if (cached) {
+      return new Response(cached, {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
   const send = (token: string | null) => {
     const headers = new Headers(init.headers);
     headers.delete("Authorization"); // callers must never set this themselves
@@ -128,14 +165,54 @@ export async function apiFetch(
     await refreshSession();
   }
 
-  let response = await send(accessToken);
+  let response: Response;
+  try {
+    response = await send(accessToken);
+  } catch (err) {
+    // Catch network disconnect / CORS failures and serve from cache if available
+    if (isGet) {
+      const cached = getOfflineCache(path);
+      if (cached) {
+        return new Response(cached, {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+    throw err;
+  }
 
   if (response.status === 401 && !isAuthCall) {
     const fresh = await refreshSession();
     if (fresh) {
-      response = await send(fresh);
+      try {
+        response = await send(fresh);
+      } catch (err) {
+        if (isGet) {
+          const cached = getOfflineCache(path);
+          if (cached) {
+            return new Response(cached, {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+        }
+        throw err;
+      }
     } else {
       clearSession();
+    }
+  }
+
+  // Cache successful GET responses
+  if (response.ok && isGet) {
+    try {
+      const clone = response.clone();
+      clone.text().then((txt) => {
+        setOfflineCache(path, txt);
+      });
+    } catch (e) {
+      console.warn("Offline caching response clone error", e);
     }
   }
 

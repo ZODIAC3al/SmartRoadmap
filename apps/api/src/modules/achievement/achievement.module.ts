@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AchievementDefinition, AchievementDefinitionSchema } from '../../schemas/achievement-definition.schema';
 import { UserAchievement, UserAchievementSchema } from '../../schemas/user-achievement.schema';
 import { AchievementService } from './achievement.service';
+import { AchievementController } from './achievement.controller';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({
@@ -13,6 +14,7 @@ import { NotificationModule } from '../notification/notification.module';
     ]),
     NotificationModule,
   ],
+  controllers: [AchievementController],
   providers: [AchievementService],
   exports: [AchievementService],
 })

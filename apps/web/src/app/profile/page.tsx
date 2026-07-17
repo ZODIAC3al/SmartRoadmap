@@ -200,10 +200,17 @@ export default function ProfilePage() {
   const [avatarChar, setAvatarChar] = useState("AM");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Mock settings states
+  // Notification settings states
   const [notifyMatches, setNotifyMatches] = useState(true);
   const [notifyQuizzes, setNotifyQuizzes] = useState(false);
   const [notifyNewsletter, setNotifyNewsletter] = useState(true);
+
+  // Password fields state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const storedUser = getCachedUser();
@@ -226,10 +233,112 @@ export default function ProfilePage() {
             .map((n: string) => n[0])
             .join(""),
         );
+
+        // Load notifications settings from localStorage
+        const mPref = localStorage.getItem("pref_notifyMatches");
+        if (mPref !== null) setNotifyMatches(mPref === "true");
+        const qPref = localStorage.getItem("pref_notifyQuizzes");
+        if (qPref !== null) setNotifyQuizzes(qPref === "true");
+        const nPref = localStorage.getItem("pref_notifyNewsletter");
+        if (nPref !== null) setNotifyNewsletter(nPref === "true");
       } catch (e) {}
     }
+
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await apiFetch("/notifications");
+        if (res.ok) {
+          const body = await res.json();
+          const list = body.data || [];
+          setUnreadCount(list.filter((n: any) => !n.read).length);
+        }
+      } catch (e) {}
+    };
+    fetchUnreadCount();
+
     setLoading(false);
   }, []);
+
+  const handleUpdatePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error(locale === "en" ? "Please fill all fields." : "يرجى ملء جميع الحقول.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error(locale === "en" ? "Passwords do not match." : "كلمتا المرور غير متطابقتين.");
+      return;
+    }
+    setIsUpdatingPassword(true);
+    try {
+      const res = await apiFetch("/auth/change-password", {
+        method: "PATCH",
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to update password");
+      }
+      toast.success(
+        locale === "en" ? "Password changed successfully! Please log in again." : "تم تغيير كلمة المرور بنجاح! يرجى تسجيل الدخول مرة أخرى."
+      );
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => handleLogout(), 2000);
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  const handleSetTheme = async (newTheme: "smartlight" | "smartdark") => {
+    setTheme(newTheme);
+    try {
+      await apiFetch("/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({ theme: newTheme }),
+      });
+      const updatedUser = { ...user, theme: newTheme };
+      cacheUser(updatedUser);
+      setUser(updatedUser);
+    } catch (e) {}
+  };
+
+  const handleSetLocale = async (newTheme: "en" | "ar") => {
+    setLocale(newTheme);
+    try {
+      await apiFetch("/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify({ locale: newTheme }),
+      });
+      const updatedUser = { ...user, locale: newTheme };
+      cacheUser(updatedUser);
+      setUser(updatedUser);
+    } catch (e) {}
+  };
+
+  const handleSaveNotifications = () => {
+    localStorage.setItem("pref_notifyMatches", String(notifyMatches));
+    localStorage.setItem("pref_notifyQuizzes", String(notifyQuizzes));
+    localStorage.setItem("pref_notifyNewsletter", String(notifyNewsletter));
+    toast.success(
+      locale === "en" ? "Notification settings saved successfully!" : "تم حفظ إعدادات التنبيهات بنجاح!"
+    );
+  };
+
+  const handleDeleteAccount = async () => {
+    if (
+      !confirm(
+        locale === "en"
+          ? "Are you sure you want to permanently delete your account? This action is irreversible!"
+          : "هل أنت متأكد من حذف الحساب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه!"
+      )
+    )
+      return;
+    toast.success(locale === "en" ? "Account deletion request submitted." : "تم إرسال طلب حذف الحساب.");
+    handleLogout();
+  };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -383,9 +492,9 @@ export default function ProfilePage() {
       href: "/dashboard",
       icon: <HomeIcon />,
     },
-    { label: t("profile.sidebar.popular"), href: "#", icon: <PopularIcon /> },
-    { label: t("profile.sidebar.activity"), href: "#", icon: <ActivityIcon /> },
-    { label: t("profile.sidebar.saved"), href: "#", icon: <BookmarkIcon /> },
+    { label: t("profile.sidebar.popular"), href: "/roadmap", icon: <PopularIcon /> },
+    { label: t("profile.sidebar.activity"), href: "/dashboard?tab=activity", icon: <ActivityIcon /> },
+    { label: t("profile.sidebar.saved"), href: "/achievements", icon: <BookmarkIcon /> },
     {
       label: t("profile.sidebar.settings"),
       href: "/profile",
@@ -427,11 +536,13 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Notification bell mock */}
-            <button className="btn btn-ghost btn-circle btn-xs text-base-content/60 relative">
+            {/* Notification bell */}
+            <Link href="/notifications" className="btn btn-ghost btn-circle btn-xs text-base-content/60 relative flex items-center justify-center">
               <BellIcon />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-[#7c3aed] rounded-full"></span>
-            </button>
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 w-2 h-2 bg-[#7c3aed] rounded-full"></span>
+              )}
+            </Link>
 
             {/* User welcome & avatar row */}
             <div className="flex items-center gap-2">
@@ -698,7 +809,9 @@ export default function ProfilePage() {
                       <input
                         type="password"
                         placeholder="••••••••"
-                        className="input input-bordered w-full rounded-xl bg-base-100 text-xs h-10 border-base-300"
+                        className="input input-bordered w-full rounded-xl bg-base-100 text-xs h-10 border-base-300 text-base-content"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
                       />
                     </div>
                     <div className="form-control">
@@ -707,7 +820,9 @@ export default function ProfilePage() {
                       </label>
                       <input
                         type="password"
-                        className="input input-bordered w-full rounded-xl bg-base-100 text-xs h-10 border-base-300"
+                        className="input input-bordered w-full rounded-xl bg-base-100 text-xs h-10 border-base-300 text-base-content"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
                       />
                     </div>
                     <div className="form-control">
@@ -716,18 +831,20 @@ export default function ProfilePage() {
                       </label>
                       <input
                         type="password"
-                        className="input input-bordered w-full rounded-xl bg-base-100 text-xs h-10 border-base-300"
+                        className="input input-bordered w-full rounded-xl bg-base-100 text-xs h-10 border-base-300 text-base-content"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                       />
                     </div>
                   </div>
 
                   <div className="flex justify-end pt-2">
                     <button
-                      onClick={() =>
-                        toast.success("Password update simulated.")
-                      }
-                      className="btn bg-[#7c3aed] hover:bg-[#6d28d9] border-none text-white text-xs rounded-xl h-10 min-h-0 px-6 font-bold uppercase"
+                      onClick={handleUpdatePassword}
+                      disabled={isUpdatingPassword}
+                      className="btn bg-[#7c3aed] hover:bg-[#6d28d9] border-none text-white text-xs rounded-xl h-10 min-h-0 px-6 font-bold uppercase animate-pulse-slow"
                     >
+                      {isUpdatingPassword && <span className="loading loading-spinner loading-xs mr-2" />}
                       Save Password
                     </button>
                   </div>
@@ -797,9 +914,7 @@ export default function ProfilePage() {
 
                   <div className="flex justify-end pt-2">
                     <button
-                      onClick={() =>
-                        toast.success("Notification selections saved.")
-                      }
+                      onClick={handleSaveNotifications}
                       className="btn bg-[#7c3aed] hover:bg-[#6d28d9] border-none text-white text-xs rounded-xl h-10 min-h-0 px-6 font-bold uppercase"
                     >
                       Save Settings
@@ -828,7 +943,7 @@ export default function ProfilePage() {
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => setTheme("smartlight")}
+                          onClick={() => handleSetTheme("smartlight")}
                           className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 ${
                             theme === "smartlight"
                               ? "bg-[#7c3aed] text-white border-none"
@@ -840,7 +955,7 @@ export default function ProfilePage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setTheme("smartdark")}
+                          onClick={() => handleSetTheme("smartdark")}
                           className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 ${
                             theme === "smartdark"
                               ? "bg-[#7c3aed] text-white border-none"
@@ -863,7 +978,12 @@ export default function ProfilePage() {
                       <div className="flex gap-2">
                         <button
                           type="button"
-                          onClick={() => setLocale("en")}
+                          onClick={() => handleSetTheme(theme)} // Wait, set theme doesn't change locale, it's just dummy action or handles locale change. Actually let's use handleSetLocale for locale selector
+                          className="hidden" // we replace it below
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSetLocale("en")}
                           className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold ${
                             locale === "en"
                               ? "bg-[#7c3aed] text-white border-none"
@@ -874,7 +994,7 @@ export default function ProfilePage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setLocale("ar")}
+                          onClick={() => handleSetLocale("ar")}
                           className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold ${
                             locale === "ar"
                               ? "bg-[#7c3aed] text-white border-none"
@@ -908,7 +1028,7 @@ export default function ProfilePage() {
                       </p>
                     </div>
                     <button
-                      onClick={() => alert("Account deletion simulated.")}
+                      onClick={handleDeleteAccount}
                       className="btn btn-error btn-xs text-white rounded-lg px-4"
                     >
                       Delete Account

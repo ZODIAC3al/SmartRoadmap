@@ -58,6 +58,8 @@ import Footer from "@/components/Footer";
 import BottomNav from "./Bottomnav";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "lineicons/dist/lineicons.css";
+import AnimatedBackground from "@/components/AnimatedBackground";
 
 export default function RootLayout({
   children,
@@ -71,8 +73,9 @@ export default function RootLayout({
       data-theme="smartlight"
       className={`${inter.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="bg-base-100 text-base-content min-h-screen font-sans antialiased flex flex-col">
+      <body className="bg-base-100 text-base-content min-h-screen font-sans antialiased flex flex-col relative">
         <AppContextProvider>
+          <AnimatedBackground />
           <Navbar />
           <main className="flex-grow pt-24 pb-16 md:pb-0">{children}</main>
           <Footer />

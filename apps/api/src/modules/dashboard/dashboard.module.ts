@@ -5,6 +5,8 @@ import { Streak, StreakSchema } from '../../schemas/streak.schema';
 import { CalendarEvent, CalendarEventSchema } from '../../schemas/calendar-event.schema';
 import { UserAchievement, UserAchievementSchema } from '../../schemas/user-achievement.schema';
 import { AchievementDefinition, AchievementDefinitionSchema } from '../../schemas/achievement-definition.schema';
+import { QuizSession, QuizSessionSchema } from '../../schemas/quiz-session.schema';
+import { ProgressSnapshot, ProgressSnapshotSchema } from '../../schemas/progress-snapshot.schema';
 import { DashboardService } from './dashboard.service';
 import { DashboardController } from './dashboard.controller';
 
@@ -16,6 +18,8 @@ import { DashboardController } from './dashboard.controller';
       { name: CalendarEvent.name, schema: CalendarEventSchema },
       { name: UserAchievement.name, schema: UserAchievementSchema },
       { name: AchievementDefinition.name, schema: AchievementDefinitionSchema },
+      { name: QuizSession.name, schema: QuizSessionSchema },
+      { name: ProgressSnapshot.name, schema: ProgressSnapshotSchema },
     ]),
   ],
   controllers: [DashboardController],

@@ -517,9 +517,9 @@ const translations: TranslationDict = {
   "profile.header.search": { en: "Search...", ar: "البحث..." },
   "profile.header.welcome": { en: "Welcome", ar: "مرحباً" },
   "profile.sidebar.home": { en: "Home", ar: "الرئيسية" },
-  "profile.sidebar.popular": { en: "Popular Blogs", ar: "مقالات شائعة" },
+  "profile.sidebar.popular": { en: "Learning Tracks", ar: "مسارات التعلم" },
   "profile.sidebar.activity": { en: "Your Activity", ar: "نشاطك" },
-  "profile.sidebar.saved": { en: "Saved Blogs", ar: "مقالات محفوظة" },
+  "profile.sidebar.saved": { en: "My Achievements", ar: "إنجازاتي" },
   "profile.sidebar.settings": { en: "Settings", ar: "الإعدادات" },
   "profile.sidebar.logout": { en: "Logout", ar: "تسجيل الخروج" },
   "profile.tabs.account": { en: "Account Settings", ar: "إعدادات الحساب" },
@@ -630,16 +630,33 @@ export function AppContextProvider({
       document.documentElement.setAttribute("dir", "ltr");
     }
 
-    // Register PWA service worker
+    // Register PWA service worker in production, or unregister in development
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((reg) =>
-          console.log("PWA ServiceWorker registered with scope:", reg.scope),
-        )
-        .catch((err) =>
-          console.error("PWA ServiceWorker registration failed:", err),
-        );
+      if (process.env.NODE_ENV === "development") {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister().then((success) => {
+              if (success) {
+                console.log("Service Worker unregistered in development mode");
+              }
+            });
+          }
+        });
+        if (window.caches) {
+          caches.keys().then((keys) => {
+            keys.forEach((key) => caches.delete(key));
+          });
+        }
+      } else {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((reg) =>
+            console.log("PWA ServiceWorker registered with scope:", reg.scope),
+          )
+          .catch((err) =>
+            console.error("PWA ServiceWorker registration failed:", err),
+          );
+      }
     }
   }, []);
 

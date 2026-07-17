@@ -4,6 +4,7 @@ import { AiProvider } from './ai-provider.interface';
 import { OpenAIProvider } from './providers/openai.provider';
 import { GeminiProvider } from './providers/gemini.provider';
 import { GroqProvider } from './providers/groq.provider';
+import { HuggingFaceProvider } from './providers/huggingface.provider';
 import { MockProvider } from './providers/mock.provider';
 
 @Injectable()
@@ -41,6 +42,15 @@ export class AiProviderFactory {
       this.providers.set('groq', new MockProvider());
     }
 
+    // 4. HuggingFace Setup
+    const hfToken = this.config.get<string>('HF_TOKEN');
+    if (!isMock && hfToken) {
+      this.providers.set('huggingface', new HuggingFaceProvider(this.config));
+    } else {
+      this.logger.warn('HuggingFace running in Mock Mode.');
+      this.providers.set('huggingface', new MockProvider());
+    }
+
     // Default Mock provider
     this.providers.set('mock', new MockProvider());
   }
@@ -62,7 +72,26 @@ export class AiProviderFactory {
     if (this.providers.has('groq') && !(this.providers.get('groq') instanceof MockProvider)) {
       return this.providers.get('groq')!;
     }
+    if (this.providers.has('huggingface') && !(this.providers.get('huggingface') instanceof MockProvider)) {
+      return this.providers.get('huggingface')!;
+    }
 
     return this.providers.get('mock')!;
+  }
+
+  getProvidersChain(): AiProvider[] {
+    const chain: AiProvider[] = [];
+    const order = ['openai', 'gemini', 'groq', 'huggingface'];
+    for (const name of order) {
+      const p = this.providers.get(name);
+      if (p && p.constructor.name !== 'MockProvider') {
+        chain.push(p);
+      }
+    }
+    const mock = this.providers.get('mock');
+    if (mock) {
+      chain.push(mock);
+    }
+    return chain;
   }
 }
