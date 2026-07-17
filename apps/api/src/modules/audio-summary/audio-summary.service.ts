@@ -91,24 +91,38 @@ export class AudioSummaryService {
     topics: string[],
   ) {
     const isMock = this.config.get<boolean>('MOCK_MODE') === true;
-    const geminiKey = this.config.get<string>('GEMINI_API_KEY');
+    const providers = this.aiProviderFactory.getProvidersChain();
+    const activeProviders = providers.filter(p => p.constructor.name !== 'MockProvider');
 
-    if (isMock || !geminiKey) {
-      this.logger.warn(`Mock mode or missing API keys. Failing audio summary generation for module ${moduleId}.`);
+    if (isMock || activeProviders.length === 0) {
+      this.logger.warn(`Mock mode or no real API keys configured. Generating mock audio summary for module ${moduleId}.`);
+      
+      const script = `This is a mock audio summary for "${title}". To hear dynamic AI audio narrations, please configure an API key for OpenAI, Gemini, or other providers in your environment variables.`;
+      
+      const silentWavBase64 =
+        'UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
+      
+      const filename = `${userId}-${moduleId}.wav`;
+      const localPath = path.join(this.audioDir, filename);
+      fs.writeFileSync(localPath, Buffer.from(silentWavBase64, 'base64'));
+
+      const audioUrl = `/audio-summaries/play/${filename}`;
+
       await this.audioSummaryModel.updateOne(
         { userId: new Types.ObjectId(userId), moduleId },
         {
           $set: {
-            status: 'failed',
-            script: 'Audio summaries require a valid configured Gemini API key.',
+            status: 'ready',
+            script,
+            audioUrl,
+            durationSeconds: 10,
+            provider: 'mock',
           },
         },
       );
       return;
     }
 
-    // 1. Generate narration script via Gemini
-    const textProvider = this.aiProviderFactory.getProvider('gemini');
     const prompt = `
 Generate a clear, highly conversational audio narration script summarizing the learning module:
 Module: "${title}"
@@ -119,39 +133,59 @@ The script should sound like a professional podcast narrator explaining the modu
 Do not include any sound effect descriptions, titles, or scene directions. Output ONLY the speech narration script.
 `;
     const system = 'You are a professional audio educator. Narrate lessons clearly and naturally.';
-    
-    this.logger.log(`Synthesizing script for module ${moduleId}...`);
-    const script = await textProvider.generateText(prompt, system);
 
-    // 2. Generate Audio via TTS (Gemini or OpenAI TTS)
-    const ttsProvider = this.aiProviderFactory.getProvider('gemini'); // standard Cloud TTS
-    
-    this.logger.log(`Synthesizing TTS audio buffer for module ${moduleId}...`);
-    const audioBuffer = await ttsProvider.textToSpeech(script, 'en-US-Neural2-F');
+    let lastError: Error | null = null;
 
-    // 3. Save to storage
-    const filename = `${userId}-${moduleId}.mp3`;
-    const localPath = path.join(this.audioDir, filename);
-    fs.writeFileSync(localPath, audioBuffer);
+    for (const provider of activeProviders) {
+      try {
+        const providerName = provider.constructor.name;
+        this.logger.log(`Synthesizing script for module ${moduleId} using provider ${providerName}...`);
+        const script = await provider.generateText(prompt, system);
 
-    // Estimate duration: ~130 words per minute (2.1 words per second)
-    const wordCount = script.split(/\s+/).length;
-    const durationSeconds = Math.max(10, Math.round(wordCount / 2.1));
+        this.logger.log(`Synthesizing TTS audio buffer for module ${moduleId} using provider ${providerName}...`);
+        const audioBuffer = await provider.textToSpeech(script, 'en-US-Neural2-F');
 
-    const audioUrl = `/audio-summaries/play/${filename}`;
+        // Save to storage
+        const filename = `${userId}-${moduleId}.mp3`;
+        const localPath = path.join(this.audioDir, filename);
+        fs.writeFileSync(localPath, audioBuffer);
 
+        // Estimate duration: ~130 words per minute (2.1 words per second)
+        const wordCount = script.split(/\s+/).length;
+        const durationSeconds = Math.max(10, Math.round(wordCount / 2.1));
+
+        const audioUrl = `/audio-summaries/play/${filename}`;
+
+        await this.audioSummaryModel.updateOne(
+          { userId: new Types.ObjectId(userId), moduleId },
+          {
+            $set: {
+              status: 'ready',
+              script,
+              audioUrl,
+              durationSeconds,
+              provider: providerName.replace('Provider', '').toLowerCase(),
+            },
+          },
+        );
+        this.logger.log(`Audio summary successfully generated using ${providerName} and stored locally: ${localPath}`);
+        return; // Success, stop looping
+      } catch (err: any) {
+        this.logger.warn(`Audio synthesis attempt failed with provider ${provider.constructor.name}: ${err.message}`);
+        lastError = err;
+      }
+    }
+
+    // If we get here, all providers failed
+    this.logger.error(`All active audio synthesis providers failed for module ${moduleId}. Last error: ${lastError?.message}`);
     await this.audioSummaryModel.updateOne(
       { userId: new Types.ObjectId(userId), moduleId },
       {
         $set: {
-          status: 'ready',
-          script,
-          audioUrl,
-          durationSeconds,
-          provider: 'gemini',
+          status: 'failed',
+          script: `Audio summaries synthesis failed. Details: ${lastError?.message || 'unknown error'}`,
         },
       },
     );
-    this.logger.log(`Audio summary successfully generated and stored locally: ${localPath}`);
   }
 }

@@ -30,6 +30,7 @@ import {
   ResetPasswordDto,
   UpdateProfileDto,
   VerifyEmailDto,
+  ChangePasswordDto,
 } from './dto/auth.dto';
 
 /**
@@ -156,6 +157,16 @@ export class AuthController {
     const result = await this.authService.resetPassword(dto.token, dto.password);
     clearRefreshCookie(res); // every old session is dead; force a clean login
     return result;
+  }
+
+  @ApiBearerAuth()
+  @Patch('change-password')
+  @HttpCode(HttpStatus.OK)
+  async changePassword(
+    @CurrentUser() user: JwtUser,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.authService.changePassword(user.sub, dto.currentPassword, dto.newPassword);
   }
 
   @ApiBearerAuth()

@@ -10,13 +10,26 @@ export class CheatSheet extends Document {
   moduleId!: string;
 
   @Prop({ required: true })
-  content!: string; // Markdown content
+  content!: string; // Markdown content (current version)
 
   @Prop({ required: true, enum: ['gemini', 'groq', 'openai', 'mock'], default: 'mock' })
   generatedByProvider!: 'gemini' | 'groq' | 'openai' | 'mock';
 
   @Prop({ default: 0 })
   regeneratedCount!: number;
+
+  /** History of all previous versions — most recent first */
+  @Prop({
+    type: [
+      {
+        content: String,
+        generatedByProvider: String,
+        generatedAt: { type: Date, default: Date.now },
+      },
+    ],
+    default: [],
+  })
+  versions!: Array<{ content: string; generatedByProvider: string; generatedAt: Date }>;
 }
 
 export const CheatSheetSchema = SchemaFactory.createForClass(CheatSheet);

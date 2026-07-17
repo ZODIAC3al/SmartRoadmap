@@ -450,6 +450,27 @@ export class AuthService {
     return this.toPublicUser(user);
   }
 
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ success: true }> {
+    const user = await this.userModel.findById(userId).select('+passwordHash');
+    if (!user) throw new NotFoundException('User not found.');
+
+    if (!(await this.verifyPassword(currentPassword, user.passwordHash))) {
+      throw new BadRequestException('Incorrect current password.');
+    }
+
+    user.passwordHash = await this.hashPassword(newPassword);
+    user.tokensValidFrom = new Date();
+    user.refreshTokenHashes = [];
+    await user.save();
+
+    this.logger.log(`Password updated by user ${user.email}; all sessions revoked.`);
+    return { success: true };
+  }
+
   toPublicUser(user: User): PublicUser {
     return {
       id: user._id.toString(),

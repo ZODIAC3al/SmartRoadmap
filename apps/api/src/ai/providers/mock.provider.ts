@@ -11,48 +11,77 @@ export class MockProvider implements AiProvider {
 
   async generateJSON<T>(prompt: string, schemaDescription: string, system?: string): Promise<T> {
     this.logger.log(`MockProvider: generating JSON matching schema: ${schemaDescription}`);
-    
+
     // Fallback template structures
     if (schemaDescription.includes('modules') || prompt.toLowerCase().includes('roadmap')) {
+      const roleMatch =
+        prompt.match(/targetRole[:\s"]+([^",\n]+)/i) ||
+        prompt.match(/role[:\s"]+([^",\n]+)/i);
+      const role = roleMatch ? roleMatch[1].trim() : 'Software Developer';
+
       return {
-        title: `Complete Learning Journey`,
-        totalEstimatedHours: 45,
+        title: `Complete Learning Journey for ${role}`,
+        totalEstimatedHours: 85,
         modules: [
           {
             id: 'mod-1',
-            title: `Introduction Foundations`,
-            description: `Core fundamentals, tools and environment setup.`,
+            title: `${role} Foundations`,
+            description: `Core fundamentals, environment setup, and essential tools for ${role}.`,
             prerequisites: [],
-            estimatedHours: 10,
-            topics: ['Environment Setup', 'Foundational Concepts', 'Hello World Projects'],
+            estimatedHours: 12,
+            topics: ['Environment Setup', 'Core Concepts', 'Tooling & CLI', 'Hello World Project'],
             difficulty: 'beginner',
             status: 'in_progress',
-            positionX: 100,
-            positionY: 150,
+            positionX: 560,
+            positionY: 340,
           },
           {
             id: 'mod-2',
-            title: `Intermediate & Best Practices`,
-            description: 'Core patterns, architecture, and clean code principles.',
+            title: 'Core Patterns & Architecture',
+            description: 'Design patterns, clean code principles, and architectural best practices.',
             prerequisites: ['mod-1'],
-            estimatedHours: 15,
-            topics: ['Core Patterns', 'Routing & Data Fetching', 'State Management'],
+            estimatedHours: 18,
+            topics: ['Design Patterns', 'SOLID Principles', 'Clean Architecture', 'Code Review'],
             difficulty: 'intermediate',
             status: 'locked',
-            positionX: 300,
-            positionY: 150,
+            positionX: 800,
+            positionY: 190,
           },
           {
             id: 'mod-3',
-            title: `Advanced & Deployment`,
-            description: 'Testing, CI/CD, production bundling, scalability and performance.',
-            prerequisites: ['mod-2'],
+            title: 'Data & State Management',
+            description: 'Working with data flows, state patterns, and persistence layers.',
+            prerequisites: ['mod-1'],
+            estimatedHours: 15,
+            topics: ['State Machines', 'Data Structures', 'Caching', 'Async Patterns'],
+            difficulty: 'intermediate',
+            status: 'locked',
+            positionX: 800,
+            positionY: 490,
+          },
+          {
+            id: 'mod-4',
+            title: 'Testing & Quality Assurance',
+            description: 'Unit, integration, and end-to-end testing strategies for production code.',
+            prerequisites: ['mod-2', 'mod-3'],
             estimatedHours: 20,
-            topics: ['Unit & Integration Testing', 'Dockerization', 'Cloud Deployment'],
+            topics: ['Unit Tests', 'Integration Tests', 'E2E Testing', 'TDD', 'CI/CD'],
             difficulty: 'advanced',
             status: 'locked',
-            positionX: 500,
-            positionY: 150,
+            positionX: 1040,
+            positionY: 290,
+          },
+          {
+            id: 'mod-5',
+            title: 'Deployment & Production',
+            description: 'Containerisation, cloud deployment, monitoring, and scalability at scale.',
+            prerequisites: ['mod-4'],
+            estimatedHours: 20,
+            topics: ['Docker', 'Kubernetes', 'Cloud Platforms', 'Observability', 'Scaling'],
+            difficulty: 'advanced',
+            status: 'locked',
+            positionX: 1040,
+            positionY: 440,
           },
         ],
       } as any as T;
@@ -81,8 +110,8 @@ export class MockProvider implements AiProvider {
   async textToSpeech(text: string, voice?: string): Promise<Buffer> {
     this.logger.log(`MockProvider: converting text to speech: "${text.substring(0, 30)}..."`);
     // Return a valid minimal 1-second silence MP3 file buffer
-    const minimalMp3Base64 = 
-      'SUQzBAAAAAAAAFRYWFgAAAASAAADbWFqb3JfYnJhbmQAbXAzdgBUWFhYAAAAEgAAA21pbm9yX3ZlcnNpb24AMABUWFhYAAAAHgAAA2NvbXBhdGlibGVfYnJhbmRzAG1wM2JtcDMydXA1AFRFTkM="';
+    const minimalMp3Base64 =
+      'SUQzBAAAAAAAAFRYWFgAAAASAAADbWFqb3JfYnJhbmQAbXAzdgBUWFhYAAAAEgAAA21pbm9yX3ZlcnNpb24AMABUWFhYAAAAHgAAA2NvbXBhdGlibGVfYnJhbmRzAG1wM2JtcDMydXA1AFRFTkM=';
     return Buffer.from(minimalMp3Base64, 'base64');
   }
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import { apiFetch, hasSession } from "@/lib/api";
 
 export default function Home() {
   // Interactive Skill Gap Analyzer State
@@ -23,6 +24,24 @@ export default function Home() {
       "Tailwind CSS",
     ],
   });
+
+  const [activeRoadmap, setActiveRoadmap] = useState<any>(null);
+
+  useEffect(() => {
+    if (hasSession()) {
+      (async () => {
+        try {
+          const res = await apiFetch("/roadmap/me");
+          if (res.ok) {
+            const data = await res.json();
+            setActiveRoadmap(data);
+          }
+        } catch (err) {
+          console.error("Failed to load active user roadmap", err);
+        }
+      })();
+    }
+  }, []);
 
   const handleAnalyze = (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,7 +202,9 @@ export default function Home() {
                     Career Score
                   </span>
                   <span className="text-3xl font-black font-mono text-[#059669]">
-                    82%
+                    {activeRoadmap
+                      ? `${Math.max(45, Math.min(98, 50 + Math.round((activeRoadmap.modules?.filter((m: any) => m.status === "completed").length || 0) / (activeRoadmap.modules?.length || 1) * 45)))}%`
+                      : "82%"}
                   </span>
                   <span className="text-[9px] text-[#22C55E] block mt-1">
                     ↑ Top 10% of candidates
@@ -196,10 +217,10 @@ export default function Home() {
                     Match Rate
                   </span>
                   <span className="text-3xl font-black font-mono text-[#10B981]">
-                    98%
+                    {activeRoadmap ? "95%" : "98%"}
                   </span>
-                  <span className="text-[9px] text-base-content/50 block mt-1">
-                    Frontend Engineer at Stripe
+                  <span className="text-[9px] text-base-content/50 block mt-1 truncate max-w-full">
+                    {activeRoadmap ? activeRoadmap.targetRole : "Frontend Engineer at Stripe"}
                   </span>
                 </div>
               </div>
@@ -215,15 +236,28 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
-                    ✓ React.js (92%)
-                  </span>
-                  <span className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
-                    ✓ Node.js (87%)
-                  </span>
-                  <span className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
-                    ✓ TypeScript (95%)
-                  </span>
+                  {activeRoadmap && activeRoadmap.modules?.filter((m: any) => m.status === "completed").length > 0 ? (
+                    activeRoadmap.modules
+                      .filter((m: any) => m.status === "completed")
+                      .slice(0, 3)
+                      .map((m: any, i: number) => (
+                        <span key={i} className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
+                          ✓ {m.title}
+                        </span>
+                      ))
+                  ) : (
+                    <>
+                      <span className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
+                        ✓ React.js (92%)
+                      </span>
+                      <span className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
+                        ✓ Node.js (87%)
+                      </span>
+                      <span className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
+                        ✓ TypeScript (95%)
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -233,12 +267,20 @@ export default function Home() {
                   <span className="text-base-content/40 font-semibold">
                     Adaptive Roadmap Progress
                   </span>
-                  <span className="font-bold text-[#059669]">78% Complete</span>
+                  <span className="font-bold text-[#059669]">
+                    {activeRoadmap
+                      ? `${Math.round((activeRoadmap.modules?.filter((m: any) => m.status === "completed").length || 0) / (activeRoadmap.modules?.length || 1) * 100)}% Complete`
+                      : "78% Complete"}
+                  </span>
                 </div>
                 <div className="w-full bg-base-100 rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-gradient-to-r from-[#10B981] to-[#34D399] h-full"
-                    style={{ width: "78%" }}
+                    className="bg-gradient-to-r from-[#10B981] to-[#34D399] h-full transition-all duration-500"
+                    style={{
+                      width: activeRoadmap
+                        ? `${Math.round((activeRoadmap.modules?.filter((m: any) => m.status === "completed").length || 0) / (activeRoadmap.modules?.length || 1) * 100)}%`
+                        : "78%"
+                    }}
                   />
                 </div>
               </div>

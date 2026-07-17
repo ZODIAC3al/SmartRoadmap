@@ -37,7 +37,9 @@ export class AudioSummaryController {
   @Get('play/:filename')
   async playAudio(@Param('filename') filename: string, @Res() res: express.Response) {
     const filePath = await this.audioSummaryService.getAudioFilePath(filename);
-    res.setHeader('Content-Type', 'audio/mpeg');
+    const contentType = filename.endsWith('.wav') ? 'audio/wav' : 'audio/mpeg';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     return res.sendFile(filePath);
   }
 }

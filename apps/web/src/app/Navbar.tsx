@@ -143,17 +143,21 @@ export default function Navbar() {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const storedUser = getCachedUser();
-    const storedToken = hasSession();
-    if (storedUser && storedToken) {
-      try {
+    const handleUserUpdate = () => {
+      const storedUser = getCachedUser();
+      const storedToken = hasSession();
+      if (storedUser && storedToken) {
         setUser(storedUser);
-      } catch (e) {
+      } else {
         setUser(null);
       }
-    } else {
-      setUser(null);
+    };
+
+    handleUserUpdate();
+    if (typeof window !== "undefined") {
+      window.addEventListener("user-updated", handleUserUpdate);
     }
+
     setMobileOpen(false);
 
     // Detect OS
@@ -190,6 +194,9 @@ export default function Navbar() {
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforePrompt);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("user-updated", handleUserUpdate);
+      }
     };
   }, [pathname]);
 

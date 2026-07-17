@@ -25,14 +25,10 @@ export class CvService {
     }
   }
 
-  async getCvByUserId(userId: string): Promise<Cv> {
-    const cv = await this.cvModel.findOne({
+  async getCvByUserId(userId: string): Promise<Cv | null> {
+    return this.cvModel.findOne({
       userId: new Types.ObjectId(userId),
-    });
-    if (!cv) {
-      throw new NotFoundException(`No CV found for user: ${userId}`);
-    }
-    return cv;
+    }).exec();
   }
 
   async saveCv(userId: string, data: any): Promise<Cv> {

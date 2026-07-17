@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type OpenAI from 'openai';
 import { createOpenAIClient } from './openai.client';
+import { AiProviderFactory } from './ai-provider.factory';
 
 @Injectable()
 export class LLMService {
@@ -9,7 +10,10 @@ export class LLMService {
   private readonly isMockMode: boolean;
   private readonly client: OpenAI | null;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly aiProviderFactory: AiProviderFactory,
+  ) {
     const { isMockMode, client } = createOpenAIClient(config, this.logger);
     this.isMockMode = isMockMode;
     this.client = client;
@@ -101,35 +105,30 @@ export class LLMService {
     targetRole: string,
     skills: string[] = [],
   ): Promise<any> {
-    if (this.isMockMode || !this.client) return this.mockRoadmap(targetRole);
+    const provider = this.aiProviderFactory.getProvider();
+    if (provider.constructor.name === 'MockProvider') {
+      return this.mockRoadmap(targetRole);
+    }
 
     try {
-      const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('OPENAI_MODEL_SMART', 'gpt-4o'),
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are a curriculum designer. Reply with ONLY a JSON object of shape ' +
-              '{title, totalEstimatedHours, modules:[{id,title,description,prerequisites[],' +
-              'estimatedHours,topics[],difficulty,status,positionX,positionY}]}.',
-          },
-          {
-            role: 'user',
-            content: `Target role: "${targetRole}". Existing skills: ${skills.join(', ') || 'none'}.`,
-          },
-        ],
-      });
+      const prompt = `Target role: "${targetRole}". Existing skills: ${skills.join(', ') || 'none'}.`;
+      const system =
+        'You are a curriculum designer. Reply with ONLY a JSON object of shape ' +
+        '{title, totalEstimatedHours, modules:[{id,title,description,prerequisites[],' +
+        'estimatedHours,topics[],difficulty,status,positionX,positionY}]}.';
 
-      const parsed = JSON.parse(response.choices[0]?.message?.content ?? '{}');
-      if (!Array.isArray(parsed.modules) || parsed.modules.length === 0) {
+      const response = await provider.generateJSON<any>(
+        prompt,
+        'JSON object with title, totalEstimatedHours, and modules array',
+        system,
+      );
+      if (!Array.isArray(response.modules) || response.modules.length === 0) {
         throw new Error('LLM returned a roadmap with no modules');
       }
-      return parsed;
+      return response;
     } catch (error: any) {
-      this.logger.error(`OpenAI roadmap generation failed: ${error.message}`);
-      return this.mockRoadmap(targetRole); // graceful, terminating fallback
+      this.logger.error(`Roadmap generation failed: ${error.message}`);
+      return this.mockRoadmap(targetRole);
     }
   }
 
@@ -142,24 +141,20 @@ export class LLMService {
     prompt: string,
     options: { json?: boolean; system?: string } = {},
   ): Promise<string | null> {
-    if (this.isMockMode || !this.client) return null;
+    const provider = this.aiProviderFactory.getProvider();
+    if (provider.constructor.name === 'MockProvider') {
+      return null;
+    }
 
     try {
-      const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('OPENAI_MODEL_FAST', 'gpt-4o-mini'),
-        ...(options.json
-          ? { response_format: { type: 'json_object' as const } }
-          : {}),
-        messages: [
-          ...(options.system
-            ? [{ role: 'system' as const, content: options.system }]
-            : []),
-          { role: 'user' as const, content: prompt },
-        ],
-      });
-      return response.choices[0]?.message?.content?.trim() ?? null;
+      if (options.json) {
+        const res = await provider.generateJSON<any>(prompt, 'Valid JSON object', options.system);
+        return JSON.stringify(res);
+      } else {
+        return await provider.generateText(prompt, options.system);
+      }
     } catch (error: any) {
-      this.logger.error(`OpenAI completion failed: ${error.message}`);
+      this.logger.error(`Completion failed: ${error.message}`);
       return null;
     }
   }
@@ -169,32 +164,26 @@ export class LLMService {
     difficulty: string,
     count = 5,
   ): Promise<any[]> {
-    if (this.isMockMode || !this.client)
+    const provider = this.aiProviderFactory.getProvider();
+    if (provider.constructor.name === 'MockProvider') {
       return this.mockQuiz(topic, difficulty, count);
+    }
 
     try {
-      const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('OPENAI_MODEL_FAST', 'gpt-4o-mini'),
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Reply with ONLY a JSON object {questions: [{id, question, options[], correctAnswer, explanation, difficulty}]}.',
-          },
-          {
-            role: 'user',
-            content: `Generate ${count} questions about "${topic}" at ${difficulty} level.`,
-          },
-        ],
-      });
+      const prompt = `Generate ${count} questions about "${topic}" at ${difficulty} level.`;
+      const system =
+        'Reply with ONLY a JSON object {questions: [{id, question, options[], correctAnswer, explanation, difficulty}]}.';
 
-      const parsed = JSON.parse(response.choices[0]?.message?.content ?? '{}');
-      const questions = Array.isArray(parsed.questions) ? parsed.questions : [];
+      const response = await provider.generateJSON<{ questions: any[] }>(
+        prompt,
+        'JSON object with questions array containing id, question, options array, correctAnswer, explanation, and difficulty',
+        system,
+      );
+      const questions = Array.isArray(response.questions) ? response.questions : [];
       if (questions.length === 0) throw new Error('LLM returned no questions');
       return questions;
     } catch (error: any) {
-      this.logger.error(`OpenAI quiz generation failed: ${error.message}`);
+      this.logger.error(`Quiz generation failed: ${error.message}`);
       return this.mockQuiz(topic, difficulty, count);
     }
   }
