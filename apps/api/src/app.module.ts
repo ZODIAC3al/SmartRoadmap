@@ -33,6 +33,7 @@ import { CodeExecutionModule } from './modules/code-execution/code-execution.mod
 import { CodeDraftModule } from './modules/code-draft/code-draft.module';
 import { CodingChallengeModule } from './modules/coding-challenge/coding-challenge.module';
 import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
+import { AudioModule } from './modules/audio/audio.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
     CodeDraftModule,
     CodingChallengeModule,
     VoiceAgentModule,
+    AudioModule,
   ],
   controllers: [AppController],
   providers: [

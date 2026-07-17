@@ -393,7 +393,9 @@ export default function RoadmapPage() {
   useEffect(() => {
     if (!audioRef.current) return;
     if (audioSummary?.audioUrl) {
-      audioRef.current.src = `${API_BASE}${audioSummary.audioUrl}`;
+      audioRef.current.src = audioSummary.audioUrl.startsWith("http")
+        ? audioSummary.audioUrl
+        : `${API_BASE}${audioSummary.audioUrl}`;
       audioRef.current.load();
     } else {
       audioRef.current.src = '';

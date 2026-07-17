@@ -630,6 +630,23 @@ export function AppContextProvider({
       document.documentElement.setAttribute("dir", "ltr");
     }
 
+    // Load OneSignal Web SDK dynamically on client side
+    if (typeof window !== "undefined") {
+      const script = document.createElement("script");
+      script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+      script.defer = true;
+      script.onload = () => {
+        const OneSignal = (window as any).OneSignal || [];
+        OneSignal.push(() => {
+          OneSignal.init({
+            appId: "9f79abe9-4b9c-46b2-b381-5a434cc909e3",
+            allowLocalhostAsSecureOrigin: true,
+          });
+        });
+      };
+      document.body.appendChild(script);
+    }
+
     // Register PWA service worker in production, or unregister in development
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       if (process.env.NODE_ENV === "development") {
