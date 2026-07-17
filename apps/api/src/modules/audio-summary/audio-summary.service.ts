@@ -7,6 +7,7 @@ import { AudioSummary } from '../../schemas/audio-summary.schema';
 import { Roadmap } from '../../schemas/roadmap.schema';
 import { AiProviderFactory } from '../../ai/ai-provider.factory';
 import { ConfigService } from '@nestjs/config';
+import { AppwriteService } from '../audio/appwrite.service';
 
 @Injectable()
 export class AudioSummaryService {
@@ -20,6 +21,7 @@ export class AudioSummaryService {
     private readonly roadmapModel: Model<Roadmap>,
     private readonly aiProviderFactory: AiProviderFactory,
     private readonly config: ConfigService,
+    private readonly appwrite: AppwriteService,
   ) {
     // Set up local storage path inside the API workspace
     this.audioDir = path.join(process.cwd(), 'public', 'audio');
@@ -93,6 +95,7 @@ export class AudioSummaryService {
     const isMock = this.config.get<boolean>('MOCK_MODE') === true;
     const providers = this.aiProviderFactory.getProvidersChain();
     const activeProviders = providers.filter(p => p.constructor.name !== 'MockProvider');
+    const storageDriver = this.config.get<string>('AUDIO_STORAGE_DRIVER', 'local');
 
     if (isMock || activeProviders.length === 0) {
       this.logger.warn(`Mock mode or no real API keys configured. Generating mock audio summary for module ${moduleId}.`);
@@ -103,10 +106,17 @@ export class AudioSummaryService {
         'UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
       
       const filename = `${userId}-${moduleId}.wav`;
-      const localPath = path.join(this.audioDir, filename);
-      fs.writeFileSync(localPath, Buffer.from(silentWavBase64, 'base64'));
+      let audioUrl = `/audio-summaries/play/${filename}`;
 
-      const audioUrl = `/audio-summaries/play/${filename}`;
+      if (storageDriver === 'appwrite') {
+        const fileBuffer = Buffer.from(silentWavBase64, 'base64');
+        const uploaded = await this.appwrite.uploadAudioBuffer(fileBuffer, filename);
+        audioUrl = this.appwrite.getAudioUrl(uploaded.$id);
+        this.logger.log(`Mock audio summary uploaded to Appwrite: ${audioUrl}`);
+      } else {
+        const localPath = path.join(this.audioDir, filename);
+        fs.writeFileSync(localPath, Buffer.from(silentWavBase64, 'base64'));
+      }
 
       await this.audioSummaryModel.updateOne(
         { userId: new Types.ObjectId(userId), moduleId },
@@ -145,16 +155,22 @@ Do not include any sound effect descriptions, titles, or scene directions. Outpu
         this.logger.log(`Synthesizing TTS audio buffer for module ${moduleId} using provider ${providerName}...`);
         const audioBuffer = await provider.textToSpeech(script, 'en-US-Neural2-F');
 
-        // Save to storage
         const filename = `${userId}-${moduleId}.mp3`;
-        const localPath = path.join(this.audioDir, filename);
-        fs.writeFileSync(localPath, audioBuffer);
+        let audioUrl = `/audio-summaries/play/${filename}`;
+
+        if (storageDriver === 'appwrite') {
+          const uploaded = await this.appwrite.uploadAudioBuffer(audioBuffer, filename);
+          audioUrl = this.appwrite.getAudioUrl(uploaded.$id);
+          this.logger.log(`TTS audio summary uploaded to Appwrite: ${audioUrl}`);
+        } else {
+          const localPath = path.join(this.audioDir, filename);
+          fs.writeFileSync(localPath, audioBuffer);
+          this.logger.log(`TTS audio summary stored locally: ${localPath}`);
+        }
 
         // Estimate duration: ~130 words per minute (2.1 words per second)
         const wordCount = script.split(/\s+/).length;
         const durationSeconds = Math.max(10, Math.round(wordCount / 2.1));
-
-        const audioUrl = `/audio-summaries/play/${filename}`;
 
         await this.audioSummaryModel.updateOne(
           { userId: new Types.ObjectId(userId), moduleId },
@@ -168,7 +184,6 @@ Do not include any sound effect descriptions, titles, or scene directions. Outpu
             },
           },
         );
-        this.logger.log(`Audio summary successfully generated using ${providerName} and stored locally: ${localPath}`);
         return; // Success, stop looping
       } catch (err: any) {
         this.logger.warn(`Audio synthesis attempt failed with provider ${provider.constructor.name}: ${err.message}`);

@@ -55,8 +55,13 @@ export const envSchema = z
     PUSH_VAPID_PRIVATE_KEY: z.string().optional(),
     NOTIFICATIONS_QUEUE_DRIVER: z.enum(['memory', 'redis']).default('memory'),
 
-    AUDIO_STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
+    AUDIO_STORAGE_DRIVER: z.enum(['local', 's3', 'appwrite']).default('local'),
     AUDIO_STORAGE_BUCKET: z.string().optional(),
+
+    APPWRITE_ENDPOINT: z.string().optional(),
+    APPWRITE_PROJECT_ID: z.string().optional(),
+    APPWRITE_API_KEY: z.string().optional(),
+    APPWRITE_AUDIO_BUCKET_ID: z.string().optional(),
 
     QDRANT_URL: z.string().optional(),
     QDRANT_API_KEY: z.string().optional(),

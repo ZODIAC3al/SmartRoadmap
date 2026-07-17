@@ -42,6 +42,7 @@
     "google-auth-library": "^9.15.0",
     "helmet": "^8.0.0",
     "mongoose": "^8.9.5",
+    "node-appwrite": "^27.0.0",
     "openai": "^4.77.0",
     "pdf-parse": "^2.4.5",
     "reflect-metadata": "^0.2.2",
