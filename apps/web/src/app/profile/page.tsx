@@ -4,7 +4,9 @@ import React, { useState, useEffect } from "react";
 import { useApp } from "@/components/AppContext";
 import { toast } from "react-toastify";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { apiFetch, cacheUser, getCachedUser, logout } from "@/lib/api";
+import SalaryInsightsPanel, { SalaryInsights, COUNTRY_OPTIONS } from "@/components/SalaryInsightsPanel";
 
 // Crisp, professional SVG icons replacing keyboard emojis
 const HomeIcon = () => (
@@ -20,6 +22,22 @@ const HomeIcon = () => (
       strokeLinejoin="round"
       d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
     />
+  </svg>
+);
+
+// Briefcase icon for Matched Jobs
+const JobsIcon = () => (
+  <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <rect x="2" y="7" width="20" height="14" rx="2" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+  </svg>
+);
+
+// Dollar-circle icon for Salary Insights
+const SalaryIcon = () => (
+  <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12M9 9h4.5a1.5 1.5 0 010 3H10.5a1.5 1.5 0 000 3H15" />
   </svg>
 );
 
@@ -200,7 +218,8 @@ export default function ProfilePage() {
   const [avatarChar, setAvatarChar] = useState("AM");
   const [isSaving, setIsSaving] = useState(false);
 
-  // Career profile form states
+  // Career profile state — populated from GET /salary/profile when the salary tab opens.
+  // Used for the read-only context strip. No manual form in the salary tab.
   const [currentRole, setCurrentRole] = useState("");
   const [targetRole, setTargetRole] = useState("");
   const [experienceYears, setExperienceYears] = useState(0);
@@ -210,10 +229,19 @@ export default function ProfilePage() {
   const [certificationsStr, setCertificationsStr] = useState("");
   const [industry, setIndustry] = useState("");
 
-  const [salaryInsights, setSalaryInsights] = useState<any | null>(null);
-  const [loadingInsights, setLoadingInsights] = useState(false);
-  const [savingCareer, setSavingCareer] = useState(false);
+  const searchParams = useSearchParams();
 
+  const [salaryInsights, setSalaryInsights] = useState<SalaryInsights | null>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+
+  /**
+   * Selected country code for salary lookup (ISO-3166-1 alpha-2).
+   * Initialised from the profile location when the salary tab first opens;
+   * the user can override it with the country selector at any time.
+   */
+  const [selectedCountry, setSelectedCountry] = useState("us");
+
+  /** Populate career profile fields for the context strip */
   const fetchCareerProfile = async () => {
     try {
       const res = await apiFetch("/salary/profile");
@@ -227,55 +255,53 @@ export default function ProfilePage() {
         setEducationLevel(data.educationLevel || "");
         setCertificationsStr(data.certifications ? data.certifications.join(", ") : "");
         setIndustry(data.industry || "");
+
+        // Auto-detect country from profile location on first load.
+        // Only override if the user hasn't made an explicit selection yet
+        // (i.e. still on the default "us").
+        if (data.location) {
+          const loc = (data.location as string).toLowerCase();
+          const detected = COUNTRY_OPTIONS.find((opt) =>
+            loc.includes(opt.label.toLowerCase()) ||
+            loc.includes(opt.code.toLowerCase())
+          );
+          if (detected) setSelectedCountry(detected.code);
+        }
       }
-    } catch (e: any) {
+    } catch {
       toast.error("Failed to load career profile.");
     }
   };
 
-  const fetchSalaryInsights = async () => {
+  /**
+   * Fetch salary insights from the backend.
+   * The backend reads the authenticated user's stored profile automatically.
+   * Only the country code is sent from the client — everything else (role,
+   * skills, experience, etc.) is loaded server-side from the JWT identity.
+   */
+  const fetchSalaryInsights = async (countryCode?: string) => {
     setLoadingInsights(true);
     try {
-      const res = await apiFetch("/salary/insights");
+      const country = countryCode ?? selectedCountry;
+      const res = await apiFetch(`/salary/insights?country=${country}`);
       if (res.ok) {
-        const data = await res.json();
+        const data: SalaryInsights = await res.json();
         setSalaryInsights(data);
+      } else {
+        toast.error("Could not load salary insights.");
       }
-    } catch (e: any) {
+    } catch {
       toast.error("Failed to load salary insights.");
     } finally {
       setLoadingInsights(false);
     }
   };
 
-  const handleSaveCareerProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSavingCareer(true);
-    try {
-      const payload = {
-        currentRole,
-        targetRole,
-        experienceYears: Number(experienceYears),
-        location,
-        skills: skillsStr.split(",").map(s => s.trim()).filter(Boolean),
-        educationLevel,
-        certifications: certificationsStr.split(",").map(c => c.trim()).filter(Boolean),
-        industry,
-      };
-      
-      const res = await apiFetch("/salary/profile", {
-        method: "PATCH",
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Update failed");
-      toast.success(locale === "en" ? "Career profile updated!" : "تم تحديث الملف المهني بنجاح!");
-      await fetchSalaryInsights();
-    } catch (err: any) {
-      toast.error(`Update failed: ${err.message}`);
-    } finally {
-      setSavingCareer(false);
-    }
+  /** Handle country pill click — update state and re-fetch immediately */
+  const handleCountryChange = (code: string) => {
+    setSelectedCountry(code);
+    setSalaryInsights(null); // clear stale data while loading
+    fetchSalaryInsights(code);
   };
 
   // Mock settings states
@@ -283,10 +309,21 @@ export default function ProfilePage() {
   const [notifyQuizzes, setNotifyQuizzes] = useState(false);
   const [notifyNewsletter, setNotifyNewsletter] = useState(true);
 
+  // Auto-activate tab from URL query param (e.g. /profile?tab=salary)
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    const validTabs = ["account", "salary", "security", "notifications", "interface", "additional"];
+    if (tabParam && validTabs.includes(tabParam)) {
+      setActiveTab(tabParam as any);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     if (activeTab === "salary") {
-      fetchCareerProfile();
-      fetchSalaryInsights();
+      // Load career profile first (auto-detects country from location),
+      // then fetch insights.  Both are async but profile resolves fast since
+      // it's a local DB read — insights takes longer (Adzuna/AI call).
+      fetchCareerProfile().then(() => fetchSalaryInsights());
     }
   }, [activeTab]);
 
@@ -300,7 +337,7 @@ export default function ProfilePage() {
         setEmail(u.email || "");
         setUsername(
           u.username ||
-            (u.name ? u.name.toLowerCase().replace(/\s+/g, "") : ""),
+          (u.name ? u.name.toLowerCase().replace(/\s+/g, "") : ""),
         );
         setPhone(u.phone || "");
         setBio(u.bio || "");
@@ -311,7 +348,7 @@ export default function ProfilePage() {
             .map((n: string) => n[0])
             .join(""),
         );
-      } catch (e) {}
+      } catch (e) { }
     }
     setLoading(false);
   }, []);
@@ -462,7 +499,14 @@ export default function ProfilePage() {
   }
 
   // Sidebar link dataset matching mockup
-  const sidebarLinks = [
+  type SidebarLink = {
+    label: string;
+    href?: string;
+    icon: React.ReactNode;
+    active?: boolean;
+    onClick?: () => void;
+  };
+  const sidebarLinks: SidebarLink[] = [
     {
       label: t("profile.sidebar.home"),
       href: "/dashboard",
@@ -472,10 +516,21 @@ export default function ProfilePage() {
     { label: t("profile.sidebar.activity"), href: "#", icon: <ActivityIcon /> },
     { label: t("profile.sidebar.saved"), href: "#", icon: <BookmarkIcon /> },
     {
+      label: t("nav.jobsMatch"),
+      href: "/hiring",
+      icon: <JobsIcon />,
+    },
+    {
+      label: t("profile.sidebar.salaryInsights"),
+      icon: <SalaryIcon />,
+      active: activeTab === "salary",
+      onClick: () => setActiveTab("salary"),
+    },
+    {
       label: t("profile.sidebar.settings"),
-      href: "/profile",
       icon: <SettingsIcon />,
-      active: true,
+      active: activeTab === "account" || activeTab === "security" || activeTab === "notifications" || activeTab === "interface" || activeTab === "additional",
+      onClick: () => setActiveTab("account"),
     },
   ];
 
@@ -552,25 +607,45 @@ export default function ProfilePage() {
           <aside className="col-span-1 md:col-span-3 bg-base-200/50 border border-base-300 rounded-2xl p-5 flex flex-col justify-between shadow-sm min-h-[480px]">
             <div className="space-y-4">
               <nav className="space-y-1">
-                {sidebarLinks.map((link) => (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className={`flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-xs transition-all relative ${
-                      link.active
-                        ? "bg-base-200 text-[#7c3aed] shadow-sm border border-base-300"
-                        : "text-base-content/75 hover:bg-base-300 hover:text-base-content"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span>{link.icon}</span>
-                      <span>{link.label}</span>
-                    </div>
-                    {link.active && (
-                      <span className="absolute right-0 top-1/4 bottom-1/4 w-1 bg-[#7c3aed] rounded-l-full"></span>
-                    )}
-                  </Link>
-                ))}
+                {sidebarLinks.map((link) =>
+                  link.href ? (
+                    <Link
+                      key={link.label}
+                      href={link.href}
+                      className={`flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-xs transition-all relative ${
+                        link.active
+                          ? "bg-base-200 text-[#7c3aed] shadow-sm border border-base-300"
+                          : "text-base-content/75 hover:bg-base-300 hover:text-base-content"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span>{link.icon}</span>
+                        <span>{link.label}</span>
+                      </div>
+                      {link.active && (
+                        <span className="absolute right-0 top-1/4 bottom-1/4 w-1 bg-[#7c3aed] rounded-l-full" />
+                      )}
+                    </Link>
+                  ) : (
+                    <button
+                      key={link.label}
+                      onClick={link.onClick}
+                      className={`w-full text-left flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-xs transition-all relative ${
+                        link.active
+                          ? "bg-base-200 text-[#7c3aed] shadow-sm border border-base-300"
+                          : "text-base-content/75 hover:bg-base-300 hover:text-base-content"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span>{link.icon}</span>
+                        <span>{link.label}</span>
+                      </div>
+                      {link.active && (
+                        <span className="absolute right-0 top-1/4 bottom-1/4 w-1 bg-[#7c3aed] rounded-l-full" />
+                      )}
+                    </button>
+                  )
+                )}
               </nav>
             </div>
 
@@ -591,6 +666,7 @@ export default function ProfilePage() {
             <div className="flex border-b border-base-300 overflow-x-auto pb-px gap-6 text-xs font-semibold scrollbar-none">
               {[
                 { id: "account", label: t("profile.tabs.account") },
+                { id: "salary", label: t("profile.tabs.salary") },
                 { id: "security", label: t("profile.tabs.security") },
                 { id: "notifications", label: t("profile.tabs.notifications") },
                 { id: "interface", label: t("profile.tabs.interface") },
@@ -766,7 +842,49 @@ export default function ProfilePage() {
                 </form>
               )}
 
-              {/* 2. Login & Security Tab */}
+              {/* 2. Salary Insights Panel */}
+              {activeTab === "salary" && (
+                <div className="space-y-0">
+                  {/* Profile context strip — shows what data drives the insights */}
+                  {salaryInsights && (
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-5 px-1">
+                      <span className="text-[10px] font-bold uppercase text-base-content/35 font-mono tracking-wider">
+                        Analysing profile:
+                      </span>
+                      {currentRole && (
+                        <span className="text-[10px] font-semibold text-base-content/60">
+                          {currentRole}
+                        </span>
+                      )}
+                      {location && (
+                        <span className="text-[10px] text-base-content/40">
+                          · {location}
+                        </span>
+                      )}
+                      {experienceYears > 0 && (
+                        <span className="text-[10px] text-base-content/40">
+                          · {experienceYears} yr{experienceYears !== 1 ? "s" : ""} exp
+                        </span>
+                      )}
+                      {skillsStr && (
+                        <span className="text-[10px] text-base-content/40 truncate max-w-[220px]">
+                          · {skillsStr}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <SalaryInsightsPanel
+                    insights={salaryInsights}
+                    loading={loadingInsights}
+                    selectedCountry={selectedCountry}
+                    onCountryChange={handleCountryChange}
+                    onRefresh={() => fetchSalaryInsights()}
+                  />
+                </div>
+              )}
+
+              {/* 3. Login & Security Tab */}
               {activeTab === "security" && (
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm text-start">
                   <h3 className="font-extrabold text-sm text-base-content border-b border-base-300 pb-3 uppercase tracking-wider font-mono">
@@ -914,11 +1032,10 @@ export default function ProfilePage() {
                         <button
                           type="button"
                           onClick={() => setTheme("smartlight")}
-                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 ${
-                            theme === "smartlight"
+                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 ${theme === "smartlight"
                               ? "bg-[#7c3aed] text-white border-none"
                               : "btn-outline border-base-300 text-base-content hover:bg-base-100"
-                          }`}
+                            }`}
                         >
                           <SunIcon />
                           {locale === "en" ? "Light Mode" : "المظهر المضيء"}
@@ -926,11 +1043,10 @@ export default function ProfilePage() {
                         <button
                           type="button"
                           onClick={() => setTheme("smartdark")}
-                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 ${
-                            theme === "smartdark"
+                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 ${theme === "smartdark"
                               ? "bg-[#7c3aed] text-white border-none"
                               : "btn-outline border-base-300 text-base-content hover:bg-base-100"
-                          }`}
+                            }`}
                         >
                           <MoonIcon />
                           {locale === "en" ? "Dark Mode" : "المظهر الداكن"}
@@ -949,22 +1065,20 @@ export default function ProfilePage() {
                         <button
                           type="button"
                           onClick={() => setLocale("en")}
-                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold ${
-                            locale === "en"
+                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold ${locale === "en"
                               ? "bg-[#7c3aed] text-white border-none"
                               : "btn-outline border-base-300 text-base-content hover:bg-base-100"
-                          }`}
+                            }`}
                         >
                           English (LTR)
                         </button>
                         <button
                           type="button"
                           onClick={() => setLocale("ar")}
-                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold ${
-                            locale === "ar"
+                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold ${locale === "ar"
                               ? "bg-[#7c3aed] text-white border-none"
                               : "btn-outline border-base-300 text-base-content hover:bg-base-100"
-                          }`}
+                            }`}
                         >
                           العربية (RTL)
                         </button>

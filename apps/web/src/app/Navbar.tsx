@@ -520,6 +520,13 @@ export default function Navbar() {
                     <Link href="/hiring">{t("nav.jobsMatch")}</Link>
                   </li>
                 )}
+                {user.role === "learner" && (
+                  <li>
+                    <Link href="/profile?tab=salary">
+                      {locale === "en" ? "Salary Insights" : "تقديرات الرواتب"}
+                    </Link>
+                  </li>
+                )}
                 {user.role === "company" && (
                   <li>
                     <Link href="/company">{t("nav.talentBoard")}</Link>
