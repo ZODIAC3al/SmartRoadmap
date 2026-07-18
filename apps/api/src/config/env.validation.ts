@@ -55,6 +55,10 @@ export const envSchema = z
     CLOUDINARY_API_KEY: z.string().optional(),
     CLOUDINARY_API_SECRET: z.string().optional(),
 
+    // Adzuna Job Search API — used for real-time salary data
+    ADZUNA_APP_ID: z.string().optional(),
+    ADZUNA_APP_KEY: z.string().optional(),
+
     THROTTLE_TTL: z.coerce.number().default(60000),
     // Credential endpoints (login/register/google) — keep this low in production.
     AUTH_THROTTLE_LIMIT: z.coerce.number().default(5),
