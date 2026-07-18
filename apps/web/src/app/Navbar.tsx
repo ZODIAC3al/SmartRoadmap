@@ -246,6 +246,8 @@ export default function Navbar() {
     },
     { href: "/pricing", label: t("nav.pricing"), show: true },
     { href: "/contact", label: t("nav.contact"), show: true },
+    // Mock Interview link
+    { href: "/mock-interview", label: "Mock Interview", show: !!user },
   ];
 
   return (
