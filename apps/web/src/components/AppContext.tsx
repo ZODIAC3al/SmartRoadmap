@@ -523,6 +523,7 @@ const translations: TranslationDict = {
   "profile.sidebar.settings": { en: "Settings", ar: "الإعدادات" },
   "profile.sidebar.logout": { en: "Logout", ar: "تسجيل الخروج" },
   "profile.tabs.account": { en: "Account Settings", ar: "إعدادات الحساب" },
+  "profile.tabs.salary": { en: "Salary Insights", ar: "تقديرات الرواتب" },
   "profile.tabs.security": { en: "Login & Security", ar: "الأمان والدخول" },
   "profile.tabs.notifications": {
     en: "Notification Settings",

@@ -105,7 +105,7 @@ export class LLMService {
 
     try {
       const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('OPENAI_MODEL_SMART', 'gpt-4o'),
+        model: this.config.get<string>('GEMINI_MODEL', 'gemini-1.5-flash'),
         response_format: { type: 'json_object' },
         messages: [
           {
@@ -146,7 +146,7 @@ export class LLMService {
 
     try {
       const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('OPENAI_MODEL_FAST', 'gpt-4o-mini'),
+        model: this.config.get<string>('GEMINI_MODEL', 'gemini-1.5-flash'),
         ...(options.json
           ? { response_format: { type: 'json_object' as const } }
           : {}),
@@ -164,38 +164,21 @@ export class LLMService {
     }
   }
 
-  async generateQuiz(
-    topic: string,
-    difficulty: string,
-    count = 5,
-  ): Promise<any[]> {
-    if (this.isMockMode || !this.client)
+  /**
+   * Generate a mock quiz for a given topic and difficulty.
+   * Used by assessment service.
+   */
+  async generateQuiz(topic: string, difficulty: string, count: number = 5): Promise<any[]> {
+    if (this.isMockMode || !this.client) {
       return this.mockQuiz(topic, difficulty, count);
-
+    }
+    // Real implementation could call LLM to generate questions
+    const prompt = `Generate a quiz with ${count} questions about ${topic} at ${difficulty} difficulty.`;
+    const result = await this.complete(prompt, { json: true });
     try {
-      const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('OPENAI_MODEL_FAST', 'gpt-4o-mini'),
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Reply with ONLY a JSON object {questions: [{id, question, options[], correctAnswer, explanation, difficulty}]}.',
-          },
-          {
-            role: 'user',
-            content: `Generate ${count} questions about "${topic}" at ${difficulty} level.`,
-          },
-        ],
-      });
-
-      const parsed = JSON.parse(response.choices[0]?.message?.content ?? '{}');
-      const questions = Array.isArray(parsed.questions) ? parsed.questions : [];
-      if (questions.length === 0) throw new Error('LLM returned no questions');
-      return questions;
-    } catch (error: any) {
-      this.logger.error(`OpenAI quiz generation failed: ${error.message}`);
-      return this.mockQuiz(topic, difficulty, count);
+      return JSON.parse(result ?? '[]');
+    } catch {
+      return [];
     }
   }
 }

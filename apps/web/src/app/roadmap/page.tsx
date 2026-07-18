@@ -195,6 +195,7 @@ export default function RoadmapPage() {
 
       {/* Main Workspace split */}
       <main className="flex-grow max-w-6xl mx-auto w-full p-4 sm:p-8 grid lg:grid-cols-12 gap-8 items-start">
+        <InterviewAssistant roadmapId={roadmap._id} />
         {/* LEFT COLUMN: Node Graph Map (Linear Style) */}
         <section className="lg:col-span-8 space-y-6">
           <div className="flex justify-between items-center">

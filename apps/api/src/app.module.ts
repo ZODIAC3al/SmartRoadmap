@@ -18,8 +18,10 @@ import { AssessmentModule } from './modules/assessment/assessment.module';
 import { CvModule } from './modules/cv/cv.module';
 import { HiringModule } from './modules/hiring/hiring.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { InterviewModule } from './modules/interview/interview.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { MessageModule } from './modules/message/message.module';
+import { SalaryModule } from './modules/salary/salary.module';
 
 @Module({
   imports: [
@@ -59,8 +61,10 @@ import { MessageModule } from './modules/message/message.module';
     CvModule,
     HiringModule,
     UploadModule,
+    InterviewModule,
     NotificationModule,
     MessageModule,
+    SalaryModule,
   ],
   controllers: [AppController],
   providers: [

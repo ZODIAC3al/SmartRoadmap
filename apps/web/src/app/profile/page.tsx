@@ -187,7 +187,7 @@ export default function ProfilePage() {
 
   // Active tab state matching the mockup tabs
   const [activeTab, setActiveTab] = useState<
-    "account" | "security" | "notifications" | "interface" | "additional"
+    "account" | "salary" | "security" | "notifications" | "interface" | "additional"
   >("account");
 
   // Form states
@@ -200,10 +200,95 @@ export default function ProfilePage() {
   const [avatarChar, setAvatarChar] = useState("AM");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Career profile form states
+  const [currentRole, setCurrentRole] = useState("");
+  const [targetRole, setTargetRole] = useState("");
+  const [experienceYears, setExperienceYears] = useState(0);
+  const [location, setLocation] = useState("");
+  const [skillsStr, setSkillsStr] = useState("");
+  const [educationLevel, setEducationLevel] = useState("");
+  const [certificationsStr, setCertificationsStr] = useState("");
+  const [industry, setIndustry] = useState("");
+
+  const [salaryInsights, setSalaryInsights] = useState<any | null>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [savingCareer, setSavingCareer] = useState(false);
+
+  const fetchCareerProfile = async () => {
+    try {
+      const res = await apiFetch("/salary/profile");
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentRole(data.currentRole || "");
+        setTargetRole(data.targetRole || "");
+        setExperienceYears(data.experienceYears || 0);
+        setLocation(data.location || "");
+        setSkillsStr(data.skills ? data.skills.join(", ") : "");
+        setEducationLevel(data.educationLevel || "");
+        setCertificationsStr(data.certifications ? data.certifications.join(", ") : "");
+        setIndustry(data.industry || "");
+      }
+    } catch (e: any) {
+      toast.error("Failed to load career profile.");
+    }
+  };
+
+  const fetchSalaryInsights = async () => {
+    setLoadingInsights(true);
+    try {
+      const res = await apiFetch("/salary/insights");
+      if (res.ok) {
+        const data = await res.json();
+        setSalaryInsights(data);
+      }
+    } catch (e: any) {
+      toast.error("Failed to load salary insights.");
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
+  const handleSaveCareerProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingCareer(true);
+    try {
+      const payload = {
+        currentRole,
+        targetRole,
+        experienceYears: Number(experienceYears),
+        location,
+        skills: skillsStr.split(",").map(s => s.trim()).filter(Boolean),
+        educationLevel,
+        certifications: certificationsStr.split(",").map(c => c.trim()).filter(Boolean),
+        industry,
+      };
+      
+      const res = await apiFetch("/salary/profile", {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Update failed");
+      toast.success(locale === "en" ? "Career profile updated!" : "تم تحديث الملف المهني بنجاح!");
+      await fetchSalaryInsights();
+    } catch (err: any) {
+      toast.error(`Update failed: ${err.message}`);
+    } finally {
+      setSavingCareer(false);
+    }
+  };
+
   // Mock settings states
   const [notifyMatches, setNotifyMatches] = useState(true);
   const [notifyQuizzes, setNotifyQuizzes] = useState(false);
   const [notifyNewsletter, setNotifyNewsletter] = useState(true);
+
+  useEffect(() => {
+    if (activeTab === "salary") {
+      fetchCareerProfile();
+      fetchSalaryInsights();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const storedUser = getCachedUser();
