@@ -11,7 +11,7 @@ const VECTOR_SIZE = 1536;
 export class RAGService implements OnModuleInit {
   private readonly logger = new Logger(RAGService.name);
   private readonly isMockMode: boolean;
-  private readonly client: QdrantClient | null;
+  public readonly client: QdrantClient | null;
 
   constructor(
     private readonly embeddingService: EmbeddingService,
