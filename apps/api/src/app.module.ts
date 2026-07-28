@@ -20,6 +20,12 @@ import { HiringModule } from './modules/hiring/hiring.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { MessageModule } from './modules/message/message.module';
+import { ResourceModule } from './modules/resource/resource.module';
+import { CommunityModule } from './modules/community/community.module';
+import { MentorModule } from './modules/mentor/mentor.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -61,6 +67,12 @@ import { MessageModule } from './modules/message/message.module';
     UploadModule,
     NotificationModule,
     MessageModule,
+    ResourceModule,
+    CommunityModule,
+    MentorModule,
+    AdminModule,
+    ChatbotModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [

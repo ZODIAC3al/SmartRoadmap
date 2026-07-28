@@ -37,7 +37,7 @@ try {
   // Ignore
 }
 
-const API = process.env.API_URL ?? 'http://localhost:3000';
+const API = process.env.API_URL ?? 'http://localhost:3002';
 
 let passed = 0;
 let failed = 0;

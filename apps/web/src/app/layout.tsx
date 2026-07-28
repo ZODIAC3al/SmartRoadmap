@@ -16,17 +16,17 @@ const jetbrainsMono = JetBrains_Mono({
 import type { Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#10B981",
+  themeColor: "#080B12",
   width: "device-width",
   initialScale: 1,
 };
 
 export const metadata: Metadata = {
-  title: "SmartRoadmap — AI-Powered Personalized Learning & Hiring Platform",
+  title: "SmartRoadmap — Verified Learning & Talent Platform",
   description:
-    "Verify your tech skills. SmartRoadmap designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
+    "Build a structured learning path, verify practical skills, learn with experienced mentors, and connect verified talent with hiring teams.",
   keywords: [
-    "AI Roadmap",
+    "Learning roadmap",
     "Career assessment",
     "Skill verification",
     "Technical learning",
@@ -37,9 +37,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Developia Team" }],
   manifest: "/manifest.json",
   openGraph: {
-    title: "SmartRoadmap — AI-Powered Personalized Learning & Hiring Platform",
+    title: "SmartRoadmap — Verified Learning & Talent Platform",
     description:
-      "Verify your tech skills. SmartRoadmap designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
+      "Build a structured learning path, verify practical skills, learn with experienced mentors, and connect verified talent with hiring teams.",
     url: "https://smartroadmap.dev",
     siteName: "SmartRoadmap",
     type: "website",
@@ -47,15 +47,16 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "SmartRoadmap — AI-Powered Personalized Learning & Hiring Platform",
+    title: "SmartRoadmap — Verified Learning & Talent Platform",
     description:
-      "Verify your tech skills. SmartRoadmap designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
+      "Build a structured learning path, verify practical skills, learn with experienced mentors, and connect verified talent with hiring teams.",
   },
 };
 
 import { AppContextProvider } from "@/components/AppContext";
 import Footer from "@/components/Footer";
 import BottomNav from "./Bottomnav";
+import ChatSidebar from "@/components/ChatSidebar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -82,6 +83,7 @@ export default function RootLayout({
             autoClose={3000}
             theme="colored"
           />
+          <ChatSidebar />
         </AppContextProvider>
       </body>
     </html>

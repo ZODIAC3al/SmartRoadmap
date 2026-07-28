@@ -30,7 +30,7 @@ const translations: TranslationDict = {
 
   // Home (Landing Page)
   "home.badge": {
-    en: "🚀 AI-Powered Personalized Syllabus Builder",
+    en: "Structured paths for measurable progress",
     ar: "🚀 منشئ المناهج التعليمية المخصص بالذكاء الاصطناعي",
   },
   "home.title1": {
@@ -42,7 +42,7 @@ const translations: TranslationDict = {
     ar: "الاحتراف والتوظيف المباشر.",
   },
   "home.subtitle": {
-    en: "SmartRoadmap constructs dynamic, AI-generated curriculum graphs based on your career targets. Prove real mastery through adaptive quizzes, and get directly matched to hiring teams.",
+    en: "SmartRoadmap builds dynamic curriculum graphs around your career targets. Prove real mastery through adaptive quizzes, and connect directly with hiring teams.",
     ar: "تقوم خارطة الطريق الذكية ببناء مخططات مناهج دراسية ديناميكية يتم إنشاؤها بواسطة الذكاء الاصطناعي بناءً على أهدافك المهنية. أثبت جدارتك من خلال اختبارات تفاعلية، واحصل على تطابق مباشر مع فرق التوظيف.",
   },
   "home.cta_start": { en: "Start Learning Now", ar: "ابدأ التعلم الآن" },
@@ -248,7 +248,7 @@ const translations: TranslationDict = {
 
   // Home - Footer
   "home.footer_desc": {
-    en: "AI-Powered Personalized Learning & Hiring Platform. Bridging candidates seeking structured goals and recruitment teams looking for verified skills.",
+    en: "Personalized learning and verified hiring in one platform. Connecting candidates with structured goals, experienced mentors, and recruitment teams.",
     ar: "منصة توظيف وتعلم شخصية مدعومة بالذكاء الاصطناعي. نربط بين الباحثين عن فرص عمل منظمة وبين فرق التوظيف الباحثة عن مهارات فنية موثقة.",
   },
   "home.footer_credits": {
