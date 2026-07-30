@@ -3,14 +3,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
-import { apiFetch, getCachedUser } from "@/lib/api";
-import type {
-  Experience,
-  Education,
-  Project,
-  Reference,
-  CVData,
-} from "./types";
+import { apiFetch, getCachedUser, getUserId } from "@/lib/api";
+import type { CVData } from "./types";
 
 /**
  * All CV editor state + side effects.
@@ -134,15 +128,9 @@ export function useCvEditor() {
   // Load existing CV on mount
   useEffect(() => {
     const storedUser = getCachedUser();
-    let activeUserId = "654321098765432109876543";
-    if (storedUser) {
-      try {
-        const u = storedUser;
-        if (u.id || u._id) {
-          activeUserId = u.id || u._id;
-          setUserId(activeUserId);
-        }
-      } catch (e) {}
+    const cachedUserId = getUserId(storedUser);
+    if (cachedUserId) {
+      setUserId(cachedUserId);
     }
 
     async function loadCv() {

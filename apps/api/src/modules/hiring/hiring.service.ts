@@ -12,6 +12,8 @@ import { User } from '../../schemas/user.schema';
 import { Roadmap } from '../../schemas/roadmap.schema';
 import { QuizSession } from '../../schemas/quiz-session.schema';
 import { Cv } from '../../schemas/cv.schema';
+import { RAGService, JOBS_COLLECTION } from '../../ai/rag.service';
+import { EmbeddingService } from '../../ai/embedding.service';
 
 @Injectable()
 export class HiringService implements OnModuleInit {
@@ -25,6 +27,8 @@ export class HiringService implements OnModuleInit {
     private readonly quizSessionModel: Model<QuizSession>,
     @InjectModel(Cv.name) private readonly cvModel: Model<Cv>,
     private readonly config: ConfigService,
+    private readonly ragService: RAGService,
+    private readonly embeddingService: EmbeddingService,
   ) {}
 
   /**
@@ -44,7 +48,7 @@ export class HiringService implements OnModuleInit {
       const count = await this.jobModel.countDocuments();
       if (count === 0) {
         this.logger.log('Seeding mock job descriptions to database...');
-        await this.jobModel.insertMany([
+        const saved = await this.jobModel.insertMany([
           {
             title: 'Frontend Engineer (React & TypeScript)',
             company: 'Lattice HR',
@@ -114,15 +118,43 @@ export class HiringService implements OnModuleInit {
               'Maintain vector database connections (Qdrant), orchestrate ETL data pipelines in Python, and align client event streams dynamically.',
           },
         ]);
+        for (const job of saved) {
+          await this.indexJob(job);
+        }
       }
     } catch (e) {
       this.logger.error('Failed seeding jobs', e);
     }
   }
 
+  async indexJob(job: Job): Promise<void> {
+    try {
+      await this.ragService.upsert(JOBS_COLLECTION, [{
+        id: job._id.toString(),
+        text: `${job.title} at ${job.company}. Skills: ${job.requiredSkills.join(', ')}. ${job.description}`,
+        payload: {
+          jobId: job._id.toString(),
+          title: job.title,
+          company: job.company,
+          location: job.location,
+          country: job.country,
+          requiredSkills: job.requiredSkills,
+          salaryMin: job.salaryMin,
+          salaryMax: job.salaryMax,
+          remote: job.remote,
+          description: job.description
+        }
+      }]);
+    } catch (err: any) {
+      this.logger.error(`Failed to index job ${job._id} dynamically: ${err.message}`);
+    }
+  }
+
   async createJob(jobData: any): Promise<Job> {
     const job = new this.jobModel(jobData);
-    return job.save();
+    const saved = await job.save();
+    await this.indexJob(saved);
+    return saved;
   }
 
   async getJobs(): Promise<Job[]> {
@@ -191,6 +223,89 @@ export class HiringService implements OnModuleInit {
 
     // Sort by match score descending
     return scoredJobs.sort((a, b) => b.matchScore - a.matchScore);
+  }
+
+  async matchJobsSemantic(userId: string, limit = 5): Promise<any[]> {
+    this.logger.log(`Matching jobs semantically for user ID: ${userId}`);
+
+    if (!this.ragService.client) {
+      this.logger.warn('Qdrant client not available. Falling back to keyword overlap matching.');
+      return this.matchJobsForLearner(userId);
+    }
+
+    const roadmap = await this.roadmapModel.findOne({
+      userId: new Types.ObjectId(userId),
+      status: 'active',
+    });
+
+    const verifiedSkills: string[] = [];
+    if (roadmap) {
+      roadmap.modules.forEach((mod) => {
+        if (mod.status === 'completed') {
+          verifiedSkills.push(mod.title.toLowerCase());
+          mod.topics.forEach((t) => verifiedSkills.push(t.toLowerCase()));
+        }
+      });
+    }
+
+    const cv = await this.cvModel.findOne({ userId: new Types.ObjectId(userId) });
+
+    const skillsPool = Array.from(new Set([
+      ...verifiedSkills,
+      ...(cv?.skills || []).map((s: string) => s.toLowerCase()),
+    ]));
+
+    const profileSummary = cv?.personal?.summary || '';
+    const experienceSummary = (cv?.experience || []).map((e: any) => `${e.role} at ${e.company}: ${e.description}`).join('; ');
+
+    const profileText = `Learner Profile:
+    Target Career: ${roadmap?.targetRole || 'Software Development'}
+    Skills: ${skillsPool.join(', ')}
+    Summary: ${profileSummary}
+    Experience: ${experienceSummary}`;
+
+    try {
+      const vector = await this.embeddingService.embed(profileText);
+      const results = await this.ragService.client.search(JOBS_COLLECTION, {
+        vector,
+        limit,
+        with_payload: true,
+      });
+
+      const matchedJobs = results.map((hit) => {
+        const payload = hit.payload as any;
+        const requirements = (payload.requiredSkills || []).map((s: string) => s.toLowerCase());
+
+        const matching = requirements.filter((req: string) =>
+          skillsPool.some((s: string) => s.includes(req) || req.includes(s))
+        );
+
+        const missingSkills = (payload.requiredSkills || []).filter((req: string) =>
+          !skillsPool.some((s: string) => s.includes(req.toLowerCase()) || req.toLowerCase().includes(s))
+        );
+
+        return {
+          _id: payload.jobId,
+          title: payload.title,
+          company: payload.company,
+          location: payload.location,
+          country: payload.country,
+          requiredSkills: payload.requiredSkills,
+          salaryMin: payload.salaryMin,
+          salaryMax: payload.salaryMax,
+          remote: payload.remote,
+          description: payload.description,
+          matchScore: Math.round((hit.score ?? 0) * 100),
+          matchingSkills: matching,
+          skillsGap: missingSkills,
+        };
+      });
+
+      return matchedJobs.sort((a, b) => b.matchScore - a.matchScore);
+    } catch (error: any) {
+      this.logger.error(`Semantic job search query failed: ${error.message}. Falling back to keyword match.`);
+      return this.matchJobsForLearner(userId);
+    }
   }
 
   /**

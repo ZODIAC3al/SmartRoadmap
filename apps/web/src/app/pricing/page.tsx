@@ -1,9 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useApp } from "@/components/AppContext";
-import { toast } from "react-toastify";
-import { apiFetch, cacheUser, fetchMe, getCachedUser } from "@/lib/api";
+import React from "react";
 
 type FeatureRow = {
   label: string;
