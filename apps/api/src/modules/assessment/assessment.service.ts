@@ -110,10 +110,24 @@ export class AssessmentService {
       throw new BadRequestException('Invalid question index.');
     }
 
-    // Evaluate answer correctness
+    // Evaluate answer correctness handling both string values and zero-based numeric option index
+    let expectedAnswerStr = '';
+    const rawCorrect = currentQuestion.correctAnswer;
+    if (typeof rawCorrect === 'number' && Array.isArray(currentQuestion.options)) {
+      expectedAnswerStr = currentQuestion.options[rawCorrect] || String(rawCorrect);
+    } else if (
+      typeof rawCorrect === 'string' &&
+      /^\d+$/.test(rawCorrect.trim()) &&
+      Array.isArray(currentQuestion.options) &&
+      currentQuestion.options[parseInt(rawCorrect.trim(), 10)]
+    ) {
+      expectedAnswerStr = currentQuestion.options[parseInt(rawCorrect.trim(), 10)];
+    } else {
+      expectedAnswerStr = String(rawCorrect || '');
+    }
+
     const correct =
-      currentQuestion.correctAnswer.toLowerCase().trim() ===
-      answer.toLowerCase().trim();
+      expectedAnswerStr.toLowerCase().trim() === (answer || '').toLowerCase().trim();
 
     // Log answer sub-document
     session.answers.push({
