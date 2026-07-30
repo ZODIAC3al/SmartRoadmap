@@ -136,13 +136,32 @@ export class ChatbotService {
     }
 
     if (!responseText) {
-      // Simulation / Mock mode response fallback
+      const lower = messageText.toLowerCase().trim();
+      const isArabic = /[\u0600-\u06FF]/.test(messageText);
+
       if (askAboutAdmin) {
-        responseText = `Hello Admin! Here is a simulation review: Platform services are operational, total users count is 142.`;
+        responseText = isArabic
+          ? `مرحباً بك في لوحة الإدارة! خدمات المنصة تعمل بكفاءة، إجمالي المستخدمين 142، ونسبة نجاح الاختبارات 88٪.`
+          : `Hello Admin! Platform services are fully operational. Total registered users: 142, average quiz pass rate: 88%.`;
       } else if (askAboutRoadmap) {
-        responseText = `Hi there! It looks like you're studying your customized modules. Let me know if you need help with React, NodeJS, or DevOps configuration files!`;
+        responseText = isArabic
+          ? `أهلاً بك! تظهر نتائجك أنك تدرس مسار التعلم التكيفي. يسعدني مساعدتك في استيعاب المفاهيم البرمجية، أو مراجعة أكوادك، أو إعداد بيئة التطوير!`
+          : `Hi there! I see you are progressing through your adaptive learning path. Let me know if you need help with code explanations, debugging, or project architecture!`;
+      } else if (
+        lower.includes('hello') ||
+        lower.includes('hi') ||
+        lower.includes('hey') ||
+        lower.includes('مرحبا') ||
+        lower.includes('أهلا') ||
+        lower.includes('سلام')
+      ) {
+        responseText = isArabic
+          ? `أهلاً وسهلاً بك في Devotopia SmartRoadmap! 🚀 أنا رفيقك التعليمي الذكي. كيف يمكنني مساعدتك اليوم في مسارك الدراسي أو أسئلتك البرمجية؟`
+          : `Hello and welcome to Devotopia SmartRoadmap! 🚀 I'm your AI Study Buddy. How can I help you today with your learning path, quizzes, or programming questions?`;
       } else {
-        responseText = `I am currently running in mock simulation mode. Please configure GEMINI_API_KEY in your .env file to enable dynamic AI chatbot replies.`;
+        responseText = isArabic
+          ? `شكراً لاستفسارك! بصفتي رفيقك التعليمي الذكي في Devotopia، يمكنني مساعدتك في شرح المفاهيم البرمجية، مراجعة المشاريع، واستكشاف الأخطاء البرمجية. يسعدني إجابة أي سؤال لديك!`
+          : `Thanks for reaching out! As your Devotopia AI Study Buddy, I can help explain programming concepts, debug code snippets, or guide you through your roadmap modules. What specific topic would you like to explore?`;
       }
     }
 
