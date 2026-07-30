@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/components/AppContext";
-import { apiJson, fetchMe } from "@/lib/api";
+import { apiJson, fetchMe, getErrorMessage } from "@/lib/api";
 import { toast } from "react-toastify";
 
 interface Message {
@@ -56,37 +56,28 @@ export default function ChatSidebar() {
 
   useEffect(() => {
     if (isAuthPage) return;
-    checkAuthAndLoadHistory();
-  }, [isAuthPage]);
+    void (async () => {
+      const user = await fetchMe();
+      if (!user) {
+        setIsLoggedIn(false);
+        return;
+      }
+
+      setIsLoggedIn(true);
+      try {
+        const history = await apiJson<Message[]>("/chatbot/history");
+        setMessages(history.filter((message) => message.role !== "system"));
+      } catch {
+        toast.error(t.errorFetch);
+      }
+    })();
+  }, [isAuthPage, t.errorFetch]);
 
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
     }
   }, [isOpen, messages, isTyping]);
-
-  const checkAuthAndLoadHistory = async () => {
-    try {
-      const user = await fetchMe();
-      if (user) {
-        setIsLoggedIn(true);
-        loadHistory();
-      } else {
-        setIsLoggedIn(false);
-      }
-    } catch {
-      setIsLoggedIn(false);
-    }
-  };
-
-  const loadHistory = async () => {
-    try {
-      const history = await apiJson<Message[]>("/chatbot/history");
-      setMessages(history.filter((m) => m.role !== "system"));
-    } catch {
-      toast.error(t.errorFetch);
-    }
-  };
 
   const handleSend = async (text: string) => {
     if (!text.trim() || isTyping) return;
@@ -102,8 +93,8 @@ export default function ChatSidebar() {
         body: JSON.stringify({ message: text }),
       });
       setMessages((prev) => [...prev, { role: "model", content: res.response }]);
-    } catch (err: any) {
-      toast.error(err.message || t.errorSend);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, t.errorSend));
     } finally {
       setIsTyping(false);
     }

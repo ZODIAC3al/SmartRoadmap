@@ -1,10 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
-import { apiJson, apiFetch, getCachedUser, hasSession } from "@/lib/api";
+import {
+  apiFetch,
+  apiJson,
+  getCachedUser,
+  getErrorMessage,
+  getUserId,
+  hasSession,
+  type SessionUser,
+} from "@/lib/api";
 
 interface Space {
   _id: string;
@@ -50,8 +58,8 @@ interface Comment {
 
 export default function CommunityPage() {
   const router = useRouter();
-  const { locale, t } = useApp();
-  const [user, setUser] = useState<any>(null);
+  const { locale } = useApp();
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Data States
@@ -73,6 +81,30 @@ export default function CommunityPage() {
   const [flaggedType, setFlaggedType] = useState<"post" | "comment" | "resource" | "mentor_profile" | null>(null);
   const [reportReason, setReportReason] = useState("");
 
+  const fetchPosts = useCallback(async (spaceId: string) => {
+    try {
+      const data = await apiJson<Post[]>(`/community/spaces/${spaceId}/posts`);
+      setPosts(data);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to load posts."));
+    }
+  }, []);
+
+  const fetchSpaces = useCallback(async () => {
+    try {
+      const data = await apiJson<Space[]>("/community/spaces");
+      setSpaces(data);
+      if (data.length > 0) {
+        setSelectedSpace(data[0]);
+        await fetchPosts(data[0]._id);
+      }
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to load spaces."));
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchPosts]);
+
   useEffect(() => {
     if (!hasSession()) {
       toast.error(locale === "en" ? "Please log in to access the community." : "يرجى تسجيل الدخول للوصول إلى المجتمع.");
@@ -80,32 +112,8 @@ export default function CommunityPage() {
       return;
     }
     setUser(getCachedUser());
-    fetchSpaces();
-  }, []);
-
-  const fetchSpaces = async () => {
-    try {
-      const data = await apiJson<Space[]>("/community/spaces");
-      setSpaces(data);
-      if (data.length > 0) {
-        setSelectedSpace(data[0]);
-        fetchPosts(data[0]._id);
-      }
-      setLoading(false);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to load spaces.");
-      setLoading(false);
-    }
-  };
-
-  const fetchPosts = async (spaceId: string) => {
-    try {
-      const data = await apiJson<Post[]>(`/community/spaces/${spaceId}/posts`);
-      setPosts(data);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to load posts.");
-    }
-  };
+    void fetchSpaces();
+  }, [fetchSpaces, locale, router]);
 
   const handleSpaceSelect = (space: Space) => {
     setSelectedSpace(space);
@@ -126,7 +134,9 @@ export default function CommunityPage() {
           setSelectedPost(updatedPost);
         }
       }
-    } catch (e) {}
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to update your vote."));
+    }
   };
 
   const handleCreatePost = async (e: React.FormEvent) => {
@@ -150,8 +160,8 @@ export default function CommunityPage() {
       setNewPostIsArticle(false);
       setShowCreatePost(false);
       fetchPosts(selectedSpace._id);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to create post.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to create post."));
     }
   };
 
@@ -160,7 +170,9 @@ export default function CommunityPage() {
     try {
       const data = await apiJson<Comment[]>(`/community/posts/${post._id}/comments`);
       setComments(data);
-    } catch (e) {}
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to load comments."));
+    }
   };
 
   const handleAddComment = async (e: React.FormEvent) => {
@@ -177,8 +189,8 @@ export default function CommunityPage() {
       const data = await apiJson<Comment[]>(`/community/posts/${selectedPost._id}/comments`);
       setComments(data);
       if (selectedSpace) fetchPosts(selectedSpace._id);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to add comment.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to add comment."));
     }
   };
 
@@ -199,8 +211,8 @@ export default function CommunityPage() {
       setFlaggedContentId(null);
       setFlaggedType(null);
       setReportReason("");
-    } catch (e: any) {
-      toast.error(e.message || "Report submission failed.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Report submission failed."));
     }
   };
 
@@ -213,6 +225,7 @@ export default function CommunityPage() {
   }
 
   const isRtl = locale === "ar";
+  const currentUserId = getUserId(user);
 
   return (
     <div className={`sr-console pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
@@ -461,7 +474,8 @@ export default function CommunityPage() {
                       <div className="flex items-center gap-1 bg-base-100 border border-base-300 rounded-full px-2 py-0.5 font-mono text-[10px]">
                         <button
                           onClick={() => handleVote(post._id, "up")}
-                          className={`font-black px-1.5 ${user && post.upvotes?.includes(user._id) ? "text-green-500" : "hover:text-green-500"}`}
+                          aria-label={`Upvote ${post.title}`}
+                          className={`font-black px-1.5 ${currentUserId && post.upvotes?.includes(currentUserId) ? "text-green-500" : "hover:text-green-500"}`}
                         >
                           ▲
                         </button>
@@ -470,7 +484,8 @@ export default function CommunityPage() {
                         </span>
                         <button
                           onClick={() => handleVote(post._id, "down")}
-                          className={`font-black px-1.5 ${user && post.downvotes?.includes(user._id) ? "text-red-500" : "hover:text-red-500"}`}
+                          aria-label={`Downvote ${post.title}`}
+                          className={`font-black px-1.5 ${currentUserId && post.downvotes?.includes(currentUserId) ? "text-red-500" : "hover:text-red-500"}`}
                         >
                           ▼
                         </button>
@@ -546,6 +561,7 @@ export default function CommunityPage() {
                               setFlaggedType("comment");
                             }}
                             className="text-[10px] text-base-content/30 hover:text-red-500"
+                            aria-label={`Report comment by ${c.authorId?.name || "deleted user"}`}
                           >
                             ⚠️
                           </button>
@@ -581,8 +597,13 @@ export default function CommunityPage() {
             {/* Moderation Flag Modal Dialog */}
             {flaggedContentId && (
               <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                <div className="sr-panel w-full max-w-sm p-6 rounded-2xl shadow-xl space-y-4">
-                  <h3 className="font-extrabold text-sm">
+                <div
+                  className="sr-panel w-full max-w-sm p-6 rounded-2xl shadow-xl space-y-4"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="community-report-title"
+                >
+                  <h3 id="community-report-title" className="font-extrabold text-sm">
                     ⚠️ {isRtl ? "الإبلاغ عن محتوى غير لائق" : "Submit Moderation Flag"}
                   </h3>
                   <p className="text-xs text-base-content/50">

@@ -262,4 +262,25 @@
   .sr-console table tbody tr {
     border-color: rgba(148, 163, 184, 0.13);
   }
+
+  .sr-console :where(a, button, input, select, textarea):focus-visible {
+    outline: 2px solid #69ddff;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 5px rgba(0, 194, 255, 0.12);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sr-console *,
+    .sr-console *::before,
+    .sr-console *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+
+    .sr-card:hover {
+      transform: none;
+    }
+  }
 }

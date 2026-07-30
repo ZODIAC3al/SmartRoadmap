@@ -5,13 +5,11 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CommunityService } from './community.service';
 import { CreateSpaceDto, CreatePostDto, CreateCommentDto, CreateReportDto } from './dto/community.dto';
 import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
-import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('community')
 @ApiBearerAuth()

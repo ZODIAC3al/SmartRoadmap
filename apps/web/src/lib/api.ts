@@ -16,6 +16,24 @@ export const API_BASE =
 export const USER_KEY = "smart_user";
 const SESSION_FLAG = "smart_session";
 
+export type UserRole = "learner" | "company" | "admin" | "mentor";
+
+export interface SessionUser {
+  _id?: string;
+  id?: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  avatarUrl?: string;
+  username?: string;
+  phone?: string;
+  bio?: string;
+}
+
+export type IdentifiedSessionUser =
+  | (SessionUser & { id: string })
+  | (SessionUser & { _id: string });
+
 let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
 
@@ -29,7 +47,7 @@ export function hasSession(): boolean {
   return localStorage.getItem(SESSION_FLAG) === "1";
 }
 
-export function getCachedUser<T = any>(): T | null {
+export function getCachedUser<T = IdentifiedSessionUser>(): T | null {
   if (typeof window === "undefined") return null;
   try {
     return JSON.parse(localStorage.getItem(USER_KEY) ?? "null");
@@ -148,20 +166,37 @@ export async function apiJson<T>(
   init: RequestInit = {},
 ): Promise<T> {
   const res = await apiFetch(path, init);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok)
-    throw new Error((data as any)?.message ?? `Request failed (${res.status})`);
+  const data: unknown = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message =
+      typeof data === "object" &&
+      data !== null &&
+      "message" in data &&
+      typeof data.message === "string"
+        ? data.message
+        : `Request failed (${res.status})`;
+    throw new Error(message);
+  }
   return data as T;
 }
 
 /** Server-verified identity. Never trust the cached `smart_user` blob. */
-export async function fetchMe(): Promise<any | null> {
+export async function fetchMe(): Promise<IdentifiedSessionUser | null> {
   if (!hasSession()) return null;
   try {
-    const me = await apiJson<any>("/auth/me");
+    const me = await apiJson<IdentifiedSessionUser>("/auth/me");
     cacheUser(me);
     return me;
   } catch {
     return null;
   }
+}
+
+export function getUserId(user: Pick<SessionUser, "id" | "_id"> | null): string | null {
+  return user?.id ?? user?._id ?? null;
+}
+
+/** Safely extracts a user-facing message without weakening catch variables. */
+export function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
 }

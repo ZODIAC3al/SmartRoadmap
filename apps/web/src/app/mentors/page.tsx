@@ -1,10 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
-import { apiJson, apiFetch, getCachedUser, hasSession } from "@/lib/api";
+import {
+  apiJson,
+  getCachedUser,
+  getErrorMessage,
+  hasSession,
+  type SessionUser,
+} from "@/lib/api";
 
 interface Mentor {
   _id: string;
@@ -57,7 +63,7 @@ const DAYS_AR = ["الأحد", "الإثنين", "الثلاثاء", "الأرب
 export default function MentorsPage() {
   const router = useRouter();
   const { locale } = useApp();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // States
@@ -91,17 +97,7 @@ export default function MentorsPage() {
   const [rateCommunication, setRateCommunication] = useState(5);
   const [rateReview, setRateReview] = useState("");
 
-  useEffect(() => {
-    if (!hasSession()) {
-      toast.error(locale === "en" ? "Please log in to access the Mentor Network." : "يرجى تسجيل الدخول للوصول إلى شبكة الموجهين.");
-      router.push("/auth/login");
-      return;
-    }
-    setUser(getCachedUser());
-    fetchInitialData();
-  }, []);
-
-  const fetchInitialData = async () => {
+  const fetchInitialData = useCallback(async () => {
     try {
       const allMentors = await apiJson<Mentor[]>("/mentor/profiles");
       setMentors(allMentors);
@@ -123,22 +119,35 @@ export default function MentorsPage() {
           setBioInput(profile.bio);
           setCertInput(profile.certifications.join(", "));
           setSlotsInput(profile.availability);
-        } catch (e) {}
+        } catch {
+          toast.warning(locale === "en" ? "Your mentor profile could not be pre-filled." : "تعذر تحميل بيانات ملف الموجه.");
+        }
       }
-
-      setLoading(false);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to load mentor network data.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to load mentor network data."));
+    } finally {
       setLoading(false);
     }
-  };
+  }, [locale]);
+
+  useEffect(() => {
+    if (!hasSession()) {
+      toast.error(locale === "en" ? "Please log in to access the Mentor Network." : "يرجى تسجيل الدخول للوصول إلى شبكة الموجهين.");
+      router.push("/auth/login");
+      return;
+    }
+    setUser(getCachedUser());
+    void fetchInitialData();
+  }, [fetchInitialData, locale, router]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const data = await apiJson<Mentor[]>(`/mentor/profiles?search=${search}`);
       setMentors(data);
-    } catch (e) {}
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to search mentors."));
+    }
   };
 
   const handleBookSession = async (e: React.FormEvent) => {
@@ -164,12 +173,16 @@ export default function MentorsPage() {
       // Refresh sessions list
       const mySessions = await apiJson<Session[]>("/mentor/sessions/me");
       setSessions(mySessions);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to book session.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to book session."));
     }
   };
 
-  const handleUpdateStatus = async (sessionId: string, status: string, feedback?: string) => {
+  const handleUpdateStatus = async (
+    sessionId: string,
+    status: Session["status"],
+    feedback?: string,
+  ) => {
     try {
       await apiJson(`/mentor/sessions/${sessionId}`, {
         method: "PATCH",
@@ -178,8 +191,8 @@ export default function MentorsPage() {
       toast.success(locale === "en" ? `Session marked as ${status}.` : `تم تحديث حالة الجلسة إلى: ${status}.`);
       const mySessions = await apiJson<Session[]>("/mentor/sessions/me");
       setSessions(mySessions);
-    } catch (e: any) {
-      toast.error(e.message || "Action failed.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Action failed."));
     }
   };
 
@@ -207,15 +220,20 @@ export default function MentorsPage() {
       setRateCommunication(5);
       setRateReview("");
       fetchInitialData();
-    } catch (e: any) {
-      toast.error(e.message || "Rating submission failed.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Rating submission failed."));
     }
   };
 
   const handleSetupProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast.error(locale === "en" ? "Your session has expired. Please sign in again." : "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.");
+      return;
+    }
+
     try {
-      const profile = await apiJson<Mentor>("/mentor/profiles", {
+      await apiJson<Mentor>("/mentor/profiles", {
         method: "POST",
         body: JSON.stringify({
           expertise: expertiseInput.split(",").map((s) => s.trim()).filter(Boolean),
@@ -230,12 +248,12 @@ export default function MentorsPage() {
       toast.success(locale === "en" ? "Mentor Profile saved successfully!" : "تم حفظ ملف الموجه بنجاح!");
       setShowProfileEdit(false);
       // Reload profile
-      const updatedUser = { ...user, role: "mentor" };
+      const updatedUser: SessionUser = { ...user, role: "mentor" };
       localStorage.setItem("smart_user", JSON.stringify(updatedUser));
       setUser(updatedUser);
       fetchInitialData();
-    } catch (e: any) {
-      toast.error(e.message || "Failed to save profile.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to save profile."));
     }
   };
 
@@ -546,8 +564,13 @@ export default function MentorsPage() {
         {/* Schedule session modal */}
         {selectedMentor && (
           <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="sr-panel card w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4">
-              <h3 className="font-extrabold text-sm">
+            <div
+              className="sr-panel card w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mentor-booking-title"
+            >
+              <h3 id="mentor-booking-title" className="font-extrabold text-sm">
                 📅 {isRtl ? "جدولة موعد مع" : "Schedule session with"} {selectedMentor.userId.name}
               </h3>
 
@@ -620,8 +643,13 @@ export default function MentorsPage() {
         {/* Mentor Profile Setup / Edit Modal */}
         {showProfileEdit && (
           <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="sr-panel card w-full max-w-md p-6 rounded-2xl shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
-              <h3 className="font-extrabold text-sm">
+            <div
+              className="sr-panel card w-full max-w-md p-6 rounded-2xl shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mentor-profile-title"
+            >
+              <h3 id="mentor-profile-title" className="font-extrabold text-sm">
                 🎓 {isRtl ? "إعداد الملف المهني للموجه" : "Set up Mentor Profile"}
               </h3>
               <form onSubmit={handleSetupProfile} className="space-y-4 text-xs font-semibold">
@@ -768,8 +796,13 @@ export default function MentorsPage() {
         {/* Rating Submission Modal */}
         {ratingSessionId && (
           <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="sr-panel card w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4">
-              <h3 className="font-extrabold text-sm">
+            <div
+              className="sr-panel card w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mentor-rating-title"
+            >
+              <h3 id="mentor-rating-title" className="font-extrabold text-sm">
                 ★ {isRtl ? "تقييم الجلسة والتوجيه" : "Rate Mentor Session"}
               </h3>
               <form onSubmit={handleRateSubmit} className="space-y-4 text-xs font-semibold">

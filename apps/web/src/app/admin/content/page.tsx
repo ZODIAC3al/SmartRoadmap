@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
-import { apiJson, fetchMe } from "@/lib/api";
+import { apiJson, fetchMe, getErrorMessage } from "@/lib/api";
 
 interface Report {
   _id: string;
@@ -19,39 +19,43 @@ interface Report {
   createdAt: string;
 }
 
+type ResolutionStatus = "resolved" | "dismissed";
+
+function isResolutionStatus(value: string): value is ResolutionStatus {
+  return value === "resolved" || value === "dismissed";
+}
+
 export default function AdminContentPage() {
   const { locale } = useApp();
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   // States
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [resolutionStatus, setResolutionStatus] = useState<"resolved" | "dismissed">("resolved");
+  const [resolutionStatus, setResolutionStatus] = useState<ResolutionStatus>("resolved");
   const [resolutionText, setResolutionText] = useState("");
 
+  const fetchReports = useCallback(async () => {
+    try {
+      const data = await apiJson<Report[]>("/admin/reports");
+      setReports(data);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to load reports queue."));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    (async () => {
+    void (async () => {
       const me = await fetchMe();
       if (!me || me.role !== "admin") {
         window.location.href = "/admin";
         return;
       }
-      setCurrentUser(me);
-      fetchReports();
+      await fetchReports();
     })();
-  }, []);
-
-  const fetchReports = async () => {
-    try {
-      const data = await apiJson<Report[]>("/admin/reports");
-      setReports(data);
-      setLoading(false);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to load reports queue.");
-      setLoading(false);
-    }
-  };
+  }, [fetchReports]);
 
   const handleResolveSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,8 +74,8 @@ export default function AdminContentPage() {
       setSelectedReport(null);
       setResolutionText("");
       fetchReports();
-    } catch (e: any) {
-      toast.error(e.message || "Failed to resolve report.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to resolve report."));
     }
   };
 
@@ -208,7 +212,11 @@ export default function AdminContentPage() {
                     <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "الإجراء المتخذ" : "Decision Outcome"}</label>
                     <select
                       value={resolutionStatus}
-                      onChange={(e) => setResolutionStatus(e.target.value as any)}
+                      onChange={(e) => {
+                        if (isResolutionStatus(e.target.value)) {
+                          setResolutionStatus(e.target.value);
+                        }
+                      }}
                       className="select select-bordered w-full rounded-xl bg-base-100 select-xs text-xs h-10 px-3 font-semibold"
                     >
                       <option value="resolved">Approve Violation & Delete Content</option>

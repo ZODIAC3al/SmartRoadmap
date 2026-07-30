@@ -1,19 +1,30 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
-import { apiJson, apiFetch, getCachedUser, hasSession } from "@/lib/api";
+import {
+  apiFetch,
+  apiJson,
+  getCachedUser,
+  getErrorMessage,
+  getUserId,
+  hasSession,
+  type SessionUser,
+} from "@/lib/api";
+
+type ResourceType = "course" | "article" | "documentation" | "video" | "book" | "tutorial";
+type ResourceDifficulty = "beginner" | "intermediate" | "advanced";
 
 interface Resource {
   _id: string;
   title: string;
   description?: string;
   url: string;
-  type: "course" | "article" | "documentation" | "video" | "book" | "tutorial";
+  type: ResourceType;
   category: string;
-  difficulty: "beginner" | "intermediate" | "advanced";
+  difficulty: ResourceDifficulty;
   submittedBy: {
     _id: string;
     name: string;
@@ -27,10 +38,25 @@ interface Resource {
   createdAt: string;
 }
 
+function isResourceType(value: string): value is ResourceType {
+  return (
+    value === "course" ||
+    value === "article" ||
+    value === "documentation" ||
+    value === "video" ||
+    value === "book" ||
+    value === "tutorial"
+  );
+}
+
+function isResourceDifficulty(value: string): value is ResourceDifficulty {
+  return value === "beginner" || value === "intermediate" || value === "advanced";
+}
+
 export default function ResourcesPage() {
   const router = useRouter();
   const { locale } = useApp();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // States
@@ -39,18 +65,33 @@ export default function ResourcesPage() {
   
   // Filters
   const [search, setSearch] = useState("");
-  const [difficulty, setDifficulty] = useState("");
-  const [type, setType] = useState("");
+  const [difficulty, setDifficulty] = useState<ResourceDifficulty | "">("");
+  const [type, setType] = useState<ResourceType | "">("");
 
   // Submit Modal
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newUrl, setNewUrl] = useState("");
-  const [newType, setNewType] = useState<any>("course");
+  const [newType, setNewType] = useState<ResourceType>("course");
   const [newCategory, setNewCategory] = useState("");
-  const [newDifficulty, setNewDifficulty] = useState<any>("beginner");
+  const [newDifficulty, setNewDifficulty] = useState<ResourceDifficulty>("beginner");
   const [newTags, setNewTags] = useState("");
+
+  const fetchInitialData = useCallback(async () => {
+    try {
+      const data = await apiJson<Resource[]>("/resources");
+      setResources(data);
+
+      const recommended = await apiJson<Resource[]>("/resources/recommend");
+      setRecommendedResources(recommended);
+
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to load resources."));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!hasSession()) {
@@ -59,23 +100,8 @@ export default function ResourcesPage() {
       return;
     }
     setUser(getCachedUser());
-    fetchInitialData();
-  }, []);
-
-  const fetchInitialData = async () => {
-    try {
-      const data = await apiJson<Resource[]>("/resources");
-      setResources(data);
-
-      const recommended = await apiJson<Resource[]>("/resources/recommend");
-      setRecommendedResources(recommended);
-
-      setLoading(false);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to load resources.");
-      setLoading(false);
-    }
-  };
+    void fetchInitialData();
+  }, [fetchInitialData, locale, router]);
 
   const handleFilterSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -87,15 +113,10 @@ export default function ResourcesPage() {
 
       const data = await apiJson<Resource[]>(`/resources?${params.toString()}`);
       setResources(data);
-    } catch (e) {}
-  };
-
-  // Run filter query on change of dropdowns
-  useEffect(() => {
-    if (!loading) {
-      handleFilterSearch();
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to filter resources."));
     }
-  }, [difficulty, type]);
+  };
 
   const handleVote = async (resourceId: string, direction: "up" | "down") => {
     try {
@@ -109,7 +130,9 @@ export default function ResourcesPage() {
         const recommended = await apiJson<Resource[]>("/resources/recommend");
         setRecommendedResources(recommended);
       }
-    } catch (e) {}
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to update your vote."));
+    }
   };
 
   const handleSubmitResource = async (e: React.FormEvent) => {
@@ -139,8 +162,8 @@ export default function ResourcesPage() {
       setNewDifficulty("beginner");
       setNewTags("");
       fetchInitialData();
-    } catch (e: any) {
-      toast.error(e.message || "Resource submission failed.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Resource submission failed."));
     }
   };
 
@@ -153,6 +176,7 @@ export default function ResourcesPage() {
   }
 
   const isRtl = locale === "ar";
+  const currentUserId = getUserId(user);
 
   return (
     <div className={`sr-console min-h-screen text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
@@ -246,7 +270,10 @@ export default function ResourcesPage() {
             <div className="flex flex-wrap gap-2">
               <select
                 value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "" || isResourceDifficulty(value)) setDifficulty(value);
+                }}
                 className="select select-bordered rounded-xl bg-base-100 select-xs text-xs h-10 px-3 font-semibold"
               >
                 <option value="">{isRtl ? "كل المستويات" : "All Difficulties"}</option>
@@ -257,7 +284,10 @@ export default function ResourcesPage() {
 
               <select
                 value={type}
-                onChange={(e) => setType(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "" || isResourceType(value)) setType(value);
+                }}
                 className="select select-bordered rounded-xl bg-base-100 select-xs text-xs h-10 px-3 font-semibold"
               >
                 <option value="">{isRtl ? "كل الأنواع" : "All Types"}</option>
@@ -295,7 +325,7 @@ export default function ResourcesPage() {
                       <button
                         onClick={() => handleVote(res._id, "up")}
                         aria-label="Upvote resource"
-                        className={`h-6 w-6 rounded-lg font-black transition-colors ${user && res.upvotes?.includes(user._id) ? "bg-cyan-400 text-slate-950" : "text-cyan-300 hover:bg-cyan-400/15"}`}
+                        className={`h-6 w-6 rounded-lg font-black transition-colors ${currentUserId && res.upvotes?.includes(currentUserId) ? "bg-cyan-400 text-slate-950" : "text-cyan-300 hover:bg-cyan-400/15"}`}
                       >
                         +
                       </button>
@@ -303,7 +333,7 @@ export default function ResourcesPage() {
                       <button
                         onClick={() => handleVote(res._id, "down")}
                         aria-label="Downvote resource"
-                        className={`h-6 w-6 rounded-lg font-black transition-colors ${user && res.downvotes?.includes(user._id) ? "bg-fuchsia-500 text-white" : "text-fuchsia-300 hover:bg-fuchsia-500/15"}`}
+                        className={`h-6 w-6 rounded-lg font-black transition-colors ${currentUserId && res.downvotes?.includes(currentUserId) ? "bg-fuchsia-500 text-white" : "text-fuchsia-300 hover:bg-fuchsia-500/15"}`}
                       >
                         -
                       </button>
@@ -342,8 +372,13 @@ export default function ResourcesPage() {
         {/* Suggest resource modal overlay */}
         {showSubmitModal && (
           <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="sr-panel card w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4">
-              <h3 className="font-extrabold text-sm">
+            <div
+              className="sr-panel card w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="resource-submit-title"
+            >
+              <h3 id="resource-submit-title" className="font-extrabold text-sm">
                 🔗 {isRtl ? "اقتراح مرجع تعليمي جديد" : "Submit New Study Material"}
               </h3>
               <form onSubmit={handleSubmitResource} className="space-y-3.5 text-xs font-semibold">
@@ -384,7 +419,10 @@ export default function ResourcesPage() {
                   <div className="space-y-1">
                     <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "نوع المرجع" : "Type"}</label>
                     <select
-                      value={newType} onChange={(e) => setNewType(e.target.value)}
+                      value={newType}
+                      onChange={(e) => {
+                        if (isResourceType(e.target.value)) setNewType(e.target.value);
+                      }}
                       className="select select-bordered w-full rounded-xl bg-base-100 text-xs select-xs h-10 px-3 font-semibold"
                     >
                       <option value="course">Course</option>
@@ -401,7 +439,10 @@ export default function ResourcesPage() {
                   <div className="space-y-1">
                     <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "مستوى الصعوبة" : "Difficulty"}</label>
                     <select
-                      value={newDifficulty} onChange={(e) => setNewDifficulty(e.target.value)}
+                      value={newDifficulty}
+                      onChange={(e) => {
+                        if (isResourceDifficulty(e.target.value)) setNewDifficulty(e.target.value);
+                      }}
                       className="select select-bordered w-full rounded-xl bg-base-100 text-xs select-xs h-10 px-3 font-semibold"
                     >
                       <option value="beginner">Beginner</option>

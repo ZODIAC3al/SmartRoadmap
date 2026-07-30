@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { apiFetch, fetchMe, logout } from "@/lib/api";
+import { logout } from "@/lib/api";
 
 import { useCompanyDashboard } from "./useCompanyDashboard";
 
