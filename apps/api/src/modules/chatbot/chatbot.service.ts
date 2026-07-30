@@ -130,7 +130,7 @@ export class ChatbotService {
       try {
         responseText = await this.llmProvider.chat(chatHistory);
       } catch (err: any) {
-        this.logger.warn(`Gemini API provider chat failed (${err.message}). Falling back to SmartRoadmap simulation AI response...`);
+        this.logger.debug(`Gemini API provider chat fallback (${err.message}). Using SmartRoadmap simulation AI response.`);
         responseText = '';
       }
     }
