@@ -127,8 +127,8 @@ export class LLMService {
           return response;
         }
       } catch (error: any) {
-        this.logger.warn(
-          `Provider ${provider.constructor.name} failed for Roadmap: ${error.message}. Trying next provider...`,
+        this.logger.debug(
+          `Provider ${provider.constructor.name} unavailable for Roadmap (${error.message}). Trying next provider...`,
         );
       }
     }
@@ -163,8 +163,8 @@ export class LLMService {
           return await provider.generateText(prompt, options.system);
         }
       } catch (error: any) {
-        this.logger.warn(
-          `Provider ${provider.constructor.name} failed for Complete: ${error.message}. Trying next provider...`,
+        this.logger.debug(
+          `Provider ${provider.constructor.name} unavailable for Complete (${error.message}). Trying next provider...`,
         );
       }
     }
@@ -200,8 +200,8 @@ export class LLMService {
           return questions;
         }
       } catch (error: any) {
-        this.logger.warn(
-          `Provider ${provider.constructor.name} failed for Quiz: ${error.message}. Trying next provider...`,
+        this.logger.debug(
+          `Provider ${provider.constructor.name} unavailable for Quiz (${error.message}). Trying next provider...`,
         );
       }
     }
@@ -232,8 +232,8 @@ export class LLMService {
           description: string;
         }>(prompt, 'JSON object with title and description fields', system);
       } catch (error: any) {
-        this.logger.warn(
-          `Provider ${provider.constructor.name} failed for RemedialNode: ${error.message}. Trying next provider...`,
+        this.logger.debug(
+          `Provider ${provider.constructor.name} unavailable for RemedialNode (${error.message}). Trying next provider...`,
         );
       }
     }

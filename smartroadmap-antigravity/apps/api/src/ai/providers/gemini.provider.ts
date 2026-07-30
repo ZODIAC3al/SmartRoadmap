@@ -76,8 +76,8 @@ export class GeminiProvider implements AiProvider {
         return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
       } catch (err: any) {
         lastError = err;
-        this.logger.warn(
-          `Gemini model ${m} failed (${err.message}). Trying next fallback...`,
+        this.logger.debug(
+          `Gemini model ${m} unavailable (${err.message}). Trying next fallback...`,
         );
       }
     }
@@ -139,8 +139,8 @@ export class GeminiProvider implements AiProvider {
         return JSON.parse(content) as T;
       } catch (err: any) {
         lastError = err;
-        this.logger.warn(
-          `Gemini JSON model ${m} failed (${err.message}). Trying next fallback...`,
+        this.logger.debug(
+          `Gemini JSON model ${m} unavailable (${err.message}). Trying next fallback...`,
         );
       }
     }
