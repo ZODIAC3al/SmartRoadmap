@@ -62,9 +62,14 @@ export class GeminiProvider implements AiProvider {
 
         if (!res.ok) {
           const errorText = await res.text();
-          throw new Error(
-            `Gemini API error (${m}): ${res.statusText} - ${errorText}`,
-          );
+          let shortMsg = `${res.statusText} (${res.status})`;
+          try {
+            const parsed = JSON.parse(errorText);
+            shortMsg = parsed.error?.message || shortMsg;
+          } catch {
+            shortMsg = errorText.slice(0, 150);
+          }
+          throw new Error(`Gemini API error (${m}): ${shortMsg}`);
         }
 
         const data: any = await res.json();
@@ -72,7 +77,7 @@ export class GeminiProvider implements AiProvider {
       } catch (err: any) {
         lastError = err;
         this.logger.warn(
-          `Gemini model ${m} failed, attempting next model fallback... (${err.message})`,
+          `Gemini model ${m} failed (${err.message}). Trying next fallback...`,
         );
       }
     }
@@ -119,9 +124,14 @@ export class GeminiProvider implements AiProvider {
 
         if (!res.ok) {
           const errorText = await res.text();
-          throw new Error(
-            `Gemini API JSON error (${m}): ${res.statusText} - ${errorText}`,
-          );
+          let shortMsg = `${res.statusText} (${res.status})`;
+          try {
+            const parsed = JSON.parse(errorText);
+            shortMsg = parsed.error?.message || shortMsg;
+          } catch {
+            shortMsg = errorText.slice(0, 150);
+          }
+          throw new Error(`Gemini API JSON error (${m}): ${shortMsg}`);
         }
 
         const data: any = await res.json();
@@ -130,7 +140,7 @@ export class GeminiProvider implements AiProvider {
       } catch (err: any) {
         lastError = err;
         this.logger.warn(
-          `Gemini JSON model ${m} failed, attempting next model fallback... (${err.message})`,
+          `Gemini JSON model ${m} failed (${err.message}). Trying next fallback...`,
         );
       }
     }
