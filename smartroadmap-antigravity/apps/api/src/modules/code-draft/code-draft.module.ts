@@ -6,7 +6,9 @@ import { CodeDraftController } from './code-draft.controller';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: CodeDraft.name, schema: CodeDraftSchema }]),
+    MongooseModule.forFeature([
+      { name: CodeDraft.name, schema: CodeDraftSchema },
+    ]),
   ],
   controllers: [CodeDraftController],
   providers: [CodeDraftService],

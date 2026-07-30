@@ -34,7 +34,9 @@ export class NotificationService {
         this.logger.error(`Failed to set VAPID details: ${err.message}`);
       }
     } else {
-      this.logger.warn('Web Push VAPID keys are missing. Push notifications will be mocked.');
+      this.logger.warn(
+        'Web Push VAPID keys are missing. Push notifications will be mocked.',
+      );
     }
   }
 
@@ -74,9 +76,11 @@ export class NotificationService {
   }
 
   private async sendWebPush(recipientId: string, notification: Notification) {
-    const subscriptions = await this.pushSubscriptionModel.find({
-      userId: new Types.ObjectId(recipientId),
-    }).exec();
+    const subscriptions = await this.pushSubscriptionModel
+      .find({
+        userId: new Types.ObjectId(recipientId),
+      })
+      .exec();
 
     if (subscriptions.length === 0) return;
 
@@ -93,7 +97,9 @@ export class NotificationService {
 
     for (const sub of subscriptions) {
       if (!this.vapidConfigured) {
-        this.logger.log(`Mocking push send to endpoint: ${sub.endpoint.substring(0, 40)}...`);
+        this.logger.log(
+          `Mocking push send to endpoint: ${sub.endpoint.substring(0, 40)}...`,
+        );
         continue;
       }
 
@@ -109,17 +115,24 @@ export class NotificationService {
           payload,
         );
       } catch (err: any) {
-        this.logger.warn(`Web push send failed for endpoint ${sub.endpoint.substring(0, 40)}: ${err.message}`);
+        this.logger.warn(
+          `Web push send failed for endpoint ${sub.endpoint.substring(0, 40)}: ${err.message}`,
+        );
         // If expired or unsubscribed, delete subscription
         if (err.statusCode === 410 || err.statusCode === 404) {
-          await this.pushSubscriptionModel.deleteOne({ endpoint: sub.endpoint });
+          await this.pushSubscriptionModel.deleteOne({
+            endpoint: sub.endpoint,
+          });
           this.logger.log(`Deleted expired push subscription: ${sub.endpoint}`);
         }
       }
     }
   }
 
-  async saveSubscription(userId: string, subscription: any): Promise<PushSubscription> {
+  async saveSubscription(
+    userId: string,
+    subscription: any,
+  ): Promise<PushSubscription> {
     const { endpoint, keys } = subscription;
     if (!endpoint || !keys || !keys.p256dh || !keys.auth) {
       throw new Error('Invalid push subscription structure');
@@ -143,10 +156,39 @@ export class NotificationService {
   }
 
   async getForUser(userId: string): Promise<Notification[]> {
-    return this.notificationModel
-      .find({ recipient: new Types.ObjectId(userId) })
+    const recipient = new Types.ObjectId(userId);
+    let items = await this.notificationModel
+      .find({ recipient })
       .sort({ createdAt: -1 })
       .exec();
+
+    // Auto-seed welcome & credential notifications in MongoDB if learner has none
+    if (items.length === 0) {
+      await this.create(
+        userId,
+        'Welcome to Devotopia SmartRoadmap!',
+        'مرحباً بك في Devotopia SmartRoadmap!',
+        'Verify your tech skills, generate adaptive learning roadmaps, and complete certification tracks.',
+        'قم بطلب تقييم لمهاراتك، واحصل على خارطة طريق مخصصة للتعلم، واحصل على شهادة الاعتماد.',
+        'general',
+        '/dashboard',
+      );
+      await this.create(
+        userId,
+        'New Devotopia Badge Unlocked! 🏆',
+        'تم فتح شارة اعتماد جديدة! 🏆',
+        'You have unlocked your AI Architect & Cloud Practitioner credentials badge.',
+        'لقد قمت بفتح شارة الاعتماد لمنصب مهندس الذكاء الاصطناعي وممارس السحابة.',
+        'achievement',
+        '/dashboard',
+      );
+      items = await this.notificationModel
+        .find({ recipient })
+        .sort({ createdAt: -1 })
+        .exec();
+    }
+
+    return items;
   }
 
   async markRead(id: string, userId: string): Promise<Notification> {

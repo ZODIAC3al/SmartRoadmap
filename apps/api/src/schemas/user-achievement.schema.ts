@@ -13,5 +13,6 @@ export class UserAchievement extends Document {
   unlockedAt!: Date;
 }
 
-export const UserAchievementSchema = SchemaFactory.createForClass(UserAchievement);
+export const UserAchievementSchema =
+  SchemaFactory.createForClass(UserAchievement);
 UserAchievementSchema.index({ userId: 1, achievementKey: 1 }, { unique: true });

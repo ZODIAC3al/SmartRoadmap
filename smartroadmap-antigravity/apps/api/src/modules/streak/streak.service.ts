@@ -15,7 +15,9 @@ export class StreakService {
   ) {}
 
   async getOrCreateStreak(userId: string): Promise<Streak> {
-    let streak = await this.streakModel.findOne({ userId: new Types.ObjectId(userId) });
+    let streak = await this.streakModel.findOne({
+      userId: new Types.ObjectId(userId),
+    });
     if (!streak) {
       streak = new this.streakModel({
         userId: new Types.ObjectId(userId),
@@ -30,9 +32,12 @@ export class StreakService {
     return streak;
   }
 
-  async recordActivity(userId: string, clientTimezone = 'UTC'): Promise<Streak> {
+  async recordActivity(
+    userId: string,
+    clientTimezone = 'UTC',
+  ): Promise<Streak> {
     const streak = await this.getOrCreateStreak(userId);
-    
+
     // Resolve timezone
     let tz = clientTimezone;
     try {
@@ -45,12 +50,16 @@ export class StreakService {
     // Compute today and yesterday
     const now = new Date();
     const today = now.toLocaleDateString('en-CA', { timeZone: tz }); // 'YYYY-MM-DD'
-    
+
     const yesterdayDate = new Date(now);
     yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    const yesterday = yesterdayDate.toLocaleDateString('en-CA', { timeZone: tz }); // 'YYYY-MM-DD'
+    const yesterday = yesterdayDate.toLocaleDateString('en-CA', {
+      timeZone: tz,
+    }); // 'YYYY-MM-DD'
 
-    this.logger.log(`Recording activity for User ${userId}. Today: ${today}, Yesterday: ${yesterday}, Stored: ${streak.lastActivityDate}`);
+    this.logger.log(
+      `Recording activity for User ${userId}. Today: ${today}, Yesterday: ${yesterday}, Stored: ${streak.lastActivityDate}`,
+    );
 
     if (streak.lastActivityDate === today) {
       // Already recorded activity today
@@ -79,7 +88,9 @@ export class StreakService {
         if (streak.currentStreak > streak.longestStreak) {
           streak.longestStreak = streak.currentStreak;
         }
-        this.logger.log(`Streak freeze consumed for User ${userId}. Remaining freezes: ${streak.freezesAvailable}`);
+        this.logger.log(
+          `Streak freeze consumed for User ${userId}. Remaining freezes: ${streak.freezesAvailable}`,
+        );
       } else {
         // Reset streak
         streak.currentStreak = 1;

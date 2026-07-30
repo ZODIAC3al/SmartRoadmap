@@ -8,6 +8,8 @@ import { Roadmap } from '../schemas/roadmap.schema';
 import { Streak } from '../schemas/streak.schema';
 import { UserAchievement } from '../schemas/user-achievement.schema';
 
+import { TrackCertification } from '../schemas/track-certification.schema';
+
 describe('ExportController & CertificationExportService', () => {
   let controller: ExportController;
   let service: CertificationExportService;
@@ -15,6 +17,7 @@ describe('ExportController & CertificationExportService', () => {
   let roadmapModel: any;
   let streakModel: any;
   let achievementModel: any;
+  let certModel: any;
 
   const mockUserId = '507f191e810c19729de860ea';
 
@@ -30,6 +33,15 @@ describe('ExportController & CertificationExportService', () => {
     };
     achievementModel = {
       countDocuments: jest.fn(),
+      create: jest.fn(),
+    };
+    certModel = {
+      findOne: jest.fn(),
+      find: jest.fn().mockReturnValue({
+        sort: jest
+          .fn()
+          .mockReturnValue({ lean: jest.fn().mockResolvedValue([]) }),
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -39,7 +51,14 @@ describe('ExportController & CertificationExportService', () => {
         { provide: getModelToken(User.name), useValue: userModel },
         { provide: getModelToken(Roadmap.name), useValue: roadmapModel },
         { provide: getModelToken(Streak.name), useValue: streakModel },
-        { provide: getModelToken(UserAchievement.name), useValue: achievementModel },
+        {
+          provide: getModelToken(UserAchievement.name),
+          useValue: achievementModel,
+        },
+        {
+          provide: getModelToken(TrackCertification.name),
+          useValue: certModel,
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -47,7 +66,9 @@ describe('ExportController & CertificationExportService', () => {
       .compile();
 
     controller = module.get<ExportController>(ExportController);
-    service = module.get<CertificationExportService>(CertificationExportService);
+    service = module.get<CertificationExportService>(
+      CertificationExportService,
+    );
   });
 
   it('should generate valid certification export payload for authenticated user', async () => {
@@ -60,8 +81,18 @@ describe('ExportController & CertificationExportService', () => {
     roadmapModel.findOne.mockResolvedValue({
       title: 'Frontend Engineer Track',
       modules: [
-        { id: 'm1', title: 'HTML Basics', status: 'completed', topics: ['HTML'] },
-        { id: 'm2', title: 'CSS Layout', status: 'completed', topics: ['CSS', 'Flexbox'] },
+        {
+          id: 'm1',
+          title: 'HTML Basics',
+          status: 'completed',
+          topics: ['HTML'],
+        },
+        {
+          id: 'm2',
+          title: 'CSS Layout',
+          status: 'completed',
+          topics: ['CSS', 'Flexbox'],
+        },
       ],
     });
 
@@ -72,8 +103,15 @@ describe('ExportController & CertificationExportService', () => {
 
     achievementModel.countDocuments.mockResolvedValue(4);
 
-    const jwtUser = { sub: mockUserId, email: 'alex@example.com', role: 'learner' as const };
-    const result = await controller.getCertificationExport('track_frontend', jwtUser);
+    const jwtUser = {
+      sub: mockUserId,
+      email: 'alex@example.com',
+      role: 'learner' as const,
+    };
+    const result = await controller.getCertificationExport(
+      'track_frontend',
+      jwtUser,
+    );
 
     expect(result).toBeDefined();
     expect(result.certificateId).toMatch(/^DEV-CERT-[A-F0-9]{16}$/);

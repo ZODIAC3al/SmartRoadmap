@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { Queue, Worker, Job } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
@@ -30,7 +35,8 @@ export class RemedialNodeQueueService implements OnModuleInit, OnModuleDestroy {
     private readonly configService: ConfigService,
     @InjectModel(Roadmap.name) private readonly roadmapModel: Model<Roadmap>,
     @InjectModel(Topic.name) private readonly topicModel: Model<Topic>,
-    @InjectModel(UserTopicResult.name) private readonly topicResultModel: Model<UserTopicResult>,
+    @InjectModel(UserTopicResult.name)
+    private readonly topicResultModel: Model<UserTopicResult>,
     private readonly llmService: LLMService,
   ) {
     const redisHost = this.configService.get<string>('REDIS_HOST');
@@ -44,7 +50,9 @@ export class RemedialNodeQueueService implements OnModuleInit, OnModuleDestroy {
         port: Number(this.configService.get<number>('REDIS_PORT', 6379)),
       };
 
-      this.queue = new Queue<RemedialNodeJobData>('remedial-node-generation', { connection });
+      this.queue = new Queue<RemedialNodeJobData>('remedial-node-generation', {
+        connection,
+      });
       this.worker = new Worker<RemedialNodeJobData>(
         'remedial-node-generation',
         async (job: Job<RemedialNodeJobData>) => {
@@ -53,9 +61,13 @@ export class RemedialNodeQueueService implements OnModuleInit, OnModuleDestroy {
         { connection },
       );
 
-      this.logger.log('RemedialNodeQueueService: Initialized BullMQ queue with Redis backend');
+      this.logger.log(
+        'RemedialNodeQueueService: Initialized BullMQ queue with Redis backend',
+      );
     } else {
-      this.logger.log('RemedialNodeQueueService: Initialized with async memory queue fallback');
+      this.logger.log(
+        'RemedialNodeQueueService: Initialized with async memory queue fallback',
+      );
     }
   }
 
@@ -86,7 +98,9 @@ export class RemedialNodeQueueService implements OnModuleInit, OnModuleDestroy {
           try {
             await this.processRemedialNodeJob(nextJob);
           } catch (err: any) {
-            this.logger.error(`Error processing in-memory remedial job: ${err.message}`);
+            this.logger.error(
+              `Error processing in-memory remedial job: ${err.message}`,
+            );
           }
         }
       });
@@ -98,7 +112,9 @@ export class RemedialNodeQueueService implements OnModuleInit, OnModuleDestroy {
    */
   async processRemedialNodeJob(data: RemedialNodeJobData): Promise<void> {
     const { userId, topicId, trackId, failPercentage, topicTitle } = data;
-    this.logger.log(`Processing remedial node job for topic "${topicId}" (failPct=${failPercentage}%)`);
+    this.logger.log(
+      `Processing remedial node job for topic "${topicId}" (failPct=${failPercentage}%)`,
+    );
 
     // 1. Fetch active roadmap for user
     const roadmap = await this.roadmapModel.findOne({
@@ -111,13 +127,17 @@ export class RemedialNodeQueueService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    const failedModule = roadmap.modules.find((m) => m.id === topicId || m.title === topicTitle);
+    const failedModule = roadmap.modules.find(
+      (m) => m.id === topicId || m.title === topicTitle,
+    );
     const baseTitle = failedModule ? failedModule.title : topicTitle || topicId;
 
     // Check if remedial node already inserted for this topic
     const remedialNodeId = `remedial_${topicId}_${Date.now()}`;
     const alreadyInserted = roadmap.modules.some(
-      (m) => m.id.includes(`remedial_${topicId}`) || m.title.toLowerCase().includes('remedial'),
+      (m) =>
+        m.id.includes(`remedial_${topicId}`) ||
+        m.title.toLowerCase().includes('remedial'),
     );
 
     if (alreadyInserted) {
@@ -126,7 +146,10 @@ export class RemedialNodeQueueService implements OnModuleInit, OnModuleDestroy {
     }
 
     // 2. Call AI service to generate remedial node metadata
-    const aiResponse = await this.llmService.generateRemedialNode(baseTitle, failPercentage);
+    const aiResponse = await this.llmService.generateRemedialNode(
+      baseTitle,
+      failPercentage,
+    );
 
     const title = aiResponse?.title || `${baseTitle} Fundamentals (Remedial)`;
     const description =
@@ -136,7 +159,9 @@ export class RemedialNodeQueueService implements OnModuleInit, OnModuleDestroy {
     // 3. Construct AI-generated node document per resources/spec.md section 3.2
     const prerequisites = failedModule ? failedModule.prerequisites : [];
     const positionX = failedModule ? (failedModule.positionX ?? 100) - 80 : 100;
-    const positionY = failedModule ? (failedModule.positionY ?? 100) + 120 : 100;
+    const positionY = failedModule
+      ? (failedModule.positionY ?? 100) + 120
+      : 100;
 
     const newModuleItem = {
       id: remedialNodeId,
@@ -167,7 +192,9 @@ export class RemedialNodeQueueService implements OnModuleInit, OnModuleDestroy {
       prerequisites: [],
       type: 'ai_generated',
       difficulty: 'beginner',
-      generatedFromTopic: Types.ObjectId.isValid(topicId) ? new Types.ObjectId(topicId) : undefined,
+      generatedFromTopic: Types.ObjectId.isValid(topicId)
+        ? new Types.ObjectId(topicId)
+        : undefined,
       generatedReason: 'fail_percentage_threshold',
     });
     await topicDoc.save();

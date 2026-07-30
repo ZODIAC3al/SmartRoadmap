@@ -1,7 +1,10 @@
 import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CodeDraftService } from './code-draft.service';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 
 @ApiTags('code-drafts')
 @ApiBearerAuth()
@@ -25,7 +28,13 @@ export class CodeDraftController {
   @Put()
   async saveDraft(
     @CurrentUser() user: JwtUser,
-    @Body() body: { challengeId?: string | null; language: string; code: string; title?: string },
+    @Body()
+    body: {
+      challengeId?: string | null;
+      language: string;
+      code: string;
+      title?: string;
+    },
   ) {
     const id = body.challengeId || null;
     const draft = await this.draftService.saveDraft(

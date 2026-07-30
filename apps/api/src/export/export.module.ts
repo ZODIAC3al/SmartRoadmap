@@ -5,7 +5,14 @@ import { CertificationExportService } from './certification-export.service';
 import { User, UserSchema } from '../schemas/user.schema';
 import { Roadmap, RoadmapSchema } from '../schemas/roadmap.schema';
 import { Streak, StreakSchema } from '../schemas/streak.schema';
-import { UserAchievement, UserAchievementSchema } from '../schemas/user-achievement.schema';
+import {
+  UserAchievement,
+  UserAchievementSchema,
+} from '../schemas/user-achievement.schema';
+import {
+  TrackCertification,
+  TrackCertificationSchema,
+} from '../schemas/track-certification.schema';
 
 @Module({
   imports: [
@@ -14,6 +21,7 @@ import { UserAchievement, UserAchievementSchema } from '../schemas/user-achievem
       { name: Roadmap.name, schema: RoadmapSchema },
       { name: Streak.name, schema: StreakSchema },
       { name: UserAchievement.name, schema: UserAchievementSchema },
+      { name: TrackCertification.name, schema: TrackCertificationSchema },
     ]),
   ],
   controllers: [ExportController],

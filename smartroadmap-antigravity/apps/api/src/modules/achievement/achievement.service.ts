@@ -122,6 +122,77 @@ const DEFINITIONS = [
     icon: '🗺️',
     tier: 'gold' as const,
   },
+  // ── Devotopia AWS-Style Credentials Badges ─────────────────────────
+  {
+    key: 'ai_architect',
+    title: 'AI Architect',
+    description: 'AI & LLM Integration Specialist',
+    icon: '🤖',
+    tier: 'gold' as const,
+  },
+  {
+    key: 'solutions_architect',
+    title: 'Solutions Architect',
+    description: 'Fullstack Architecture Expert',
+    icon: '🏛️',
+    tier: 'silver' as const,
+  },
+  {
+    key: 'cloud_practitioner',
+    title: 'Cloud Practitioner',
+    description: 'DevOps & Deployment Mastery',
+    icon: '☁️',
+    tier: 'silver' as const,
+  },
+  {
+    key: 'security_engineer',
+    title: 'Security Engineer',
+    description: 'Auth & Security Passport',
+    icon: '🛡️',
+    tier: 'silver' as const,
+  },
+  {
+    key: 'networking_specialist',
+    title: 'Networking Specialist',
+    description: 'API Protocols & Infrastructure',
+    icon: '🌐',
+    tier: 'silver' as const,
+  },
+  {
+    key: 'serverless_developer',
+    title: 'Serverless Developer',
+    description: 'Cloud Functions & Microservices',
+    icon: '⚡',
+    tier: 'silver' as const,
+  },
+  {
+    key: 'machine_learning',
+    title: 'Machine Learning',
+    description: 'Neural Networks & Deep Learning',
+    icon: '🧠',
+    tier: 'gold' as const,
+  },
+  {
+    key: 'data_analytics',
+    title: 'Data Analytics',
+    description: 'Data Pipeline & Big Data Querying',
+    icon: '📊',
+    tier: 'silver' as const,
+  },
+  {
+    key: 'devops_expert',
+    title: 'DevOps Expert',
+    description: 'CI/CD Pipelines & Containerization',
+    icon: '⚙️',
+    tier: 'silver' as const,
+  },
+  {
+    key: 'fullstack_master',
+    title: 'Fullstack Developer',
+    description: 'End-to-End Application Architecture',
+    icon: '💻',
+    tier: 'gold' as const,
+  },
 ];
 
 @Injectable()
@@ -154,11 +225,16 @@ export class AchievementService implements OnModuleInit {
   // ─────────────────────── Public Methods ───────────────────────────
 
   async getAchievementsForUser(userId: string) {
-    const definitions = await this.definitionModel.find().sort({ tier: -1 }).exec();
+    const definitions = await this.definitionModel
+      .find()
+      .sort({ tier: -1 })
+      .exec();
     const unlocked = await this.userAchievementModel
       .find({ userId: new Types.ObjectId(userId) })
       .exec();
-    const unlockedKeysMap = new Map(unlocked.map((u) => [u.achievementKey, u.unlockedAt]));
+    const unlockedKeysMap = new Map(
+      unlocked.map((u) => [u.achievementKey, u.unlockedAt]),
+    );
 
     return definitions.map((def) => {
       const unlockedAt = unlockedKeysMap.get(def.key);
@@ -194,7 +270,9 @@ export class AchievementService implements OnModuleInit {
       .exec();
 
     const keys = [...new Set(recent.map((u) => u.achievementKey))];
-    const definitions = await this.definitionModel.find({ key: { $in: keys } }).exec();
+    const definitions = await this.definitionModel
+      .find({ key: { $in: keys } })
+      .exec();
     const defsMap = new Map(definitions.map((d) => [d.key, d]));
 
     return recent.map((u) => {
@@ -210,7 +288,9 @@ export class AchievementService implements OnModuleInit {
 
   async unlock(userId: string, achievementKey: string): Promise<boolean> {
     try {
-      const definition = await this.definitionModel.findOne({ key: achievementKey });
+      const definition = await this.definitionModel.findOne({
+        key: achievementKey,
+      });
       if (!definition) return false;
 
       const existing = await this.userAchievementModel.findOne({
@@ -226,7 +306,9 @@ export class AchievementService implements OnModuleInit {
       });
       await userAchievement.save();
 
-      this.logger.log(`Achievement unlocked: User ${userId} → ${achievementKey}`);
+      this.logger.log(
+        `Achievement unlocked: User ${userId} → ${achievementKey}`,
+      );
 
       await this.notificationService.create(
         userId,
@@ -248,10 +330,17 @@ export class AchievementService implements OnModuleInit {
   // ─────────────────────── Event Listeners ──────────────────────────
 
   @OnEvent('module.completed')
-  async handleModuleCompleted(payload: { userId: string; roadmapId: string; moduleId: string; completedCount?: number }) {
+  async handleModuleCompleted(payload: {
+    userId: string;
+    roadmapId: string;
+    moduleId: string;
+    completedCount?: number;
+  }) {
     await this.unlock(payload.userId, 'first_module');
-    if ((payload.completedCount ?? 0) >= 5) await this.unlock(payload.userId, 'five_modules');
-    if ((payload.completedCount ?? 0) >= 10) await this.unlock(payload.userId, 'ten_modules');
+    if ((payload.completedCount ?? 0) >= 5)
+      await this.unlock(payload.userId, 'five_modules');
+    if ((payload.completedCount ?? 0) >= 10)
+      await this.unlock(payload.userId, 'ten_modules');
   }
 
   @OnEvent('roadmap.completed')
@@ -260,9 +349,13 @@ export class AchievementService implements OnModuleInit {
   }
 
   @OnEvent('streak.incremented')
-  async handleStreakIncremented(payload: { userId: string; streakCount: number }) {
+  async handleStreakIncremented(payload: {
+    userId: string;
+    streakCount: number;
+  }) {
     if (payload.streakCount >= 7) await this.unlock(payload.userId, 'streak_7');
-    if (payload.streakCount >= 30) await this.unlock(payload.userId, 'streak_30');
+    if (payload.streakCount >= 30)
+      await this.unlock(payload.userId, 'streak_30');
   }
 
   @OnEvent('quiz.completed')
@@ -301,24 +394,45 @@ export class AchievementService implements OnModuleInit {
   }
 
   @OnEvent('calendar.event.created')
-  async handleCalendarEventCreated(payload: { userId: string; eventCount: number }) {
-    if ((payload.eventCount ?? 0) >= 5) await this.unlock(payload.userId, 'calendar_scheduler');
+  async handleCalendarEventCreated(payload: {
+    userId: string;
+    eventCount: number;
+  }) {
+    if ((payload.eventCount ?? 0) >= 5)
+      await this.unlock(payload.userId, 'calendar_scheduler');
   }
 
   @OnEvent('calendar.item.assigned')
-  async handleCalendarItemAssigned(payload: { userId: string; eventId: string; title: string; dueDate?: Date }) {
-    this.logger.log(`Calendar work item assigned for user ${payload.userId} with dueDate: ${payload.dueDate}`);
+  async handleCalendarItemAssigned(payload: {
+    userId: string;
+    eventId: string;
+    title: string;
+    dueDate?: Date;
+  }) {
+    this.logger.log(
+      `Calendar work item assigned for user ${payload.userId} with dueDate: ${payload.dueDate}`,
+    );
   }
 
   @OnEvent('streak.updated')
-  async handleStreakUpdated(payload: { userId: string; currentStreak: number }) {
-    if (payload.currentStreak >= 7) await this.unlock(payload.userId, 'streak_7');
-    if (payload.currentStreak >= 30) await this.unlock(payload.userId, 'streak_30');
+  async handleStreakUpdated(payload: {
+    userId: string;
+    currentStreak: number;
+  }) {
+    if (payload.currentStreak >= 7)
+      await this.unlock(payload.userId, 'streak_7');
+    if (payload.currentStreak >= 30)
+      await this.unlock(payload.userId, 'streak_30');
   }
 
   @OnEvent('exam.completed')
-  async handleExamCompleted(payload: { userId: string; score: number; passed: boolean }) {
+  async handleExamCompleted(payload: {
+    userId: string;
+    score: number;
+    passed: boolean;
+  }) {
     await this.unlock(payload.userId, 'first_quiz');
-    if (payload.score === 100) await this.unlock(payload.userId, 'perfect_score');
+    if (payload.score === 100)
+      await this.unlock(payload.userId, 'perfect_score');
   }
 }

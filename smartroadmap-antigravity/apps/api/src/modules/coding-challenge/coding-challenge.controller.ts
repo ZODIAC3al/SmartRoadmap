@@ -1,7 +1,10 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CodingChallengeService } from './coding-challenge.service';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 
 @ApiTags('coding-challenges')
 @ApiBearerAuth()
@@ -23,7 +26,10 @@ export class CodingChallengeController {
 
   @Get(':id')
   async getChallenge(@CurrentUser() user: JwtUser, @Param('id') id: string) {
-    const challenge = await this.challengeService.getChallengeById(id, user.sub);
+    const challenge = await this.challengeService.getChallengeById(
+      id,
+      user.sub,
+    );
     return {
       success: true,
       data: challenge,

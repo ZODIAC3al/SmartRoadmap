@@ -12,7 +12,11 @@ export class CheatSheet extends Document {
   @Prop({ required: true })
   content!: string; // Markdown content (current version)
 
-  @Prop({ required: true, enum: ['gemini', 'groq', 'openai', 'mock'], default: 'mock' })
+  @Prop({
+    required: true,
+    enum: ['gemini', 'groq', 'openai', 'mock'],
+    default: 'mock',
+  })
   generatedByProvider!: 'gemini' | 'groq' | 'openai' | 'mock';
 
   @Prop({ default: 0 })
@@ -29,7 +33,11 @@ export class CheatSheet extends Document {
     ],
     default: [],
   })
-  versions!: Array<{ content: string; generatedByProvider: string; generatedAt: Date }>;
+  versions!: Array<{
+    content: string;
+    generatedByProvider: string;
+    generatedAt: Date;
+  }>;
 }
 
 export const CheatSheetSchema = SchemaFactory.createForClass(CheatSheet);

@@ -25,11 +25,26 @@ export class UserTopicResult extends Document {
   lastScore!: number;
 
   @Prop({
-    enum: ['not_started', 'in_progress', 'passed', 'failed', 'remedial_inserted'],
+    enum: [
+      'not_started',
+      'in_progress',
+      'passed',
+      'failed',
+      'remedial_inserted',
+    ],
     default: 'not_started',
   })
-  status!: 'not_started' | 'in_progress' | 'passed' | 'failed' | 'remedial_inserted';
+  status!:
+    | 'not_started'
+    | 'in_progress'
+    | 'passed'
+    | 'failed'
+    | 'remedial_inserted';
 }
 
-export const UserTopicResultSchema = SchemaFactory.createForClass(UserTopicResult);
-UserTopicResultSchema.index({ userId: 1, trackId: 1, topicId: 1 }, { unique: true });
+export const UserTopicResultSchema =
+  SchemaFactory.createForClass(UserTopicResult);
+UserTopicResultSchema.index(
+  { userId: 1, trackId: 1, topicId: 1 },
+  { unique: true },
+);

@@ -23,5 +23,8 @@ export const CodeDraftSchema = SchemaFactory.createForClass(CodeDraft);
 // Compound unique index for user-challenge pair (only applies when challengeId is not null)
 CodeDraftSchema.index(
   { userId: 1, challengeId: 1 },
-  { unique: true, partialFilterExpression: { challengeId: { $type: 'string' } } },
+  {
+    unique: true,
+    partialFilterExpression: { challengeId: { $type: 'string' } },
+  },
 );

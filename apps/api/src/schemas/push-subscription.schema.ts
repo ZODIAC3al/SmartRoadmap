@@ -22,4 +22,5 @@ export class PushSubscription extends Document {
   keys!: PushSubscriptionKeys;
 }
 
-export const PushSubscriptionSchema = SchemaFactory.createForClass(PushSubscription);
+export const PushSubscriptionSchema =
+  SchemaFactory.createForClass(PushSubscription);

@@ -20,7 +20,10 @@ export class CalendarService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async create(userId: string, data: Partial<CalendarEvent>): Promise<CalendarEvent> {
+  async create(
+    userId: string,
+    data: Partial<CalendarEvent>,
+  ): Promise<CalendarEvent> {
     const event = new this.eventModel({
       ...data,
       userId: new Types.ObjectId(userId),
@@ -53,7 +56,11 @@ export class CalendarService {
       .exec();
   }
 
-  async update(id: string, userId: string, data: Partial<CalendarEvent>): Promise<CalendarEvent> {
+  async update(
+    id: string,
+    userId: string,
+    data: Partial<CalendarEvent>,
+  ): Promise<CalendarEvent> {
     const updated = await this.eventModel.findOneAndUpdate(
       { _id: new Types.ObjectId(id), userId: new Types.ObjectId(userId) },
       { $set: data },
@@ -81,17 +88,21 @@ export class CalendarService {
       userId: new Types.ObjectId(userId),
       status: 'active',
     });
-    if (!roadmap) throw new NotFoundException('No active roadmap found for user');
+    if (!roadmap)
+      throw new NotFoundException('No active roadmap found for user');
 
     // Extract user availability, fallback to 18:00 - 20:00 weekdays if empty
-    const availability = user.studyAvailability && user.studyAvailability.length > 0
-      ? user.studyAvailability
-      : [1, 2, 3, 4, 5].flatMap((day) => [
-          { dayOfWeek: day, startHour: 18, endHour: 20 },
-        ]);
+    const availability =
+      user.studyAvailability && user.studyAvailability.length > 0
+        ? user.studyAvailability
+        : [1, 2, 3, 4, 5].flatMap((day) => [
+            { dayOfWeek: day, startHour: 18, endHour: 20 },
+          ]);
 
     // Find all incomplete modules
-    const incompleteModules = roadmap.modules.filter((m) => m.status !== 'completed');
+    const incompleteModules = roadmap.modules.filter(
+      (m) => m.status !== 'completed',
+    );
     if (incompleteModules.length === 0) return [];
 
     // Wipe any existing auto-scheduled future events to prevent doubles
@@ -111,7 +122,9 @@ export class CalendarService {
 
       while (hoursNeeded > 0) {
         const dayOfWeek = currentDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
-        const availableSlots = availability.filter((a) => a.dayOfWeek === dayOfWeek);
+        const availableSlots = availability.filter(
+          (a) => a.dayOfWeek === dayOfWeek,
+        );
 
         for (const slot of availableSlots) {
           if (hoursNeeded <= 0) break;
@@ -143,9 +156,11 @@ export class CalendarService {
         // Advance to next day
         currentDay = new Date(currentDay);
         currentDay.setDate(currentDay.getDate() + 1);
-        
+
         // Safety lock: don't schedule more than 90 days out
-        const diffDays = Math.ceil((currentDay.getTime() - now.getTime()) / (1000 * 3600 * 24));
+        const diffDays = Math.ceil(
+          (currentDay.getTime() - now.getTime()) / (1000 * 3600 * 24),
+        );
         if (diffDays > 90) break;
       }
     }

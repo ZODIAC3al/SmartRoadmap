@@ -1,7 +1,18 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CalendarService } from './calendar.service';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 
 @ApiTags('calendar')
 @ApiBearerAuth()

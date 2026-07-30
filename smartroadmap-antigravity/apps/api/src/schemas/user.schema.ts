@@ -60,14 +60,20 @@ export class User extends Document {
   themePreference!: string;
 
   @Prop({
-    type: [{
-      dayOfWeek: Number,
-      startHour: Number,
-      endHour: Number,
-    }],
+    type: [
+      {
+        dayOfWeek: Number,
+        startHour: Number,
+        endHour: Number,
+      },
+    ],
     default: [],
   })
-  studyAvailability!: Array<{ dayOfWeek: number; startHour: number; endHour: number }>;
+  studyAvailability!: Array<{
+    dayOfWeek: number;
+    startHour: number;
+    endHour: number;
+  }>;
 
   // ── Subscription (set ONLY by verified PayPal captures/webhooks) ──
   @Prop({ default: 'free', enum: ['free', 'pro_learner', 'company_tier'] })

@@ -1,7 +1,10 @@
 import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AchievementService } from './achievement.service';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('achievements')
@@ -17,7 +20,9 @@ export class AchievementController {
   @Get()
   @HttpCode(HttpStatus.OK)
   async getMyAchievements(@CurrentUser() user: JwtUser) {
-    const achievements = await this.achievementService.getAchievementsForUser(user.sub);
+    const achievements = await this.achievementService.getAchievementsForUser(
+      user.sub,
+    );
     return { success: true, data: achievements };
   }
 

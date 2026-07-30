@@ -18,6 +18,7 @@ import { StreakService } from '../streak/streak.service';
 import { LLMService } from '../../ai/llm.service';
 import type { JwtUser } from '../../common/decorators/current-user.decorator';
 import { assertSelfOrAdmin } from '../../common/guards/ownership.util';
+import { CertificationExportService } from '../../export/certification-export.service';
 
 // Memory store for questions since we mock or fetch them dynamically
 // In production, these can be cached in Redis or stored in the QuizSession document
@@ -38,6 +39,7 @@ export class AssessmentService {
     private readonly streakService: StreakService,
     private readonly eventEmitter: EventEmitter2,
     private readonly llmService: LLMService,
+    private readonly certService: CertificationExportService,
   ) {}
 
   async startSession(
@@ -120,7 +122,7 @@ export class AssessmentService {
       correct,
       difficulty: currentQuestion.difficulty || 'medium',
       timeTaken,
-    } as any);
+    });
 
     await session.save();
 
@@ -204,6 +206,20 @@ export class AssessmentService {
           session.userId.toString(),
           session.moduleId,
         );
+        // Auto-issue track certification if ALL modules are now completed
+        const issuedCert = await this.certService.checkAndIssueCertification(
+          session.userId.toString(),
+        );
+        if (issuedCert) {
+          this.eventEmitter.emit('track.completed', {
+            userId: session.userId.toString(),
+            certificateId: issuedCert.certificateId,
+            trackTitle: issuedCert.trackTitle,
+          });
+          this.logger.log(
+            `🎓 Track completed & cert issued for user ${session.userId}: ${issuedCert.certificateId}`,
+          );
+        }
       } else {
         await this.addRemedialModule(
           session.userId.toString(),

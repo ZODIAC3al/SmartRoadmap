@@ -127,7 +127,9 @@ export class LLMService {
           return response;
         }
       } catch (error: any) {
-        this.logger.warn(`Provider ${provider.constructor.name} failed for Roadmap: ${error.message}. Trying next provider...`);
+        this.logger.warn(
+          `Provider ${provider.constructor.name} failed for Roadmap: ${error.message}. Trying next provider...`,
+        );
       }
     }
 
@@ -151,13 +153,19 @@ export class LLMService {
       }
       try {
         if (options.json) {
-          const res = await provider.generateJSON<any>(prompt, 'Valid JSON object', options.system);
+          const res = await provider.generateJSON<any>(
+            prompt,
+            'Valid JSON object',
+            options.system,
+          );
           return JSON.stringify(res);
         } else {
           return await provider.generateText(prompt, options.system);
         }
       } catch (error: any) {
-        this.logger.warn(`Provider ${provider.constructor.name} failed for Complete: ${error.message}. Trying next provider...`);
+        this.logger.warn(
+          `Provider ${provider.constructor.name} failed for Complete: ${error.message}. Trying next provider...`,
+        );
       }
     }
 
@@ -185,12 +193,16 @@ export class LLMService {
           'JSON object with questions array containing id, question, options array, correctAnswer, explanation, and difficulty',
           system,
         );
-        const questions = Array.isArray(response.questions) ? response.questions : [];
+        const questions = Array.isArray(response.questions)
+          ? response.questions
+          : [];
         if (questions.length > 0) {
           return questions;
         }
       } catch (error: any) {
-        this.logger.warn(`Provider ${provider.constructor.name} failed for Quiz: ${error.message}. Trying next provider...`);
+        this.logger.warn(
+          `Provider ${provider.constructor.name} failed for Quiz: ${error.message}. Trying next provider...`,
+        );
       }
     }
 
@@ -215,13 +227,14 @@ export class LLMService {
         const system =
           'Reply with ONLY a JSON object of shape {"title": string, "description": string}.';
 
-        return await provider.generateJSON<{ title: string; description: string }>(
-          prompt,
-          'JSON object with title and description fields',
-          system,
-        );
+        return await provider.generateJSON<{
+          title: string;
+          description: string;
+        }>(prompt, 'JSON object with title and description fields', system);
       } catch (error: any) {
-        this.logger.warn(`Provider ${provider.constructor.name} failed for RemedialNode: ${error.message}. Trying next provider...`);
+        this.logger.warn(
+          `Provider ${provider.constructor.name} failed for RemedialNode: ${error.message}. Trying next provider...`,
+        );
       }
     }
 

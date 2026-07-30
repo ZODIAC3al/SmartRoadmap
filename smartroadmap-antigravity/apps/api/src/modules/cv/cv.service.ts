@@ -26,9 +26,11 @@ export class CvService {
   }
 
   async getCvByUserId(userId: string): Promise<Cv | null> {
-    return this.cvModel.findOne({
-      userId: new Types.ObjectId(userId),
-    }).exec();
+    return this.cvModel
+      .findOne({
+        userId: new Types.ObjectId(userId),
+      })
+      .exec();
   }
 
   async saveCv(userId: string, data: any): Promise<Cv> {
