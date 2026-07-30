@@ -2,6 +2,7 @@ import {
   Injectable,
   Logger,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -95,16 +96,11 @@ export class AssessmentService {
     }
     if (user) assertSelfOrAdmin(user, session.userId.toString());
 
-    let questions = sessionQuestionsCache.get(sessionId);
+    const questions = sessionQuestionsCache.get(sessionId);
     if (!questions) {
-      this.logger.warn(`Session questions cache missed for ${sessionId}. Re-generating quiz questions dynamically...`);
-      const topicName = session.moduleId.replace(/^mod-/, '').replace(/-/g, ' ');
-      questions = await this.llmService.generateQuiz(
-        topicName,
-        'medium',
-        this.TOTAL_QUESTIONS,
+      throw new BadRequestException(
+        'Session questions cache expired. Please restart quiz.',
       );
-      sessionQuestionsCache.set(sessionId, questions);
     }
 
     const currentIndex = session.answers.length;
