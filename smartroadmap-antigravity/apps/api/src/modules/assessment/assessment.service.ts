@@ -89,10 +89,21 @@ export class AssessmentService {
     user?: JwtUser,
   ): Promise<any> {
     const session = await this.sessionModel.findById(sessionId);
-    if (!session || session.status === 'completed') {
-      throw new BadRequestException(
-        'Active session not found or already completed.',
-      );
+    if (!session) {
+      throw new BadRequestException('Active session not found.');
+    }
+    if (session.status === 'completed') {
+      return {
+        correct: true,
+        explanation: 'Quiz session already completed.',
+        isFinished: true,
+        results: {
+          score: session.score || 100,
+          passed: session.passed ?? true,
+          correctAnswers: session.answers.filter((a) => a.correct).length,
+          totalQuestions: this.TOTAL_QUESTIONS,
+        },
+      };
     }
     if (user) assertSelfOrAdmin(user, session.userId.toString());
 
@@ -129,12 +140,17 @@ export class AssessmentService {
     const correct =
       expectedAnswerStr.toLowerCase().trim() === (answer || '').toLowerCase().trim();
 
+    const rawDiff = String(currentQuestion.difficulty || 'medium').toLowerCase().trim();
+    const validDifficulty = (['easy', 'medium', 'hard'].includes(rawDiff)
+      ? rawDiff
+      : 'medium') as 'easy' | 'medium' | 'hard';
+
     // Log answer sub-document
     session.answers.push({
       question: currentQuestion.question,
       userAnswer: answer,
       correct,
-      difficulty: currentQuestion.difficulty || 'medium',
+      difficulty: validDifficulty,
       timeTaken,
     });
 
