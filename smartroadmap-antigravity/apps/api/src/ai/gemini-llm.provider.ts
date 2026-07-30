@@ -12,7 +12,20 @@ export class GeminiLLMProvider implements LLMProvider {
     options?: { isJson?: boolean },
   ): Promise<string> {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`;
+      const isAQKey = this.apiKey.startsWith('AQ.');
+      const modelName = 'gemini-2.0-flash';
+      const url = isAQKey
+        ? `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`
+        : `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${this.apiKey}`;
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (isAQKey) {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+      } else {
+        headers['x-goog-api-key'] = this.apiKey;
+      }
 
       // 1. Separate system instructions
       const systemMessage = messages.find((m) => m.role === 'system');
@@ -41,9 +54,7 @@ export class GeminiLLMProvider implements LLMProvider {
         };
       }
 
-      const response = await axios.post(url, body, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await axios.post(url, body, { headers });
 
       const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!text) {
