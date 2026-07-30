@@ -15,8 +15,14 @@ export class AchievementDefinition extends Document {
   @Prop({ required: true })
   icon!: string;
 
-  @Prop({ required: true, enum: ['bronze', 'silver', 'gold'], default: 'bronze' })
+  @Prop({
+    required: true,
+    enum: ['bronze', 'silver', 'gold'],
+    default: 'bronze',
+  })
   tier!: 'bronze' | 'silver' | 'gold';
 }
 
-export const AchievementDefinitionSchema = SchemaFactory.createForClass(AchievementDefinition);
+export const AchievementDefinitionSchema = SchemaFactory.createForClass(
+  AchievementDefinition,
+);

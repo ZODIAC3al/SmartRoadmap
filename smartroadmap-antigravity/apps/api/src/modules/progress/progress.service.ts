@@ -19,11 +19,17 @@ export class ProgressService {
     userId: string,
     roadmapId: string,
     moduleId: string,
-    event: 'module_started' | 'module_completed' | 'module_failed' | 'quiz_attempt',
+    event:
+      | 'module_started'
+      | 'module_completed'
+      | 'module_failed'
+      | 'quiz_attempt',
     scoreAtEvent = 0,
     timeSpentSeconds = 0,
   ): Promise<ProgressSnapshot> {
-    this.logger.log(`Recording progress snapshot: User ${userId}, Module ${moduleId}, Event ${event}`);
+    this.logger.log(
+      `Recording progress snapshot: User ${userId}, Module ${moduleId}, Event ${event}`,
+    );
     const created = new this.snapshotModel({
       userId: new Types.ObjectId(userId),
       roadmapId: new Types.ObjectId(roadmapId),
@@ -44,11 +50,16 @@ export class ProgressService {
       return 0;
     }
 
-    const completed = roadmap.modules.filter((m) => m.status === 'completed').length;
+    const completed = roadmap.modules.filter(
+      (m) => m.status === 'completed',
+    ).length;
     return Math.round((completed / roadmap.modules.length) * 100);
   }
 
-  async getTrends(userId: string, moduleId: string): Promise<{ date: string; score: number }[]> {
+  async getTrends(
+    userId: string,
+    moduleId: string,
+  ): Promise<{ date: string; score: number }[]> {
     const snapshots = await this.snapshotModel
       .find({
         userId: new Types.ObjectId(userId),
@@ -62,7 +73,12 @@ export class ProgressService {
     return snapshots.map((s) => {
       const created = (s as any).createdAt || (s as any).created_at;
       return {
-        date: created ? new Date(created).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '',
+        date: created
+          ? new Date(created).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            })
+          : '',
         score: s.scoreAtEvent,
       };
     });

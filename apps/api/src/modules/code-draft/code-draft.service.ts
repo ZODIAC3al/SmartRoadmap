@@ -10,10 +10,17 @@ export class CodeDraftService {
     private readonly draftModel: Model<CodeDraft>,
   ) {}
 
-  async getDraft(userId: string, challengeId: string | null): Promise<CodeDraft | null> {
-    const query = challengeId 
+  async getDraft(
+    userId: string,
+    challengeId: string | null,
+  ): Promise<CodeDraft | null> {
+    const query = challengeId
       ? { userId: new Types.ObjectId(userId), challengeId }
-      : { userId: new Types.ObjectId(userId), challengeId: null, title: 'scratchpad' };
+      : {
+          userId: new Types.ObjectId(userId),
+          challengeId: null,
+          title: 'scratchpad',
+        };
     return this.draftModel.findOne(query).exec();
   }
 
@@ -24,15 +31,19 @@ export class CodeDraftService {
     code: string,
     title?: string,
   ): Promise<CodeDraft> {
-    const query = challengeId 
+    const query = challengeId
       ? { userId: new Types.ObjectId(userId), challengeId }
-      : { userId: new Types.ObjectId(userId), challengeId: null, title: 'scratchpad' };
+      : {
+          userId: new Types.ObjectId(userId),
+          challengeId: null,
+          title: 'scratchpad',
+        };
 
     const update = {
       $set: {
         language,
         code,
-        title: challengeId ? null : (title || 'scratchpad'),
+        title: challengeId ? null : title || 'scratchpad',
       },
     };
 

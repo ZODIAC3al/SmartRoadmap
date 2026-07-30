@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AudioSummary, AudioSummarySchema } from '../../schemas/audio-summary.schema';
+import {
+  AudioSummary,
+  AudioSummarySchema,
+} from '../../schemas/audio-summary.schema';
 import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
 import { AudioSummaryService } from './audio-summary.service';
 import { AudioSummaryController } from './audio-summary.controller';

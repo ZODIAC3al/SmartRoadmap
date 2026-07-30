@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 
@@ -36,7 +40,9 @@ export class VoiceAgentService {
       return { token: res.data.token };
     } catch (err: any) {
       this.logger.error(`Failed to mint AssemblyAI token: ${err.message}`);
-      throw new InternalServerErrorException('Failed to mint voice agent token');
+      throw new InternalServerErrorException(
+        'Failed to mint voice agent token',
+      );
     }
   }
 }

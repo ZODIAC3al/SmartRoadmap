@@ -73,7 +73,7 @@ describe('AuthService', () => {
       email: 'r@test.com',
       name: 'R',
       password: 'password123',
-    } as any);
+    });
 
     const push = FakeUserModel.updateOne.mock.calls.find(
       ([, u]) => u?.$push?.refreshTokenHashes,
@@ -97,7 +97,7 @@ describe('AuthService', () => {
       email: 'A@Test.com',
       name: 'Ahmed',
       password: 'password123',
-    } as any);
+    });
 
     const stored = FakeUserModel.docs[0];
     expect(stored.passwordHash).not.toBe('password123');
@@ -111,7 +111,7 @@ describe('AuthService', () => {
       name: 'B',
       password: 'password123',
       role: 'admin' as any,
-    } as any);
+    });
     // DTO validation blocks it, and the service defaults anything unexpected.
     expect(['learner', 'company']).toContain(FakeUserModel.docs[0].role);
   });
@@ -151,7 +151,7 @@ describe('AuthService', () => {
         }),
       }),
     };
-    (svc.config as any).getOrThrow = (k: string) => CONFIG[k] ?? 'client-id';
+    svc.config.getOrThrow = (k: string) => CONFIG[k] ?? 'client-id';
     FakeUserModel.findOne.mockResolvedValueOnce({
       provider: 'local',
       email: 'local@test.com',

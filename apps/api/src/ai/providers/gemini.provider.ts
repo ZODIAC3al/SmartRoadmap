@@ -11,7 +11,8 @@ export class GeminiProvider implements AiProvider {
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>('GEMINI_API_KEY') || '';
     this.model = this.config.get<string>('GEMINI_MODEL') || 'gemini-2.0-flash';
-    this.ttsModel = this.config.get<string>('GEMINI_TTS_MODEL') || 'gemini-2.0-flash';
+    this.ttsModel =
+      this.config.get<string>('GEMINI_TTS_MODEL') || 'gemini-2.0-flash';
   }
 
   private getModelUrl(modelName: string): string {
@@ -38,7 +39,9 @@ export class GeminiProvider implements AiProvider {
       throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    const modelsToTry = Array.from(new Set([this.model, 'gemini-2.0-flash', 'gemini-1.5-flash']));
+    const modelsToTry = Array.from(
+      new Set([this.model, 'gemini-2.0-flash', 'gemini-1.5-flash']),
+    );
     let lastError: Error | null = null;
 
     for (const m of modelsToTry) {
@@ -46,7 +49,9 @@ export class GeminiProvider implements AiProvider {
         const url = this.getModelUrl(m);
         const body = {
           contents: [{ parts: [{ text: prompt }] }],
-          ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
+          ...(system
+            ? { systemInstruction: { parts: [{ text: system }] } }
+            : {}),
         };
 
         const res = await fetch(url, {
@@ -57,26 +62,36 @@ export class GeminiProvider implements AiProvider {
 
         if (!res.ok) {
           const errorText = await res.text();
-          throw new Error(`Gemini API error (${m}): ${res.statusText} - ${errorText}`);
+          throw new Error(
+            `Gemini API error (${m}): ${res.statusText} - ${errorText}`,
+          );
         }
 
         const data: any = await res.json();
         return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
       } catch (err: any) {
         lastError = err;
-        this.logger.warn(`Gemini model ${m} failed, attempting next model fallback... (${err.message})`);
+        this.logger.warn(
+          `Gemini model ${m} failed, attempting next model fallback... (${err.message})`,
+        );
       }
     }
 
     throw lastError || new Error('All Gemini models failed');
   }
 
-  async generateJSON<T>(prompt: string, schemaDescription: string, system?: string): Promise<T> {
+  async generateJSON<T>(
+    prompt: string,
+    schemaDescription: string,
+    system?: string,
+  ): Promise<T> {
     if (!this.apiKey) {
       throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    const modelsToTry = Array.from(new Set([this.model, 'gemini-2.0-flash', 'gemini-1.5-flash']));
+    const modelsToTry = Array.from(
+      new Set([this.model, 'gemini-2.0-flash', 'gemini-1.5-flash']),
+    );
     let lastError: Error | null = null;
 
     for (const m of modelsToTry) {
@@ -104,7 +119,9 @@ export class GeminiProvider implements AiProvider {
 
         if (!res.ok) {
           const errorText = await res.text();
-          throw new Error(`Gemini API JSON error (${m}): ${res.statusText} - ${errorText}`);
+          throw new Error(
+            `Gemini API JSON error (${m}): ${res.statusText} - ${errorText}`,
+          );
         }
 
         const data: any = await res.json();
@@ -112,7 +129,9 @@ export class GeminiProvider implements AiProvider {
         return JSON.parse(content) as T;
       } catch (err: any) {
         lastError = err;
-        this.logger.warn(`Gemini JSON model ${m} failed, attempting next model fallback... (${err.message})`);
+        this.logger.warn(
+          `Gemini JSON model ${m} failed, attempting next model fallback... (${err.message})`,
+        );
       }
     }
 
@@ -124,7 +143,9 @@ export class GeminiProvider implements AiProvider {
       throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    this.logger.log(`GeminiProvider: rendering speech via Google TTS API for voice ${voice}`);
+    this.logger.log(
+      `GeminiProvider: rendering speech via Google TTS API for voice ${voice}`,
+    );
     try {
       // Use the standard Google Cloud Text-to-Speech API which works with standard API keys
       const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${this.apiKey}`;
@@ -133,7 +154,12 @@ export class GeminiProvider implements AiProvider {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           input: { text },
-          voice: { languageCode: voice.includes('-') ? voice.split('-').slice(0, 2).join('-') : 'en-US', name: voice },
+          voice: {
+            languageCode: voice.includes('-')
+              ? voice.split('-').slice(0, 2).join('-')
+              : 'en-US',
+            name: voice,
+          },
           audioConfig: { audioEncoding: 'MP3' },
         }),
       });
@@ -144,8 +170,10 @@ export class GeminiProvider implements AiProvider {
           return Buffer.from(data.audioContent, 'base64');
         }
       }
-      this.logger.warn(`Google Cloud TTS call returned status: ${res.status}. Falling back to Gemini generative audio...`);
-      
+      this.logger.warn(
+        `Google Cloud TTS call returned status: ${res.status}. Falling back to Gemini generative audio...`,
+      );
+
       // Fallback: Use Gemini model audio output modalities if Cloud TTS is not enabled on the key
       const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
       const geminiRes = await fetch(geminiUrl, {
@@ -167,7 +195,10 @@ export class GeminiProvider implements AiProvider {
         // Look for the base64 audio output parts
         const parts = geminiData.candidates?.[0]?.content?.parts || [];
         for (const part of parts) {
-          if (part.inlineData && part.inlineData.mimeType.startsWith('audio/')) {
+          if (
+            part.inlineData &&
+            part.inlineData.mimeType.startsWith('audio/')
+          ) {
             return Buffer.from(part.inlineData.data, 'base64');
           }
         }
@@ -177,7 +208,7 @@ export class GeminiProvider implements AiProvider {
     }
 
     // Default ultimate mock fallback to prevent crash
-    const minimalMp3Base64 = 
+    const minimalMp3Base64 =
       'SUQzBAAAAAAAAFRYWFgAAAASAAADbWFqb3JfYnJhbmQAbXAzdgBUWFhYAAAAEgAAA21pbm9yX3ZlcnNpb24AMABUWFhYAAAAHgAAA2NvbXBhdGlibGVfYnJhbmRzAG1wM2JtcDMydXA1AFRFTkM="';
     return Buffer.from(minimalMp3Base64, 'base64');
   }

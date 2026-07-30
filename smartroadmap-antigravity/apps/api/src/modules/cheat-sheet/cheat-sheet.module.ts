@@ -2,8 +2,14 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CheatSheet, CheatSheetSchema } from '../../schemas/cheat-sheet.schema';
 import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
-import { QuizSession, QuizSessionSchema } from '../../schemas/quiz-session.schema';
-import { UserTopicResult, UserTopicResultSchema } from '../../schemas/user-topic-result.schema';
+import {
+  QuizSession,
+  QuizSessionSchema,
+} from '../../schemas/quiz-session.schema';
+import {
+  UserTopicResult,
+  UserTopicResultSchema,
+} from '../../schemas/user-topic-result.schema';
 import { CheatSheetService } from './cheat-sheet.service';
 import { CheatSheetController } from './cheat-sheet.controller';
 

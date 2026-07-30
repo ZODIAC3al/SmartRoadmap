@@ -9,11 +9,20 @@ export class MockProvider implements AiProvider {
     return `Simulated AI text response for prompt: "${prompt.substring(0, 50)}..."`;
   }
 
-  async generateJSON<T>(prompt: string, schemaDescription: string, system?: string): Promise<T> {
-    this.logger.log(`MockProvider: generating JSON matching schema: ${schemaDescription}`);
+  async generateJSON<T>(
+    prompt: string,
+    schemaDescription: string,
+    system?: string,
+  ): Promise<T> {
+    this.logger.log(
+      `MockProvider: generating JSON matching schema: ${schemaDescription}`,
+    );
 
     // Fallback template structures
-    if (schemaDescription.includes('modules') || prompt.toLowerCase().includes('roadmap')) {
+    if (
+      schemaDescription.includes('modules') ||
+      prompt.toLowerCase().includes('roadmap')
+    ) {
       const roleMatch =
         prompt.match(/targetRole[:\s"]+([^",\n]+)/i) ||
         prompt.match(/role[:\s"]+([^",\n]+)/i);
@@ -29,7 +38,12 @@ export class MockProvider implements AiProvider {
             description: `Core fundamentals, environment setup, and essential tools for ${role}.`,
             prerequisites: [],
             estimatedHours: 12,
-            topics: ['Environment Setup', 'Core Concepts', 'Tooling & CLI', 'Hello World Project'],
+            topics: [
+              'Environment Setup',
+              'Core Concepts',
+              'Tooling & CLI',
+              'Hello World Project',
+            ],
             difficulty: 'beginner',
             status: 'in_progress',
             positionX: 560,
@@ -38,10 +52,16 @@ export class MockProvider implements AiProvider {
           {
             id: 'mod-2',
             title: 'Core Patterns & Architecture',
-            description: 'Design patterns, clean code principles, and architectural best practices.',
+            description:
+              'Design patterns, clean code principles, and architectural best practices.',
             prerequisites: ['mod-1'],
             estimatedHours: 18,
-            topics: ['Design Patterns', 'SOLID Principles', 'Clean Architecture', 'Code Review'],
+            topics: [
+              'Design Patterns',
+              'SOLID Principles',
+              'Clean Architecture',
+              'Code Review',
+            ],
             difficulty: 'intermediate',
             status: 'locked',
             positionX: 800,
@@ -50,10 +70,16 @@ export class MockProvider implements AiProvider {
           {
             id: 'mod-3',
             title: 'Data & State Management',
-            description: 'Working with data flows, state patterns, and persistence layers.',
+            description:
+              'Working with data flows, state patterns, and persistence layers.',
             prerequisites: ['mod-1'],
             estimatedHours: 15,
-            topics: ['State Machines', 'Data Structures', 'Caching', 'Async Patterns'],
+            topics: [
+              'State Machines',
+              'Data Structures',
+              'Caching',
+              'Async Patterns',
+            ],
             difficulty: 'intermediate',
             status: 'locked',
             positionX: 800,
@@ -62,10 +88,17 @@ export class MockProvider implements AiProvider {
           {
             id: 'mod-4',
             title: 'Testing & Quality Assurance',
-            description: 'Unit, integration, and end-to-end testing strategies for production code.',
+            description:
+              'Unit, integration, and end-to-end testing strategies for production code.',
             prerequisites: ['mod-2', 'mod-3'],
             estimatedHours: 20,
-            topics: ['Unit Tests', 'Integration Tests', 'E2E Testing', 'TDD', 'CI/CD'],
+            topics: [
+              'Unit Tests',
+              'Integration Tests',
+              'E2E Testing',
+              'TDD',
+              'CI/CD',
+            ],
             difficulty: 'advanced',
             status: 'locked',
             positionX: 1040,
@@ -74,10 +107,17 @@ export class MockProvider implements AiProvider {
           {
             id: 'mod-5',
             title: 'Deployment & Production',
-            description: 'Containerisation, cloud deployment, monitoring, and scalability at scale.',
+            description:
+              'Containerisation, cloud deployment, monitoring, and scalability at scale.',
             prerequisites: ['mod-4'],
             estimatedHours: 20,
-            topics: ['Docker', 'Kubernetes', 'Cloud Platforms', 'Observability', 'Scaling'],
+            topics: [
+              'Docker',
+              'Kubernetes',
+              'Cloud Platforms',
+              'Observability',
+              'Scaling',
+            ],
             difficulty: 'advanced',
             status: 'locked',
             positionX: 1040,
@@ -87,7 +127,10 @@ export class MockProvider implements AiProvider {
       } as any as T;
     }
 
-    if (prompt.toLowerCase().includes('quiz') || prompt.toLowerCase().includes('question')) {
+    if (
+      prompt.toLowerCase().includes('quiz') ||
+      prompt.toLowerCase().includes('question')
+    ) {
       return Array.from({ length: 5 }).map((_, index) => ({
         id: `q-${index + 1}`,
         question: `What is a primary concept at this level?`,
@@ -108,7 +151,9 @@ export class MockProvider implements AiProvider {
   }
 
   async textToSpeech(text: string, voice?: string): Promise<Buffer> {
-    this.logger.log(`MockProvider: converting text to speech: "${text.substring(0, 30)}..."`);
+    this.logger.log(
+      `MockProvider: converting text to speech: "${text.substring(0, 30)}..."`,
+    );
     // Return a valid minimal 1-second silence MP3 file buffer
     const minimalMp3Base64 =
       'SUQzBAAAAAAAAFRYWFgAAAASAAADbWFqb3JfYnJhbmQAbXAzdgBUWFhYAAAAEgAAA21pbm9yX3ZlcnNpb24AMABUWFhYAAAAHgAAA2NvbXBhdGlibGVfYnJhbmRzAG1wM2JtcDMydXA1AFRFTkM=';

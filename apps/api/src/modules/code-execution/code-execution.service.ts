@@ -7,7 +7,10 @@ export class CodeExecutionService {
   private readonly execUrl: string;
 
   constructor(private readonly config: ConfigService) {
-    this.execUrl = this.config.get<string>('CODE_EXEC_URL', 'http://localhost:2000');
+    this.execUrl = this.config.get<string>(
+      'CODE_EXEC_URL',
+      'http://localhost:2000',
+    );
   }
 
   async runCode(
@@ -16,10 +19,10 @@ export class CodeExecutionService {
     stdin = '',
   ): Promise<{ stdout: string; stderr: string; code: number }> {
     const mappedLang = this.mapLanguage(language);
-    
+
     try {
       this.logger.log(`Executing code via Piston: language=${mappedLang}`);
-      
+
       const res = await fetch(`${this.execUrl}/api/v2/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,9 +49,13 @@ export class CodeExecutionService {
           };
         }
       }
-      this.logger.warn(`Piston API returned error status: ${res.status}. Falling back to mock run...`);
+      this.logger.warn(
+        `Piston API returned error status: ${res.status}. Falling back to mock run...`,
+      );
     } catch (err: any) {
-      this.logger.warn(`Connection to Piston sandbox failed: ${err.message}. Falling back to mock run...`);
+      this.logger.warn(
+        `Connection to Piston sandbox failed: ${err.message}. Falling back to mock run...`,
+      );
     }
 
     // Mock/Simulated execution fallback
@@ -63,9 +70,14 @@ export class CodeExecutionService {
     return lower;
   }
 
-  private mockRun(code: string): { stdout: string; stderr: string; code: number } {
+  private mockRun(code: string): {
+    stdout: string;
+    stderr: string;
+    code: number;
+  } {
     // Basic regex to capture prints/console logs to make mock runs feel responsive
-    const consoleLogRegex = /(?:console\.log|print)\s*\(\s*['"`](.*?)['"`]\s*\)/g;
+    const consoleLogRegex =
+      /(?:console\.log|print)\s*\(\s*['"`](.*?)['"`]\s*\)/g;
     const outputs: string[] = [];
     let match;
 
@@ -73,9 +85,10 @@ export class CodeExecutionService {
       outputs.push(match[1]);
     }
 
-    const stdout = outputs.length > 0 
-      ? outputs.join('\n') 
-      : 'Code completed successfully (Mock Sandbox fallback mode).';
+    const stdout =
+      outputs.length > 0
+        ? outputs.join('\n')
+        : 'Code completed successfully (Mock Sandbox fallback mode).';
 
     return {
       stdout,

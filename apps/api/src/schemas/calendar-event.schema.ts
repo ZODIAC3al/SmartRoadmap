@@ -9,7 +9,11 @@ export class CalendarEvent extends Document {
   @Prop({ required: true })
   title!: string;
 
-  @Prop({ required: true, enum: ['study_session', 'quiz_reminder', 'job_interview', 'custom'], default: 'custom' })
+  @Prop({
+    required: true,
+    enum: ['study_session', 'quiz_reminder', 'job_interview', 'custom'],
+    default: 'custom',
+  })
   type!: 'study_session' | 'quiz_reminder' | 'job_interview' | 'custom';
 
   @Prop({ type: String, default: null })

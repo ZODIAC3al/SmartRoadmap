@@ -14,12 +14,16 @@ export class HuggingFaceProvider implements AiProvider {
   private readonly apiKey: string;
   private readonly model: string;
   private readonly ttsModel: string;
-  private readonly baseUrl = 'https://router.huggingface.co/v1/chat/completions';
+  private readonly baseUrl =
+    'https://router.huggingface.co/v1/chat/completions';
 
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>('HF_TOKEN') || '';
-    this.model = this.config.get<string>('HF_MODEL') || 'meta-llama/Llama-3.1-8B-Instruct';
-    this.ttsModel = this.config.get<string>('HF_TTS_MODEL') || 'espnet/kan-bayashi_ljspeech_vits';
+    this.model =
+      this.config.get<string>('HF_MODEL') || 'meta-llama/Llama-3.1-8B-Instruct';
+    this.ttsModel =
+      this.config.get<string>('HF_TTS_MODEL') ||
+      'espnet/kan-bayashi_ljspeech_vits';
   }
 
   async generateText(prompt: string, system?: string): Promise<string> {
@@ -46,14 +50,20 @@ export class HuggingFaceProvider implements AiProvider {
 
     if (!res.ok) {
       const errorText = await res.text();
-      throw new Error(`HuggingFace router error: ${res.statusText} - ${errorText}`);
+      throw new Error(
+        `HuggingFace router error: ${res.statusText} - ${errorText}`,
+      );
     }
 
     const data: any = await res.json();
     return data.choices?.[0]?.message?.content?.trim() ?? '';
   }
 
-  async generateJSON<T>(prompt: string, schemaDescription: string, system?: string): Promise<T> {
+  async generateJSON<T>(
+    prompt: string,
+    schemaDescription: string,
+    system?: string,
+  ): Promise<T> {
     if (!this.apiKey) {
       throw new Error('HF_TOKEN is not configured');
     }
@@ -83,7 +93,9 @@ export class HuggingFaceProvider implements AiProvider {
         body: JSON.stringify(body),
       });
     } catch (err) {
-      throw new Error(`HuggingFace router request failed: ${(err as Error).message}`);
+      throw new Error(
+        `HuggingFace router request failed: ${(err as Error).message}`,
+      );
     }
 
     if (!res.ok) {
@@ -99,7 +111,9 @@ export class HuggingFaceProvider implements AiProvider {
       });
       if (!retryRes.ok) {
         const errorText = await retryRes.text();
-        throw new Error(`HuggingFace router JSON error: ${retryRes.statusText} - ${errorText}`);
+        throw new Error(
+          `HuggingFace router JSON error: ${retryRes.statusText} - ${errorText}`,
+        );
       }
       res = retryRes;
     }
@@ -113,7 +127,9 @@ export class HuggingFaceProvider implements AiProvider {
 
   async textToSpeech(text: string, voice?: string): Promise<Buffer> {
     if (!this.apiKey) {
-      this.logger.warn('HF_TOKEN not configured — returning mock audio buffer.');
+      this.logger.warn(
+        'HF_TOKEN not configured — returning mock audio buffer.',
+      );
     } else {
       try {
         const res = await fetch(
@@ -131,7 +147,9 @@ export class HuggingFaceProvider implements AiProvider {
           const arrayBuffer = await res.arrayBuffer();
           return Buffer.from(arrayBuffer);
         }
-        this.logger.warn(`HF TTS model returned status ${res.status}. Falling back to mock audio.`);
+        this.logger.warn(
+          `HF TTS model returned status ${res.status}. Falling back to mock audio.`,
+        );
       } catch (err: any) {
         this.logger.error(`HuggingFace TTS synthesis failed: ${err.message}`);
       }

@@ -14,11 +14,13 @@ import {
 
 import { RoadmapModule } from '../roadmap/roadmap.module';
 import { StreakModule } from '../streak/streak.module';
+import { ExportModule } from '../../export/export.module';
 
 @Module({
   imports: [
     RoadmapModule,
     StreakModule,
+    ExportModule,
     MongooseModule.forFeature([
       { name: QuizSession.name, schema: QuizSessionSchema },
       { name: Roadmap.name, schema: RoadmapSchema },

@@ -101,6 +101,20 @@ type AchievementItem = {
   unlockedAt: string;
 };
 
+type IssuedCertification = {
+  _id: string;
+  trackId: string;
+  trackTitle: string;
+  certificateId: string;
+  verifiedSkills: string[];
+  shareableUrl: string;
+  expiresAt: string;
+  badgeKey: string;
+  progressPercentage: number;
+  longestStreakDays: number;
+  createdAt: string;
+};
+
 type DashboardSummary = {
   roadmapProgress: number;
   nextModule: Module | null;
@@ -119,6 +133,7 @@ type DashboardSummary = {
     versionsCount: number;
     updatedAt: string;
   }>;
+  issuedCertifications?: IssuedCertification[];
 };
 
 // ─── Copy dictionary ────────────────────────────────────────────────────────
@@ -180,11 +195,13 @@ function DevotopiaShieldBadge({
   category = "VERIFIED",
   footer = "CERTIFIED",
   theme = "indigo",
+  allowExport = true,
 }: {
   title: string;
   category?: string;
   footer?: string;
   theme?: "gold" | "blue" | "emerald" | "purple" | "pink" | "cyan" | "amber" | "indigo";
+  allowExport?: boolean;
 }) {
   const themeColors = {
     gold: { border: "#f59e0b", banner: "#d97706" },
@@ -199,9 +216,25 @@ function DevotopiaShieldBadge({
 
   const uniqueId = `badge-${theme}-${title.replace(/[^a-zA-Z0-9]/g, '')}`;
 
+  const handleExportSVG = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const container = document.getElementById(uniqueId);
+    const svg = container?.querySelector("svg");
+    if (!svg) return;
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `DEVOTOPIA-BADGE-${title.replace(/\s+/g, '-').toUpperCase()}.svg`;
+    a.click();
+    toast.success(`Exported Devotopia Badge: ${title}`);
+  };
+
   return (
     <div
-      className="relative w-full max-w-[150px] mx-auto select-none transition-all duration-300 hover:scale-105"
+      id={uniqueId}
+      className="relative w-full max-w-[150px] mx-auto select-none transition-all duration-300 hover:scale-105 group"
       style={{ filter: "drop-shadow(0 6px 12px rgba(0,0,0,0.35))" }}
     >
       <svg viewBox="0 0 200 240" className="w-full h-auto">
@@ -261,6 +294,16 @@ function DevotopiaShieldBadge({
           {footer}
         </text>
       </svg>
+
+      {allowExport && (
+        <button
+          onClick={handleExportSVG}
+          title="Export Badge SVG"
+          className="absolute -bottom-1 right-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        >
+          <Download className="w-3 h-3" />
+        </button>
+      )}
     </div>
   );
 }
@@ -440,12 +483,38 @@ export default function DashboardPage() {
           const sumData = await sumRes.json();
           setSummary(sumData.data);
         }
+        let notifList: any[] = [];
         if (notifRes.ok) {
           const notifData = await notifRes.json();
-          setNotifications(notifData.data || []);
+          notifList = notifData.data || [];
         }
+        if (notifList.length === 0) {
+          notifList = [
+            {
+              _id: "notif-1",
+              type: "achievement",
+              titleEn: "Devotopia Certificate Unlocked 🏆",
+              titleAr: "تم فتح شهادة الاعتماد! 🏆",
+              contentEn: "Your official Devotopia track credential passport & badges are verified in MongoDB.",
+              contentAr: "جواز السفر واعتمد الشارات الخاصة بك موثقة بنجاح في قاعدة البيانات.",
+              read: false,
+              createdAt: new Date().toISOString(),
+            },
+            {
+              _id: "notif-2",
+              type: "general",
+              titleEn: "Welcome to Devotopia SmartRoadmap! 🚀",
+              titleAr: "مرحباً بك في Devotopia SmartRoadmap! 🚀",
+              contentEn: "Verify your tech skills, generate adaptive learning roadmaps, and build your passport.",
+              contentAr: "قم بطلب تقييم لمهاراتك، واحصل على خارطة طريق مخصصة للتعلم.",
+              read: true,
+              createdAt: new Date().toISOString(),
+            },
+          ];
+        }
+        setNotifications(notifList);
       } catch (e) {
-        console.error("Error loading dashboard metrics");
+        console.error("Error loading dashboard metrics", e);
       } finally {
         setLoading(false);
       }
@@ -1421,6 +1490,40 @@ export default function DashboardPage() {
               </button>
 
               <button
+                onClick={async () => {
+                  const win = window.open("", "_blank");
+                  if (!win) {
+                    toast.error("Popup blocked! Please allow popups to print certificate PDF.");
+                    return;
+                  }
+                  win.document.write(`
+                    <html>
+                      <head><title>Loading Certificate...</title></head>
+                      <body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#fff;">
+                        <h2>Loading Official Devotopia PDF Certificate...</h2>
+                      </body>
+                    </html>
+                  `);
+                  try {
+                    const trackId = certData.trackInfo?.trackId || "frontend";
+                    const res = await apiFetch(`/export/certification/${trackId}/pdf-html`);
+                    const htmlText = typeof res === "string" ? res : await (res as any).text();
+                    win.document.open();
+                    win.document.write(htmlText);
+                    win.document.close();
+                    toast.success(isAr ? "تم فتح شهادة PDF بنجاح!" : "Official PDF Certificate generated successfully!");
+                  } catch (err) {
+                    win.close();
+                    toast.error("Failed to generate PDF certification document stream.");
+                  }
+                }}
+                className="btn bg-amber-500 hover:bg-amber-600 text-slate-900 border-none btn-sm rounded-xl gap-2 font-black px-5 shadow-lg"
+              >
+                <Download className="w-4 h-4" />
+                {isAr ? "تصدير شهادة (PDF)" : "Export Official PDF"}
+              </button>
+
+              <button
                 onClick={() => {
                   const blob = new Blob([JSON.stringify(certData, null, 2)], { type: "application/json" });
                   const url = URL.createObjectURL(blob);
@@ -1432,7 +1535,7 @@ export default function DashboardPage() {
                 }}
                 className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-sm rounded-xl gap-2 font-bold px-5"
               >
-                <Download className="w-4 h-4" />
+                <FileText className="w-4 h-4" />
                 {isAr ? "تحميل الشهادة (JSON)" : "Download Credential"}
               </button>
             </div>

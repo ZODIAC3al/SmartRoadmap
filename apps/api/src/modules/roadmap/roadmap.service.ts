@@ -23,7 +23,9 @@ export class RoadmapService {
       : new Types.ObjectId();
   }
 
-  private sanitizeDifficulty(val: string): 'beginner' | 'intermediate' | 'advanced' {
+  private sanitizeDifficulty(
+    val: string,
+  ): 'beginner' | 'intermediate' | 'advanced' {
     if (!val) return 'intermediate';
     const lower = val.toLowerCase();
     if (lower === 'easy' || lower === 'beginner') return 'beginner';
@@ -32,12 +34,16 @@ export class RoadmapService {
     return 'intermediate';
   }
 
-  private sanitizeStatus(val: string, isFirst: boolean): 'locked' | 'in_progress' | 'completed' | 'failed' {
+  private sanitizeStatus(
+    val: string,
+    isFirst: boolean,
+  ): 'locked' | 'in_progress' | 'completed' | 'failed' {
     if (!val) return isFirst ? 'in_progress' : 'locked';
     const lower = val.toLowerCase();
     if (lower === 'completed' || lower === 'done') return 'completed';
     if (lower === 'failed') return 'failed';
-    if (lower === 'in_progress' || lower === 'active' || lower === 'current') return 'in_progress';
+    if (lower === 'in_progress' || lower === 'active' || lower === 'current')
+      return 'in_progress';
     return isFirst ? 'in_progress' : 'locked';
   }
 
@@ -75,11 +81,13 @@ export class RoadmapService {
         title: m.title || `Module ${idx + 1}`,
         description: m.description || '',
         difficulty: this.sanitizeDifficulty(m.difficulty),
-        estimatedHours: typeof m.estimatedHours === 'number' ? m.estimatedHours : 10,
+        estimatedHours:
+          typeof m.estimatedHours === 'number' ? m.estimatedHours : 10,
         topics: Array.isArray(m.topics) ? m.topics : [],
         prerequisites: Array.isArray(m.prerequisites) ? m.prerequisites : [],
         status: this.sanitizeStatus(m.status, idx === 0),
-        positionX: typeof m.positionX === 'number' ? m.positionX : (100 + idx * 200),
+        positionX:
+          typeof m.positionX === 'number' ? m.positionX : 100 + idx * 200,
         positionY: typeof m.positionY === 'number' ? m.positionY : 150,
       })),
     });
@@ -95,7 +103,9 @@ export class RoadmapService {
     });
 
     if (!roadmap) {
-      this.logger.log(`No active roadmap found for user ID ${userId}. Auto-generating default initial roadmap.`);
+      this.logger.log(
+        `No active roadmap found for user ID ${userId}. Auto-generating default initial roadmap.`,
+      );
       roadmap = await this.generateRoadmap(userId, 'Fullstack Web Developer', [
         'JavaScript',
         'TypeScript',

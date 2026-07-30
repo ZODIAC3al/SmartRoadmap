@@ -12,8 +12,20 @@ export class ProgressSnapshot extends Document {
   @Prop({ required: true })
   moduleId!: string;
 
-  @Prop({ required: true, enum: ['module_started', 'module_completed', 'module_failed', 'quiz_attempt'] })
-  event!: 'module_started' | 'module_completed' | 'module_failed' | 'quiz_attempt';
+  @Prop({
+    required: true,
+    enum: [
+      'module_started',
+      'module_completed',
+      'module_failed',
+      'quiz_attempt',
+    ],
+  })
+  event!:
+    | 'module_started'
+    | 'module_completed'
+    | 'module_failed'
+    | 'quiz_attempt';
 
   @Prop({ default: 0 })
   scoreAtEvent!: number;
@@ -22,6 +34,7 @@ export class ProgressSnapshot extends Document {
   timeSpentSeconds!: number;
 }
 
-export const ProgressSnapshotSchema = SchemaFactory.createForClass(ProgressSnapshot);
+export const ProgressSnapshotSchema =
+  SchemaFactory.createForClass(ProgressSnapshot);
 // Create compound index for fast time-series queries
 ProgressSnapshotSchema.index({ userId: 1, createdAt: -1 });

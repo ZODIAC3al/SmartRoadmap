@@ -36,11 +36,16 @@ export class CodeSubmission extends Document {
   @Prop({ default: '' })
   stdin!: string;
 
-  @Prop({ required: true, enum: ['queued', 'running', 'completed', 'error', 'timeout'], default: 'queued' })
+  @Prop({
+    required: true,
+    enum: ['queued', 'running', 'completed', 'error', 'timeout'],
+    default: 'queued',
+  })
   status!: 'queued' | 'running' | 'completed' | 'error' | 'timeout';
 
   @Prop({ type: [CodeTestCaseResult], default: [] })
   results!: CodeTestCaseResult[];
 }
 
-export const CodeSubmissionSchema = SchemaFactory.createForClass(CodeSubmission);
+export const CodeSubmissionSchema =
+  SchemaFactory.createForClass(CodeSubmission);

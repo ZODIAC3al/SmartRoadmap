@@ -467,7 +467,9 @@ export class AuthService {
     user.refreshTokenHashes = [];
     await user.save();
 
-    this.logger.log(`Password updated by user ${user.email}; all sessions revoked.`);
+    this.logger.log(
+      `Password updated by user ${user.email}; all sessions revoked.`,
+    );
     return { success: true };
   }
 

@@ -57,22 +57,34 @@ export class AiProviderFactory {
 
   getProvider(preferredName?: string): AiProvider {
     const name = preferredName?.toLowerCase();
-    
+
     if (name && this.providers.has(name)) {
       return this.providers.get(name)!;
     }
 
     // Default fallback resolution path
-    if (this.providers.has('openai') && !(this.providers.get('openai') instanceof MockProvider)) {
+    if (
+      this.providers.has('openai') &&
+      !(this.providers.get('openai') instanceof MockProvider)
+    ) {
       return this.providers.get('openai')!;
     }
-    if (this.providers.has('gemini') && !(this.providers.get('gemini') instanceof MockProvider)) {
+    if (
+      this.providers.has('gemini') &&
+      !(this.providers.get('gemini') instanceof MockProvider)
+    ) {
       return this.providers.get('gemini')!;
     }
-    if (this.providers.has('groq') && !(this.providers.get('groq') instanceof MockProvider)) {
+    if (
+      this.providers.has('groq') &&
+      !(this.providers.get('groq') instanceof MockProvider)
+    ) {
       return this.providers.get('groq')!;
     }
-    if (this.providers.has('huggingface') && !(this.providers.get('huggingface') instanceof MockProvider)) {
+    if (
+      this.providers.has('huggingface') &&
+      !(this.providers.get('huggingface') instanceof MockProvider)
+    ) {
       return this.providers.get('huggingface')!;
     }
 

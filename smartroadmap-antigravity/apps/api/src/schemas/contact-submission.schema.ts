@@ -19,4 +19,5 @@ export class ContactSubmission extends Document {
   message!: string;
 }
 
-export const ContactSubmissionSchema = SchemaFactory.createForClass(ContactSubmission);
+export const ContactSubmissionSchema =
+  SchemaFactory.createForClass(ContactSubmission);

@@ -27,7 +27,11 @@ export class OpenAIProvider implements AiProvider {
     return response.choices[0]?.message?.content?.trim() ?? '';
   }
 
-  async generateJSON<T>(prompt: string, schemaDescription: string, system?: string): Promise<T> {
+  async generateJSON<T>(
+    prompt: string,
+    schemaDescription: string,
+    system?: string,
+  ): Promise<T> {
     if (!this.client) {
       throw new Error('OpenAI client is in mock mode');
     }
@@ -52,7 +56,7 @@ export class OpenAIProvider implements AiProvider {
     }
     const mp3 = await this.client.audio.speech.create({
       model: 'tts-1',
-      voice: voice as any,
+      voice: voice,
       input: text,
     });
     return Buffer.from(await mp3.arrayBuffer());

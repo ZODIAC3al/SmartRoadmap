@@ -9,6 +9,7 @@ import { AchievementDefinition } from '../../schemas/achievement-definition.sche
 import { QuizSession } from '../../schemas/quiz-session.schema';
 import { ProgressSnapshot } from '../../schemas/progress-snapshot.schema';
 import { CheatSheet } from '../../schemas/cheat-sheet.schema';
+import { TrackCertification } from '../../schemas/track-certification.schema';
 
 @Injectable()
 export class DashboardService {
@@ -29,36 +30,60 @@ export class DashboardService {
     private readonly snapshotModel: Model<ProgressSnapshot>,
     @InjectModel(CheatSheet.name)
     private readonly cheatSheetModel: Model<CheatSheet>,
+    @InjectModel(TrackCertification.name)
+    private readonly certModel: Model<TrackCertification>,
   ) {}
 
   async getSummary(userId: string) {
     const userObjectId = new Types.ObjectId(userId);
 
     // 1. Fetch active roadmap progress and next module
-    const roadmap = await this.roadmapModel.findOne({
-      userId: userObjectId,
-      status: 'active',
-    }).exec();
+    const roadmap = await this.roadmapModel
+      .findOne({
+        userId: userObjectId,
+        status: 'active',
+      })
+      .exec();
 
     let roadmapProgress = 0;
     let nextModule = null;
 
     if (roadmap && roadmap.modules && roadmap.modules.length > 0) {
-      const completed = roadmap.modules.filter((m) => m.status === 'completed').length;
+      const completed = roadmap.modules.filter(
+        (m) => m.status === 'completed',
+      ).length;
       roadmapProgress = Math.round((completed / roadmap.modules.length) * 100);
 
       // Next module: prioritize in_progress modules first, then first locked module
-      nextModule = roadmap.modules.find((m) => m.status === 'in_progress') ||
-                   roadmap.modules.find((m) => m.status === 'locked') ||
-                   null;
+      nextModule =
+        roadmap.modules.find((m) => m.status === 'in_progress') ||
+        roadmap.modules.find((m) => m.status === 'locked') ||
+        null;
     }
 
-    // 2. Fetch streaks
-    const streak = await this.streakModel.findOne({ userId: userObjectId }).exec();
+    // 2. Fetch streaks from MongoDB
+    let streak = await this.streakModel
+      .findOne({ userId: userObjectId })
+      .exec();
+    if (!streak) {
+      try {
+        streak = await this.streakModel.create({
+          userId: userObjectId,
+          currentStreak: 1,
+          longestStreak: 1,
+          lastActivityDate: new Date().toISOString().split('T')[0],
+          freezesAvailable: 2,
+          timezone: 'UTC',
+        });
+      } catch {
+        // ignore duplicate
+      }
+    }
+
     const streakData = {
-      current: streak?.currentStreak || 0,
-      longest: streak?.longestStreak || 0,
-      freezesAvailable: streak?.freezesAvailable || 0,
+      current: streak?.currentStreak || 1,
+      longest: streak?.longestStreak || 1,
+      freezesAvailable: streak?.freezesAvailable ?? 2,
     };
 
     // 3. Fetch upcoming calendar events
@@ -71,17 +96,45 @@ export class DashboardService {
       .limit(5)
       .exec();
 
-    // 4. Fetch recent achievements
-    const userEarned = await this.userAchievementModel
+    // 4. Fetch recent achievements from MongoDB
+    let userEarned = await this.userAchievementModel
       .find({ userId: userObjectId })
       .sort({ unlockedAt: -1 })
-      .limit(5)
+      .limit(6)
       .exec();
+
+    // Auto-grant default Devotopia badges if learner has none stored in DB yet
+    if (userEarned.length === 0) {
+      const defaultBadgeKeys = [
+        'ai_architect',
+        'solutions_architect',
+        'cloud_practitioner',
+        'security_engineer',
+      ];
+      for (const key of defaultBadgeKeys) {
+        try {
+          await this.userAchievementModel.create({
+            userId: userObjectId,
+            achievementKey: key,
+            unlockedAt: new Date(),
+          });
+        } catch {
+          // ignore duplicate
+        }
+      }
+      userEarned = await this.userAchievementModel
+        .find({ userId: userObjectId })
+        .sort({ unlockedAt: -1 })
+        .limit(6)
+        .exec();
+    }
 
     const recentAchievements = [];
     if (userEarned.length > 0) {
       const keys = userEarned.map((u) => u.achievementKey);
-      const definitions = await this.definitionModel.find({ key: { $in: keys } }).exec();
+      const definitions = await this.definitionModel
+        .find({ key: { $in: keys } })
+        .exec();
       const defsMap = new Map(definitions.map((d) => [d.key, d]));
 
       for (const u of userEarned) {
@@ -105,7 +158,7 @@ export class DashboardService {
       .sort({ createdAt: 1 })
       .limit(10)
       .exec();
-      
+
     const quizHistory = quizSessions.map((q) => ({
       score: q.score || 0,
       moduleId: q.moduleId,
@@ -127,13 +180,22 @@ export class DashboardService {
     }));
 
     // 7. Fetch stored AI cheatsheets for all modules
-    const cheatSheets = await this.cheatSheetModel.find({ userId: userObjectId }).exec();
+    const cheatSheets = await this.cheatSheetModel
+      .find({ userId: userObjectId })
+      .exec();
     const storedCheatSheets = cheatSheets.map((cs) => ({
       moduleId: cs.moduleId,
       content: cs.content,
       versionsCount: cs.versions?.length || 1,
       updatedAt: (cs as any).updatedAt || (cs as any).createdAt,
     }));
+
+    // 8. Fetch issued track certifications from DB
+    const issuedCertifications = await this.certModel
+      .find({ userId: userObjectId })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
 
     return {
       roadmapProgress,
@@ -143,13 +205,16 @@ export class DashboardService {
       recentAchievements,
       quizHistory,
       progressHistory,
-      activeRoadmap: roadmap ? {
-        id: roadmap._id.toString(),
-        title: roadmap.title,
-        targetRole: roadmap.targetRole,
-        modules: roadmap.modules || [],
-      } : null,
+      activeRoadmap: roadmap
+        ? {
+            id: roadmap._id.toString(),
+            title: roadmap.title,
+            targetRole: roadmap.targetRole,
+            modules: roadmap.modules || [],
+          }
+        : null,
       storedCheatSheets,
+      issuedCertifications,
     };
   }
 
@@ -165,7 +230,11 @@ export class DashboardService {
 
     // Quiz sessions per day
     const quizSessions = await this.quizSessionModel
-      .find({ userId: userObjectId, status: 'completed', createdAt: { $gte: since } })
+      .find({
+        userId: userObjectId,
+        status: 'completed',
+        createdAt: { $gte: since },
+      })
       .select('score createdAt')
       .lean()
       .exec();
@@ -178,10 +247,20 @@ export class DashboardService {
       .exec();
 
     // Streak data
-    const streak = await this.streakModel.findOne({ userId: userObjectId }).exec();
+    const streak = await this.streakModel
+      .findOne({ userId: userObjectId })
+      .exec();
 
     // Build a date-keyed map for the period
-    const buckets: Record<string, { date: string; quizzes: number; minutesStudied: number; avgScore: number }> = {};
+    const buckets: Record<
+      string,
+      {
+        date: string;
+        quizzes: number;
+        minutesStudied: number;
+        avgScore: number;
+      }
+    > = {};
     for (let i = 0; i < days; i++) {
       const d = new Date(Date.now() - (days - 1 - i) * 24 * 60 * 60 * 1000);
       const key = d.toISOString().split('T')[0];
@@ -201,14 +280,18 @@ export class DashboardService {
     for (const s of snapshots) {
       const key = new Date((s as any).createdAt).toISOString().split('T')[0];
       if (buckets[key]) {
-        buckets[key].minutesStudied += Math.round((s.timeSpentSeconds || 0) / 60);
+        buckets[key].minutesStudied += Math.round(
+          (s.timeSpentSeconds || 0) / 60,
+        );
       }
     }
 
     // Compute avg scores
     for (const [key, scores] of Object.entries(quizScoresByDay)) {
       if (buckets[key] && scores.length > 0) {
-        buckets[key].avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+        buckets[key].avgScore = Math.round(
+          scores.reduce((a, b) => a + b, 0) / scores.length,
+        );
       }
     }
 
@@ -217,7 +300,10 @@ export class DashboardService {
       days: Object.values(buckets),
       summary: {
         totalQuizzes: quizSessions.length,
-        totalMinutes: snapshots.reduce((acc, s) => acc + Math.round((s.timeSpentSeconds || 0) / 60), 0),
+        totalMinutes: snapshots.reduce(
+          (acc, s) => acc + Math.round((s.timeSpentSeconds || 0) / 60),
+          0,
+        ),
         currentStreak: streak?.currentStreak ?? 0,
         longestStreak: streak?.longestStreak ?? 0,
       },

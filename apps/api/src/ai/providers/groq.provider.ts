@@ -9,7 +9,8 @@ export class GroqProvider implements AiProvider {
 
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>('GROQ_API_KEY') || '';
-    this.model = this.config.get<string>('GROQ_MODEL') || 'llama-3.3-70b-versatile';
+    this.model =
+      this.config.get<string>('GROQ_MODEL') || 'llama-3.3-70b-versatile';
   }
 
   async generateText(prompt: string, system?: string): Promise<string> {
@@ -44,7 +45,11 @@ export class GroqProvider implements AiProvider {
     return data.choices?.[0]?.message?.content?.trim() ?? '';
   }
 
-  async generateJSON<T>(prompt: string, schemaDescription: string, system?: string): Promise<T> {
+  async generateJSON<T>(
+    prompt: string,
+    schemaDescription: string,
+    system?: string,
+  ): Promise<T> {
     if (!this.apiKey) {
       throw new Error('GROQ_API_KEY is not configured');
     }
@@ -82,8 +87,10 @@ export class GroqProvider implements AiProvider {
   }
 
   async textToSpeech(text: string, voice?: string): Promise<Buffer> {
-    this.logger.warn('Groq does not natively support TTS. Redirecting to mock audio buffer fallback.');
-    const minimalMp3Base64 = 
+    this.logger.warn(
+      'Groq does not natively support TTS. Redirecting to mock audio buffer fallback.',
+    );
+    const minimalMp3Base64 =
       'SUQzBAAAAAAAAFRYWFgAAAASAAADbWFqb3JfYnJhbmQAbXAzdgBUWFhYAAAAEgAAA21pbm9yX3ZlcnNpb24AMABUWFhYAAAAHgAAA2NvbXBhdGlibGVfYnJhbmRzAG1wM2JtcDMydXA1AFRFTkM="';
     return Buffer.from(minimalMp3Base64, 'base64');
   }

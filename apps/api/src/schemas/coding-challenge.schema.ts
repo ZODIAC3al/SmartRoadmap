@@ -40,14 +40,20 @@ export class CodingChallenge extends Document {
   createdBy!: 'seed' | 'ai_generated';
 }
 
-export const CodingChallengeSchema = SchemaFactory.createForClass(CodingChallenge);
+export const CodingChallengeSchema =
+  SchemaFactory.createForClass(CodingChallenge);
 
 @Schema({ timestamps: true })
 export class ChallengeAttempt extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   userId!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'CodingChallenge', required: true, index: true })
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'CodingChallenge',
+    required: true,
+    index: true,
+  })
   challengeId!: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'CodeSubmission', default: null })
@@ -60,5 +66,6 @@ export class ChallengeAttempt extends Document {
   attemptsCount!: number;
 }
 
-export const ChallengeAttemptSchema = SchemaFactory.createForClass(ChallengeAttempt);
+export const ChallengeAttemptSchema =
+  SchemaFactory.createForClass(ChallengeAttempt);
 ChallengeAttemptSchema.index({ userId: 1, challengeId: 1 }, { unique: true });
