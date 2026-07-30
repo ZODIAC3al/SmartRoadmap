@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { Roadmap } from '../../schemas/roadmap.schema';
 import { LearningResource } from '../../schemas/learning-resource.schema';
 import { RAGService, RESOURCES_COLLECTION } from '../../ai/rag.service';

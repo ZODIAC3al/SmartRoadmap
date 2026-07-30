@@ -1,15 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
-import { apiJson, apiFetch, fetchMe } from "@/lib/api";
+import {
+  apiJson,
+  fetchMe,
+  getErrorMessage,
+  type SessionUser,
+  type UserRole,
+} from "@/lib/api";
 
 interface User {
   _id: string;
   name: string;
   email: string;
-  role: "learner" | "company" | "admin" | "mentor";
+  role: UserRole;
   createdAt: string;
 }
 
@@ -27,9 +33,13 @@ interface AuditLog {
   createdAt: string;
 }
 
+function isUserRole(value: string): value is UserRole {
+  return value === "learner" || value === "company" || value === "admin" || value === "mentor";
+}
+
 export default function AdminUsersPage() {
   const { locale } = useApp();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // States
@@ -40,12 +50,12 @@ export default function AdminUsersPage() {
   // CRUD Form states
   const [addName, setAddName] = useState("");
   const [addEmail, setAddEmail] = useState("");
-  const [addRole, setAddRole] = useState("learner");
+  const [addRole, setAddRole] = useState<UserRole>("learner");
   const [addPassword, setAddPassword] = useState("");
 
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
-  const [editRole, setEditRole] = useState<"learner" | "company" | "admin" | "mentor">("learner");
+  const [editRole, setEditRole] = useState<UserRole>("learner");
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -82,8 +92,8 @@ export default function AdminUsersPage() {
       toast.success(locale === "en" ? "User created successfully!" : "تم إنشاء العضو بنجاح!");
       setIsAddModalOpen(false);
       fetchData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create user.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to create user."));
     }
   };
 
@@ -102,8 +112,8 @@ export default function AdminUsersPage() {
       toast.success(locale === "en" ? "User updated successfully!" : "تم تحديث بيانات العضو بنجاح!");
       setIsEditModalOpen(false);
       fetchData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update user.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to update user."));
     }
   };
 
@@ -115,8 +125,8 @@ export default function AdminUsersPage() {
       });
       toast.success(locale === "en" ? "User deleted successfully!" : "تم حذف العضو بنجاح!");
       fetchData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete user.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to delete user."));
     }
   };
 
@@ -149,25 +159,13 @@ export default function AdminUsersPage() {
       toast.success(locale === "en" ? "Selected users deleted successfully!" : "تم حذف الأعضاء المحددين بنجاح!");
       setSelectedUserIds([]);
       fetchData();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete selected users.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to delete selected users."));
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    (async () => {
-      const me = await fetchMe();
-      if (!me || me.role !== "admin") {
-        window.location.href = "/admin";
-        return;
-      }
-      setCurrentUser(me);
-      fetchData();
-    })();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const allUsers = await apiJson<User[]>("/admin/users");
       setUsers(allUsers);
@@ -176,30 +174,31 @@ export default function AdminUsersPage() {
       setAuditLogs(logs);
 
       setLoading(false);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to load administration data.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to load administration data."));
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      const me = await fetchMe();
+      if (!me || me.role !== "admin") {
+        window.location.href = "/admin";
+        return;
+      }
+      setCurrentUser(me);
+      await fetchData();
+    })();
+  }, [fetchData]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const allUsers = await apiJson<User[]>(`/admin/users?search=${search}`);
       setUsers(allUsers);
-    } catch (e) {}
-  };
-
-  const handleChangeRole = async (userId: string, role: string) => {
-    try {
-      await apiJson(`/admin/users/${userId}/role`, {
-        method: "PATCH",
-        body: JSON.stringify({ role }),
-      });
-      toast.success(locale === "en" ? "User role modified successfully!" : "تم تعديل صلاحيات المستخدم بنجاح!");
-      fetchData();
-    } catch (e: any) {
-      toast.error(e.message || "Failed to update role.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to search users."));
     }
   };
 
@@ -415,8 +414,13 @@ export default function AdminUsersPage() {
       {/* Add User Modal */}
       {isAddModalOpen && (
         <div className="modal modal-open">
-          <div className="sr-panel modal-box rounded-2xl shadow-xl">
-            <h3 className="font-bold text-lg mb-4 text-[#10B981]">
+          <div
+            className="sr-panel modal-box rounded-2xl shadow-xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-add-user-title"
+          >
+            <h3 id="admin-add-user-title" className="font-bold text-lg mb-4 text-[#10B981]">
               {isRtl ? "إضافة مستخدم جديد" : "Add New User"}
             </h3>
             <form onSubmit={handleCreateUserSubmit} className="space-y-4 text-xs">
@@ -454,7 +458,9 @@ export default function AdminUsersPage() {
                 <label className="label font-bold text-[11px]">{isRtl ? "الدور الوظيفي" : "Role"}</label>
                 <select
                   value={addRole}
-                  onChange={(e) => setAddRole(e.target.value)}
+                  onChange={(e) => {
+                    if (isUserRole(e.target.value)) setAddRole(e.target.value);
+                  }}
                   className="select select-bordered w-full bg-base-100 text-xs rounded-xl h-10 px-2"
                 >
                   <option value="learner">Learner</option>
@@ -486,8 +492,13 @@ export default function AdminUsersPage() {
       {/* Edit User Modal */}
       {isEditModalOpen && editingUser && (
         <div className="modal modal-open">
-          <div className="sr-panel modal-box rounded-2xl shadow-xl">
-            <h3 className="font-bold text-lg mb-4 text-[#10B981]">
+          <div
+            className="sr-panel modal-box rounded-2xl shadow-xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-edit-user-title"
+          >
+            <h3 id="admin-edit-user-title" className="font-bold text-lg mb-4 text-[#10B981]">
               {isRtl ? "تعديل تفاصيل العضو" : "Edit User Details"}
             </h3>
             <form onSubmit={handleEditUserSubmit} className="space-y-4 text-xs">
@@ -515,7 +526,9 @@ export default function AdminUsersPage() {
                 <label className="label font-bold text-[11px]">{isRtl ? "الدور الوظيفي" : "Role"}</label>
                 <select
                   value={editRole}
-                  onChange={(e) => setEditRole(e.target.value as any)}
+                  onChange={(e) => {
+                    if (isUserRole(e.target.value)) setEditRole(e.target.value);
+                  }}
                   className="select select-bordered w-full bg-base-100 text-xs rounded-xl h-10 px-2"
                 >
                   <option value="learner">Learner</option>

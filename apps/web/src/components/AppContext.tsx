@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { logout } from "@/lib/api";
 
 type Theme = "smartlight" | "smartdark";
 type Locale = "en" | "ar";

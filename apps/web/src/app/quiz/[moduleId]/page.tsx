@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { apiFetch, getCachedUser } from "@/lib/api";
 
@@ -44,6 +44,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
   const [moduleTitle, setModuleTitle] = useState<string>("Assessment");
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const remainingTimeRef = useRef(30);
   const [userId, setUserId] = useState("654321098765432109876543"); // Default fallback test ID
 
   // Fetch module title and start session on mount
@@ -98,35 +99,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
     initQuiz();
   }, [moduleId]);
 
-  // Handle countdown clock ticking
-  useEffect(() => {
-    if (session && !answerSubmitted && !isFinished) {
-      setTimer(30);
-      if (timerRef.current) clearInterval(timerRef.current);
-
-      timerRef.current = setInterval(() => {
-        setTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            autoSubmitTimeout();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [session, answerSubmitted, isFinished]);
-
-  // Submit response when countdown runs out
-  const autoSubmitTimeout = () => {
-    handleSubmitAnswer("Times Up (No Answer)");
-  };
-
-  const handleSubmitAnswer = async (answerText: string) => {
+  const handleSubmitAnswer = useCallback(async (answerText: string) => {
     if (answerSubmitted || !session) return;
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -141,7 +114,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             answer: answerText,
-            timeTaken: 30 - timer,
+            timeTaken: 30 - remainingTimeRef.current,
           }),
         },
       );
@@ -157,16 +130,47 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
         setResults(data.results);
       } else {
         // Prepare next question trigger payload
-        setSession((prev: any) => ({
-          ...prev,
-          nextQuestionPayload: data.nextQuestion,
-        }));
+        setSession((previousSession) =>
+          previousSession
+            ? {
+                ...previousSession,
+                nextQuestionPayload: data.nextQuestion,
+              }
+            : previousSession,
+        );
       }
     } catch (err) {
       alert("Network error submitting answer.");
       setAnswerSubmitted(false);
     }
-  };
+  }, [answerSubmitted, session]);
+
+  // Handle countdown clock ticking and submit when time expires.
+  useEffect(() => {
+    if (session && !answerSubmitted && !isFinished) {
+      setTimer(30);
+      remainingTimeRef.current = 30;
+      if (timerRef.current) clearInterval(timerRef.current);
+
+      timerRef.current = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            remainingTimeRef.current = 0;
+            if (timerRef.current) clearInterval(timerRef.current);
+            void handleSubmitAnswer("Times Up (No Answer)");
+            return 0;
+          }
+          const next = prev - 1;
+          remainingTimeRef.current = next;
+          return next;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [answerSubmitted, handleSubmitAnswer, isFinished, session]);
 
   const handleNextQuestion = () => {
     if (!session || !session.nextQuestionPayload) return;

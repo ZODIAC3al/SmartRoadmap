@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
 import { getCachedUser } from "@/lib/api";

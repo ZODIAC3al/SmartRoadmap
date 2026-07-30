@@ -1,11 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
-import { apiJson, fetchMe, logout } from "@/lib/api";
+import {
+  apiJson,
+  fetchMe,
+  getErrorMessage,
+  logout,
+  type SessionUser,
+} from "@/lib/api";
 
 interface Stats {
   totalUsers: number;
@@ -33,16 +39,22 @@ interface QuizRate {
   rate: number;
 }
 
-interface AIInsights {
+interface OperationalInsights {
   bottlenecks: string;
   mentorshipStatus: string;
   recommendations: string;
 }
 
+interface AnalyticsResponse {
+  stats: Stats;
+  signupData: SignupDay[];
+  quizPassRates: QuizRate[];
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const { locale } = useApp();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Live Statistics
@@ -66,11 +78,22 @@ export default function AdminDashboard() {
   const [quizPassRates, setQuizPassRates] = useState<QuizRate[]>([]);
   
   // Operational brief
-  const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
+  const [operationalInsights, setOperationalInsights] = useState<OperationalInsights | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
 
+  const fetchAnalyticsData = useCallback(async () => {
+    try {
+      const data = await apiJson<AnalyticsResponse>("/admin/analytics");
+      setStats(data.stats);
+      setSignupData(data.signupData);
+      setQuizPassRates(data.quizPassRates);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to load system metrics."));
+    }
+  }, []);
+
   useEffect(() => {
-    (async () => {
+    void (async () => {
       const me = await fetchMe();
       if (!me || me.role !== "admin") {
         setLoading(false);
@@ -80,26 +103,15 @@ export default function AdminDashboard() {
       await fetchAnalyticsData();
       setLoading(false);
     })();
-  }, []);
+  }, [fetchAnalyticsData]);
 
-  const fetchAnalyticsData = async () => {
-    try {
-      const data = await apiJson<any>("/admin/analytics");
-      setStats(data.stats);
-      setSignupData(data.signupData);
-      setQuizPassRates(data.quizPassRates);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to load system metrics.");
-    }
-  };
-
-  const fetchAIInsights = async () => {
+  const fetchOperationalInsights = async () => {
     setLoadingInsights(true);
     try {
-      const data = await apiJson<AIInsights>("/admin/analytics/insights");
-      setAiInsights(data);
-    } catch (e: any) {
-      toast.error(e.message || "Failed to compile the operational brief.");
+      const data = await apiJson<OperationalInsights>("/admin/analytics/insights");
+      setOperationalInsights(data);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to compile the operational brief."));
     } finally {
       setLoadingInsights(false);
     }
@@ -281,7 +293,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             <button
-              onClick={fetchAIInsights}
+              onClick={fetchOperationalInsights}
               disabled={loadingInsights}
               className="sr-button btn btn-xs px-3"
             >
@@ -293,25 +305,25 @@ export default function AdminDashboard() {
             </button>
           </div>
 
-          {aiInsights ? (
+          {operationalInsights ? (
             <div className="grid md:grid-cols-3 gap-6 text-xs leading-relaxed">
               <div className="space-y-1.5 p-4 bg-base-200 border border-base-300 rounded-xl">
                 <span className="font-black text-indigo-500 block uppercase tracking-wider font-mono text-[9px]">
                   1. LEARNING BOTTLENECKS
                 </span>
-                <p className="text-base-content/80">{aiInsights.bottlenecks}</p>
+                <p className="text-base-content/80">{operationalInsights.bottlenecks}</p>
               </div>
               <div className="space-y-1.5 p-4 bg-base-200 border border-base-300 rounded-xl">
                 <span className="font-black text-purple-500 block uppercase tracking-wider font-mono text-[9px]">
                   2. MENTORSHIP QUALITY
                 </span>
-                <p className="text-base-content/80">{aiInsights.mentorshipStatus}</p>
+                <p className="text-base-content/80">{operationalInsights.mentorshipStatus}</p>
               </div>
               <div className="space-y-1.5 p-4 bg-base-200 border border-base-300 rounded-xl">
                 <span className="font-black text-emerald-500 block uppercase tracking-wider font-mono text-[9px]">
                   3. RECOMMENDATIONS
                 </span>
-                <p className="text-base-content/80">{aiInsights.recommendations}</p>
+                <p className="text-base-content/80">{operationalInsights.recommendations}</p>
               </div>
             </div>
           ) : (
