@@ -155,11 +155,16 @@ export default function MentorsPage() {
     if (!selectedMentor) return;
 
     try {
+      const mentorId =
+        typeof selectedMentor.userId === "object"
+          ? (selectedMentor.userId as any)?._id || (selectedMentor.userId as any)?.id || selectedMentor._id
+          : selectedMentor.userId || selectedMentor._id;
+
       const scheduledAt = new Date(`${bookingDate}T${bookingTime}:00`);
       await apiJson("/mentor/sessions", {
         method: "POST",
         body: JSON.stringify({
-          mentorId: selectedMentor.userId._id,
+          mentorId: String(mentorId),
           scheduledAt: scheduledAt.toISOString(),
           notes: bookingNotes,
         }),
