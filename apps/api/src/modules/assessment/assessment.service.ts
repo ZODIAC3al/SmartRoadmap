@@ -95,11 +95,16 @@ export class AssessmentService {
     }
     if (user) assertSelfOrAdmin(user, session.userId.toString());
 
-    const questions = sessionQuestionsCache.get(sessionId);
+    let questions = sessionQuestionsCache.get(sessionId);
     if (!questions) {
-      throw new BadRequestException(
-        'Session questions cache expired. Please restart quiz.',
+      this.logger.warn(`Session questions cache missed for ${sessionId}. Re-generating quiz questions dynamically...`);
+      const topicName = session.moduleId.replace(/^mod-/, '').replace(/-/g, ' ');
+      questions = await this.llmService.generateQuiz(
+        topicName,
+        'medium',
+        this.TOTAL_QUESTIONS,
       );
+      sessionQuestionsCache.set(sessionId, questions);
     }
 
     const currentIndex = session.answers.length;

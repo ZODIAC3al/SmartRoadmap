@@ -130,10 +130,12 @@ export class ChatbotService {
       try {
         responseText = await this.llmProvider.chat(chatHistory);
       } catch (err: any) {
-        this.logger.error(`Gemini provider chat failed: ${err.message}`);
-        responseText = `Error connecting to Gemini LLM: ${err.message}`;
+        this.logger.warn(`Gemini API provider chat failed (${err.message}). Falling back to SmartRoadmap simulation AI response...`);
+        responseText = '';
       }
-    } else {
+    }
+
+    if (!responseText) {
       // Simulation / Mock mode response fallback
       if (askAboutAdmin) {
         responseText = `Hello Admin! Here is a simulation review: Platform services are operational, total users count is 142.`;

@@ -53,7 +53,7 @@ export class GeminiLLMProvider implements LLMProvider {
       return text;
     } catch (error: any) {
       const errMsg = error.response?.data?.error?.message || error.message;
-      this.logger.error(`Gemini chat call failed: ${errMsg}`);
+      this.logger.warn(`Gemini API key call returned error: ${errMsg}`);
       throw new Error(`Gemini LLM Provider error: ${errMsg}`);
     }
   }
