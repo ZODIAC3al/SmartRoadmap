@@ -16,22 +16,14 @@ export class GeminiProvider implements AiProvider {
   }
 
   private getModelUrl(modelName: string): string {
-    if (this.apiKey.startsWith('AQ.')) {
-      return `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
-    }
     return `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${this.apiKey}`;
   }
 
   private getHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {
+    return {
       'Content-Type': 'application/json',
+      'x-goog-api-key': this.apiKey,
     };
-    if (this.apiKey.startsWith('AQ.')) {
-      headers['Authorization'] = `Bearer ${this.apiKey}`;
-    } else {
-      headers['x-goog-api-key'] = this.apiKey;
-    }
-    return headers;
   }
 
   async generateText(prompt: string, system?: string): Promise<string> {
@@ -40,7 +32,7 @@ export class GeminiProvider implements AiProvider {
     }
 
     const modelsToTry = Array.from(
-      new Set([this.model, 'gemini-2.0-flash', 'gemini-1.5-flash']),
+      new Set([this.model, 'gemini-2.5-flash', 'gemini-2.0-flash']),
     );
     let lastError: Error | null = null;
 
@@ -95,7 +87,7 @@ export class GeminiProvider implements AiProvider {
     }
 
     const modelsToTry = Array.from(
-      new Set([this.model, 'gemini-2.0-flash', 'gemini-1.5-flash']),
+      new Set([this.model, 'gemini-2.5-flash', 'gemini-2.0-flash']),
     );
     let lastError: Error | null = null;
 

@@ -12,20 +12,9 @@ export class GeminiLLMProvider implements LLMProvider {
     options?: { isJson?: boolean },
   ): Promise<string> {
     try {
-      const isAQKey = this.apiKey.startsWith('AQ.');
-      const modelName = 'gemini-2.0-flash';
-      const url = isAQKey
-        ? `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`
-        : `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${this.apiKey}`;
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (isAQKey) {
-        headers['Authorization'] = `Bearer ${this.apiKey}`;
-      } else {
-        headers['x-goog-api-key'] = this.apiKey;
-      }
+      const modelName = 'gemini-2.5-flash';
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${this.apiKey}`;
+      const headers = { 'Content-Type': 'application/json' };
 
       // 1. Separate system instructions
       const systemMessage = messages.find((m) => m.role === 'system');
