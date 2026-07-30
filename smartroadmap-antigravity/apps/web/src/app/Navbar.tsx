@@ -92,10 +92,11 @@ export default function Navbar() {
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
   const fetchNotifications = async () => {
+    if (!hasSession()) return;
     let data: any[] = [];
     try {
       const res = await apiFetch("/notifications", {});
-      if (res.ok) {
+      if (res && res.ok) {
         const body = await res.json();
         data = body.data || [];
       }
@@ -225,9 +226,9 @@ export default function Navbar() {
   }, [pathname]);
 
   useEffect(() => {
-    if (user) {
+    if (user && hasSession()) {
       fetchNotifications();
-      const interval = setInterval(fetchNotifications, 10000);
+      const interval = setInterval(fetchNotifications, 30000);
       return () => clearInterval(interval);
     } else {
       setNotifications([]);
