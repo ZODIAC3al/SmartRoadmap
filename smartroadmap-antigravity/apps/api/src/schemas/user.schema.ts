@@ -23,10 +23,10 @@ export class User extends Document {
 
   @Prop({
     default: 'learner',
-    enum: ['learner', 'company', 'admin'],
+    enum: ['learner', 'company', 'admin', 'mentor'],
     index: true,
   })
-  role!: 'learner' | 'company' | 'admin';
+  role!: 'learner' | 'company' | 'admin' | 'mentor';
 
   /** Prevents account-linking attacks: a google account cannot be password-logged-in. */
   @Prop({ default: 'local', enum: ['local', 'google'] })

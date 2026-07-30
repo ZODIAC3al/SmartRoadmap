@@ -121,7 +121,7 @@ export default function CalendarPage() {
       return;
     }
     setUser(storedUser);
-    setAvailability(storedUser.studyAvailability || []);
+    setAvailability((storedUser as { studyAvailability?: any[] }).studyAvailability || []);
 
     async function loadEvents() {
       try {

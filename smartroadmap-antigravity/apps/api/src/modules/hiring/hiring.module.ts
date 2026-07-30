@@ -10,6 +10,7 @@ import {
 import { Cv, CvSchema } from '../../schemas/cv.schema';
 import { HiringService } from './hiring.service';
 import { HiringController } from './hiring.controller';
+import { AIModule } from '../../ai/ai.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { HiringController } from './hiring.controller';
       { name: QuizSession.name, schema: QuizSessionSchema },
       { name: Cv.name, schema: CvSchema },
     ]),
+    AIModule,
   ],
   controllers: [HiringController],
   providers: [HiringService],

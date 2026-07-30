@@ -16,7 +16,7 @@ const jetbrainsMono = JetBrains_Mono({
 import type { Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#10B981",
+  themeColor: "#080B12",
   width: "device-width",
   initialScale: 1,
 };
@@ -24,9 +24,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Devotopia — AI-Powered Personalized Learning & Hiring Platform",
   description:
-    "Verify your tech skills. Devotopia designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
+    "Verify your tech skills. Devotopia designs adaptive, AI-generated curriculum roadmaps, verified achievement badges, community mentoring, and matches pre-vetted candidates directly with top hiring teams.",
   keywords: [
     "Devotopia",
+    "SmartRoadmap",
     "AI Roadmap",
     "Career assessment",
     "Skill verification",
@@ -34,13 +35,14 @@ export const metadata: Metadata = {
     "SaaS recruitment",
     "Software engineer jobs",
     "Verified talent ecosystem",
+    "Community Mentoring",
   ],
   authors: [{ name: "Devotopia Team" }],
   manifest: "/manifest.json",
   openGraph: {
     title: "Devotopia — AI-Powered Personalized Learning & Hiring Platform",
     description:
-      "Verify your tech skills. Devotopia designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
+      "Verify your tech skills. Devotopia designs adaptive, AI-generated curriculum roadmaps, verified achievement badges, community mentoring, and matches pre-vetted candidates directly with top hiring teams.",
     url: "https://devotopia.dev",
     siteName: "Devotopia",
     type: "website",
@@ -50,13 +52,14 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Devotopia — AI-Powered Personalized Learning & Hiring Platform",
     description:
-      "Verify your tech skills. Devotopia designs adaptive, AI-generated curriculum roadmaps and matches pre-vetted candidates directly with top hiring teams.",
+      "Verify your tech skills. Devotopia designs adaptive, AI-generated curriculum roadmaps, verified achievement badges, community mentoring, and matches pre-vetted candidates directly with top hiring teams.",
   },
 };
 
 import { AppContextProvider } from "@/components/AppContext";
 import Footer from "@/components/Footer";
 import BottomNav from "./Bottomnav";
+import ChatSidebar from "@/components/ChatSidebar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "lineicons/dist/lineicons.css";
@@ -86,6 +89,7 @@ export default function RootLayout({
             autoClose={3000}
             theme="colored"
           />
+          <ChatSidebar />
         </AppContextProvider>
       </body>
     </html>

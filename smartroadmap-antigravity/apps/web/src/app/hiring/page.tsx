@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useApp } from "@/components/AppContext";
 import { toast } from "react-toastify";
@@ -28,7 +27,6 @@ type ScoredJob = {
 };
 
 export default function HiringPage() {
-  const router = useRouter();
   const { t, locale } = useApp();
   const [jobs, setJobs] = useState<ScoredJob[]>([]);
   const [selectedJob, setSelectedJob] = useState<ScoredJob | null>(null);

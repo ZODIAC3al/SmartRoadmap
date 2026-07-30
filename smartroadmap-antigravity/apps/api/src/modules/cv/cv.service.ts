@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Cv } from '../../schemas/cv.schema';
 import { LLMService } from '../../ai/llm.service';
-import axios from 'axios';
 import * as _pdfParse from 'pdf-parse';
 const pdfParse = _pdfParse as any;
 

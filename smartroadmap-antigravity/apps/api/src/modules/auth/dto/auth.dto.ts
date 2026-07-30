@@ -27,8 +27,8 @@ export class RegisterDto {
 
   // NOTE: 'admin' is intentionally NOT assignable through public registration.
   @IsOptional()
-  @IsIn(['learner', 'company'])
-  role?: 'learner' | 'company';
+  @IsIn(['learner', 'company', 'mentor'])
+  role?: 'learner' | 'company' | 'mentor';
 }
 
 export class LoginDto {
@@ -63,8 +63,8 @@ export class ChangeRoleDto {
   @IsString()
   userId!: string;
 
-  @IsIn(['learner', 'company', 'admin'])
-  role!: 'learner' | 'company' | 'admin';
+  @IsIn(['learner', 'company', 'admin', 'mentor'])
+  role!: 'learner' | 'company' | 'admin' | 'mentor';
 }
 
 export class ForgotPasswordDto {

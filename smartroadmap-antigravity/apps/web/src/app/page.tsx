@@ -152,8 +152,8 @@ export default function Home() {
             </h1>
 
             <p className="text-body-lg text-base-content/75 max-w-xl leading-relaxed">
-              AI-powered career assessment, adaptive learning paths, verified
-              skill testing, and intelligent job matching. Don&apos;t just learn
+              Career assessment, adaptive learning paths, verified skill
+              testing, and focused job matching. Don&apos;t just learn
               — prove your mastery and connect directly to top hiring managers.
             </p>
 
