@@ -300,6 +300,39 @@ export class CertificationExportService {
     padding: 32px;
   }
 
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  @media print {
+    html, body {
+      width: 100% !important;
+      height: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: #0f172a !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .cert-wrapper {
+      max-width: 100% !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+    }
+    .cert-card {
+      height: 100vh !important;
+      border-radius: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      padding: 48px 64px !important;
+    }
+  }
+
   .cert-wrapper {
     background: #ffffff;
     border-radius: 20px;
