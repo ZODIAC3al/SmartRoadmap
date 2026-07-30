@@ -275,6 +275,26 @@ export default function Navbar() {
       label: t("nav.talentBoard"),
       show: !!user && user?.role === "company",
     },
+    {
+      href: "/community",
+      label: locale === "en" ? "Community" : "المجتمع",
+      show: !!user,
+    },
+    {
+      href: "/mentors",
+      label: locale === "en" ? "Mentors" : "الموجهين",
+      show: !!user,
+    },
+    {
+      href: "/resources",
+      label: locale === "en" ? "Resources" : "المراجع",
+      show: !!user,
+    },
+    {
+      href: "/admin",
+      label: locale === "en" ? "Admin" : "الإدارة",
+      show: !!user && user?.role === "admin",
+    },
     { href: "/pricing", label: t("nav.pricing"), show: true },
     { href: "/contact", label: t("nav.contact"), show: true },
   ];

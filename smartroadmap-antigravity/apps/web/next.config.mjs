@@ -1,8 +1,13 @@
+import { fileURLToPath } from 'node:url';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Emits a self-contained server bundle — required by apps/web/Dockerfile
   output: 'standalone',
-  outputFileTracingRoot: new URL('../../', import.meta.url).pathname,
+  experimental: {
+    // This Next.js build reads the monorepo tracing root from `experimental`.
+    outputFileTracingRoot: fileURLToPath(new URL('../../', import.meta.url)),
+  },
 
   webpack: (config, { dev }) => {
     // Suppress missing sourcemap 404s for third-party packages like framer-motion

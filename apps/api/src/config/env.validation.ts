@@ -35,7 +35,6 @@ export const envSchema = z
       .transform((v) => v === 'true'),
 
     OPENAI_API_KEY: z.string().optional(),
-    GEMINI_API_KEY: z.string().optional(),
     OPENAI_MODEL_SMART: z.string().default('gpt-4o'),
     OPENAI_MODEL_FAST: z.string().default('gpt-4o-mini'),
     OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),

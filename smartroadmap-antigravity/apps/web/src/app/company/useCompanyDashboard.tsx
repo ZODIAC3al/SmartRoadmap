@@ -1,16 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
 import {
   apiFetch,
-  cacheUser,
   fetchMe,
-  getCachedUser,
-  hasSession,
-  logout,
 } from "@/lib/api";
 import type { Candidate } from "./types";
 
@@ -64,7 +59,7 @@ export function useCompanyDashboard() {
   const [showAddJobModal, setShowAddJobModal] = useState(false);
 
   // Fallback realistic candidates data if the backend API has empty results or is offline
-  const fallbackCandidates: Candidate[] = [
+  const fallbackCandidates = useMemo<Candidate[]>(() => [
     {
       userId: "cand-mohamed",
       name: "Mohamed Elsaied",
@@ -168,16 +163,16 @@ export function useCompanyDashboard() {
           "Verification pending. Project submitted on June 19, 2026. Awaiting GPU cluster review.",
       },
     },
-  ];
+  ], []);
 
-  const fetchCandidates = async () => {
+  const fetchCandidates = useCallback(async () => {
     try {
       const res = await apiFetch("/hiring/candidates");
       if (!res.ok) throw new Error();
-      const data = await res.json();
+      const data = (await res.json()) as Candidate[];
 
       // Merge with advanced metrics
-      const enriched: Candidate[] = data.map((c: any, index: number) => {
+      const enriched: Candidate[] = data.map((c, index) => {
         const fallback =
           fallbackCandidates.find(
             (f) => f.name.toLowerCase() === c.name.toLowerCase(),
@@ -203,19 +198,19 @@ export function useCompanyDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fallbackCandidates]);
 
   useEffect(() => {
     // Identity now comes from the server (/auth/me), not from a JSON blob the
     // user can hand-edit in localStorage. The API enforces the role again
     // on every request via RolesGuard, so this is UX, not the security boundary.
-    (async () => {
+    void (async () => {
       const me = await fetchMe();
       setUser(me);
       setLoading(false);
-      if (me?.role === "company" || me?.role === "admin") fetchCandidates();
+      if (me?.role === "company" || me?.role === "admin") await fetchCandidates();
     })();
-  }, []);
+  }, [fetchCandidates]);
 
   const handleSimulateRecruiter = () => {
     // The fake client-side session ('demo-token') is gone: a role can only ever

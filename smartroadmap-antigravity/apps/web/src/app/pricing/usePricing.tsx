@@ -7,8 +7,6 @@ import {
   apiFetch,
   cacheUser,
   getCachedUser,
-  hasSession,
-  logout,
 } from "@/lib/api";
 import { pricingDict } from "./pricing.data";
 

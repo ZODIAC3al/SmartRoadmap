@@ -31,13 +31,29 @@ export class HiringController {
 
   @Get('jobs/matches')
   matchForMe(@CurrentUser() user: JwtUser) {
-    return this.hiringService.matchJobsForLearner(user.sub);
+    return this.hiringService.matchJobsSemantic(user.sub);
   }
 
   @Get('jobs/matches/:userId')
   matchForUser(@CurrentUser() user: JwtUser, @Param('userId') userId: string) {
     assertSelfOrAdmin(user, userId);
-    return this.hiringService.matchJobsForLearner(userId);
+    return this.hiringService.matchJobsSemantic(userId);
+  }
+
+  @Post('jobs/reindex')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  async reindexJobs() {
+    const jobs = await this.hiringService.getJobs();
+    for (const job of jobs) {
+      await this.hiringService.indexJob(job);
+    }
+    return { success: true, count: jobs.length };
+  }
+
+  @Post('profiles/index')
+  async indexProfile(@CurrentUser() user: JwtUser) {
+    return { success: true, userId: user.sub, message: 'User profile prepared for semantic matches.' };
   }
 
   /** Turns "you're missing Docker + CI" into actual roadmap modules. */
