@@ -96,20 +96,25 @@ export class DashboardService {
       .limit(5)
       .exec();
 
-    // 4. Fetch recent achievements from MongoDB
+    // 4. Fetch ALL achievements from MongoDB
     let userEarned = await this.userAchievementModel
       .find({ userId: userObjectId })
       .sort({ unlockedAt: -1 })
-      .limit(6)
       .exec();
 
-    // Auto-grant default Devotopia badges if learner has none stored in DB yet
+    // Auto-grant all Devotopia badges if learner has none stored in DB yet
     if (userEarned.length === 0) {
       const defaultBadgeKeys = [
         'ai_architect',
         'solutions_architect',
         'cloud_practitioner',
         'security_engineer',
+        'devops_pro',
+        'fullstack_master',
+        'data_engineer',
+        'ml_specialist',
+        'db_architect',
+        'cyber_defense',
       ];
       for (const key of defaultBadgeKeys) {
         try {
@@ -125,7 +130,6 @@ export class DashboardService {
       userEarned = await this.userAchievementModel
         .find({ userId: userObjectId })
         .sort({ unlockedAt: -1 })
-        .limit(6)
         .exec();
     }
 

@@ -1199,7 +1199,7 @@ export default function DashboardPage() {
                 <h3 className="font-bold text-base-content text-sm flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-amber-500" /> {tr("badgesTitle")}
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {(summary.recentAchievements.length > 0
                     ? summary.recentAchievements
                     : [
@@ -1207,26 +1207,34 @@ export default function DashboardPage() {
                         { title: "Solutions Architect", tier: "silver", description: "Fullstack Architecture Expert" },
                         { title: "Cloud Practitioner", tier: "emerald" as any, description: "DevOps & Deployment Mastery" },
                         { title: "Security Engineer", tier: "purple" as any, description: "Auth & Security Passport" },
+                        { title: "DevOps Pro", tier: "cyan" as any, description: "CI/CD & Kubernetes Specialist" },
+                        { title: "Fullstack Master", tier: "gold", description: "React & NestJS Fullstack" },
+                        { title: "Data Engineer", tier: "emerald" as any, description: "Pipeline & Analytics Expert" },
+                        { title: "ML Specialist", tier: "purple" as any, description: "Deep Learning & Neural Nets" },
+                        { title: "DB Architect", tier: "blue" as any, description: "High Scale MongoDB Schemas" },
+                        { title: "Cyber Defense", tier: "pink" as any, description: "Security & Guard Rails" },
                       ]
-                  ).slice(0, 4).map((ach: any, i: number) => {
-                    const themeMap: Record<string, "gold" | "blue" | "emerald" | "purple" | "cyan"> = {
+                  ).map((ach: any, i: number) => {
+                    const themeMap: Record<string, "gold" | "blue" | "emerald" | "purple" | "cyan" | "pink"> = {
                       gold: "gold",
                       silver: "blue",
-                      bronze: "amber" as any,
                       emerald: "emerald",
                       purple: "purple",
+                      cyan: "cyan",
+                      pink: "pink",
                     };
-                    const theme = themeMap[ach.tier] || (i === 0 ? "gold" : i === 1 ? "blue" : i === 2 ? "emerald" : "purple");
+                    const theme = themeMap[ach.tier] || (i % 6 === 0 ? "gold" : i % 6 === 1 ? "blue" : i % 6 === 2 ? "emerald" : i % 6 === 3 ? "purple" : i % 6 === 4 ? "cyan" : "pink");
 
                     return (
-                      <div key={i} className="flex flex-col items-center text-center">
+                      <div key={i} className="flex flex-col items-center text-center p-2 rounded-xl hover:bg-base-300/40 transition-colors">
                         <DevotopiaShieldBadge
                           title={ach.title}
                           category="VERIFIED"
                           footer="CERTIFIED"
                           theme={theme}
+                          allowExport={true}
                         />
-                        <p className="text-[9px] text-base-content/50 font-medium mt-1 line-clamp-1">{ach.description}</p>
+                        <p className="text-[9px] text-base-content/60 font-semibold mt-1.5 line-clamp-1">{ach.description}</p>
                       </div>
                     );
                   })}
