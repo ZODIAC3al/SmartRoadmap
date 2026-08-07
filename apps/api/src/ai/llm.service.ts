@@ -132,7 +132,6 @@ export class LLMService {
         );
       }
     }
-    }
 
     return this.mockRoadmap(targetRole);
   }
