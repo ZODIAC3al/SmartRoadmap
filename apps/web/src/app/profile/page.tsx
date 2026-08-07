@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { apiFetch, cacheUser, getCachedUser, logout } from "@/lib/api";
 import SalaryInsightsPanel, { SalaryInsights, COUNTRY_OPTIONS } from "@/components/SalaryInsightsPanel";
+import { RecommendedContentPanel } from "@/components/RecommendedContentPanel";
 
 // Crisp, professional SVG icons replacing keyboard emojis
 const HomeIcon = () => (
@@ -197,8 +198,6 @@ const CaretDownIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
   </svg>
 );
-
-import { RecommendedContentPanel } from "@/components/RecommendedContentPanel";
 
 function ProfileContent() {
   const { theme, setTheme, locale, setLocale, t } = useApp();
@@ -1161,14 +1160,9 @@ function ProfileContent() {
                       <div className="flex gap-2">
                         <button
                           type="button"
-<<<<<<< HEAD
-                          onClick={() => setTheme("smartlight")}
-                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 ${theme === "smartlight"
-=======
                           onClick={() => handleSetTheme("smartlight")}
                           className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 ${
                             theme === "smartlight"
->>>>>>> origin/main
                               ? "bg-[#7c3aed] text-white border-none"
                               : "btn-outline border-base-300 text-base-content hover:bg-base-100"
                             }`}
@@ -1178,14 +1172,9 @@ function ProfileContent() {
                         </button>
                         <button
                           type="button"
-<<<<<<< HEAD
-                          onClick={() => setTheme("smartdark")}
-                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 ${theme === "smartdark"
-=======
                           onClick={() => handleSetTheme("smartdark")}
                           className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 ${
                             theme === "smartdark"
->>>>>>> origin/main
                               ? "bg-[#7c3aed] text-white border-none"
                               : "btn-outline border-base-300 text-base-content hover:bg-base-100"
                             }`}
@@ -1206,19 +1195,9 @@ function ProfileContent() {
                       <div className="flex gap-2">
                         <button
                           type="button"
-<<<<<<< HEAD
-                          onClick={() => setLocale("en")}
-                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold ${locale === "en"
-=======
-                          onClick={() => handleSetTheme(theme)} // Wait, set theme doesn't change locale, it's just dummy action or handles locale change. Actually let's use handleSetLocale for locale selector
-                          className="hidden" // we replace it below
-                        />
-                        <button
-                          type="button"
                           onClick={() => handleSetLocale("en")}
                           className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold ${
                             locale === "en"
->>>>>>> origin/main
                               ? "bg-[#7c3aed] text-white border-none"
                               : "btn-outline border-base-300 text-base-content hover:bg-base-100"
                             }`}
@@ -1227,14 +1206,9 @@ function ProfileContent() {
                         </button>
                         <button
                           type="button"
-<<<<<<< HEAD
-                          onClick={() => setLocale("ar")}
-                          className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold ${locale === "ar"
-=======
                           onClick={() => handleSetLocale("ar")}
                           className={`flex-grow btn btn-sm rounded-xl text-xs font-semibold ${
                             locale === "ar"
->>>>>>> origin/main
                               ? "bg-[#7c3aed] text-white border-none"
                               : "btn-outline border-base-300 text-base-content hover:bg-base-100"
                             }`}

@@ -1168,19 +1168,6 @@ export default function RoadmapPage() {
         </p>
       </div>
 
-<<<<<<< HEAD
-      {/* Main Workspace split */}
-      <main className="flex-grow max-w-6xl mx-auto w-full p-4 sm:p-8 grid lg:grid-cols-12 gap-8 items-start">
-        <InterviewAssistant roadmapId={roadmap._id} />
-        {/* LEFT COLUMN: Node Graph Map (Linear Style) */}
-        <section className="lg:col-span-8 space-y-6">
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-base-content/40 font-mono">
-              Learning milestones graph
-            </span>
-            <span className="text-xs text-base-content/50 font-semibold">
-              Click node to reveal study guides
-=======
       {/* Action Selectors Row: Tracks + Layout Switcher */}
       <div className="flex flex-col gap-4 items-center justify-center mb-10">
 
@@ -1282,7 +1269,6 @@ export default function RoadmapPage() {
             </div>
             <span className="mt-3 text-xs sm:text-sm font-black uppercase tracking-wider text-base-content/70 text-center px-4">
               {roadmap?.title || "Syllabus Track"}
->>>>>>> origin/main
             </span>
           </div>
 
