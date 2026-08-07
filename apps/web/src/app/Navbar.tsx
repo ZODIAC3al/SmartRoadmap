@@ -386,6 +386,11 @@ export default function Navbar() {
                   📚 {locale === "en" ? "Resources" : "المراجع"}
                 </Link>
               </li>
+              <li>
+                <Link href="/mock-interview" className={isLinkActive("/mock-interview") ? "text-[#10B981] font-bold" : ""}>
+                  🎤 {locale === "en" ? "Mock Interview" : "مقابلة تجريبية"}
+                </Link>
+              </li>
               {user?.role === "learner" && (
                 <li>
                   <Link href="/hiring" className={isLinkActive("/hiring") ? "text-[#10B981] font-bold" : ""}>
