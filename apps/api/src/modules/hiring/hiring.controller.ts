@@ -52,7 +52,7 @@ export class HiringController {
   }
 
   @Post('profiles/index')
-  async indexProfile(@CurrentUser() user: JwtUser) {
+  indexProfile(@CurrentUser() user: JwtUser) {
     return { success: true, userId: user.sub, message: 'User profile prepared for semantic matches.' };
   }
 

@@ -91,7 +91,7 @@ export class ResourceService {
 
   async getRecommendations(userId: string): Promise<LearningResource[]> {
     // 1. Get active roadmap topics
-    let keywords: string[] = [];
+    const keywords: string[] = [];
 
     const activeRoadmap = await this.roadmapModel.findOne({
       userId: new Types.ObjectId(userId),

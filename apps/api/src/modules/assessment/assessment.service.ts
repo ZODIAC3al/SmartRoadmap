@@ -107,7 +107,7 @@ export class AssessmentService {
       correct,
       difficulty: currentQuestion.difficulty || 'medium',
       timeTaken,
-    } as any);
+    });
 
     await session.save();
 

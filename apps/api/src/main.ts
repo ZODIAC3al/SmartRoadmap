@@ -54,4 +54,4 @@ async function bootstrap() {
   logger.log(`API listening on :${port} | CORS: ${origins.join(', ')}`);
 }
 
-bootstrap();
+void bootstrap();

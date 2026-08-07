@@ -83,7 +83,7 @@ export class MentorService {
   async recommendMentors(userId: string): Promise<any[]> {
     // 1. Gather learner skills & goals
     let learnerTarget = '';
-    let learnerSkills: string[] = [];
+    const learnerSkills: string[] = [];
 
     const activeRoadmap = await this.roadmapModel.findOne({
       userId: new Types.ObjectId(userId),

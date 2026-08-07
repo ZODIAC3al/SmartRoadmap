@@ -69,7 +69,7 @@ export class ChatbotService {
           const modSummary = activeModules.map((m) => `- ${m.title} (Status: ${m.status}, topics: ${m.topics.join(', ')})`).join('\n');
           contextStr += `\n[User Learning Context]\nTarget Career: ${roadmap.targetRole || 'Not set'}\nActive Modules:\n${modSummary || 'None active'}\n`;
         }
-      } catch (err) {
+      } catch {
         contextStr += `\n[User Learning Context]\nTarget Career: Not set\nActive Modules: None\n`;
       }
     }
@@ -99,7 +99,7 @@ export class ChatbotService {
           const analytics = await this.adminService.getAnalytics();
           contextStr += `\n[Admin Context - Platform Stats]\nTotal Users: ${analytics.stats.totalUsers}\nLearners: ${analytics.stats.totalLearners}\nMentors: ${analytics.stats.totalMentors}\nQuiz Pass Rate: ${analytics.stats.quizPassRate}\n`;
         }
-      } catch (err) {
+      } catch {
         contextStr += `\n[Admin Context]\nFailed to load administration tools data.\n`;
       }
     }

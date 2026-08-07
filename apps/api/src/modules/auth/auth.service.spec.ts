@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { OnboardingService } from './onboarding.service';
 import { MailService } from '../mail/mail.service';
 import { User } from '../../schemas/user.schema';
+import { RegisterDto } from './dto/auth.dto';
 
 const CONFIG: Record<string, any> = {
   JWT_SECRET: 'test_secret_that_is_at_least_32_characters_long',
@@ -19,10 +20,10 @@ const CONFIG: Record<string, any> = {
 class FakeUserModel {
   static docs: any[] = [];
   constructor(private readonly doc: any) {}
-  save = jest.fn().mockImplementation(async () => {
+  save = jest.fn().mockImplementation(() => {
     const saved = { ...this.doc, _id: { toString: () => 'user-1' } };
     FakeUserModel.docs.push(saved);
-    return saved;
+    return Promise.resolve(saved);
   });
   static exists = jest.fn().mockResolvedValue(false);
   static findOne = jest.fn();
@@ -73,7 +74,7 @@ describe('AuthService', () => {
       email: 'r@test.com',
       name: 'R',
       password: 'password123',
-    } as any);
+    });
 
     const push = FakeUserModel.updateOne.mock.calls.find(
       ([, u]) => u?.$push?.refreshTokenHashes,
@@ -97,7 +98,7 @@ describe('AuthService', () => {
       email: 'A@Test.com',
       name: 'Ahmed',
       password: 'password123',
-    } as any);
+    });
 
     const stored = FakeUserModel.docs[0];
     expect(stored.passwordHash).not.toBe('password123');
@@ -106,12 +107,13 @@ describe('AuthService', () => {
   });
 
   it('never allows self-assigning the admin role at registration', async () => {
-    await service.register({
+    const invalidRegistration = {
       email: 'b@test.com',
       name: 'B',
       password: 'password123',
-      role: 'admin' as any,
-    } as any);
+      role: 'admin',
+    } as unknown as RegisterDto;
+    await service.register(invalidRegistration);
     // DTO validation blocks it, and the service defaults anything unexpected.
     expect(['learner', 'company']).toContain(FakeUserModel.docs[0].role);
   });
@@ -143,15 +145,16 @@ describe('AuthService', () => {
   it('blocks google login on an email owned by a local (password) account', async () => {
     const svc: any = service;
     svc.googleClient = {
-      verifyIdToken: async () => ({
-        getPayload: () => ({
-          email: 'local@test.com',
-          email_verified: true,
-          sub: 'g1',
+      verifyIdToken: () =>
+        Promise.resolve({
+          getPayload: () => ({
+            email: 'local@test.com',
+            email_verified: true,
+            sub: 'g1',
+          }),
         }),
-      }),
     };
-    (svc.config as any).getOrThrow = (k: string) => CONFIG[k] ?? 'client-id';
+    svc.config.getOrThrow = (k: string) => CONFIG[k] ?? 'client-id';
     FakeUserModel.findOne.mockResolvedValueOnce({
       provider: 'local',
       email: 'local@test.com',

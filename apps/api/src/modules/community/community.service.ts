@@ -62,7 +62,7 @@ export class CommunityService {
     if (!userId) return spaces;
 
     // 1. Smart Recommendations: recommendation weight based on matching user skills
-    let userSkills: string[] = [];
+    const userSkills: string[] = [];
     const activeRoadmap = await this.roadmapModel.findOne({
       userId: new Types.ObjectId(userId),
       status: 'active',
