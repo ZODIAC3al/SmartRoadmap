@@ -198,14 +198,16 @@ const CaretDownIcon = () => (
   </svg>
 );
 
-export default function ProfilePage() {
+import { RecommendedContentPanel } from "@/components/RecommendedContentPanel";
+
+function ProfileContent() {
   const { theme, setTheme, locale, setLocale, t } = useApp();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   // Active tab state matching the mockup tabs
   const [activeTab, setActiveTab] = useState<
-    "account" | "salary" | "security" | "notifications" | "interface" | "additional"
+    "account" | "salary" | "recommendations" | "security" | "notifications" | "interface" | "additional"
   >("account");
 
   // Form states
@@ -521,6 +523,12 @@ export default function ProfilePage() {
       icon: <JobsIcon />,
     },
     {
+      label: locale === "en" ? "Recommended Content" : "المحتوى الموصى به",
+      icon: <PopularIcon />,
+      active: activeTab === "recommendations",
+      onClick: () => setActiveTab("recommendations"),
+    },
+    {
       label: t("profile.sidebar.salaryInsights"),
       icon: <SalaryIcon />,
       active: activeTab === "salary",
@@ -666,6 +674,7 @@ export default function ProfilePage() {
             <div className="flex border-b border-base-300 overflow-x-auto pb-px gap-6 text-xs font-semibold scrollbar-none">
               {[
                 { id: "account", label: t("profile.tabs.account") },
+                { id: "recommendations", label: locale === "en" ? "Recommended Content" : "التوصيات المحتوى" },
                 { id: "salary", label: t("profile.tabs.salary") },
                 { id: "security", label: t("profile.tabs.security") },
                 { id: "notifications", label: t("profile.tabs.notifications") },
@@ -881,6 +890,13 @@ export default function ProfilePage() {
                     onCountryChange={handleCountryChange}
                     onRefresh={() => fetchSalaryInsights()}
                   />
+                </div>
+              )}
+
+              {/* Recommended Content Tab */}
+              {activeTab === "recommendations" && (
+                <div className="bg-base-200 border border-base-300 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
+                  <RecommendedContentPanel locale={locale} />
                 </div>
               )}
 
@@ -1120,5 +1136,19 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen bg-base-100 flex items-center justify-center p-8">
+          <span className="loading loading-spinner loading-lg text-[#7c3aed]" />
+        </div>
+      }
+    >
+      <ProfileContent />
+    </React.Suspense>
   );
 }

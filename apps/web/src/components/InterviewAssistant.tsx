@@ -386,6 +386,27 @@ export default function InterviewAssistant({ roadmapId }: { roadmapId?: string }
     );
   }
 
+  const handleFinishVoiceAnswer = () => {
+    if (isSubmitting) return;
+
+    // 1. Stop recording and clear silence auto-submit timer immediately
+    silenceTimerRef.current && clearTimeout(silenceTimerRef.current);
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // Ignored if already stopped
+      }
+    }
+    setIsRecording(false);
+
+    // 2. Short 250ms grace period to allow recognition.onresult to flush final spoken words
+    setTimeout(() => {
+      const finalVal = answerRef.current || answer;
+      submitAnswer(false, finalVal);
+    }, 250);
+  };
+
   // --- UI Render ---
 
   // Voice Mode UI
@@ -427,7 +448,7 @@ export default function InterviewAssistant({ roadmapId }: { roadmapId?: string }
             ) : isRecording ? (
               <div className="space-y-2 animate-fade-in">
                 <p className="text-xl font-semibold text-success">Listening...</p>
-                {answer && <p className="text-sm italic opacity-70">"{answer}"</p>}
+                {answer && <p className="text-sm italic opacity-70">&quot;{answer}&quot;</p>}
               </div>
             ) : isSubmitting ? (
               <p className="text-xl font-semibold opacity-70 animate-fade-in">Evaluating your answer...</p>
@@ -443,15 +464,33 @@ export default function InterviewAssistant({ roadmapId }: { roadmapId?: string }
           </div>
         </div>
 
-        <div className="flex gap-4 w-full mt-8">
-          {paused ? (
-            <button className="btn btn-warning flex-1" onClick={handleResume}>Resume</button>
-          ) : (
-            <button className="btn btn-warning flex-1" onClick={handlePause} disabled={isSubmitting}>Pause</button>
-          )}
-          <button className="btn btn-error flex-1" onClick={handleEndSession} disabled={isSubmitting}>
-            End Interview
+        {/* Action Controls */}
+        <div className="w-full max-w-md flex flex-col gap-3 mt-6">
+          <button
+            className="btn btn-success text-white w-full btn-lg font-bold shadow-md hover:shadow-lg transition-all"
+            onClick={handleFinishVoiceAnswer}
+            disabled={isSubmitting || isSpeaking || paused}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="loading loading-spinner loading-sm"></span>
+                Evaluating Answer...
+              </>
+            ) : (
+              "I'm Finished"
+            )}
           </button>
+
+          <div className="flex gap-4 w-full">
+            {paused ? (
+              <button className="btn btn-warning flex-1" onClick={handleResume}>Resume</button>
+            ) : (
+              <button className="btn btn-warning flex-1" onClick={handlePause} disabled={isSubmitting}>Pause</button>
+            )}
+            <button className="btn btn-error flex-1" onClick={handleEndSession} disabled={isSubmitting}>
+              End Interview
+            </button>
+          </div>
         </div>
       </div>
     );

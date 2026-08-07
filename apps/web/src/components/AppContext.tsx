@@ -520,6 +520,7 @@ const translations: TranslationDict = {
   "profile.sidebar.popular": { en: "Popular Blogs", ar: "مقالات شائعة" },
   "profile.sidebar.activity": { en: "Your Activity", ar: "نشاطك" },
   "profile.sidebar.saved": { en: "Saved Blogs", ar: "مقالات محفوظة" },
+  "profile.sidebar.salaryInsights": { en: "Salary Insights", ar: "تقديرات الرواتب" },
   "profile.sidebar.settings": { en: "Settings", ar: "الإعدادات" },
   "profile.sidebar.logout": { en: "Logout", ar: "تسجيل الخروج" },
   "profile.tabs.account": { en: "Account Settings", ar: "إعدادات الحساب" },

@@ -2,124 +2,193 @@
 
 import React from "react";
 
-// ─── Country catalogue (mirrors backend COUNTRY_MAP) ─────────────────────────
+// ─── Country catalogue ────────────────────────────────────────────────────────
 
 export interface CountryOption {
-  code: string;   // ISO-3166-1 alpha-2
+  code: string;
   label: string;
-  flag: string;   // emoji flag
+  flag: string;
   currency: string;
 }
 
 export const COUNTRY_OPTIONS: CountryOption[] = [
-  // Middle East / Africa — shown first because they are the primary markets
   { code: "eg", label: "Egypt",        flag: "🇪🇬", currency: "EGP" },
   { code: "sa", label: "Saudi Arabia", flag: "🇸🇦", currency: "SAR" },
   { code: "ae", label: "UAE",          flag: "🇦🇪", currency: "AED" },
-  // English-speaking / Adzuna-native
   { code: "us", label: "USA",          flag: "🇺🇸", currency: "USD" },
   { code: "gb", label: "UK",           flag: "🇬🇧", currency: "GBP" },
   { code: "ca", label: "Canada",       flag: "🇨🇦", currency: "CAD" },
   { code: "au", label: "Australia",    flag: "🇦🇺", currency: "AUD" },
-  // Europe
   { code: "de", label: "Germany",      flag: "🇩🇪", currency: "EUR" },
   { code: "fr", label: "France",       flag: "🇫🇷", currency: "EUR" },
   { code: "nl", label: "Netherlands",  flag: "🇳🇱", currency: "EUR" },
-  // Asia / Pacific
   { code: "in", label: "India",        flag: "🇮🇳", currency: "INR" },
   { code: "sg", label: "Singapore",    flag: "🇸🇬", currency: "SGD" },
 ];
 
-// ─── Response types (mirror apps/api/src/modules/salary/dto/salary.dto.ts) ───
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface SalaryGrowthPoint {
-  year: number;
-  averageSalary: number;
-}
+export type SalaryDataStatus =
+  | "LIVE_DATA"
+  | "AI_ESTIMATE"
+  | "INSUFFICIENT_DATA"
+  | "NO_DATA"
+  | "API_ERROR";
 
-interface SkillGapAnalysis {
-  missingSkills: string[];
-  recommendations: string[];
-}
+interface SalaryGrowthPoint { year: number; averageSalary: number; }
+interface SkillGapAnalysis  { missingSkills: string[]; recommendations: string[]; }
 
 export interface SalaryInsights {
-  minSalary: number;
-  avgSalary: number;
-  maxSalary: number;
+  jobTitle: string;
+  dataStatus: SalaryDataStatus;
+  minSalary:  number | null;
+  avgSalary:  number | null;
+  maxSalary:  number | null;
+  salaryMetricLabel: "average" | "median" | "estimate";
   currency: string;
-  marketDemand: "High" | "Moderate" | "Low";
+  salaryPeriod: "annual" | "monthly";
+  marketDemand: "High" | "Moderate" | "Low" | null;
   trendingSkills: string[];
   salaryGrowthTrends: SalaryGrowthPoint[];
-  skillGapAnalysis: SkillGapAnalysis;
-  dataSource: "Adzuna" | "AI Estimate" | "Fallback";
+  skillGapAnalysis: SkillGapAnalysis | null;
+  salaryRecommendation: string;
+  sourceLabel: string;
   confidenceScore: number;
   jobsAnalyzed: number;
   cachedAt?: string;
+  // legacy — still present from backend
+  dataSource: "Adzuna" | "AI Estimate" | "Fallback";
 }
-
-// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
   insights: SalaryInsights | null;
   loading: boolean;
-  selectedCountry: string;           // ISO-3166-1 alpha-2, e.g. "eg"
+  selectedCountry: string;
   onCountryChange: (code: string) => void;
   onRefresh: () => void;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Format a number as currency using the correct locale and symbol. */
-function formatSalary(value: number, currency: string): string {
+function fmt(value: number, currency: string): string {
   try {
     return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
+      style: "currency", currency, maximumFractionDigits: 0,
     }).format(value);
   } catch {
     return `${value.toLocaleString()} ${currency}`;
   }
 }
 
-/**
- * Format a bar-chart label: keeps it short.
- * e.g.  1_200_000 EGP → "1.2M"  |  85_000 USD → "85k"  |  500 SGD → "500"
- */
-function shortSalaryLabel(value: number, currency: string): string {
+function shortLabel(value: number): string {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
   if (value >= 1_000)     return `${Math.round(value / 1_000)}k`;
   return String(value);
 }
 
+// ─── Status config ────────────────────────────────────────────────────────────
+
+const STATUS_CFG: Record<SalaryDataStatus, {
+  badge: string; badgeCls: string; icon: string;
+  title: string; body: string; showSalary: boolean;
+}> = {
+  LIVE_DATA: {
+    badge: "⚡ Live Data", badgeCls: "bg-success/15 text-success border-success/30",
+    icon: "⚡", title: "", body: "", showSalary: true,
+  },
+  AI_ESTIMATE: {
+    badge: "🤖 AI Estimate", badgeCls: "bg-[#7c3aed]/15 text-[#7c3aed] border-[#7c3aed]/30",
+    icon: "🤖", title: "", body: "", showSalary: true,
+  },
+  INSUFFICIENT_DATA: {
+    badge: "⚠ Limited Data", badgeCls: "bg-warning/15 text-warning border-warning/30",
+    icon: "⚠", title: "Limited salary data", showSalary: true,
+    body: "Fewer than 10 salary-bearing listings were found. The range shown is indicative, not statistically reliable.",
+  },
+  NO_DATA: {
+    badge: "— No Data", badgeCls: "bg-base-content/10 text-base-content/50 border-base-content/20",
+    icon: "—", showSalary: false,
+    title: "No salary data available for this market",
+    body: "Neither Adzuna nor our AI provider returned usable salary data for this role and country combination. This may be because the role title is very specific or the market has low listing volume. Try a broader job title or a different country.",
+  },
+  API_ERROR: {
+    badge: "✕ Unavailable", badgeCls: "bg-error/15 text-error border-error/30",
+    icon: "✕", showSalary: false,
+    title: "Salary data temporarily unavailable",
+    body: "There was a problem reaching the salary data provider. This is usually temporary. Please try refreshing in a moment.",
+  },
+};
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function DataSourceBadge({ source }: { source: SalaryInsights["dataSource"] }) {
-  const styles: Record<SalaryInsights["dataSource"], string> = {
-    Adzuna:        "bg-success/15 text-success border-success/30",
-    "AI Estimate": "bg-[#7c3aed]/15 text-[#7c3aed] border-[#7c3aed]/30",
-    Fallback:      "bg-base-content/10 text-base-content/60 border-base-content/20",
-  };
-  const icons: Record<SalaryInsights["dataSource"], string> = {
-    Adzuna: "⚡", "AI Estimate": "🤖", Fallback: "📊",
-  };
+function StatusBadge({ status }: { status: SalaryDataStatus }) {
+  const cfg = STATUS_CFG[status];
   return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border font-mono ${styles[source]}`}>
-      {icons[source]} {source}
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border font-mono ${cfg.badgeCls}`}>
+      {cfg.badge}
     </span>
   );
 }
 
-function ConfidenceBar({ score, jobsAnalyzed }: { score: number; jobsAnalyzed: number }) {
-  const color = score >= 70 ? "bg-success" : score >= 40 ? "bg-[#7c3aed]" : "bg-warning";
+function SalaryRangeBar({ min, avg, max, currency, metricLabel, period }: {
+  min: number; avg: number; max: number;
+  currency: string; metricLabel: string; period: string;
+}) {
+  if (!max) return null;
+  const minPct = Math.round((min / max) * 100);
+  const avgPct = Math.round((avg / max) * 100);
+  const periodLabel = period === "monthly" ? "/ month" : "/ year";
+
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1 h-1.5 bg-base-300 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all duration-700 ${color}`} style={{ width: `${score}%` }} />
+    <div className="space-y-3">
+      <div className="relative h-3 bg-base-300 rounded-full overflow-visible">
+        <div
+          className="absolute top-0 h-3 rounded-full bg-gradient-to-r from-[#7c3aed]/30 via-[#7c3aed]/60 to-[#7c3aed]"
+          style={{ left: `${minPct}%`, right: "0%" }}
+        />
+        <div
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-[#7c3aed] border-2 border-base-100 shadow-md z-10"
+          style={{ left: `${avgPct}%` }}
+        />
       </div>
-      <span className="text-[10px] font-bold text-base-content/60 font-mono w-10 text-right">{score}%</span>
+      <div className="grid grid-cols-3 text-center">
+        <div>
+          <p className="text-[9px] font-bold uppercase tracking-wider text-base-content/40 font-mono">Min</p>
+          <p className="text-sm font-black text-base-content tabular-nums mt-0.5">{fmt(min, currency)}</p>
+          <p className="text-[9px] text-base-content/30 font-mono">{periodLabel}</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold uppercase tracking-wider text-[#7c3aed]/70 font-mono">
+            {metricLabel.charAt(0).toUpperCase() + metricLabel.slice(1)}
+          </p>
+          <p className="text-lg font-black text-[#7c3aed] tabular-nums mt-0.5">{fmt(avg, currency)}</p>
+          <p className="text-[9px] text-base-content/30 font-mono">{periodLabel}</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-bold uppercase tracking-wider text-base-content/40 font-mono">Max</p>
+          <p className="text-sm font-black text-success tabular-nums mt-0.5">{fmt(max, currency)}</p>
+          <p className="text-[9px] text-base-content/30 font-mono">{periodLabel}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConfidenceBar({ score, jobsAnalyzed }: { score: number; jobsAnalyzed: number }) {
+  const color = score >= 70 ? "bg-success" : score >= 40 ? "bg-[#7c3aed]" : score > 0 ? "bg-warning" : "bg-base-300";
+  const label = score >= 70 ? "High" : score >= 40 ? "Medium" : score >= 20 ? "Low" : score > 0 ? "Very low" : "None";
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-1.5 bg-base-300 rounded-full overflow-hidden">
+          <div className={`h-full rounded-full transition-all duration-700 ${color}`} style={{ width: `${score}%` }} />
+        </div>
+        <span className="text-[10px] font-bold text-base-content/60 font-mono w-16 text-right">{score}% · {label}</span>
+      </div>
       {jobsAnalyzed > 0 && (
-        <span className="text-[10px] text-base-content/40 font-mono whitespace-nowrap">{jobsAnalyzed} jobs</span>
+        <p className="text-[10px] text-base-content/40 font-mono">
+          Based on {jobsAnalyzed} salary-bearing listings
+        </p>
       )}
     </div>
   );
@@ -130,27 +199,91 @@ function SalaryBarChart({ trends, currency }: { trends: SalaryGrowthPoint[]; cur
   const max = Math.max(...trends.map((t) => t.averageSalary));
   const currentYear = new Date().getFullYear();
   return (
-    <div className="flex items-end gap-2 sm:gap-3 h-32 pt-2">
+    <div className="flex items-end gap-2 sm:gap-3 h-28 pt-2">
       {trends.map((t) => {
-        const heightPct = Math.round((t.averageSalary / max) * 88);
+        const h = Math.max(6, Math.round((t.averageSalary / max) * 80));
         const isCurrent = t.year === currentYear;
         return (
           <div key={t.year} className="flex flex-col items-center flex-1 gap-1">
-            <span className="text-[9px] text-base-content/50 font-mono leading-none">
-              {shortSalaryLabel(t.averageSalary, currency)}
-            </span>
-            <div className="w-full flex flex-col justify-end" style={{ height: "88px" }}>
-              <div
-                className={`w-full rounded-t-lg transition-all duration-700 ${isCurrent ? "bg-[#7c3aed]" : "bg-[#7c3aed]/40"}`}
-                style={{ height: `${heightPct}px` }}
-              />
+            <span className="text-[9px] text-base-content/50 font-mono leading-none">{shortLabel(t.averageSalary)}</span>
+            <div className="w-full flex flex-col justify-end" style={{ height: 80 }}>
+              <div className={`w-full rounded-t-lg transition-all duration-700 ${isCurrent ? "bg-[#7c3aed]" : "bg-[#7c3aed]/35"}`} style={{ height: h }} />
             </div>
-            <span className={`text-[9px] font-bold font-mono ${isCurrent ? "text-[#7c3aed]" : "text-base-content/50"}`}>
-              {t.year}
-            </span>
+            <span className={`text-[9px] font-bold font-mono ${isCurrent ? "text-[#7c3aed]" : "text-base-content/50"}`}>{t.year}</span>
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function CountrySelector({ selected, onChange, disabled }: {
+  selected: string; onChange: (code: string) => void; disabled: boolean;
+}) {
+  return (
+    <div className="bg-base-200 border border-base-300 rounded-2xl px-5 py-4 shadow-sm">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-3">
+        Select Country / Market
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {COUNTRY_OPTIONS.map((opt) => {
+          const active = selected === opt.code;
+          return (
+            <button
+              key={opt.code} disabled={disabled} onClick={() => onChange(opt.code)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold
+                transition-all border select-none
+                ${active ? "bg-[#7c3aed] text-white border-[#7c3aed] shadow-sm"
+                         : "bg-base-100 text-base-content/70 border-base-300 hover:border-[#7c3aed]/50 hover:text-[#7c3aed]"}
+                ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+            >
+              <span className="text-sm leading-none">{opt.flag}</span>
+              <span>{opt.label}</span>
+              <span className="text-[9px] font-mono opacity-60">{opt.currency}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function DataStatusCard({ status, sourceLabel, onRefresh }: {
+  status: SalaryDataStatus; sourceLabel: string; onRefresh: () => void;
+}) {
+  const cfg = STATUS_CFG[status];
+  if (!cfg.title) return null;
+  const isError = status === "API_ERROR";
+  return (
+    <div className={`rounded-2xl px-5 py-4 border shadow-sm ${isError ? "bg-error/5 border-error/20" : "bg-warning/5 border-warning/20"}`}>
+      <p className={`text-xs font-bold mb-1 ${isError ? "text-error" : "text-warning"}`}>{cfg.title}</p>
+      <p className="text-xs text-base-content/70 leading-relaxed">{cfg.body}</p>
+      <div className="flex items-center justify-between mt-3">
+        <span className="text-[10px] text-base-content/40 font-mono">{sourceLabel}</span>
+        <button onClick={onRefresh}
+          className="btn btn-xs btn-ghost border border-base-300 rounded-xl text-[10px] font-bold gap-1.5 hover:text-[#7c3aed]">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Retry
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="h-20 rounded-2xl bg-base-300" />
+      <div className="h-36 rounded-2xl bg-base-300" />
+      <div className="h-16 rounded-2xl bg-base-300" />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="h-28 rounded-2xl bg-base-300" />
+        <div className="h-28 rounded-2xl bg-base-300" />
+      </div>
+      <div className="h-40 rounded-2xl bg-base-300" />
     </div>
   );
 }
@@ -166,58 +299,14 @@ function EmptyState({ onRefresh }: { onRefresh: () => void }) {
       </div>
       <div>
         <p className="text-sm font-bold text-base-content">No salary data yet</p>
-        <p className="text-xs text-base-content/55 mt-1 max-w-xs">
-          Select a country above and make sure your career profile has a role, location, and skills filled in.
+        <p className="text-xs text-base-content/50 mt-1 max-w-xs">
+          Select a country above, then make sure your career profile has a current role and skills saved.
         </p>
       </div>
-      <button
-        onClick={onRefresh}
-        className="btn btn-sm bg-[#7c3aed] hover:bg-[#6d28d9] border-none text-white rounded-xl text-xs font-bold px-6"
-      >
-        Try again
+      <button onClick={onRefresh}
+        className="btn btn-sm bg-[#7c3aed] hover:bg-[#6d28d9] border-none text-white rounded-xl text-xs font-bold px-6">
+        Load Insights
       </button>
-    </div>
-  );
-}
-
-// ─── Country selector ─────────────────────────────────────────────────────────
-
-function CountrySelector({
-  selected,
-  onChange,
-  disabled,
-}: {
-  selected: string;
-  onChange: (code: string) => void;
-  disabled: boolean;
-}) {
-  return (
-    <div className="bg-base-200 border border-base-300 rounded-2xl px-5 py-4 shadow-sm">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-3">
-        Country / Market
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {COUNTRY_OPTIONS.map((opt) => {
-          const isActive = selected === opt.code;
-          return (
-            <button
-              key={opt.code}
-              disabled={disabled}
-              onClick={() => onChange(opt.code)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all border
-                ${isActive
-                  ? "bg-[#7c3aed] text-white border-[#7c3aed] shadow-sm"
-                  : "bg-base-100 text-base-content/70 border-base-300 hover:border-[#7c3aed]/50 hover:text-[#7c3aed]"
-                }
-                ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-            >
-              <span className="text-base leading-none">{opt.flag}</span>
-              <span>{opt.label}</span>
-              <span className="text-[9px] font-mono opacity-70">{opt.currency}</span>
-            </button>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -225,206 +314,198 @@ function CountrySelector({
 // ─── Main panel ───────────────────────────────────────────────────────────────
 
 export default function SalaryInsightsPanel({
-  insights,
-  loading,
-  selectedCountry,
-  onCountryChange,
-  onRefresh,
+  insights, loading, selectedCountry, onCountryChange, onRefresh,
 }: Props) {
-
-  // Derive the display currency from the selected country option (client-side
-  // label while loading) — falls back to whatever the API returned once loaded.
   const countryOpt = COUNTRY_OPTIONS.find((o) => o.code === selectedCountry);
-  const displayCurrency = insights?.currency ?? countryOpt?.currency ?? "USD";
 
-  // ── Loading skeleton ──────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {/* Country selector stays interactive while loading */}
-        <CountrySelector selected={selectedCountry} onChange={onCountryChange} disabled={true} />
-        <div className="space-y-4 animate-pulse">
-          <div className="h-16 rounded-2xl bg-base-300" />
-          <div className="grid grid-cols-3 gap-4">
-            {[0, 1, 2].map((i) => <div key={i} className="h-24 rounded-2xl bg-base-300" />)}
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-28 rounded-2xl bg-base-300" />
-            <div className="h-28 rounded-2xl bg-base-300" />
-          </div>
-          <div className="h-44 rounded-2xl bg-base-300" />
-          <div className="h-36 rounded-2xl bg-base-300" />
-        </div>
-      </div>
-    );
-  }
+  // Currency is ALWAYS taken from the API response, never from the country
+  // option.  This is the single source of truth. The country option's currency
+  // field is only used as a placeholder in the skeleton while loading.
+  const displayCurrency = insights?.currency ?? countryOpt?.currency ?? "USD";
 
   return (
     <div className="space-y-5">
+      <CountrySelector selected={selectedCountry} onChange={onCountryChange} disabled={loading} />
 
-      {/* ── Country selector ──────────────────────────────────────────────── */}
-      <CountrySelector selected={selectedCountry} onChange={onCountryChange} disabled={false} />
+      {loading  && <Skeleton />}
+      {!loading && !insights && <EmptyState onRefresh={onRefresh} />}
 
-      {/* ── No-data state ─────────────────────────────────────────────────── */}
-      {!insights && <EmptyState onRefresh={onRefresh} />}
+      {!loading && insights && (() => {
+        const {
+          jobTitle, dataStatus, minSalary, avgSalary, maxSalary,
+          salaryMetricLabel, salaryPeriod, marketDemand, trendingSkills,
+          salaryGrowthTrends, skillGapAnalysis, salaryRecommendation,
+          sourceLabel, confidenceScore, jobsAnalyzed, cachedAt,
+        } = insights;
 
-      {insights && (() => {
-        const { marketDemand } = insights;
-        const demandStyle =
-          marketDemand === "High"   ? "bg-success/15 text-success border-success/30"
-          : marketDemand === "Low"  ? "bg-error/15 text-error border-error/30"
+        const cfg       = STATUS_CFG[dataStatus];
+        const showSalary = cfg.showSalary && minSalary != null && avgSalary != null && maxSalary != null;
+
+        const demandCls =
+          marketDemand === "High"  ? "bg-success/15 text-success border-success/30"
+          : marketDemand === "Low" ? "bg-error/15 text-error border-error/30"
           : "bg-warning/15 text-warning border-warning/30";
-        const demandHint =
-          marketDemand === "High"  ? "Strong demand — great time to negotiate!"
-          : marketDemand === "Low" ? "Lower demand — consider upskilling."
-          : "Stable demand in your market.";
-        const hasMissingSkills   = (insights.skillGapAnalysis?.missingSkills?.length ?? 0) > 0;
-        const hasRecommendations = (insights.skillGapAnalysis?.recommendations?.length ?? 0) > 0;
 
-        const cachedLabel = insights.cachedAt
-          ? `Cached ${new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
-              Math.round((new Date(insights.cachedAt).getTime() - Date.now()) / 60000),
-              "minute",
-            )}`
-          : null;
+        const cachedLabel = cachedAt ? (() => {
+          try {
+            return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
+              Math.round((new Date(cachedAt).getTime() - Date.now()) / 60000), "minute",
+            );
+          } catch { return null; }
+        })() : null;
+
+        const periodLabel = salaryPeriod === "monthly" ? "Monthly" : "Annual";
 
         return (
           <>
-            {/* ── Header: data-source badge + refresh ───────────────────── */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <DataSourceBadge source={insights.dataSource} />
-                {insights.dataSource === "Adzuna" && (
-                  <span className="text-[10px] text-base-content/40 font-mono">Live market data</span>
-                )}
-                {insights.dataSource !== "Adzuna" && countryOpt && (
-                  <span className="text-[10px] text-base-content/40 font-mono">
-                    {countryOpt.flag} {countryOpt.label} · {displayCurrency}
-                  </span>
-                )}
-                {cachedLabel && (
-                  <span className="text-[10px] text-base-content/30 font-mono">· {cachedLabel}</span>
-                )}
+            {/* ── Role + country header ─────────────────────────────────── */}
+            <div className="bg-base-200 border border-base-300 rounded-2xl px-5 py-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex flex-col gap-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 font-mono">
+                    Salary comparison for
+                  </p>
+                  <p className="text-base font-black text-base-content leading-tight">{jobTitle}</p>
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    {countryOpt && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-base-content/70">
+                        <span className="text-sm">{countryOpt.flag}</span>{countryOpt.label}
+                      </span>
+                    )}
+                    <span className="text-base-content/30 text-[10px]">·</span>
+                    <span className="text-[10px] font-bold font-mono text-base-content/50">{displayCurrency}</span>
+                    <span className="text-base-content/30 text-[10px]">·</span>
+                    <StatusBadge status={dataStatus} />
+                    {cachedLabel && (
+                      <span className="text-[10px] text-base-content/30 font-mono">· {cachedLabel}</span>
+                    )}
+                  </div>
+                </div>
+                <button onClick={onRefresh}
+                  className="btn btn-xs btn-ghost border border-base-300 rounded-xl text-[10px] font-bold
+                    text-base-content/60 hover:text-[#7c3aed] hover:border-[#7c3aed]/40 gap-1.5 self-start sm:self-center">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Refresh
+                </button>
               </div>
-              <button
-                onClick={onRefresh}
-                className="btn btn-xs btn-ghost border border-base-300 rounded-xl text-[10px] font-bold text-base-content/60 hover:text-[#7c3aed] hover:border-[#7c3aed]/40 gap-1.5"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Refresh
-              </button>
             </div>
 
-            {/* ── Confidence ────────────────────────────────────────────── */}
+            {/* ── Status message for no-data / error states ─────────────── */}
+            <DataStatusCard status={dataStatus} sourceLabel={sourceLabel} onRefresh={onRefresh} />
+
+            {/* ── Salary range — only when we have real numbers ─────────── */}
+            {showSalary && (
+              <div className="bg-base-200 border border-base-300 rounded-2xl px-5 py-5 shadow-sm space-y-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono">
+                  Salary Range · {periodLabel} · {displayCurrency}
+                  {dataStatus === "INSUFFICIENT_DATA" && (
+                    <span className="ml-2 text-warning normal-case font-normal">· limited sample</span>
+                  )}
+                </p>
+                <SalaryRangeBar
+                  min={minSalary!} avg={avgSalary!} max={maxSalary!}
+                  currency={displayCurrency}
+                  metricLabel={salaryMetricLabel}
+                  period={salaryPeriod}
+                />
+              </div>
+            )}
+
+            {/* ── Data confidence ───────────────────────────────────────── */}
             <div className="bg-base-200 border border-base-300 rounded-2xl px-5 py-4 shadow-sm">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono">
                   Data Confidence
                 </p>
-                {insights.jobsAnalyzed > 0 && (
-                  <span className="text-[10px] text-base-content/40 font-mono">
-                    Based on {insights.jobsAnalyzed} real job listings
-                  </span>
-                )}
+                <span className="text-[10px] text-base-content/40 font-mono">{sourceLabel}</span>
               </div>
-              <ConfidenceBar score={insights.confidenceScore} jobsAnalyzed={insights.jobsAnalyzed} />
+              <ConfidenceBar score={confidenceScore} jobsAnalyzed={jobsAnalyzed} />
             </div>
 
-            {/* ── Salary range cards ────────────────────────────────────── */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {(
-                [
-                  { label: "Min Salary", value: insights.minSalary, accent: "text-base-content" },
-                  { label: "Avg Salary", value: insights.avgSalary, accent: "text-[#7c3aed]" },
-                  { label: "Max Salary", value: insights.maxSalary, accent: "text-success" },
-                ] as const
-              ).map((card) => (
-                <div key={card.label} className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-1.5">
-                    {card.label}
-                  </p>
-                  <p className={`text-2xl font-black ${card.accent} tabular-nums`}>
-                    {formatSalary(card.value, displayCurrency)}
-                  </p>
-                  <p className="text-[10px] text-base-content/40 mt-1">
-                    / year · {displayCurrency}
-                    {countryOpt && ` · ${countryOpt.flag} ${countryOpt.label}`}
-                  </p>
-                </div>
-              ))}
-            </div>
+            {/* ── Salary expectation — only when we have numbers ────────── */}
+            {showSalary && salaryRecommendation && (
+              <div className="bg-[#7c3aed]/5 border border-[#7c3aed]/20 rounded-2xl px-5 py-4 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#7c3aed]/70 font-mono mb-2">
+                  Salary Expectation
+                  {dataStatus === "AI_ESTIMATE" && (
+                    <span className="ml-2 normal-case font-normal text-[#7c3aed]/50">· AI estimate, not verified market data</span>
+                  )}
+                </p>
+                <p className="text-xs text-base-content/80 leading-relaxed">{salaryRecommendation}</p>
+              </div>
+            )}
 
             {/* ── Market demand + trending skills ───────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-3">
-                  Market Demand
-                </p>
-                <div className="flex items-center gap-3">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${demandStyle}`}>
-                    {marketDemand}
-                  </span>
-                  <span className="text-xs text-base-content/60 leading-snug">{demandHint}</span>
-                </div>
-              </div>
-
-              <div className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-3">
-                  Trending Skills
-                </p>
-                {insights.trendingSkills.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {insights.trendingSkills.map((skill) => (
-                      <span key={skill} className="px-2.5 py-1 bg-[#7c3aed]/10 text-[#7c3aed] border border-[#7c3aed]/20 rounded-lg text-[11px] font-bold">
-                        {skill}
+            {(marketDemand || trendingSkills.length > 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {marketDemand && (
+                  <div className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-3">
+                      Market Demand
+                    </p>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${demandCls}`}>
+                        {marketDemand}
                       </span>
-                    ))}
+                      <span className="text-xs text-base-content/60">
+                        {marketDemand === "High"  ? "Strong hiring activity — good leverage to negotiate."
+                        : marketDemand === "Low"  ? "Softer market — focus on differentiating skills."
+                        : "Stable demand in this market."}
+                      </span>
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-xs text-base-content/40">No trending skills data available.</p>
+                )}
+                {trendingSkills.length > 0 && (
+                  <div className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-3">
+                      Trending Skills
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {trendingSkills.map((s) => (
+                        <span key={s} className="px-2.5 py-1 bg-[#7c3aed]/10 text-[#7c3aed] border border-[#7c3aed]/20 rounded-lg text-[11px] font-bold">{s}</span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
+            )}
 
-            {/* ── Salary growth chart ───────────────────────────────────── */}
-            {insights.salaryGrowthTrends.length > 0 && (
+            {/* ── Growth chart ──────────────────────────────────────────── */}
+            {salaryGrowthTrends.length > 0 && (
               <div className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono">
                     Salary Growth Trend
                   </p>
                   <span className="text-[10px] text-base-content/30 font-mono">
-                    {insights.salaryGrowthTrends[0]?.year}–
-                    {insights.salaryGrowthTrends[insights.salaryGrowthTrends.length - 1]?.year}
-                    {" · "}{displayCurrency}
+                    {salaryGrowthTrends[0]?.year}–{salaryGrowthTrends[salaryGrowthTrends.length - 1]?.year} · {displayCurrency}
                   </span>
                 </div>
-                <SalaryBarChart trends={insights.salaryGrowthTrends} currency={displayCurrency} />
+                <SalaryBarChart trends={salaryGrowthTrends} currency={displayCurrency} />
               </div>
             )}
 
-            {/* ── AI recommendations ────────────────────────────────────── */}
-            {(hasMissingSkills || hasRecommendations) && (
+            {/* ── Skill gap ─────────────────────────────────────────────── */}
+            {skillGapAnalysis && (skillGapAnalysis.missingSkills.length > 0 || skillGapAnalysis.recommendations.length > 0) && (
               <div className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-4">
-                  AI-Powered Recommendations
+                  Skill Gap & Recommendations
                 </p>
                 <div className="space-y-4">
-                  {hasMissingSkills && (
+                  {skillGapAnalysis.missingSkills.length > 0 && (
                     <div>
                       <p className="text-[10px] font-bold text-error/80 uppercase font-mono mb-2">Skills to add</p>
                       <div className="flex flex-wrap gap-2">
-                        {insights.skillGapAnalysis.missingSkills.map((s) => (
-                          <span key={s} className="px-2.5 py-1 bg-error/10 text-error border border-error/20 rounded-lg text-[11px] font-semibold">
-                            {s}
-                          </span>
+                        {skillGapAnalysis.missingSkills.map((s) => (
+                          <span key={s} className="px-2.5 py-1 bg-error/10 text-error border border-error/20 rounded-lg text-[11px] font-semibold">{s}</span>
                         ))}
                       </div>
                     </div>
                   )}
-                  {hasRecommendations && insights.skillGapAnalysis.recommendations.map((rec, i) => (
+                  {skillGapAnalysis.recommendations.map((rec, i) => (
                     <div key={i} className="flex items-start gap-2.5 p-3 bg-[#7c3aed]/5 border border-[#7c3aed]/15 rounded-xl">
                       <span className="text-[#7c3aed] text-sm mt-0.5 flex-shrink-0">✦</span>
                       <p className="text-xs text-base-content/80 leading-relaxed">{rec}</p>
@@ -434,13 +515,10 @@ export default function SalaryInsightsPanel({
               </div>
             )}
 
-            {/* ── Footer note ───────────────────────────────────────────── */}
-            <p className="text-[10px] text-base-content/30 text-center font-mono pb-1">
-              {insights.dataSource === "Adzuna"
-                ? `Salary data sourced from ${insights.jobsAnalyzed} live Adzuna job listings · ${displayCurrency} · cached 24h.`
-                : insights.dataSource === "AI Estimate"
-                ? `AI estimate powered by Gemini · ${countryOpt?.label ?? "selected market"} · ${displayCurrency} · results are approximate.`
-                : `Deterministic estimate · ${displayCurrency}. Update your profile for better accuracy.`}
+            {/* ── Footer ───────────────────────────────────────────────── */}
+            <p className="text-[10px] text-base-content/25 text-center font-mono pb-1">
+              {sourceLabel}
+              {cachedLabel ? ` · ${cachedLabel}` : ""}
             </p>
           </>
         );

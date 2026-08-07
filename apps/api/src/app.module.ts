@@ -22,6 +22,7 @@ import { InterviewModule } from './modules/interview/interview.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { MessageModule } from './modules/message/message.module';
 import { SalaryModule } from './modules/salary/salary.module';
+import { RecommendationModule } from './modules/recommendation/recommendation.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { SalaryModule } from './modules/salary/salary.module';
     NotificationModule,
     MessageModule,
     SalaryModule,
+    RecommendationModule,
   ],
   controllers: [AppController],
   providers: [
