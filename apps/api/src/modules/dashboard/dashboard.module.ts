@@ -1,0 +1,51 @@
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
+import { Streak, StreakSchema } from '../../schemas/streak.schema';
+import {
+  CalendarEvent,
+  CalendarEventSchema,
+} from '../../schemas/calendar-event.schema';
+import {
+  UserAchievement,
+  UserAchievementSchema,
+} from '../../schemas/user-achievement.schema';
+import {
+  AchievementDefinition,
+  AchievementDefinitionSchema,
+} from '../../schemas/achievement-definition.schema';
+import {
+  QuizSession,
+  QuizSessionSchema,
+} from '../../schemas/quiz-session.schema';
+import {
+  ProgressSnapshot,
+  ProgressSnapshotSchema,
+} from '../../schemas/progress-snapshot.schema';
+import { CheatSheet, CheatSheetSchema } from '../../schemas/cheat-sheet.schema';
+import {
+  TrackCertification,
+  TrackCertificationSchema,
+} from '../../schemas/track-certification.schema';
+import { DashboardService } from './dashboard.service';
+import { DashboardController } from './dashboard.controller';
+
+@Module({
+  imports: [
+    MongooseModule.forFeature([
+      { name: Roadmap.name, schema: RoadmapSchema },
+      { name: Streak.name, schema: StreakSchema },
+      { name: CalendarEvent.name, schema: CalendarEventSchema },
+      { name: UserAchievement.name, schema: UserAchievementSchema },
+      { name: AchievementDefinition.name, schema: AchievementDefinitionSchema },
+      { name: QuizSession.name, schema: QuizSessionSchema },
+      { name: ProgressSnapshot.name, schema: ProgressSnapshotSchema },
+      { name: CheatSheet.name, schema: CheatSheetSchema },
+      { name: TrackCertification.name, schema: TrackCertificationSchema },
+    ]),
+  ],
+  controllers: [DashboardController],
+  providers: [DashboardService],
+  exports: [DashboardService],
+})
+export class DashboardModule {}

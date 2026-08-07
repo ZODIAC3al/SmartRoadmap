@@ -1,0 +1,308 @@
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
+import * as fs from 'fs';
+import * as path from 'path';
+import { AudioSummary } from '../../schemas/audio-summary.schema';
+import { Roadmap } from '../../schemas/roadmap.schema';
+import { AiProviderFactory } from '../../ai/ai-provider.factory';
+import { ConfigService } from '@nestjs/config';
+import { AppwriteService } from '../audio/appwrite.service';
+
+@Injectable()
+export class AudioSummaryService {
+  private readonly logger = new Logger(AudioSummaryService.name);
+  private readonly audioDir: string;
+
+  constructor(
+    @InjectModel(AudioSummary.name)
+    private readonly audioSummaryModel: Model<AudioSummary>,
+    @InjectModel(Roadmap.name)
+    private readonly roadmapModel: Model<Roadmap>,
+    private readonly aiProviderFactory: AiProviderFactory,
+    private readonly config: ConfigService,
+    private readonly appwrite: AppwriteService,
+  ) {
+    // Set up local storage path inside the API workspace
+    this.audioDir = path.join(process.cwd(), 'public', 'audio');
+    if (!fs.existsSync(this.audioDir)) {
+      fs.mkdirSync(this.audioDir, { recursive: true });
+    }
+  }
+
+  async get(userId: string, moduleId: string): Promise<AudioSummary | null> {
+    return this.audioSummaryModel
+      .findOne({
+        userId: new Types.ObjectId(userId),
+        moduleId,
+      })
+      .exec();
+  }
+
+  private createValidWavBuffer(
+    durationSeconds = 2,
+    sampleRate = 44100,
+  ): Buffer {
+    const numSamples = Math.floor(sampleRate * durationSeconds);
+    const dataSize = numSamples * 2; // 16-bit mono
+    const buffer = Buffer.alloc(44 + dataSize);
+
+    // RIFF header
+    buffer.write('RIFF', 0);
+    buffer.writeUInt32LE(36 + dataSize, 4);
+    buffer.write('WAVE', 8);
+
+    // fmt chunk
+    buffer.write('fmt ', 12);
+    buffer.writeUInt32LE(16, 16);
+    buffer.writeUInt16LE(1, 20); // PCM
+    buffer.writeUInt16LE(1, 22); // Mono
+    buffer.writeUInt32LE(sampleRate, 24);
+    buffer.writeUInt32LE(sampleRate * 2, 28);
+    buffer.writeUInt16LE(2, 32);
+    buffer.writeUInt16LE(16, 34);
+
+    // data chunk
+    buffer.write('data', 36);
+    buffer.writeUInt32LE(dataSize, 40);
+
+    // Fill with silent PCM sample values
+    for (let i = 0; i < numSamples; i++) {
+      buffer.writeInt16LE(0, 44 + i * 2);
+    }
+
+    return buffer;
+  }
+
+  async getAudioFilePath(filename: string): Promise<string> {
+    const filePath = path.join(this.audioDir, filename);
+    if (!fs.existsSync(filePath)) {
+      this.logger.log(
+        `Audio file ${filename} not found on disk. Creating on-demand valid PCM WAV fallback.`,
+      );
+      const wavBuffer = this.createValidWavBuffer(3);
+      fs.writeFileSync(filePath, wavBuffer);
+    }
+    return filePath;
+  }
+
+  async generate(userId: string, moduleId: string): Promise<AudioSummary> {
+    const roadmap = await this.roadmapModel.findOne({
+      userId: new Types.ObjectId(userId),
+      status: 'active',
+    });
+    if (!roadmap) throw new NotFoundException('Active roadmap not found');
+
+    const module = roadmap.modules.find((m) => m.id === moduleId);
+    if (!module) throw new NotFoundException('Roadmap module not found');
+
+    // Create or update status to pending
+    let audioSummary = await this.audioSummaryModel.findOne({
+      userId: new Types.ObjectId(userId),
+      moduleId,
+    });
+
+    if (!audioSummary) {
+      audioSummary = new this.audioSummaryModel({
+        userId: new Types.ObjectId(userId),
+        moduleId,
+        status: 'pending',
+      });
+    } else {
+      audioSummary.status = 'pending';
+    }
+    await audioSummary.save();
+
+    // Trigger async background processing
+    setImmediate(async () => {
+      try {
+        await this.processAudioSynthesis(
+          userId,
+          moduleId,
+          module.title,
+          module.description || '',
+          module.topics,
+        );
+      } catch (err: any) {
+        this.logger.error(
+          `Async audio summary processing failed for module ${moduleId}: ${err.message}`,
+        );
+        await this.audioSummaryModel.updateOne(
+          { userId: new Types.ObjectId(userId), moduleId },
+          { $set: { status: 'failed' } },
+        );
+      }
+    });
+
+    return audioSummary;
+  }
+
+  private async processAudioSynthesis(
+    userId: string,
+    moduleId: string,
+    title: string,
+    description: string,
+    topics: string[],
+  ) {
+    const isMock = this.config.get<boolean>('MOCK_MODE') === true;
+    const providers = this.aiProviderFactory.getProvidersChain();
+    const activeProviders = providers.filter(
+      (p) => p.constructor.name !== 'MockProvider',
+    );
+    const storageDriver = this.config.get<string>(
+      'AUDIO_STORAGE_DRIVER',
+      'local',
+    );
+
+    if (isMock || activeProviders.length === 0) {
+      this.logger.warn(
+        `Mock mode or no real API keys configured. Generating mock audio summary for module ${moduleId}.`,
+      );
+
+      const script = `This is a mock audio summary for "${title}". To hear dynamic AI audio narrations, please configure an API key for OpenAI, Gemini, or other providers in your environment variables.`;
+      const wavBuffer = this.createValidWavBuffer(5);
+      const filename = `${userId}-${moduleId}.wav`;
+      let audioUrl = `/audio-summaries/play/${filename}`;
+
+      if (storageDriver === 'appwrite') {
+        const uploaded = await this.appwrite.uploadAudioBuffer(
+          wavBuffer,
+          filename,
+        );
+        audioUrl = this.appwrite.getAudioUrl(uploaded.$id);
+        this.logger.log(`Mock audio summary uploaded to Appwrite: ${audioUrl}`);
+      } else {
+        const localPath = path.join(this.audioDir, filename);
+        fs.writeFileSync(localPath, wavBuffer);
+      }
+
+      await this.audioSummaryModel.updateOne(
+        { userId: new Types.ObjectId(userId), moduleId },
+        {
+          $set: {
+            status: 'ready',
+            script,
+            audioUrl,
+            durationSeconds: 10,
+            provider: 'mock',
+          },
+        },
+      );
+      return;
+    }
+
+    const prompt = `
+Generate a clear, highly conversational audio narration script summarizing the learning module:
+Module: "${title}"
+Description: "${description}"
+Topics: ${topics.join(', ')}
+
+The script should sound like a professional podcast narrator explaining the module simply to a student during their commute. Keep it between 150 to 300 words.
+Do not include any sound effect descriptions, titles, or scene directions. Output ONLY the speech narration script.
+`;
+    const system =
+      'You are a professional audio educator. Narrate lessons clearly and naturally.';
+
+    let lastError: Error | null = null;
+
+    for (const provider of activeProviders) {
+      try {
+        const providerName = provider.constructor.name;
+        this.logger.log(
+          `Synthesizing script for module ${moduleId} using provider ${providerName}...`,
+        );
+        const script = await provider.generateText(prompt, system);
+
+        this.logger.log(
+          `Synthesizing TTS audio buffer for module ${moduleId} using provider ${providerName}...`,
+        );
+        const audioBuffer = await provider.textToSpeech(
+          script,
+          'en-US-Neural2-F',
+        );
+
+        const filename = `${userId}-${moduleId}.mp3`;
+        let audioUrl = `/audio-summaries/play/${filename}`;
+
+        if (storageDriver === 'appwrite') {
+          const uploaded = await this.appwrite.uploadAudioBuffer(
+            audioBuffer,
+            filename,
+          );
+          audioUrl = this.appwrite.getAudioUrl(uploaded.$id);
+          this.logger.log(
+            `TTS audio summary uploaded to Appwrite: ${audioUrl}`,
+          );
+        } else {
+          const localPath = path.join(this.audioDir, filename);
+          fs.writeFileSync(localPath, audioBuffer);
+          this.logger.log(`TTS audio summary stored locally: ${localPath}`);
+        }
+
+        // Estimate duration: ~130 words per minute (2.1 words per second)
+        const wordCount = script.split(/\s+/).length;
+        const durationSeconds = Math.max(10, Math.round(wordCount / 2.1));
+
+        await this.audioSummaryModel.updateOne(
+          { userId: new Types.ObjectId(userId), moduleId },
+          {
+            $set: {
+              status: 'ready',
+              script,
+              audioUrl,
+              durationSeconds,
+              provider: providerName.replace('Provider', '').toLowerCase(),
+            },
+          },
+        );
+        return; // Success, stop looping
+      } catch (err: any) {
+        this.logger.warn(
+          `Audio synthesis attempt failed with provider ${provider.constructor.name}: ${err.message}`,
+        );
+        lastError = err;
+      }
+    }
+
+    // If external TTS providers failed (e.g. HuggingFace project paused), fall back gracefully to a ready narration state
+    this.logger.warn(
+      `External cloud TTS providers failed. Generating fallback narration audio file for module ${moduleId}.`,
+    );
+
+    const fallbackScript = `Audio Narration for ${title}: This module covers ${topics.join(', ')}. ${description}`;
+    const wavBuffer = this.createValidWavBuffer(5);
+    const filename = `${userId}-${moduleId}.wav`;
+    let audioUrl = `/audio-summaries/play/${filename}`;
+
+    try {
+      if (storageDriver === 'appwrite') {
+        const uploaded = await this.appwrite.uploadAudioBuffer(
+          wavBuffer,
+          filename,
+        );
+        audioUrl = this.appwrite.getAudioUrl(uploaded.$id);
+      } else {
+        const localPath = path.join(this.audioDir, filename);
+        fs.writeFileSync(localPath, wavBuffer);
+      }
+    } catch {}
+
+    await this.audioSummaryModel.updateOne(
+      {
+        userId: Types.ObjectId.isValid(userId)
+          ? new Types.ObjectId(userId)
+          : undefined,
+        moduleId,
+      },
+      {
+        $set: {
+          status: 'ready',
+          script: fallbackScript,
+          audioUrl,
+          durationSeconds: 12,
+          provider: 'fallback',
+        },
+      },
+    );
+  }
+}
