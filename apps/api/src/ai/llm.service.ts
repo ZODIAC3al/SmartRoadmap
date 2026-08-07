@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type OpenAI from 'openai';
 import { createOpenAIClient } from './openai.client';
+import { AiProviderFactory } from './ai-provider.factory';
 
 @Injectable()
 export class LLMService {
@@ -9,7 +10,10 @@ export class LLMService {
   private readonly isMockMode: boolean;
   private readonly client: OpenAI | null;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly aiProviderFactory: AiProviderFactory,
+  ) {
     const { isMockMode, client } = createOpenAIClient(config, this.logger);
     this.isMockMode = isMockMode;
     this.client = client;
@@ -101,36 +105,36 @@ export class LLMService {
     targetRole: string,
     skills: string[] = [],
   ): Promise<any> {
-    if (this.isMockMode || !this.client) return this.mockRoadmap(targetRole);
+    const providers = this.aiProviderFactory.getProvidersChain();
 
-    try {
-      const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('GEMINI_MODEL', 'gemini-1.5-flash'),
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are a curriculum designer. Reply with ONLY a JSON object of shape ' +
-              '{title, totalEstimatedHours, modules:[{id,title,description,prerequisites[],' +
-              'estimatedHours,topics[],difficulty,status,positionX,positionY}]}.',
-          },
-          {
-            role: 'user',
-            content: `Target role: "${targetRole}". Existing skills: ${skills.join(', ') || 'none'}.`,
-          },
-        ],
-      });
-
-      const parsed = JSON.parse(response.choices[0]?.message?.content ?? '{}');
-      if (!Array.isArray(parsed.modules) || parsed.modules.length === 0) {
-        throw new Error('LLM returned a roadmap with no modules');
+    for (const provider of providers) {
+      if (provider.constructor.name === 'MockProvider') {
+        return this.mockRoadmap(targetRole);
       }
-      return parsed;
-    } catch (error: any) {
-      this.logger.error(`OpenAI roadmap generation failed: ${error.message}`);
-      return this.mockRoadmap(targetRole); // graceful, terminating fallback
+      try {
+        const prompt = `Target role: "${targetRole}". Existing skills: ${skills.join(', ') || 'none'}.`;
+        const system =
+          'You are a curriculum designer. Reply with ONLY a JSON object of shape ' +
+          '{title, totalEstimatedHours, modules:[{id,title,description,prerequisites[],' +
+          'estimatedHours,topics[],difficulty,status,positionX,positionY}]}.';
+
+        const response = await provider.generateJSON<any>(
+          prompt,
+          'JSON object with title, totalEstimatedHours, and modules array',
+          system,
+        );
+        if (Array.isArray(response.modules) && response.modules.length > 0) {
+          return response;
+        }
+      } catch (error: any) {
+        this.logger.debug(
+          `Provider ${provider.constructor.name} unavailable for Roadmap (${error.message}). Trying next provider...`,
+        );
+      }
     }
+    }
+
+    return this.mockRoadmap(targetRole);
   }
 
   /**
@@ -142,43 +146,102 @@ export class LLMService {
     prompt: string,
     options: { json?: boolean; system?: string } = {},
   ): Promise<string | null> {
-    if (this.isMockMode || !this.client) return null;
+    const providers = this.aiProviderFactory.getProvidersChain();
 
-    try {
-      const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('GEMINI_MODEL', 'gemini-1.5-flash'),
-        ...(options.json
-          ? { response_format: { type: 'json_object' as const } }
-          : {}),
-        messages: [
-          ...(options.system
-            ? [{ role: 'system' as const, content: options.system }]
-            : []),
-          { role: 'user' as const, content: prompt },
-        ],
-      });
-      return response.choices[0]?.message?.content?.trim() ?? null;
-    } catch (error: any) {
-      this.logger.error(`OpenAI completion failed: ${error.message}`);
-      return null;
+    for (const provider of providers) {
+      if (provider.constructor.name === 'MockProvider') {
+        return null;
+      }
+      try {
+        if (options.json) {
+          const res = await provider.generateJSON<any>(
+            prompt,
+            'Valid JSON object',
+            options.system,
+          );
+          return JSON.stringify(res);
+        } else {
+          return await provider.generateText(prompt, options.system);
+        }
+      } catch (error: any) {
+        this.logger.debug(
+          `Provider ${provider.constructor.name} unavailable for Complete (${error.message}). Trying next provider...`,
+        );
+      }
     }
+
+    return null;
   }
 
-  /**
-   * Generate a mock quiz for a given topic and difficulty.
-   * Used by assessment service.
-   */
-  async generateQuiz(topic: string, difficulty: string, count: number = 5): Promise<any[]> {
-    if (this.isMockMode || !this.client) {
-      return this.mockQuiz(topic, difficulty, count);
+  async generateQuiz(
+    topic: string,
+    difficulty: string,
+    count = 5,
+  ): Promise<any[]> {
+    const providers = this.aiProviderFactory.getProvidersChain();
+
+    for (const provider of providers) {
+      if (provider.constructor.name === 'MockProvider') {
+        return this.mockQuiz(topic, difficulty, count);
+      }
+      try {
+        const prompt = `Generate ${count} questions about "${topic}" at ${difficulty} level.`;
+        const system =
+          'Reply with ONLY a JSON object {questions: [{id, question, options[], correctAnswer, explanation, difficulty}]}.';
+
+        const response = await provider.generateJSON<{ questions: any[] }>(
+          prompt,
+          'JSON object with questions array containing id, question, options array, correctAnswer, explanation, and difficulty',
+          system,
+        );
+        const questions = Array.isArray(response.questions)
+          ? response.questions
+          : [];
+        if (questions.length > 0) {
+          return questions;
+        }
+      } catch (error: any) {
+        this.logger.debug(
+          `Provider ${provider.constructor.name} unavailable for Quiz (${error.message}). Trying next provider...`,
+        );
+      }
     }
-    // Real implementation could call LLM to generate questions
-    const prompt = `Generate a quiz with ${count} questions about ${topic} at ${difficulty} difficulty.`;
-    const result = await this.complete(prompt, { json: true });
-    try {
-      return JSON.parse(result ?? '[]');
-    } catch {
-      return [];
+
+    return this.mockQuiz(topic, difficulty, count);
+  }
+
+  async generateRemedialNode(
+    topicTitle: string,
+    failPercentage: number,
+  ): Promise<{ title: string; description: string }> {
+    const providers = this.aiProviderFactory.getProvidersChain();
+
+    for (const provider of providers) {
+      if (provider.constructor.name === 'MockProvider') {
+        return {
+          title: `${topicTitle} Fundamentals (Remedial)`,
+          description: `Targeted remedial review module generated due to ${failPercentage}% fail rate on ${topicTitle}.`,
+        };
+      }
+      try {
+        const prompt = `Generate a targeted remedial sub-topic for a student struggling with "${topicTitle}" (Fail Rate: ${failPercentage}%).`;
+        const system =
+          'Reply with ONLY a JSON object of shape {"title": string, "description": string}.';
+
+        return await provider.generateJSON<{
+          title: string;
+          description: string;
+        }>(prompt, 'JSON object with title and description fields', system);
+      } catch (error: any) {
+        this.logger.debug(
+          `Provider ${provider.constructor.name} unavailable for RemedialNode (${error.message}). Trying next provider...`,
+        );
+      }
     }
+
+    return {
+      title: `${topicTitle} Fundamentals (Remedial)`,
+      description: `Targeted remedial review module generated due to ${failPercentage}% fail rate on ${topicTitle}.`,
+    };
   }
 }

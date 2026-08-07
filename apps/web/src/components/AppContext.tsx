@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { logout } from "@/lib/api";
 
 type Theme = "smartlight" | "smartdark";
 type Locale = "en" | "ar";
@@ -15,7 +14,7 @@ interface TranslationDict {
 
 const translations: TranslationDict = {
   // Navbar
-  "nav.logo": { en: "SmartRoadmap", ar: "خارطة الطريق الذكية" },
+  "nav.logo": { en: "Devotopia", ar: "Devotopia — خارطة الطريق الذكية" },
   "nav.roadmap": { en: "Learning Path", ar: "مسار التعلم" },
   "nav.cv": { en: "CV Profile", ar: "ملف السيرة الذاتية" },
   "nav.jobsMatch": { en: "Matched Jobs", ar: "الوظائف المتطابقة" },
@@ -30,7 +29,7 @@ const translations: TranslationDict = {
 
   // Home (Landing Page)
   "home.badge": {
-    en: "🚀 AI-Powered Personalized Syllabus Builder",
+    en: "Structured paths for measurable progress",
     ar: "🚀 منشئ المناهج التعليمية المخصص بالذكاء الاصطناعي",
   },
   "home.title1": {
@@ -42,7 +41,7 @@ const translations: TranslationDict = {
     ar: "الاحتراف والتوظيف المباشر.",
   },
   "home.subtitle": {
-    en: "SmartRoadmap constructs dynamic, AI-generated curriculum graphs based on your career targets. Prove real mastery through adaptive quizzes, and get directly matched to hiring teams.",
+    en: "SmartRoadmap builds dynamic curriculum graphs around your career targets. Prove real mastery through adaptive quizzes, and connect directly with hiring teams.",
     ar: "تقوم خارطة الطريق الذكية ببناء مخططات مناهج دراسية ديناميكية يتم إنشاؤها بواسطة الذكاء الاصطناعي بناءً على أهدافك المهنية. أثبت جدارتك من خلال اختبارات تفاعلية، واحصل على تطابق مباشر مع فرق التوظيف.",
   },
   "home.cta_start": { en: "Start Learning Now", ar: "ابدأ التعلم الآن" },
@@ -248,7 +247,7 @@ const translations: TranslationDict = {
 
   // Home - Footer
   "home.footer_desc": {
-    en: "AI-Powered Personalized Learning & Hiring Platform. Bridging candidates seeking structured goals and recruitment teams looking for verified skills.",
+    en: "Personalized learning and verified hiring in one platform. Connecting candidates with structured goals, experienced mentors, and recruitment teams.",
     ar: "منصة توظيف وتعلم شخصية مدعومة بالذكاء الاصطناعي. نربط بين الباحثين عن فرص عمل منظمة وبين فرق التوظيف الباحثة عن مهارات فنية موثقة.",
   },
   "home.footer_credits": {
@@ -517,9 +516,9 @@ const translations: TranslationDict = {
   "profile.header.search": { en: "Search...", ar: "البحث..." },
   "profile.header.welcome": { en: "Welcome", ar: "مرحباً" },
   "profile.sidebar.home": { en: "Home", ar: "الرئيسية" },
-  "profile.sidebar.popular": { en: "Popular Blogs", ar: "مقالات شائعة" },
+  "profile.sidebar.popular": { en: "Learning Tracks", ar: "مسارات التعلم" },
   "profile.sidebar.activity": { en: "Your Activity", ar: "نشاطك" },
-  "profile.sidebar.saved": { en: "Saved Blogs", ar: "مقالات محفوظة" },
+  "profile.sidebar.saved": { en: "My Achievements", ar: "إنجازاتي" },
   "profile.sidebar.salaryInsights": { en: "Salary Insights", ar: "تقديرات الرواتب" },
   "profile.sidebar.settings": { en: "Settings", ar: "الإعدادات" },
   "profile.sidebar.logout": { en: "Logout", ar: "تسجيل الخروج" },
@@ -632,16 +631,50 @@ export function AppContextProvider({
       document.documentElement.setAttribute("dir", "ltr");
     }
 
-    // Register PWA service worker
+    // Load OneSignal Web SDK dynamically on client side
+    if (typeof window !== "undefined") {
+      const script = document.createElement("script");
+      script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+      script.defer = true;
+      script.onload = () => {
+        const OneSignal = (window as any).OneSignal || [];
+        OneSignal.push(() => {
+          OneSignal.init({
+            appId: "9f79abe9-4b9c-46b2-b381-5a434cc909e3",
+            allowLocalhostAsSecureOrigin: true,
+          });
+        });
+      };
+      document.body.appendChild(script);
+    }
+
+    // Register PWA service worker in production, or unregister in development
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((reg) =>
-          console.log("PWA ServiceWorker registered with scope:", reg.scope),
-        )
-        .catch((err) =>
-          console.error("PWA ServiceWorker registration failed:", err),
-        );
+      if (process.env.NODE_ENV === "development") {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister().then((success) => {
+              if (success) {
+                console.log("Service Worker unregistered in development mode");
+              }
+            });
+          }
+        });
+        if (window.caches) {
+          caches.keys().then((keys) => {
+            keys.forEach((key) => caches.delete(key));
+          });
+        }
+      } else {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((reg) =>
+            console.log("PWA ServiceWorker registered with scope:", reg.scope),
+          )
+          .catch((err) =>
+            console.error("PWA ServiceWorker registration failed:", err),
+          );
+      }
     }
   }, []);
 

@@ -4,6 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
+import { EventEmitterModule } from '@nestjs/event-emitter';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { validateEnv } from './config/env.validation';
@@ -23,9 +25,30 @@ import { NotificationModule } from './modules/notification/notification.module';
 import { MessageModule } from './modules/message/message.module';
 import { SalaryModule } from './modules/salary/salary.module';
 import { RecommendationModule } from './modules/recommendation/recommendation.module';
+import { ProgressModule } from './modules/progress/progress.module';
+import { StreakModule } from './modules/streak/streak.module';
+import { AchievementModule } from './modules/achievement/achievement.module';
+import { CalendarModule } from './modules/calendar/calendar.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { CheatSheetModule } from './modules/cheat-sheet/cheat-sheet.module';
+import { AudioSummaryModule } from './modules/audio-summary/audio-summary.module';
+import { CodeExecutionModule } from './modules/code-execution/code-execution.module';
+import { CodeDraftModule } from './modules/code-draft/code-draft.module';
+import { CodingChallengeModule } from './modules/coding-challenge/coding-challenge.module';
+import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
+import { AudioModule } from './modules/audio/audio.module';
+import { ContactModule } from './modules/contact/contact.module';
+import { ExportModule } from './export/export.module';
+import { ResourceModule } from './modules/resource/resource.module';
+import { CommunityModule } from './modules/community/community.module';
+import { MentorModule } from './modules/mentor/mentor.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     // Fail fast on bad/missing config instead of silently degrading to mocks.
     ConfigModule.forRoot({
       isGlobal: true,
@@ -67,6 +90,26 @@ import { RecommendationModule } from './modules/recommendation/recommendation.mo
     MessageModule,
     SalaryModule,
     RecommendationModule,
+    ProgressModule,
+    StreakModule,
+    AchievementModule,
+    CalendarModule,
+    DashboardModule,
+    CheatSheetModule,
+    AudioSummaryModule,
+    CodeExecutionModule,
+    CodeDraftModule,
+    CodingChallengeModule,
+    VoiceAgentModule,
+    AudioModule,
+    ContactModule,
+    ExportModule,
+    ResourceModule,
+    CommunityModule,
+    MentorModule,
+    AdminModule,
+    ChatbotModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [
