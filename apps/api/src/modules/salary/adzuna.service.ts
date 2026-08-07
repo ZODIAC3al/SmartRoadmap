@@ -139,102 +139,120 @@ export class AdzunaService {
     skills?: string[];
     countryCode?: string;
   }): Promise<AdzunaSalaryResult | null> {
-    if (!this.enabled) {
-      this.logger.warn('Adzuna not configured — skipping');
-      return null;
-    }
-
     // Resolve the target country
     const country: CountryEntry =
       params.countryCode && COUNTRY_MAP[params.countryCode.toLowerCase()]
         ? COUNTRY_MAP[params.countryCode.toLowerCase()]
         : this.resolveCountryFromLocation(params.location);
 
-    // Non-native country — go straight to AI, no Adzuna call
+    if (!this.enabled) {
+      this.logger.warn(`[Salary Debug] Adzuna not configured (ADZUNA_APP_ID: "${this.appId ? 'PRESENT' : 'MISSING'}", ADZUNA_APP_KEY: "${this.appKey ? 'PRESENT' : 'MISSING'}") — skipping`);
+      return null;
+    }
+
     if (!country.adzunaCode) {
-      this.logger.log(
-        `Country "${country.label}" is not on Adzuna — delegating to AI fallback`,
-      );
+      this.logger.log(`[Salary Debug] Country "${country.label}" (${country.code}) is non-Adzuna — delegating to AI/local DB`);
       return null;
     }
 
     const apiCode = country.adzunaCode;
-    const what    = params.jobTitle.trim();
+    const originalTitle = params.jobTitle.trim();
 
-    this.logger.log(`Adzuna: "${what}" | ${country.label} (${country.currency}) | endpoint /${apiCode}/`);
+    // Query candidate variations: 1) exact title, 2) broader title
+    const queryCandidates: string[] = [originalTitle];
 
-    try {
-      // ── Fetch job listings ─────────────────────────────────────────────
-      const searchResp = await this.client.get<AdzunaJobListingResponse>(
-        `/jobs/${apiCode}/search/1`,
-        {
-          params: {
-            app_id: this.appId,
-            app_key: this.appKey,
-            what,
-            where: params.location !== 'Global' ? params.location : undefined,
-            results_per_page: 50,
-            salary_include_unknown: 0,
-            full_time: 1,
-            content_type: 'application/json',
-          },
-        },
-      );
-
-      const jobs       = searchResp.data?.results ?? [];
-      const totalCount = searchResp.data?.count   ?? 0;
-
-      if (jobs.length < ADZUNA_MIN_JOBS) {
-        this.logger.warn(`Adzuna: only ${jobs.length} listings for "${what}" in ${country.label}`);
-        return null;
+    if (originalTitle.toLowerCase().startsWith('junior ') || originalTitle.toLowerCase().startsWith('senior ')) {
+      const broader = originalTitle.replace(/^(junior|senior)\s+/i, '').trim();
+      if (broader && !queryCandidates.includes(broader)) {
+        queryCandidates.push(broader);
       }
-
-      const salaryJobs = jobs.filter(
-        (j) => (j.salary_min ?? 0) > 0 || (j.salary_max ?? 0) > 0,
-      );
-
-      if (salaryJobs.length < ADZUNA_MIN_JOBS) {
-        this.logger.warn(`Adzuna: only ${salaryJobs.length} listings have salary data`);
-        return null;
-      }
-
-      // Salaries are in the country's own currency — use them verbatim
-      const mins = salaryJobs.map((j) => j.salary_min ?? j.salary_max ?? 0).filter(Boolean);
-      const maxs = salaryJobs.map((j) => j.salary_max ?? j.salary_min ?? 0).filter(Boolean);
-      const all  = [...mins, ...maxs];
-
-      const minSalary = Math.round(Math.min(...mins));
-      const maxSalary = Math.round(Math.max(...maxs));
-      const avgSalary = Math.round(all.reduce((a, b) => a + b, 0) / all.length);
-
-      // ── Historical trend (same endpoint country, same currency) ────────
-      const salaryGrowthTrends = await this.fetchSalaryHistory(apiCode, what);
-
-      // ── Trending skills from job titles ────────────────────────────────
-      const trendingSkills = this.extractTrendingSkills(
-        jobs.map((j) => j.title ?? ''),
-        params.skills ?? [],
-      );
-
-      const confidenceScore = Math.min(100, Math.round((salaryJobs.length / 50) * 100));
-      const marketDemand    = this.deriveMarketDemand(totalCount);
-
-      return {
-        minSalary,
-        avgSalary,
-        maxSalary,
-        currency: country.currency, // always the country's own currency, never converted
-        jobsAnalyzed: salaryJobs.length,
-        confidenceScore,
-        marketDemand,
-        trendingSkills,
-        salaryGrowthTrends,
-        country: country.code,
-      };
-    } catch (err: any) {
-      this.logger.error(`Adzuna API error: ${err.message}`);
-      return null;
     }
+    if (!queryCandidates.includes('developer')) {
+      queryCandidates.push('developer');
+    }
+
+    for (const query of queryCandidates) {
+      const url = `${ADZUNA_BASE}/jobs/${apiCode}/search/1?what=${encodeURIComponent(query)}`;
+      this.logger.log(`[Salary Debug] Querying Adzuna URL: ${url}`);
+
+      try {
+        const searchResp = await this.client.get<AdzunaJobListingResponse>(
+          `/jobs/${apiCode}/search/1`,
+          {
+            params: {
+              app_id: this.appId,
+              app_key: this.appKey,
+              what: query,
+              results_per_page: 50,
+              full_time: 1,
+              content_type: 'application/json',
+            },
+          },
+        );
+
+        const jobs = searchResp.data?.results ?? [];
+        const totalCount = searchResp.data?.count ?? 0;
+
+        const salaryJobs = jobs.filter(
+          (j) => (j.salary_min ?? 0) > 0 || (j.salary_max ?? 0) > 0,
+        );
+
+        const sampleMin = salaryJobs[0]?.salary_min ?? salaryJobs[0]?.salary_max ?? 0;
+        const sampleMax = salaryJobs[0]?.salary_max ?? salaryJobs[0]?.salary_min ?? 0;
+
+        this.logger.log(
+          `[Salary Debug]\n` +
+          `Country: ${country.label} (${country.code})\n` +
+          `Job: ${originalTitle} (used: "${query}")\n` +
+          `Adzuna URL: ${url}\n` +
+          `Status: ${searchResp.status}\n` +
+          `Total jobs: ${totalCount}\n` +
+          `Jobs with salary: ${salaryJobs.length}\n` +
+          `Sample salary_min: ${sampleMin}\n` +
+          `Sample salary_max: ${sampleMax}\n` +
+          `Currency: ${country.currency}`
+        );
+
+        if (salaryJobs.length >= 1) {
+          const mins = salaryJobs.map((j) => j.salary_min ?? j.salary_max ?? 0).filter(Boolean);
+          const maxs = salaryJobs.map((j) => j.salary_max ?? j.salary_min ?? 0).filter(Boolean);
+          const all = [...mins, ...maxs];
+
+          const minSalary = Math.round(Math.min(...mins));
+          const maxSalary = Math.round(Math.max(...maxs));
+          const avgSalary = Math.round(all.reduce((a, b) => a + b, 0) / all.length);
+
+          const salaryGrowthTrends = await this.fetchSalaryHistory(apiCode, query);
+          const trendingSkills = this.extractTrendingSkills(
+            jobs.map((j) => j.title ?? ''),
+            params.skills ?? [],
+          );
+
+          const confidenceScore = Math.min(100, Math.round((salaryJobs.length / 50) * 100));
+          const marketDemand = this.deriveMarketDemand(totalCount);
+
+          return {
+            minSalary,
+            avgSalary,
+            maxSalary,
+            currency: country.currency,
+            jobsAnalyzed: salaryJobs.length,
+            confidenceScore,
+            marketDemand,
+            trendingSkills,
+            salaryGrowthTrends,
+            country: country.code,
+          };
+        }
+      } catch (err: any) {
+        const httpStatus = err.response?.status ?? 'NETWORK_ERROR';
+        const httpBody = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+        this.logger.error(`[Salary Debug] Adzuna HTTP ${httpStatus} error: ${httpBody}`);
+        return null;
+      }
+    }
+
+    return null;
   }
 
   // ─── Private helpers ───────────────────────────────────────────────────────

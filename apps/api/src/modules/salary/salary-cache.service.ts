@@ -22,7 +22,14 @@ export class SalaryCacheService {
   private readonly logger = new Logger(SalaryCacheService.name);
   private readonly store = new Map<string, CacheEntry<unknown>>();
 
-  /** Compute a stable string fingerprint for the profile fields that drive salary */
+  /** Build a cache key strictly based on userId + country + jobTitle */
+  buildCacheKey(userId: string, countryCode: string, jobTitle: string): string {
+    const c = (countryCode || 'us').toLowerCase();
+    const t = (jobTitle || '').toLowerCase().trim();
+    return `${userId}:${c}:${t}`;
+  }
+
+  /** Compute a stable string fingerprint for the profile fields that drive salary. */
   buildProfileHash(profile: {
     currentRole?: string;
     targetRole?: string;
@@ -32,53 +39,64 @@ export class SalaryCacheService {
     educationLevel?: string;
     certifications?: string[];
     industry?: string;
-  }): string {
+  }, countryCode: string = '', jobTitle: string = ''): string {
     return [
+      jobTitle.toLowerCase().trim(),
       profile.currentRole ?? '',
       profile.targetRole ?? '',
       String(profile.experienceYears ?? 0),
-      profile.location ?? '',
-      (profile.skills ?? []).sort().join(','),
+      (profile.skills ?? []).slice().sort().join(','),
       profile.educationLevel ?? '',
-      (profile.certifications ?? []).sort().join(','),
+      (profile.certifications ?? []).slice().sort().join(','),
       profile.industry ?? '',
+      countryCode.toLowerCase(),
     ].join('|');
   }
 
-  get<T>(userId: string, profileHash: string): T | null {
-    const entry = this.store.get(userId) as CacheEntry<T> | undefined;
+  get<T>(cacheKey: string, profileHash: string): T | null {
+    const entry = this.store.get(cacheKey) as CacheEntry<T> | undefined;
     if (!entry) return null;
 
     const now = Date.now();
 
     if (now > entry.expiresAt) {
-      this.logger.debug(`Cache expired for user ${userId}`);
-      this.store.delete(userId);
+      this.logger.debug(`Cache expired for key ${cacheKey}`);
+      this.store.delete(cacheKey);
       return null;
     }
 
     if (entry.profileHash !== profileHash) {
-      this.logger.debug(`Profile changed for user ${userId} — cache invalidated`);
-      this.store.delete(userId);
+      this.logger.debug(`Profile changed for key ${cacheKey} — cache invalidated`);
+      this.store.delete(cacheKey);
       return null;
     }
 
-    this.logger.debug(`Cache HIT for user ${userId}`);
+    this.logger.debug(`Cache HIT for key ${cacheKey}`);
     return entry.data;
   }
 
-  set<T>(userId: string, profileHash: string, data: T): void {
-    this.store.set(userId, {
+  set<T>(cacheKey: string, profileHash: string, data: T): void {
+    const anyData = data as any;
+    if (anyData?.dataStatus === 'NO_DATA' || anyData?.dataStatus === 'API_ERROR') {
+      this.logger.debug(`Skipping cache for status ${anyData?.dataStatus} (key: ${cacheKey})`);
+      return;
+    }
+    this.store.set(cacheKey, {
       data,
       expiresAt: Date.now() + CACHE_TTL_MS,
       profileHash,
     });
-    this.logger.debug(`Cache SET for user ${userId} (TTL 24h)`);
+    this.logger.debug(`Cache SET for key ${cacheKey} (TTL 24h)`);
   }
 
-  /** Explicitly evict a user's cached salary — called after profile update */
+  /** Explicitly evict all cached entries for a user — called after profile update */
   invalidate(userId: string): void {
-    this.store.delete(userId);
+    const prefix = `${userId}:`;
+    for (const key of this.store.keys()) {
+      if (key.startsWith(prefix)) {
+        this.store.delete(key);
+      }
+    }
     this.logger.debug(`Cache INVALIDATED for user ${userId}`);
   }
 }

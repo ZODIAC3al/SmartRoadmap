@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useApp } from "@/components/AppContext";
 import { toast } from "react-toastify";
 import { apiFetch, getCachedUser } from "@/lib/api";
+import InterviewAssistant from "@/components/InterviewAssistant";
 
 type Module = {
   id: string;

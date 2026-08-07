@@ -91,6 +91,7 @@ export class InterviewService {
       idealAnswer: evaluation.idealAnswer,
       correctness: evaluation.correctness,
       improvementTips: evaluation.improvementTips,
+      timestamp: new Date(),
     });
     this.logger.log(`Session answers array updated. Total answers: ${session.answers.length}`);
 
