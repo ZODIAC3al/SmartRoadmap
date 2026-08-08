@@ -229,27 +229,45 @@ export class CheatSheetService {
       : '';
 
     const prompt = `
-${regenNote}Create an EXTENSIVE, HIGH-FIDELITY, IN-DEPTH AI MASTER STUDY GUIDE & CHEATSHEET for the learning topic:
+${regenNote}Create an EXHAUSTIVE, HIGH-FIDELITY, IN-DEPTH MASTER TECHNICAL STUDY GUIDE & CHEATSHEET designed to help a developer COMPLETELY MASTER this topic:
 Module Title: "${targetModule.title}"
 Module Description: "${targetModule.description || ''}"
-Key Topics covered: ${(targetModule.topics || []).join(', ')}
+Key Concepts & Topics: ${(targetModule.topics || []).join(', ')}
 
-${missedTopics.length > 0 ? `The learner struggled with these specific quiz questions / weak areas recently, so please address and clarify these concepts with deep technical rigor:\n- ${missedTopics.join('\n- ')}` : ''}
+${missedTopics.length > 0 ? `CRITICAL FOCUS - The learner previously struggled with these specific areas/questions. Address these with extreme clarity and deep technical rigor:\n- ${missedTopics.join('\n- ')}` : ''}
 
-REQUIRED STRUCTURE & COMPREHENSIVE SECTIONS:
-1. **Executive Overview & Architectural Concepts**: Deep theoretical & practical explanation of ${targetModule.title}.
-2. **Core Principles & Component Flow**: Detailed breakdown of how ${targetModule.title} works under the hood.
-3. **Production Code & Practical Examples**: Complete, fully-functional code blocks with clear inline annotations.
-4. **Best Practices & Enterprise Patterns**: Real-world guidelines for clean implementation.
-5. **Common Pitfalls, Edge Cases & Antipatterns**: What to avoid in production systems.
-6. **Quick Reference Cheat Sheet & Key Terminology**: Concise summary bullet points and definitions.
+REQUIRED STRUCTURE & COMPREHENSIVE PHASES (Ensure extensive, thorough coverage of each section):
 
-Produce a LARGE, THOROUGH, STUNNING Markdown document with rich headings, code snippets, lists, and callout sections.
-Reply with ONLY the Markdown content.
+# Phase 1: Architectural Mechanics & Theoretical Foundations
+Provide a deep-dive explanation of ${targetModule.title}. Explain WHY it exists, how it fits into modern software engineering, and the core underlying mechanisms.
+Use a blockquote section starting with \`> Key Architectural Rule:\` to highlight the single most important rule to remember.
+
+# Phase 2: Execution Flow & Core Principles
+Break down step-by-step how ${targetModule.title} operates under the hood. 
+Use phase markers like \`**Phase 1:**\`, \`**Phase 2:**\`, \`**Phase 3:**\` to delineate execution stages. Explain data flow, lifecycle events, and state mutations.
+
+# Phase 3: Production Implementation & Code Snippets
+Provide complete, non-trivial, production-ready code blocks in fenced code blocks (\`\`\`typescript ... \`\`\` or appropriate language). Include clear inline comments explaining non-obvious logic.
+
+# Phase 4: Enterprise Patterns, Pitfalls & Antipatterns
+Detail production best practices vs dangerous antipatterns.
+Use a blockquote starting with \`> Critical Production Warning:\` to highlight common edge cases, memory leaks, or security vulnerabilities to avoid.
+
+# Phase 5: Complete Master Reference & Key Terminology
+Provide a rapid-fire cheat sheet summary with concise bullet points, key API method signatures, performance complexity, and definitions.
+
+Formatting Guidelines:
+- Use Markdown headers (# for Phase titles, ## for Sub-sections).
+- Use blockquotes (> quote text) for essential rules and key insights.
+- Use fenced code blocks with language tags for all code examples.
+- Use bold step/phase markers like **Phase 1: ...** for step-by-step processes.
+- Produce a DETAILED, EXTENSIVE, ACADEMIC-QUALITY guide. Do not summarize or cut corners.
+
+Reply with ONLY the raw Markdown content.
 `;
 
     const system =
-      'You are an elite educational architect specializing in creating comprehensive, in-depth technical study guides and production cheatsheets for software engineers.';
+      'You are a distinguished Principal Software Architect and Master Technical Curriculum Designer. Your sole purpose is to produce comprehensive, ultra-detailed, production-ready study guides that enable engineers to achieve absolute mastery over complex engineering topics.';
 
     const provider = this.aiProviderFactory.getProvider('groq');
     this.logger.log(

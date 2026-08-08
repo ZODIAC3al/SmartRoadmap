@@ -494,21 +494,22 @@ export default function RoadmapPage() {
       return `<div class="code-box"><pre><code>${cleanCode}</code></pre></div>`;
     });
 
-    // 2. Blockquotes > ...
+    // 2. Blockquotes > ... (Renders as light-green quote box matching reference image)
     html = html.replace(/^>\s*(.*?)$/gm, (_, quote) => {
+      const cleanQuote = quote.replace(/^\[!(NOTE|WARNING|IMPORTANT|TIP)\]\s*/i, '');
       return `<div class="quote-box">
         <div class="quote-mark">“</div>
-        <div class="quote-content">${quote}</div>
+        <div class="quote-content">${cleanQuote}</div>
       </div>`;
     });
 
-    // 3. Headings
+    // 3. Headings with Green Left Vertical Accent Bar
     html = html.replace(/^#\s+(.*?)$/gm, '<h2 class="section-heading">$1</h2>');
     html = html.replace(/^##\s+(.*?)$/gm, '<h2 class="section-heading">$1</h2>');
     html = html.replace(/^###\s+(.*?)$/gm, '<h3 class="sub-heading">$1</h3>');
 
-    // 4. Phase / Step / Bold labels (e.g. **Phase 1:** or **Key Point:**)
-    html = html.replace(/\*\*(Phase \d+:?|Step \d+:?|Section \d+:?)\*\*/gi, '<span class="phase-badge">$1</span>');
+    // 4. Phase / Step / Bold labels (e.g. **Phase 1:** or **Step 1:**)
+    html = html.replace(/\*\*(Phase \d+:?|Step \d+:?|Section \d+:?|Phase [A-Z]+:?)\*\*/gi, '<span class="phase-badge">$1</span>');
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
@@ -630,6 +631,10 @@ export default function RoadmapPage() {
                 min-height: 297mm !important;
                 page-break-after: always !important;
                 break-after: page !important;
+              }
+              .section-heading, .sub-heading, .quote-box, .code-box, .editorial-list {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
               }
             }
 
