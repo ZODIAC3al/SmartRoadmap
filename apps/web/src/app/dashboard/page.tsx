@@ -341,6 +341,53 @@ export default function DashboardPage() {
   const [activeTutorModule, setActiveTutorModule] = useState<Module | null>(null);
   const [showVoiceTutorModal, setShowVoiceTutorModal] = useState(false);
 
+  const formatMarkdownToExecutiveHTML = (markdownText: string): string => {
+    if (!markdownText) return '';
+    let html = markdownText;
+
+    html = html.replace(/```([\s\S]*?)```/g, (_, code) => {
+      const cleanCode = code.replace(/^[a-zA-Z0-9_-]+\n/, '').trim();
+      return `<div class="code-box"><pre><code>${cleanCode}</code></pre></div>`;
+    });
+
+    html = html.replace(/^>\s*(.*?)$/gm, (_, quote) => {
+      const cleanQuote = quote.replace(/^\[!(NOTE|WARNING|IMPORTANT|TIP)\]\s*/i, '');
+      return `<div class="quote-box">
+        <div class="quote-mark">“</div>
+        <div class="quote-content">${cleanQuote}</div>
+      </div>`;
+    });
+
+    html = html.replace(/^#\s+(.*?)$/gm, '<h2 class="section-heading">$1</h2>');
+    html = html.replace(/^##\s+(.*?)$/gm, '<h2 class="section-heading">$1</h2>');
+    html = html.replace(/^###\s+(.*?)$/gm, '<h3 class="sub-heading">$1</h3>');
+
+    html = html.replace(/\*\*(Phase \d+:?|Step \d+:?|Section \d+:?|Phase [A-Z0-9]+:?)\*\*/gi, '<span class="phase-badge">$1</span>');
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    html = html.replace(/^[-*]\s+(.*?)$/gm, '<li class="list-item"><span class="list-bullet">•</span><div>$1</div></li>');
+    html = html.replace(/(<li class="list-item">[\s\S]*?<\/li>)+/g, '<ul class="editorial-list">$&</ul>');
+
+    const blocks = html.split(/\n\n+/);
+    return blocks
+      .map((block) => {
+        const trimmed = block.trim();
+        if (!trimmed) return '';
+        if (
+          trimmed.startsWith('<h2') ||
+          trimmed.startsWith('<h3') ||
+          trimmed.startsWith('<div') ||
+          trimmed.startsWith('<ul') ||
+          trimmed.startsWith('<pre')
+        ) {
+          return trimmed;
+        }
+        return `<p class="editorial-paragraph">${trimmed}</p>`;
+      })
+      .join('\n');
+  };
+
   const handleDownloadCheatsheetPDF = (title: string, content: string) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
@@ -348,53 +395,387 @@ export default function DashboardPage() {
       return;
     }
 
+    const formattedHTML = formatMarkdownToExecutiveHTML(content);
+    const trackName = summary.activeRoadmap?.targetRole || "Software Engineering";
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${title} — Executive AI Speech Notes</title>
+          <title>${title} — Devotopia Master Study Guide</title>
           <style>
-            body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              padding: 40px;
-              color: #0f172a;
-              background-color: #ffffff;
-            }
-            .header {
-              border-bottom: 3px solid #6366f1;
-              padding-bottom: 12px;
-              margin-bottom: 24px;
-            }
-            .title {
-              font-size: 24px;
-              font-weight: 800;
-              color: #4f46e5;
+            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+            
+            @page {
+              size: A4 portrait;
               margin: 0;
             }
-            .subtitle {
-              font-size: 12px;
-              color: #64748b;
-              margin-top: 4px;
-              text-transform: uppercase;
-              letter-spacing: 1px;
+            
+            html, body {
+              width: 100%;
+              height: 100%;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
-            .content {
+
+            * {
+              box-sizing: border-box;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+
+            body {
+              font-family: 'Outfit', -apple-system, sans-serif;
+              color: #334155;
+              line-height: 1.65;
+            }
+
+            .page-cover {
+              width: 210mm;
+              height: 297mm;
+              min-height: 297mm;
+              box-sizing: border-box;
+              position: relative;
+              background: linear-gradient(135deg, #c2410c 0%, #ea580c 45%, #f97316 100%);
+              color: #ffffff;
+              padding: 45mm 25mm 35mm 25mm;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              page-break-after: always;
+              break-after: page;
+              overflow: hidden;
+            }
+
+            @media print {
+              @page {
+                size: A4 portrait;
+                margin: 0;
+              }
+              html, body {
+                width: 210mm;
+                height: 100%;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
+              .page-cover {
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
+                max-height: 297mm !important;
+                page-break-after: always !important;
+                break-after: page !important;
+              }
+              .page-inside {
+                width: 210mm !important;
+                min-height: 297mm !important;
+                page-break-after: always !important;
+                break-after: page !important;
+              }
+              .section-heading, .sub-heading, .quote-box, .code-box, .editorial-list {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+              }
+            }
+
+            .cover-watermark {
+              position: absolute;
+              top: -30mm;
+              right: -25mm;
+              width: 170mm;
+              height: 170mm;
+              opacity: 0.18;
+              pointer-events: none;
+            }
+
+            .cover-header {
+              position: relative;
+              z-index: 10;
+            }
+
+            .logo-badge {
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              background: rgba(255, 255, 255, 0.18);
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255, 255, 255, 0.35);
+              padding: 8px 18px;
+              border-radius: 30px;
               font-size: 13px;
-              line-height: 1.8;
-              white-space: pre-wrap;
+              font-weight: 800;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              color: #ffffff;
+              margin-bottom: 28px;
+            }
+
+            .cover-title {
+              font-size: 42px;
+              font-weight: 300;
+              line-height: 1.12;
+              color: #ffffff;
+              margin: 0 0 16px 0;
+              letter-spacing: -0.5px;
+            }
+
+            .cover-title strong {
+              font-weight: 800;
+              display: block;
+            }
+
+            .cover-subtitle {
+              font-size: 18px;
+              font-weight: 400;
+              color: rgba(255, 255, 255, 0.88);
+              margin: 0;
+              max-width: 520px;
+              line-height: 1.5;
+            }
+
+            .cover-footer {
+              position: relative;
+              z-index: 10;
+              border-top: 1px solid rgba(255, 255, 255, 0.25);
+              padding-top: 20px;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-end;
+              font-size: 12px;
+              color: rgba(255, 255, 255, 0.88);
+              font-weight: 600;
+            }
+
+            .page-inside {
+              width: 210mm;
+              min-height: 297mm;
+              position: relative;
+              padding: 22mm 22mm 30mm 22mm;
+              background: #ffffff;
+              page-break-after: always;
+            }
+
+            .page-inside:last-child {
+              page-break-after: auto;
+            }
+
+            .inside-watermark {
+              position: absolute;
+              bottom: 25mm;
+              left: 15mm;
+              width: 75mm;
+              height: 75mm;
+              opacity: 0.06;
+              pointer-events: none;
+            }
+
+            .running-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-size: 10px;
+              font-weight: 700;
+              letter-spacing: 1.5px;
+              text-transform: uppercase;
+              color: #94a3b8;
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 10px;
+              margin-bottom: 24px;
+            }
+
+            .section-heading {
+              font-size: 26px;
+              font-weight: 300;
+              color: #65a30d;
+              border-left: 5px solid #65a30d;
+              padding-left: 14px;
+              margin-top: 32px;
+              margin-bottom: 16px;
+              line-height: 1.25;
+              letter-spacing: -0.3px;
+            }
+
+            .sub-heading {
+              font-size: 18px;
+              font-weight: 700;
+              color: #1e293b;
+              margin-top: 24px;
+              margin-bottom: 12px;
+              border-left: 3px solid #ea580c;
+              padding-left: 10px;
+            }
+
+            .editorial-paragraph {
+              font-size: 13.5px;
+              color: #475569;
+              line-height: 1.75;
+              margin-bottom: 16px;
+            }
+
+            .quote-box {
+              background: #f7fee7;
+              border-left: 4px solid #65a30d;
+              padding: 16px 20px;
+              margin: 20px 0;
+              border-radius: 0 12px 12px 0;
+              position: relative;
+            }
+
+            .quote-mark {
+              font-size: 32px;
+              color: #65a30d;
+              font-weight: 900;
+              line-height: 1;
+              margin-bottom: 4px;
+            }
+
+            .quote-content {
+              font-size: 13px;
+              font-style: italic;
+              color: #365314;
+              font-weight: 600;
+              line-height: 1.65;
+            }
+
+            .phase-badge {
+              display: inline-block;
+              background: #ffedd5;
+              color: #c2410c;
+              font-weight: 800;
+              font-size: 11px;
+              padding: 2px 8px;
+              border-radius: 6px;
+              margin-right: 6px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .editorial-list {
+              list-style: none;
+              padding: 0;
+              margin: 16px 0;
+            }
+
+            .list-item {
+              display: flex;
+              gap: 12px;
+              margin-bottom: 12px;
+              font-size: 13.5px;
+              color: #334155;
+              line-height: 1.65;
+            }
+
+            .list-bullet {
+              color: #ea580c;
+              font-weight: 900;
+              font-size: 16px;
+              line-height: 1;
+            }
+
+            .code-box {
+              background: #0f172a;
+              border-radius: 12px;
+              padding: 16px;
+              margin: 18px 0;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            .code-box pre {
+              margin: 0;
+              padding: 0;
+            }
+
+            .code-box code {
+              font-family: 'JetBrains Mono', monospace;
+              font-size: 12px;
+              color: #38bdf8;
+              line-height: 1.6;
+            }
+
+            .bottom-stripe {
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              height: 10px;
+              background: linear-gradient(90deg, #ea580c 0%, #f97316 100%);
+            }
+
+            .page-footer {
+              position: absolute;
+              bottom: 15mm;
+              left: 22mm;
+              right: 22mm;
+              display: flex;
+              justify-content: space-between;
+              font-size: 10px;
+              color: #94a3b8;
+              font-weight: 600;
+              border-top: 1px solid #f1f5f9;
+              padding-top: 8px;
             }
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1 class="title">${title}</h1>
-            <div class="subtitle">SmartRoadmap — Executive AI Speech Notes & Study Guide</div>
+          <div class="page-cover">
+            <svg class="cover-watermark" viewBox="0 0 100 100" fill="currentColor">
+              <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4" fill="none"/>
+              <path d="M30 50 Q50 20 70 50 Q50 80 30 50 Z" stroke="currentColor" stroke-width="4" fill="none"/>
+            </svg>
+
+            <div class="cover-header">
+              <div class="logo-badge">
+                DEVOTOPIA MASTER SERIES
+              </div>
+              <h1 class="cover-title">
+                ${title}
+                <strong>Master Study Guide</strong>
+              </h1>
+              <p class="cover-subtitle">
+                Executive AI-engineered technical reference manual and speech notes.
+              </p>
+            </div>
+
+            <div class="cover-footer">
+              <div>
+                <div>TRACK: ${trackName.toUpperCase()}</div>
+                <div>DIFFICULTY: MASTER LEVEL</div>
+              </div>
+              <div style="text-align: right;">
+                <div>DEVOTOPIA LEARNING INFRASTRUCTURE</div>
+                <div>DOCUMENT REF: MASTER-GUIDE</div>
+              </div>
+            </div>
+            <div class="bottom-stripe"></div>
           </div>
-          <div class="content">${content}</div>
+
+          <div class="page-inside">
+            <svg class="inside-watermark" viewBox="0 0 100 100" fill="currentColor">
+              <circle cx="50" cy="50" r="45" stroke="#ea580c" stroke-width="4" fill="none"/>
+            </svg>
+
+            <div class="running-header">
+              <span>DEVOTOPIA MASTER ARCHITECTURE SERIES</span>
+              <span>${title}</span>
+            </div>
+
+            <div class="inside-content">
+              ${formattedHTML}
+            </div>
+
+            <div class="page-footer">
+              <span>© Devotopia Learning Platform</span>
+              <span>Verified AI Curriculum Reference</span>
+            </div>
+            <div class="bottom-stripe"></div>
+          </div>
+
           <script>
             window.onload = function() {
-              window.print();
-              window.onafterprint = function() { window.close(); };
+              setTimeout(function() { window.print(); }, 500);
             };
           </script>
         </body>

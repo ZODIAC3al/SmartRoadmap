@@ -5,6 +5,29 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "@/components/AppContext";
 import { apiFetch, getCachedUser, hasSession, logout } from "@/lib/api";
+import {
+  GraduationCap,
+  BookOpen,
+  Mic,
+  Briefcase,
+  Building2,
+  ShieldCheck,
+  Gem,
+  Mail,
+  ChevronDown,
+  Bell,
+  Moon,
+  Sun,
+  Menu,
+  X as CloseIcon,
+  Compass,
+  LayoutDashboard,
+  MapPin,
+  FileText,
+  TrendingUp,
+  Settings,
+  LogOut,
+} from "lucide-react";
 
 // Crisp SVG Icons representing OS Platforms for PWA download
 const WindowsIcon = () => (
@@ -55,22 +78,6 @@ const DownloadAppIcon = () => (
       strokeLinecap="round"
       strokeLinejoin="round"
       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-    />
-  </svg>
-);
-
-const BellIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
-    className="w-4 h-4 text-current"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
     />
   </svg>
 );
@@ -305,7 +312,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-4 z-50 px-4 w-full">
       <div className="max-w-5xl mx-auto rounded-full bg-base-200/90 backdrop-blur-md text-base-content border border-base-300 shadow-lg px-3 sm:px-6 h-14 flex items-center justify-between gap-2 sm:gap-4 transition-all duration-200">
-        {/* Logo (Mockup Style: Planet circle) */}
+        {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <img
             src="/logo.svg"
@@ -361,65 +368,72 @@ export default function Navbar() {
             {locale === "en" ? "Community" : "المجتمع"}
           </Link>
 
-          {/* Explore / More Dropdown for Mentors, Resources, Jobs, Pricing, Contact */}
+          {/* Explore Dropdown with Professional Lucide Icons */}
           <div className="dropdown dropdown-hover dropdown-bottom dropdown-end">
             <label
               tabIndex={0}
-              className="flex items-center gap-1 cursor-pointer transition-colors text-base-content/70 hover:text-[#10B981] font-bold py-1 px-1.5 rounded-lg"
+              className="flex items-center gap-1.5 cursor-pointer transition-colors text-base-content/70 hover:text-[#10B981] font-bold py-1 px-1.5 rounded-lg"
             >
+              <Compass className="w-3.5 h-3.5 text-[#10B981]" />
               <span>{locale === "en" ? "Explore" : "استكشف"}</span>
-              <svg className="w-3 h-3 text-base-content/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ChevronDown className="w-3.5 h-3.5 text-base-content/50" />
             </label>
             <ul
               tabIndex={0}
-              className="dropdown-content menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-md border border-base-300 rounded-2xl w-48 space-y-1 z-[200] text-start capitalize normal-case text-xs font-semibold"
+              className="dropdown-content menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-md border border-base-300 rounded-2xl w-52 space-y-1 z-[200] text-start capitalize normal-case text-xs font-semibold"
             >
               <li>
-                <Link href="/mentors" className={isLinkActive("/mentors") ? "text-[#10B981] font-bold" : ""}>
-                  🎓 {locale === "en" ? "Mentors" : "الموجهين"}
+                <Link href="/mentors" className={`flex items-center gap-2.5 ${isLinkActive("/mentors") ? "text-[#10B981] font-bold" : ""}`}>
+                  <GraduationCap className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>{locale === "en" ? "Mentors" : "الموجهين"}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/resources" className={isLinkActive("/resources") ? "text-[#10B981] font-bold" : ""}>
-                  📚 {locale === "en" ? "Resources" : "المراجع"}
+                <Link href="/resources" className={`flex items-center gap-2.5 ${isLinkActive("/resources") ? "text-[#10B981] font-bold" : ""}`}>
+                  <BookOpen className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span>{locale === "en" ? "Resources" : "المراجع"}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/mock-interview" className={isLinkActive("/mock-interview") ? "text-[#10B981] font-bold" : ""}>
-                  🎤 {locale === "en" ? "Mock Interview" : "مقابلة تجريبية"}
+                <Link href="/mock-interview" className={`flex items-center gap-2.5 ${isLinkActive("/mock-interview") ? "text-[#10B981] font-bold" : ""}`}>
+                  <Mic className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <span>{locale === "en" ? "Mock Interview" : "مقابلة تجريبية"}</span>
                 </Link>
               </li>
               {user?.role === "learner" && (
                 <li>
-                  <Link href="/hiring" className={isLinkActive("/hiring") ? "text-[#10B981] font-bold" : ""}>
-                    💼 {t("nav.jobsMatch")}
+                  <Link href="/hiring" className={`flex items-center gap-2.5 ${isLinkActive("/hiring") ? "text-[#10B981] font-bold" : ""}`}>
+                    <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>{t("nav.jobsMatch")}</span>
                   </Link>
                 </li>
               )}
               {user?.role === "company" && (
                 <li>
-                  <Link href="/company" className={isLinkActive("/company") ? "text-[#10B981] font-bold" : ""}>
-                    🏢 {t("nav.talentBoard")}
+                  <Link href="/company" className={`flex items-center gap-2.5 ${isLinkActive("/company") ? "text-[#10B981] font-bold" : ""}`}>
+                    <Building2 className="w-4 h-4 text-purple-500 shrink-0" />
+                    <span>{t("nav.talentBoard")}</span>
                   </Link>
                 </li>
               )}
               {user?.role === "admin" && (
                 <li>
-                  <Link href="/admin" className={isLinkActive("/admin") ? "text-[#10B981] font-bold" : ""}>
-                    ⚡ {locale === "en" ? "Admin Panel" : "لوحة الإدارة"}
+                  <Link href="/admin" className={`flex items-center gap-2.5 ${isLinkActive("/admin") ? "text-[#10B981] font-bold" : ""}`}>
+                    <ShieldCheck className="w-4 h-4 text-red-500 shrink-0" />
+                    <span>{locale === "en" ? "Admin Panel" : "لوحة الإدارة"}</span>
                   </Link>
                 </li>
               )}
               <li className="border-t border-base-300 pt-1">
-                <Link href="/pricing" className={isLinkActive("/pricing") ? "text-[#10B981] font-bold" : ""}>
-                  💎 {t("nav.pricing")}
+                <Link href="/pricing" className={`flex items-center gap-2.5 ${isLinkActive("/pricing") ? "text-[#10B981] font-bold" : ""}`}>
+                  <Gem className="w-4 h-4 text-cyan-500 shrink-0" />
+                  <span>{t("nav.pricing")}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className={isLinkActive("/contact") ? "text-[#10B981] font-bold" : ""}>
-                  ✉️ {t("nav.contact")}
+                <Link href="/contact" className={`flex items-center gap-2.5 ${isLinkActive("/contact") ? "text-[#10B981] font-bold" : ""}`}>
+                  <Mail className="w-4 h-4 text-orange-500 shrink-0" />
+                  <span>{t("nav.contact")}</span>
                 </Link>
               </li>
             </ul>
@@ -444,39 +458,13 @@ export default function Navbar() {
             title={theme === "smartlight" ? "Dark Mode" : "Light Mode"}
           >
             {theme === "smartlight" ? (
-              // Moon Icon
-              <svg
-                viewBox="0 0 24 24"
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                />
-              </svg>
+              <Moon className="w-4 h-4 text-current" />
             ) : (
-              // Sun Icon
-              <svg
-                viewBox="0 0 24 24"
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
+              <Sun className="w-4 h-4 text-amber-400" />
             )}
           </button>
 
-          {/* Localized PWA App Installation Trigger - hidden on xs */}
+          {/* Localized PWA App Installation Trigger */}
           <button
             onClick={handleInstallClick}
             className="hidden xs:flex btn btn-ghost btn-circle btn-xs text-base-content/85 hover:bg-base-300 items-center justify-center relative group"
@@ -492,20 +480,19 @@ export default function Navbar() {
             {(os === "ios" || os === "android") && <MobileIcon />}
             {os === "other" && <DownloadAppIcon />}
 
-            {/* Install Badge if installable natively */}
             {isInstallable && (
               <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
             )}
           </button>
 
-          {/* Interactive Notifications Dropdown - hidden on xs */}
+          {/* Notifications Dropdown */}
           {user && (
             <div className="hidden xs:block dropdown dropdown-end">
               <label
                 tabIndex={0}
                 className="btn btn-ghost btn-circle btn-xs text-base-content/85 hover:bg-base-300 flex items-center justify-center relative cursor-pointer"
               >
-                <BellIcon />
+                <Bell className="w-4 h-4 text-current" />
                 {unreadNotificationsCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                 )}
@@ -604,19 +591,7 @@ export default function Navbar() {
                 <span className="hidden sm:block max-w-[100px] truncate text-[11px] font-mono">
                   {user.email}
                 </span>
-                <svg
-                  className="w-3 h-3 text-base-content/50"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                >
-                  <path
-                    d="M19 9l-7 7-7-7"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <ChevronDown className="w-3 h-3 text-base-content/50" />
               </label>
               <ul
                 tabIndex={0}
@@ -648,39 +623,59 @@ export default function Navbar() {
                 </li>
                 {user.role === "learner" && (
                   <li>
-                    <Link href="/dashboard">{t("nav.dashboard")}</Link>
+                    <Link href="/dashboard" className="flex items-center gap-2">
+                      <LayoutDashboard className="w-4 h-4 text-indigo-500" />
+                      <span>{t("nav.dashboard")}</span>
+                    </Link>
                   </li>
                 )}
                 <li>
-                  <Link href="/roadmap">{t("nav.roadmap")}</Link>
+                  <Link href="/roadmap" className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-emerald-500" />
+                    <span>{t("nav.roadmap")}</span>
+                  </Link>
                 </li>
                 <li>
-                  <Link href="/cv">{t("nav.cv")}</Link>
+                  <Link href="/cv" className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-blue-500" />
+                    <span>{t("nav.cv")}</span>
+                  </Link>
                 </li>
                 {user.role === "learner" && (
                   <li>
-                    <Link href="/hiring">{t("nav.jobsMatch")}</Link>
+                    <Link href="/hiring" className="flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-amber-500" />
+                      <span>{t("nav.jobsMatch")}</span>
+                    </Link>
                   </li>
                 )}
                 {user.role === "learner" && (
                   <li>
-                    <Link href="/profile?tab=salary">
-                      {locale === "en" ? "Salary Insights" : "تقديرات الرواتب"}
+                    <Link href="/profile?tab=salary" className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-purple-500" />
+                      <span>{locale === "en" ? "Salary Insights" : "تقديرات الرواتب"}</span>
                     </Link>
                   </li>
                 )}
                 {user.role === "company" && (
                   <li>
-                    <Link href="/company">{t("nav.talentBoard")}</Link>
+                    <Link href="/company" className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-purple-500" />
+                      <span>{t("nav.talentBoard")}</span>
+                    </Link>
                   </li>
                 )}
                 <li>
-                  <Link href="/profile">
-                    {locale === "en" ? "Settings" : "الإعدادات"}
+                  <Link href="/profile" className="flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-slate-500" />
+                    <span>{locale === "en" ? "Settings" : "الإعدادات"}</span>
                   </Link>
                 </li>
                 <li className="border-t border-base-300 pt-1 text-red-500 font-bold">
-                  <button onClick={handleLogout}>{t("nav.logout")}</button>
+                  <button onClick={handleLogout} className="flex items-center gap-2">
+                    <LogOut className="w-4 h-4 text-red-500" />
+                    <span>{t("nav.logout")}</span>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -707,19 +702,11 @@ export default function Navbar() {
             className="md:hidden btn btn-ghost btn-circle btn-xs text-base-content hover:bg-base-300"
             aria-label="Toggle menu"
           >
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              {mobileOpen ? (
-                <path d="M6 6L18 18M6 18L18 6" strokeLinecap="round" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
-              )}
-            </svg>
+            {mobileOpen ? (
+              <CloseIcon className="w-4 h-4 text-current" />
+            ) : (
+              <Menu className="w-4 h-4 text-current" />
+            )}
           </button>
         </div>
       </div>
