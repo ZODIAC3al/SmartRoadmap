@@ -18,7 +18,10 @@ export class Notification extends Document {
   @Prop({ required: true })
   contentAr!: string;
 
-  @Prop({ default: 'general', enum: ['general', 'roadmap_update', 'job_match', 'message'] })
+  @Prop({
+    default: 'general',
+    enum: ['general', 'roadmap_update', 'job_match', 'message'],
+  })
   type!: 'general' | 'roadmap_update' | 'job_match' | 'message';
 
   @Prop({ default: false })

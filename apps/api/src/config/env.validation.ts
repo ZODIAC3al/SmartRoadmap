@@ -7,7 +7,9 @@ import { z } from 'zod';
  */
 export const envSchema = z
   .object({
-    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    NODE_ENV: z
+      .enum(['development', 'test', 'production'])
+      .default('development'),
     PORT: z.coerce.number().default(3000),
 
     // Comma separated list of allowed origins for CORS
@@ -18,11 +20,25 @@ export const envSchema = z
     // Auth — no fallback secrets allowed, ever.
     JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
     JWT_EXPIRY: z.string().default('15m'),
-    JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
+    JWT_REFRESH_SECRET: z
+      .string()
+      .min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
     JWT_REFRESH_EXPIRY: z.string().default('30d'),
     BCRYPT_ROUNDS: z.coerce.number().min(10).max(15).default(12),
 
     GOOGLE_CLIENT_ID: z.string().optional(),
+
+    // Profile import (GitHub / LinkedIn OAuth). Optional — features degrade gracefully.
+    GITHUB_CLIENT_ID: z.string().optional(),
+    GITHUB_CLIENT_SECRET: z.string().optional(),
+    LINKEDIN_CLIENT_ID: z.string().optional(),
+    LINKEDIN_CLIENT_SECRET: z.string().optional(),
+
+    // Public base URL of the API (used for OAuth redirect URIs).
+    API_URL: z.string().default('http://localhost:3000'),
+
+    // Key used to encrypt OAuth tokens at rest (falls back to JWT_SECRET).
+    TOKEN_ENCRYPTION_SECRET: z.string().optional(),
 
     // Explicit mock mode (integrations run offline). Blocked in production.
     MOCK_MODE: z

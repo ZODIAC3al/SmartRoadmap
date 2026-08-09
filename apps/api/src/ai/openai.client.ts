@@ -12,7 +12,8 @@ import OpenAI from 'openai';
 export function createOpenAIClient(config: ConfigService, logger: Logger) {
   const explicitMock = config.get<boolean>('MOCK_MODE') === true;
   const apiKey = config.get<string>('OPENAI_API_KEY');
-  const usable = !!apiKey && !apiKey.startsWith('sk-...') && !apiKey.includes('placeholder');
+  const usable =
+    !!apiKey && !apiKey.startsWith('sk-...') && !apiKey.includes('placeholder');
 
   const isMockMode = explicitMock || !usable;
   if (isMockMode) {

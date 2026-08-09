@@ -18,15 +18,27 @@ export class MailService {
 
   constructor(private readonly config: ConfigService) {
     this.apiKey = this.config.get<string>('RESEND_API_KEY');
-    this.from = this.config.get<string>('EMAIL_FROM', 'noreply@smartroadmap.io');
-    this.appUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3001').split(',')[0];
+    this.from = this.config.get<string>(
+      'EMAIL_FROM',
+      'noreply@smartroadmap.io',
+    );
+    this.appUrl = this.config
+      .get<string>('FRONTEND_URL', 'http://localhost:3001')
+      .split(',')[0];
 
     if (!this.apiKey) {
-      this.logger.warn('RESEND_API_KEY not set — emails will be logged to the console.');
+      this.logger.warn(
+        'RESEND_API_KEY not set — emails will be logged to the console.',
+      );
     }
   }
 
-  private async send(to: string, subject: string, html: string, preview: string): Promise<void> {
+  private async send(
+    to: string,
+    subject: string,
+    html: string,
+    preview: string,
+  ): Promise<void> {
     if (!this.apiKey) {
       this.logger.log(`[MAIL → ${to}] ${subject}\n         ${preview}`);
       return;
@@ -36,17 +48,26 @@ export class MailService {
       await axios.post(
         'https://api.resend.com/emails',
         { from: `SmartRoadmap <${this.from}>`, to, subject, html },
-        { headers: { Authorization: `Bearer ${this.apiKey}` }, timeout: 10_000 },
+        {
+          headers: { Authorization: `Bearer ${this.apiKey}` },
+          timeout: 10_000,
+        },
       );
       this.logger.log(`Sent "${subject}" to ${to}`);
     } catch (error: any) {
       // Never leak provider errors to the caller — the endpoint response must not
       // reveal whether an address exists or whether delivery succeeded.
-      this.logger.error(`Failed to send "${subject}" to ${to}: ${error.message}`);
+      this.logger.error(
+        `Failed to send "${subject}" to ${to}: ${error.message}`,
+      );
     }
   }
 
-  async sendPasswordReset(to: string, name: string, token: string): Promise<void> {
+  async sendPasswordReset(
+    to: string,
+    name: string,
+    token: string,
+  ): Promise<void> {
     const link = `${this.appUrl}/auth/reset-password?token=${token}`;
     await this.send(
       to,
@@ -59,7 +80,11 @@ export class MailService {
     );
   }
 
-  async sendVerification(to: string, name: string, token: string): Promise<void> {
+  async sendVerification(
+    to: string,
+    name: string,
+    token: string,
+  ): Promise<void> {
     const link = `${this.appUrl}/auth/verify-email?token=${token}`;
     await this.send(
       to,

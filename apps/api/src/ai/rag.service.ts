@@ -23,7 +23,10 @@ export class RAGService implements OnModuleInit {
     this.isMockMode = explicitMock || !url;
     this.client = this.isMockMode
       ? null
-      : new QdrantClient({ url: url!, apiKey: this.config.get<string>('QDRANT_API_KEY') });
+      : new QdrantClient({
+          url: url!,
+          apiKey: this.config.get<string>('QDRANT_API_KEY'),
+        });
 
     if (this.isMockMode) {
       this.logger.warn('Qdrant is not configured — RAG runs in MOCK mode.');
@@ -42,7 +45,9 @@ export class RAGService implements OnModuleInit {
         });
         this.logger.log(`Created Qdrant collection "${name}"`);
       } catch (error: any) {
-        this.logger.error(`Could not ensure Qdrant collection "${name}": ${error.message}`);
+        this.logger.error(
+          `Could not ensure Qdrant collection "${name}": ${error.message}`,
+        );
       }
     }
   }
@@ -104,7 +109,11 @@ export class RAGService implements OnModuleInit {
     ].slice(0, limit);
   }
 
-  private async search(collection: string, text: string, limit: number): Promise<any[]> {
+  private async search(
+    collection: string,
+    text: string,
+    limit: number,
+  ): Promise<any[]> {
     const vector = await this.embeddingService.embed(text);
     const results = await this.client!.search(collection, {
       vector,
@@ -145,12 +154,18 @@ export class RAGService implements OnModuleInit {
   /** Index documents so the search above has something to find. */
   async upsert(
     collection: string,
-    docs: Array<{ id: string | number; text: string; payload: Record<string, unknown> }>,
+    docs: Array<{
+      id: string | number;
+      text: string;
+      payload: Record<string, unknown>;
+    }>,
   ): Promise<void> {
     if (!this.client || docs.length === 0) return;
 
     try {
-      const vectors = await this.embeddingService.embedBatch(docs.map((d) => d.text));
+      const vectors = await this.embeddingService.embedBatch(
+        docs.map((d) => d.text),
+      );
       await this.client.upsert(collection, {
         wait: true,
         points: docs.map((doc, i) => ({
@@ -160,7 +175,9 @@ export class RAGService implements OnModuleInit {
         })),
       });
     } catch (error: any) {
-      this.logger.error(`Qdrant upsert into "${collection}" failed: ${error.message}`);
+      this.logger.error(
+        `Qdrant upsert into "${collection}" failed: ${error.message}`,
+      );
     }
   }
 }

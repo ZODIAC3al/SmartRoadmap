@@ -20,11 +20,17 @@ import { HiringModule } from './modules/hiring/hiring.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { MessageModule } from './modules/message/message.module';
+import { ProfileImportModule } from './modules/profile-import/profile-import.module';
+import { PortfolioModule } from './modules/portfolio/portfolio.module';
 
 @Module({
   imports: [
     // Fail fast on bad/missing config instead of silently degrading to mocks.
-    ConfigModule.forRoot({ isGlobal: true, validate: validateEnv, cache: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate: validateEnv,
+      cache: true,
+    }),
 
     MongooseModule.forRootAsync({
       inject: [ConfigService],
@@ -53,10 +59,12 @@ import { MessageModule } from './modules/message/message.module';
     RoadmapModule,
     AssessmentModule,
     CvModule,
+    PortfolioModule,
     HiringModule,
     UploadModule,
     NotificationModule,
     MessageModule,
+    ProfileImportModule,
   ],
   controllers: [AppController],
   providers: [

@@ -15,8 +15,14 @@ export class RoadmapService {
     private readonly llmService: LLMService,
   ) {}
 
-  async generateRoadmap(userId: string, targetRole: string, skills: string[] = []): Promise<Roadmap> {
-    this.logger.log(`Generating roadmap for user: ${userId}, target role: "${targetRole}"`);
+  async generateRoadmap(
+    userId: string,
+    targetRole: string,
+    skills: string[] = [],
+  ): Promise<Roadmap> {
+    this.logger.log(
+      `Generating roadmap for user: ${userId}, target role: "${targetRole}"`,
+    );
 
     // 1. Call AI service (falls back to mock if API key is not in .env)
     const generated = await this.llmService.generateRoadmap(targetRole, skills);
@@ -24,7 +30,7 @@ export class RoadmapService {
     // 2. Mark any existing roadmaps as archived
     await this.roadmapModel.updateMany(
       { userId: new Types.ObjectId(userId), status: 'active' },
-      { status: 'archived' }
+      { status: 'archived' },
     );
 
     // 3. Save new roadmap to MongoDB
@@ -58,7 +64,9 @@ export class RoadmapService {
     });
 
     if (!roadmap) {
-      throw new NotFoundException(`No active roadmap found for user ID: ${userId}`);
+      throw new NotFoundException(
+        `No active roadmap found for user ID: ${userId}`,
+      );
     }
 
     return roadmap;
@@ -77,15 +85,20 @@ export class RoadmapService {
   async getRoadmapProgress(id: string, user?: JwtUser): Promise<any> {
     const roadmap = await this.getRoadmapById(id, user);
     const totalModules = roadmap.modules.length;
-    const completedModules = roadmap.modules.filter(m => m.status === 'completed').length;
-    const progressPercent = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
+    const completedModules = roadmap.modules.filter(
+      (m) => m.status === 'completed',
+    ).length;
+    const progressPercent =
+      totalModules > 0
+        ? Math.round((completedModules / totalModules) * 100)
+        : 0;
 
     return {
       roadmapId: id,
       title: roadmap.title,
       totalModules,
       completedModules,
-      progressPercent
+      progressPercent,
     };
   }
 
@@ -96,9 +109,11 @@ export class RoadmapService {
     user?: JwtUser,
   ): Promise<Roadmap> {
     const roadmap = await this.getRoadmapById(id, user);
-    const mod = roadmap.modules.find(m => m.id === moduleId);
+    const mod = roadmap.modules.find((m) => m.id === moduleId);
     if (!mod) {
-      throw new NotFoundException(`Module with ID ${moduleId} not found in roadmap ${id}`);
+      throw new NotFoundException(
+        `Module with ID ${moduleId} not found in roadmap ${id}`,
+      );
     }
 
     mod.status = status;
@@ -106,13 +121,23 @@ export class RoadmapService {
     return roadmap.save();
   }
 
-  async extendRoadmap(id: string, skills: string[], user?: JwtUser): Promise<Roadmap> {
-    this.logger.log(`Extending roadmap ${id} with gap skills: ${skills.join(', ')}`);
+  async extendRoadmap(
+    id: string,
+    skills: string[],
+    user?: JwtUser,
+  ): Promise<Roadmap> {
+    this.logger.log(
+      `Extending roadmap ${id} with gap skills: ${skills.join(', ')}`,
+    );
     const roadmap = await this.getRoadmapById(id, user);
 
-    skills.forEach(skill => {
+    skills.forEach((skill) => {
       // Check if skill already exists in roadmap modules
-      const exists = roadmap.modules.some(m => m.title.toLowerCase() === skill.toLowerCase() || m.id === skill.toLowerCase());
+      const exists = roadmap.modules.some(
+        (m) =>
+          m.title.toLowerCase() === skill.toLowerCase() ||
+          m.id === skill.toLowerCase(),
+      );
       if (!exists) {
         roadmap.modules.push({
           id: skill.toLowerCase().replace(/\s+/g, '-'),
@@ -124,7 +149,7 @@ export class RoadmapService {
           prerequisites: [],
           status: 'in_progress',
           positionX: 300,
-          positionY: 300
+          positionY: 300,
         } as any);
       }
     });
@@ -135,7 +160,9 @@ export class RoadmapService {
 
   async deleteRoadmap(id: string, user?: JwtUser): Promise<any> {
     await this.getRoadmapById(id, user); // ownership check before destructive op
-    const result = await this.roadmapModel.deleteOne({ _id: new Types.ObjectId(id) });
+    const result = await this.roadmapModel.deleteOne({
+      _id: new Types.ObjectId(id),
+    });
     if (result.deletedCount === 0) {
       throw new NotFoundException(`Roadmap not found with ID: ${id}`);
     }

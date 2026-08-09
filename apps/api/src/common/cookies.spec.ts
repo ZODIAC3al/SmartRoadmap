@@ -1,4 +1,8 @@
-import { REFRESH_COOKIE, clearRefreshCookie, setRefreshCookie } from './cookies';
+import {
+  REFRESH_COOKIE,
+  clearRefreshCookie,
+  setRefreshCookie,
+} from './cookies';
 
 describe('refresh cookie', () => {
   const makeRes = () => ({ cookie: jest.fn(), clearCookie: jest.fn() }) as any;
@@ -32,6 +36,9 @@ describe('refresh cookie', () => {
   it('is cleared on logout', () => {
     const res = makeRes();
     clearRefreshCookie(res);
-    expect(res.clearCookie).toHaveBeenCalledWith(REFRESH_COOKIE, expect.objectContaining({ httpOnly: true }));
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      REFRESH_COOKIE,
+      expect.objectContaining({ httpOnly: true }),
+    );
   });
 });

@@ -47,7 +47,9 @@ export class AuthService {
     const clientId = this.config.get<string>('GOOGLE_CLIENT_ID');
     this.googleClient = clientId ? new OAuth2Client(clientId) : undefined;
     if (!this.googleClient) {
-      this.logger.warn('GOOGLE_CLIENT_ID is not set — Google sign-in is disabled.');
+      this.logger.warn(
+        'GOOGLE_CLIENT_ID is not set — Google sign-in is disabled.',
+      );
     }
   }
 
@@ -59,7 +61,11 @@ export class AuthService {
   }
 
   private async issueTokens(user: User) {
-    const base = { sub: user._id.toString(), email: user.email, role: user.role };
+    const base = {
+      sub: user._id.toString(),
+      email: user.email,
+      role: user.role,
+    };
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(
@@ -73,7 +79,10 @@ export class AuthService {
         { sub: base.sub, type: 'refresh', jti: randomUUID() },
         {
           secret: this.config.getOrThrow<string>('JWT_REFRESH_SECRET'),
-          expiresIn: this.config.get<string>('JWT_REFRESH_EXPIRY', '30d') as any,
+          expiresIn: this.config.get<string>(
+            'JWT_REFRESH_EXPIRY',
+            '30d',
+          ) as any,
         },
       ),
     ]);
@@ -83,7 +92,10 @@ export class AuthService {
       { _id: user._id },
       {
         $push: {
-          refreshTokenHashes: { $each: [this.sha256(refreshToken)], $slice: -10 },
+          refreshTokenHashes: {
+            $each: [this.sha256(refreshToken)],
+            $slice: -10,
+          },
         },
       },
     );
@@ -112,7 +124,9 @@ export class AuthService {
       throw new UnauthorizedException('Not a refresh token');
     }
 
-    const user = await this.userModel.findById(payload.sub).select('+refreshTokenHashes');
+    const user = await this.userModel
+      .findById(payload.sub)
+      .select('+refreshTokenHashes');
     if (!user) throw new UnauthorizedException('User no longer exists');
 
     // Revoked by a password change / logout-all?
@@ -120,7 +134,10 @@ export class AuthService {
     // precision, so a token minted in the same second as the revocation looks
     // "older" than it is. The 1s tolerance stops us from revoking valid tokens.
     const issuedAtMs = (payload.iat ?? 0) * 1000;
-    if (user.tokensValidFrom && issuedAtMs + 1000 < user.tokensValidFrom.getTime()) {
+    if (
+      user.tokensValidFrom &&
+      issuedAtMs + 1000 < user.tokensValidFrom.getTime()
+    ) {
       throw new UnauthorizedException('Refresh token has been revoked');
     }
 
@@ -133,11 +150,16 @@ export class AuthService {
         { _id: user._id },
         { refreshTokenHashes: [], tokensValidFrom: new Date() },
       );
-      throw new UnauthorizedException('Refresh token has already been used. All sessions revoked.');
+      throw new UnauthorizedException(
+        'Refresh token has already been used. All sessions revoked.',
+      );
     }
 
     // Burn the used token, then mint a fresh pair.
-    await this.userModel.updateOne({ _id: user._id }, { $pull: { refreshTokenHashes: hash } });
+    await this.userModel.updateOne(
+      { _id: user._id },
+      { $pull: { refreshTokenHashes: hash } },
+    );
 
     const tokens = await this.issueTokens(user);
     return { ...tokens, user: this.toPublicUser(user) };
@@ -151,7 +173,11 @@ export class AuthService {
   }
 
   /** Signs the user out of this device (or all of them). */
-  async revokeSession(userId: string, refreshToken?: string, allDevices = false): Promise<void> {
+  async revokeSession(
+    userId: string,
+    refreshToken?: string,
+    allDevices = false,
+  ): Promise<void> {
     if (allDevices) {
       await this.userModel.updateOne(
         { _id: userId },
@@ -216,7 +242,10 @@ export class AuthService {
     // Generic message + a dummy compare so we don't leak account existence
     // through either the response text or the response time.
     if (!user || user.provider !== 'local') {
-      await bcrypt.compare(password, '$2b$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidin');
+      await bcrypt.compare(
+        password,
+        '$2b$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidin',
+      );
       throw new UnauthorizedException('Invalid email or password.');
     }
 
@@ -235,7 +264,9 @@ export class AuthService {
    */
   async googleLogin(idToken: string) {
     if (!this.googleClient) {
-      throw new BadRequestException('Google sign-in is not configured on this server.');
+      throw new BadRequestException(
+        'Google sign-in is not configured on this server.',
+      );
     }
 
     let payload: TokenPayload | undefined;
@@ -311,7 +342,10 @@ export class AuthService {
       verificationTokenHash: this.sha256(rawToken),
       verificationExpiresAt: { $gt: new Date() },
     });
-    if (!user) throw new BadRequestException('This verification link is invalid or has expired.');
+    if (!user)
+      throw new BadRequestException(
+        'This verification link is invalid or has expired.',
+      );
 
     await this.userModel.updateOne(
       { _id: user._id },
@@ -328,7 +362,9 @@ export class AuthService {
    * otherwise this endpoint becomes a free user-enumeration oracle.
    */
   async requestPasswordReset(email: string): Promise<{ success: true }> {
-    const user = await this.userModel.findOne({ email: email.toLowerCase().trim() });
+    const user = await this.userModel.findOne({
+      email: email.toLowerCase().trim(),
+    });
 
     if (user && user.provider === 'local') {
       const { raw, hash } = this.oneTimeToken();
@@ -345,12 +381,18 @@ export class AuthService {
     return { success: true };
   }
 
-  async resetPassword(rawToken: string, newPassword: string): Promise<{ success: true }> {
+  async resetPassword(
+    rawToken: string,
+    newPassword: string,
+  ): Promise<{ success: true }> {
     const user = await this.userModel.findOne({
       resetTokenHash: this.sha256(rawToken),
       resetExpiresAt: { $gt: new Date() },
     });
-    if (!user) throw new BadRequestException('This reset link is invalid or has expired.');
+    if (!user)
+      throw new BadRequestException(
+        'This reset link is invalid or has expired.',
+      );
 
     await this.userModel.updateOne(
       { _id: user._id },
@@ -363,14 +405,19 @@ export class AuthService {
       },
     );
 
-    this.logger.log(`Password reset completed for ${user.email}; all sessions revoked.`);
+    this.logger.log(
+      `Password reset completed for ${user.email}; all sessions revoked.`,
+    );
     return { success: true };
   }
 
   // ────────────────────────────── Profile ─────────────────────────────
 
   /** userId ALWAYS comes from the verified JWT, never from the request body. */
-  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<PublicUser> {
+  async updateProfile(
+    userId: string,
+    dto: UpdateProfileDto,
+  ): Promise<PublicUser> {
     const user = await this.userModel.findByIdAndUpdate(
       userId,
       { $set: dto }, // dto is whitelisted: role/email/plan can't sneak in
@@ -385,7 +432,10 @@ export class AuthService {
   }
 
   async findAllUsers(): Promise<PublicUser[]> {
-    const users = await this.userModel.find().sort({ createdAt: -1 }).limit(500);
+    const users = await this.userModel
+      .find()
+      .sort({ createdAt: -1 })
+      .limit(500);
     return users.map((u) => this.toPublicUser(u));
   }
 

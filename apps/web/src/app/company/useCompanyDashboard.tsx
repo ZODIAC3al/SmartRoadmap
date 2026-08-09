@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { useApp } from '@/components/AppContext';
@@ -118,7 +118,7 @@ export function useCompanyDashboard() {
     }
   ];
 
-  const fetchCandidates = async () => {
+  const fetchCandidates = useCallback(async () => {
     try {
       const res = await apiFetch('/hiring/candidates');
       if (!res.ok) throw new Error();
@@ -146,7 +146,7 @@ export function useCompanyDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     // Identity now comes from the server (/auth/me), not from a JSON blob the
@@ -158,7 +158,7 @@ export function useCompanyDashboard() {
       setLoading(false);
       if (me?.role === 'company' || me?.role === 'admin') fetchCandidates();
     })();
-  }, []);
+  }, [fetchCandidates]);
 
   const handleSimulateRecruiter = () => {
     // The fake client-side session ('demo-token') is gone: a role can only ever
