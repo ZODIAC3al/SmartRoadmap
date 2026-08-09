@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { HiringService } from './hiring.service';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -8,7 +17,11 @@ import {
   type JwtUser,
 } from '../../common/decorators/current-user.decorator';
 import { assertSelfOrAdmin } from '../../common/guards/ownership.util';
-import { CreateJobDto } from './dto/hiring.dto';
+import {
+  CreateApplicationDto,
+  CreateJobDto,
+  UpdateApplicationStatusDto,
+} from './dto/hiring.dto';
 
 @ApiTags('hiring')
 @ApiBearerAuth()
@@ -16,7 +29,7 @@ import { CreateJobDto } from './dto/hiring.dto';
 export class HiringController {
   constructor(private readonly hiringService: HiringService) {}
 
-  /** Only companies/admins may post jobs (previously: anyone, unauthenticated). */
+  /** Only companies/admins may post jobs. */
   @UseGuards(RolesGuard)
   @Roles('company', 'admin')
   @Post('jobs')
@@ -53,16 +66,57 @@ export class HiringController {
 
   @Post('profiles/index')
   async indexProfile(@CurrentUser() user: JwtUser) {
-    return { success: true, userId: user.sub, message: 'User profile prepared for semantic matches.' };
+    return {
+      success: true,
+      userId: user.sub,
+      message: 'User profile prepared for semantic matches.',
+    };
   }
 
-  /** Turns "you're missing Docker + CI" into actual roadmap modules. */
+  /** Turns missing skills into roadmap modules. */
   @Post('jobs/:jobId/close-gap')
   closeGap(@CurrentUser() user: JwtUser, @Param('jobId') jobId: string) {
     return this.hiringService.closeSkillGap(user.sub, jobId);
   }
 
-  /** Candidate pool contains personal data — recruiters and admins only. */
+  // ── Application Pipeline ───────────────────────────────────────────────────
+
+  /** List all applications for the current user */
+  @Get('applications')
+  getMyApplications(@CurrentUser() user: JwtUser) {
+    return this.hiringService.getApplicationsForUser(user.sub);
+  }
+
+  /** Get application status for a specific job */
+  @Get('applications/job/:jobId')
+  getApplicationByJob(
+    @CurrentUser() user: JwtUser,
+    @Param('jobId') jobId: string,
+  ) {
+    return this.hiringService.getApplicationByJobId(user.sub, jobId);
+  }
+
+  /** Create or update application (express interest / apply) */
+  @Post('applications')
+  upsertApplication(
+    @CurrentUser() user: JwtUser,
+    @Body() dto: CreateApplicationDto,
+  ) {
+    return this.hiringService.upsertApplication(user.sub, dto);
+  }
+
+  /** Update pipeline status (under_review / interview / offer / hired / rejected) */
+  @Patch('applications/:id')
+  updateApplicationStatus(
+    @CurrentUser() user: JwtUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateApplicationStatusDto,
+  ) {
+    return this.hiringService.updateApplicationStatus(user.sub, id, dto);
+  }
+
+  // ── Company / Admin ────────────────────────────────────────────────────────
+
   @UseGuards(RolesGuard)
   @Roles('company', 'admin')
   @Get('candidates')

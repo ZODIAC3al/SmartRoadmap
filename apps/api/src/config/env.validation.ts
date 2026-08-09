@@ -78,6 +78,9 @@ export const envSchema = z
     QDRANT_URL: z.string().optional(),
     QDRANT_API_KEY: z.string().optional(),
 
+    // AssemblyAI — Voice Agent feature (optional; app starts without it)
+    ASSEMBLYAI_API_KEY: z.string().optional(),
+
     PAYPAL_CLIENT_ID: z.string().optional(),
     PAYPAL_CLIENT_SECRET: z.string().optional(),
     PAYPAL_WEBHOOK_ID: z.string().optional(),

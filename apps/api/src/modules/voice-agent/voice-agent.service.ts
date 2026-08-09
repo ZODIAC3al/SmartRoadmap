@@ -9,10 +9,17 @@ import axios from 'axios';
 @Injectable()
 export class VoiceAgentService {
   private readonly logger = new Logger(VoiceAgentService.name);
-  private readonly apiKey: string;
+  private readonly apiKey: string | undefined;
 
   constructor(private readonly config: ConfigService) {
-    this.apiKey = this.config.getOrThrow<string>('ASSEMBLYAI_API_KEY');
+    // Use get() (not getOrThrow) so the app starts even without ASSEMBLYAI_API_KEY.
+    // The key is validated lazily inside mintToken() when the feature is actually used.
+    this.apiKey = this.config.get<string>('ASSEMBLYAI_API_KEY');
+    if (!this.apiKey) {
+      this.logger.warn(
+        'ASSEMBLYAI_API_KEY not set — Voice Agent feature is disabled.',
+      );
+    }
   }
 
   /**
@@ -23,6 +30,11 @@ export class VoiceAgentService {
    * The token expires in 60 s and is single-use per session.
    */
   async mintToken(maxSessionSeconds = 1800): Promise<{ token: string }> {
+    if (!this.apiKey) {
+      throw new InternalServerErrorException(
+        'ASSEMBLYAI_API_KEY is not configured — Voice Agent feature is unavailable.',
+      );
+    }
     try {
       const res = await axios.get<{ token: string }>(
         'https://agents.assemblyai.com/v1/token',

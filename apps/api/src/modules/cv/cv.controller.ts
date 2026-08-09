@@ -101,6 +101,18 @@ export class CvController {
     };
   }
 
+  @Post('generate-from-profile')
+  @HttpCode(HttpStatus.OK)
+  async generateFromProfile(
+    @CurrentUser() user: JwtUser,
+    @Body() body: { targetJobTitle?: string },
+  ) {
+    return {
+      success: true,
+      data: await this.cvService.generateFromProfile(user.sub, body?.targetJobTitle),
+    };
+  }
+
   @Post('ats-check')
   @HttpCode(HttpStatus.OK)
   async atsCheck(@CurrentUser() user: JwtUser, @Body() dto: AtsCheckDto) {

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Job, JobSchema } from '../../schemas/job.schema';
+import { JobApplication, JobApplicationSchema } from '../../schemas/job-application.schema';
 import { User, UserSchema } from '../../schemas/user.schema';
 import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
 import {
@@ -16,6 +17,7 @@ import { AIModule } from '../../ai/ai.module';
   imports: [
     MongooseModule.forFeature([
       { name: Job.name, schema: JobSchema },
+      { name: JobApplication.name, schema: JobApplicationSchema },
       { name: User.name, schema: UserSchema },
       { name: Roadmap.name, schema: RoadmapSchema },
       { name: QuizSession.name, schema: QuizSessionSchema },
@@ -28,3 +30,4 @@ import { AIModule } from '../../ai/ai.module';
   exports: [HiringService],
 })
 export class HiringModule {}
+

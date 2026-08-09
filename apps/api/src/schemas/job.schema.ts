@@ -29,6 +29,33 @@ export class Job extends Document {
 
   @Prop()
   description?: string;
+
+  // ── Richer fields added for filtering & display ──────────────────────────────
+
+  /** full-time | part-time | contract | freelance | internship */
+  @Prop({ default: 'full-time' })
+  jobType?: string;
+
+  /** remote | hybrid | onsite */
+  @Prop({ default: 'remote' })
+  workType?: string;
+
+  /** entry | mid | senior | lead */
+  @Prop({ default: 'mid' })
+  experienceLevel?: string;
+
+  /** Additional technology tags beyond requiredSkills */
+  @Prop({ type: [String], default: [] })
+  technologies?: string[];
+
+  /** External application URL — if set, Apply redirects to this URL */
+  @Prop()
+  externalUrl?: string;
+
+  /** Date the job was posted (for "Newest" sort) */
+  @Prop({ default: () => new Date() })
+  postedAt?: Date;
 }
 
 export const JobSchema = SchemaFactory.createForClass(Job);
+

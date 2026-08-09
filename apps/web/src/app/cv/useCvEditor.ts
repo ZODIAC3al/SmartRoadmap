@@ -269,6 +269,30 @@ export function useCvEditor() {
     }
   };
 
+  const handleGenerateFromProfile = async (targetTitle?: string) => {
+    setIsParsing(true);
+    try {
+      const res = await apiFetch('/cv/generate-from-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetJobTitle: targetTitle || professionalTitle }),
+      });
+      if (!res.ok) throw new Error('Generation failed');
+      const json = await res.json();
+      const newCv = json.data;
+      if (newCv) {
+        populateActiveCv(newCv);
+        setCurrentView('editor');
+        setCvList((prev) => [newCv, ...prev.filter((c) => (c._id || c.id) !== (newCv._id || newCv.id))]);
+        toast.success(locale === 'en' ? '✨ AI Resume generated from your profile!' : '✨ تم إنشاء السيرة الذاتية بواسطة الذكاء الاصطناعي!');
+      }
+    } catch (err: any) {
+      toast.error('Failed to generate AI CV from profile');
+    } finally {
+      setIsParsing(false);
+    }
+  };
+
   const handleSelectCv = (targetCv: CVData) => {
     populateActiveCv(targetCv);
     setCurrentView('editor');
@@ -1137,6 +1161,7 @@ export function useCvEditor() {
     handleAddSection,
     handleCancel,
     handleEnhanceDescription,
+    handleGenerateFromProfile,
     handleExportPDF,
     handleFileUpload,
     handleGenerateTailoredCv,

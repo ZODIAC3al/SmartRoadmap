@@ -31,6 +31,12 @@ export class CvService {
     @InjectModel(Roadmap.name) private readonly roadmapModel: Model<Roadmap>,
     @InjectModel(QuizSession.name)
     private readonly quizSessionModel: Model<QuizSession>,
+    @InjectModel('GitHubAccount')
+    private readonly githubAccountModel: Model<any>,
+    @InjectModel('LinkedInAccount')
+    private readonly linkedinAccountModel: Model<any>,
+    @InjectModel('UserAchievement')
+    private readonly userAchievementModel: Model<any>,
     private readonly llmService: LLMService,
     private readonly projectService: ProjectService,
     private readonly certificateService: CertificateService,
@@ -644,50 +650,71 @@ ${plainText}`,
     dto: GenerateTailoredCvDto,
   ): Promise<any> {
     this.logger.log(
-      `Generating AI tailored CV for user ${userId} targeting role "${dto.targetJobTitle}"`,
+      `Gathering 100% real user profile data for AI CV generation (user: ${userId})`,
     );
 
     let userObj: any = null;
     let learnerProfileObj: any = null;
+    let githubAccountObj: any = null;
+    let linkedinAccountObj: any = null;
     let roadmapsList: any[] = [];
     let quizzesList: any[] = [];
     let projectsList: any[] = [];
     let certsList: any[] = [];
+    let achievementsList: any[] = [];
     let existingCv: any = null;
 
     try {
       userObj = await this.userModel.findById(userId).exec();
-    } catch { }
+    } catch {}
 
     try {
       learnerProfileObj = await this.learnerProfileModel
         .findOne({ userId: new Types.ObjectId(userId) })
         .exec();
-    } catch { }
+    } catch {}
+
+    try {
+      githubAccountObj = await this.githubAccountModel
+        .findOne({ userId: new Types.ObjectId(userId) })
+        .exec();
+    } catch {}
+
+    try {
+      linkedinAccountObj = await this.linkedinAccountModel
+        .findOne({ userId: new Types.ObjectId(userId) })
+        .exec();
+    } catch {}
 
     try {
       roadmapsList = await this.roadmapModel
         .find({ userId: new Types.ObjectId(userId) })
         .exec();
-    } catch { }
+    } catch {}
 
     try {
       quizzesList = await this.quizSessionModel
         .find({ userId: new Types.ObjectId(userId), passed: true })
         .exec();
-    } catch { }
+    } catch {}
 
     try {
       if (dto.includeProjects !== false) {
         projectsList = await this.projectService.list(userId);
       }
-    } catch { }
+    } catch {}
 
     try {
       if (dto.includeCertificates !== false) {
         certsList = await this.certificateService.list(userId);
       }
-    } catch { }
+    } catch {}
+
+    try {
+      achievementsList = await this.userAchievementModel
+        .find({ userId: new Types.ObjectId(userId) })
+        .exec();
+    } catch {}
 
     try {
       existingCv = await this.getCvByUserId(userId);
@@ -695,6 +722,51 @@ ${plainText}`,
       existingCv = dto.cvData || null;
     }
 
+    // 1. Gather Personal Details (real only)
+    const candidateName =
+      userObj?.name ||
+      linkedinAccountObj?.fullName ||
+      githubAccountObj?.fullName ||
+      existingCv?.personal?.name ||
+      '';
+
+    const candidateEmail =
+      userObj?.email ||
+      linkedinAccountObj?.email ||
+      githubAccountObj?.email ||
+      existingCv?.personal?.email ||
+      '';
+
+    const candidatePhone =
+      userObj?.phone ||
+      existingCv?.personal?.phone ||
+      '';
+
+    const candidateSummary =
+      userObj?.bio ||
+      learnerProfileObj?.bio ||
+      linkedinAccountObj?.profile?.about ||
+      existingCv?.personal?.summary ||
+      '';
+
+    const gitHubUrl =
+      githubAccountObj?.username
+        ? `https://github.com/${githubAccountObj.username}`
+        : learnerProfileObj?.github ||
+          existingCv?.personal?.gitHub ||
+          '';
+
+    const linkedInUrl =
+      learnerProfileObj?.linkedIn ||
+      existingCv?.personal?.linkedIn ||
+      '';
+
+    const websiteUrl =
+      githubAccountObj?.website ||
+      existingCv?.personal?.website ||
+      '';
+
+    // 2. Gather Skills (real only)
     const completedRoadmapModules = (roadmapsList || [])
       .flatMap((r) => r.modules || [])
       .filter((m) => m.status === 'completed');
@@ -706,138 +778,174 @@ ${plainText}`,
     const mergedSkills = Array.from(
       new Set([
         ...(learnerProfileObj?.skills || []),
+        ...(linkedinAccountObj?.profile?.skills || []),
         ...(existingCv?.skills || []),
         ...roadmapSkillTopics,
-        dto.targetJobTitle,
-        'TypeScript',
-        'Git',
-        'Problem Solving',
       ]),
     ).filter(Boolean);
 
-    const candidateName =
-      userObj?.name || existingCv?.personal?.name || 'SmartRoadmap Learner';
-    const candidateEmail =
-      userObj?.email || existingCv?.personal?.email || 'learner@smartroadmap.app';
-    const candidatePhone =
-      userObj?.phone || existingCv?.personal?.phone || '+1 (555) 019-2834';
-    const candidateBio =
-      userObj?.bio ||
-      existingCv?.personal?.summary ||
-      `Dedicated ${dto.targetJobTitle} with hands-on experience completing practical roadmaps and building software applications.`;
-
-    const verifiedProjects =
-      projectsList.length > 0
-        ? projectsList.map((p) => ({
-          name: p.name,
-          description: p.description,
-          url: p.demoLink || p.githubUrl || 'https://github.com',
-        }))
-        : existingCv?.projects?.length
-          ? existingCv.projects
-          : [
-            {
-              name: 'SmartRoadmap Core Application',
-              description:
-                'Engineered full-stack interactive roadmaps and automated skill progress tracker.',
-              url: 'https://github.com/developia/smartroadmap',
-            },
-          ];
-
-    const verifiedCertificates = certsList.map((c) => ({
-      title: c.title,
-      organization: c.organization,
-      issuedAt: c.issuedAt,
+    // 3. Gather Projects (real only) — include GitHub repos imported via GitHub OAuth
+    const verifiedProjects = (projectsList || []).map((p) => ({
+      name: p.name,
+      description: p.description || (p.readmeSnippet ? p.readmeSnippet.slice(0, 300) : ''),
+      technologies: p.technologies || Object.keys(p.languages || {}),
+      url: p.demoLink || p.githubUrl || '',
+      githubUrl: p.githubUrl || '',
+      stars: p.stars || 0,
     }));
 
-    const verifiedEducation =
-      existingCv?.education?.length > 0
-        ? existingCv.education
-        : [
-          {
-            school: learnerProfileObj?.educationLevel || 'Computer Science Institute',
-            degree: 'Bachelor of Science in Software Engineering',
-            fieldOfStudy: 'Computer Science',
-            graduateDate: '2024-05',
-          },
-        ];
+    if (verifiedProjects.length === 0 && existingCv?.projects?.length > 0) {
+      verifiedProjects.push(...existingCv.projects);
+    }
 
-    const verifiedExperience =
-      existingCv?.experience?.length > 0
-        ? existingCv.experience
-        : [
-          {
-            company: 'SmartRoadmap Verified Labs',
-            role: `${dto.targetJobTitle} (Project Engineer)`,
-            startDate: '2024-01',
-            endDate: 'Present',
-            description: `Developed and deployed production-ready applications, completed ${completedRoadmapModules.length || 4} learning modules, and scored passing grades on verified technical assessments.`,
-          },
-        ];
+    // 4. Gather Certifications (real only)
+    // NOTE: Certificate schema field is `issueDate` (not `issuedAt`)
+    const verifiedCertificates = (certsList || []).map((c) => ({
+      title: c.title,
+      organization: c.organization || '',
+      issuedAt: (c as any).issueDate || (c as any).issuedAt || '',
+      credentialUrl: c.credentialUrl || '',
+    }));
+
+    if (verifiedCertificates.length === 0 && linkedinAccountObj?.profile?.certifications?.length > 0) {
+      linkedinAccountObj.profile.certifications.forEach((c: any) => {
+        verifiedCertificates.push({
+          title: c.name || c.title || '',
+          organization: c.authority || c.organization || '',
+          issuedAt: c.issueDate || '',
+          credentialUrl: c.credentialUrl || '',
+        });
+      });
+    }
+
+    if (verifiedCertificates.length === 0 && existingCv?.certifications?.length > 0) {
+      verifiedCertificates.push(...existingCv.certifications);
+    }
+
+    // 5. Gather Experience (real only)
+    const verifiedExperience = [
+      ...(linkedinAccountObj?.profile?.experience || []),
+      ...(existingCv?.experience || []),
+    ];
+
+    // 6. Gather Education (real only)
+    const verifiedEducation = [
+      ...(linkedinAccountObj?.profile?.education || []),
+      ...(existingCv?.education || []),
+    ];
+
+    if (verifiedEducation.length === 0 && learnerProfileObj?.educationLevel) {
+      verifiedEducation.push({
+        school: '',
+        degree: learnerProfileObj.educationLevel,
+        fieldOfStudy: '',
+        graduateDate: '',
+      });
+    }
+
+    // 7. Gather Achievements / Badges (real only)
+    const earnedBadges = (achievementsList || []).map((a) => a.achievementKey);
 
     const baseData = {
       personal: {
         name: candidateName,
         email: candidateEmail,
         phone: candidatePhone,
-        summary: candidateBio,
+        summary: candidateSummary,
+        gitHub: gitHubUrl,
+        linkedIn: linkedInUrl,
+        website: websiteUrl,
       },
       experience: verifiedExperience,
       education: verifiedEducation,
       skills: mergedSkills,
       projects: verifiedProjects,
+      certifications: verifiedCertificates,
+      achievements: earnedBadges,
+      courses: existingCv?.courses || [],
+      languages: linkedinAccountObj?.profile?.languages || existingCv?.languages || [],
+      customSections: existingCv?.customSections || [],
       references: existingCv?.references || [],
-      hobbies: existingCv?.hobbies || ['Coding', 'Tech Blogging', 'Open Source'],
+      hobbies: existingCv?.hobbies || [],
     };
 
-    const prompt = `You are an expert ATS Resume Writer. Create an ATS-optimized CV tailored for "${dto.targetJobTitle}".
-${dto.jobDescription ? `Target Job Description:\n"${dto.jobDescription}"\n` : ''}
+    const targetTitle = dto?.targetJobTitle || learnerProfileObj?.preferredRole || 'Software Professional';
 
-Verified Candidate SmartRoadmap Profile Data:
-- Candidate Name: ${candidateName}
-- Email: ${candidateEmail}
-- Skills: ${mergedSkills.join(', ')}
-- Completed Learning Modules: ${completedRoadmapModules.map((m) => m.title).join(', ') || 'Core Fundamentals'}
-- Verified Projects: ${JSON.stringify(verifiedProjects)}
-- Verified Certifications: ${JSON.stringify(verifiedCertificates)}
-- Verified Quiz Pass Count: ${quizzesList.length}
+    const prompt = `You are an expert ATS Resume Writer. Organize and write a professional ATS-optimized resume in JSON format.
+STRICT RULE: YOU MUST ONLY USE THE CANDIDATE'S ACTUAL PROVIDED DATA. DO NOT Hallucinate OR INVENT ANY FAKE COMPANIES, UNIVERSITIES, PROJECTS, CERTIFICATES, PHONE NUMBERS, OR DEGREES. If a section is empty in the candidate data, keep it empty.
+
+Candidate Profile Data:
+- Name: "${candidateName}"
+- Email: "${candidateEmail}"
+- Phone: "${candidatePhone}"
+- Target Role: "${targetTitle}"
+- Summary/Bio: "${candidateSummary}"
+- GitHub: "${gitHubUrl}"
+- LinkedIn: "${linkedInUrl}"
+- Real Skills: ${JSON.stringify(mergedSkills)}
+- Real Work Experience: ${JSON.stringify(verifiedExperience)}
+- Real Education: ${JSON.stringify(verifiedEducation)}
+- Real Projects: ${JSON.stringify(verifiedProjects)}
+- Real Certifications: ${JSON.stringify(verifiedCertificates)}
+- Real Achievements/Badges: ${JSON.stringify(earnedBadges)}
+- Real Languages: ${JSON.stringify(baseData.languages)}
 
 Instructions:
-1. Write a compelling, 2-3 sentence summary specifically tailored for "${dto.targetJobTitle}".
-2. Rewrite work experience descriptions into action-oriented bullet points with quantified achievements.
-3. Organize skills array cleanly to highlight critical keywords for "${dto.targetJobTitle}".
-4. Return ONLY valid JSON matching keys: personal {name, email, phone, summary, address, website}, experience[] {company, role, startDate, endDate, description}, education[] {school, degree, fieldOfStudy, graduateDate}, skills[], projects[] {name, description, url}, references[] {name, relationship, phone, email}, hobbies[].`;
+1. Write a professional, 2-3 sentence summary tailored for "${targetTitle}" based strictly on their actual summary/bio and real skills.
+2. Formulate active-voice bullet points for the work experience and projects provided.
+3. Organize skills cleanly.
+4. Return ONLY valid JSON matching schema:
+{
+  "personal": { "name": "", "email": "", "phone": "", "summary": "", "gitHub": "", "linkedIn": "", "website": "" },
+  "experience": [ { "company": "", "role": "", "startDate": "", "endDate": "", "description": "" } ],
+  "education": [ { "school": "", "degree": "", "fieldOfStudy": "", "graduateDate": "" } ],
+  "skills": [],
+  "projects": [ { "name": "", "description": "", "url": "" } ],
+  "certifications": [ { "title": "", "organization": "", "issuedAt": "" } ],
+  "achievements": [],
+  "languages": [],
+  "hobbies": []
+}`;
 
     const raw = await this.llmService.complete(prompt, { json: true });
 
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
-        if (parsed.personal?.summary || parsed.skills?.length) {
+        if (parsed.personal?.name || parsed.skills?.length || parsed.projects?.length) {
           return {
             ...parsed,
             personal: {
               ...baseData.personal,
               ...parsed.personal,
-              name: candidateName, // Retain verified name
-              email: candidateEmail, // Retain verified email
+              name: candidateName || parsed.personal?.name || '',
+              email: candidateEmail || parsed.personal?.email || '',
+              gitHub: gitHubUrl || parsed.personal?.gitHub || '',
+              linkedIn: linkedInUrl || parsed.personal?.linkedIn || '',
             },
           };
         }
       } catch (err: any) {
         this.logger.error(
-          `AI Tailored CV generation returned unparsable JSON: ${err.message}`,
+          `AI Tailored CV generation JSON parse error: ${err.message}`,
         );
       }
     }
 
-    return {
-      ...baseData,
-      personal: {
-        ...baseData.personal,
-        summary: `Results-oriented ${dto.targetJobTitle} with verified expertise in ${mergedSkills.slice(0, 4).join(', ')} and software application architecture.`,
-      },
-    };
+    return baseData;
+  }
+
+  async generateFromProfile(userId: string, targetJobTitle?: string): Promise<Cv> {
+    const jobTitle = targetJobTitle || 'Software Engineer';
+    const generatedData = await this.generateTailoredCv(userId, {
+      targetJobTitle: jobTitle,
+    });
+    // Pass the data flat (not nested inside { data: {...} }) so saveCv reads fields correctly
+    return this.saveCv(userId, {
+      title: `${jobTitle} Resume (AI Generated)`,
+      template: 'modern',
+      ...generatedData,
+    });
   }
 
   async checkAts(userId: string, dto: AtsCheckDto): Promise<any> {
