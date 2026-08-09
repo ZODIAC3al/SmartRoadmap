@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getGitHubRepos, GitHubRepo } from '@/lib/profileImport';
 import { CloseIcon, SparklesIcon } from './icons';
 
@@ -56,7 +56,7 @@ export const GitHubRepoImportModal: React.FC<GitHubRepoImportModalProps> = ({
       <div className="card w-full max-w-xl bg-base-200 border border-base-300 text-base-content p-6 rounded-2xl shadow-2xl relative text-start animate-in fade-in zoom-in-95 duration-200">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 btn btn-circle btn-xs btn-ghost text-stone-700 dark:text-stone-300 font-medium"
+          className="absolute top-4 right-4 btn btn-circle btn-xs btn-ghost text-base-content/60"
         >
           <CloseIcon />
         </button>
@@ -67,7 +67,7 @@ export const GitHubRepoImportModal: React.FC<GitHubRepoImportModalProps> = ({
           </div>
           <div>
             <h3 className="font-extrabold text-base leading-tight">Import Projects from GitHub</h3>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-0.5">
+            <p className="text-xs text-base-content/60 mt-0.5">
               Select repositories from your connected GitHub account to include in your CV.
             </p>
           </div>
@@ -76,7 +76,7 @@ export const GitHubRepoImportModal: React.FC<GitHubRepoImportModalProps> = ({
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-10 space-y-3">
             <span className="loading loading-spinner loading-md text-primary"></span>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">Fetching your GitHub repositories...</p>
+            <p className="text-xs text-base-content/60">Fetching your GitHub repositories...</p>
           </div>
         ) : error ? (
           <div className="alert alert-error text-xs rounded-xl my-4 font-semibold">
@@ -85,7 +85,7 @@ export const GitHubRepoImportModal: React.FC<GitHubRepoImportModalProps> = ({
         ) : repos.length === 0 ? (
           <div className="text-center py-8 space-y-2">
             <p className="text-sm font-bold">No repositories found.</p>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+            <p className="text-xs text-base-content/60">
               Connect your GitHub account in Profile Settings to import your repositories.
             </p>
           </div>
@@ -121,14 +121,14 @@ export const GitHubRepoImportModal: React.FC<GitHubRepoImportModalProps> = ({
                           )}
                         </div>
                         {repo.description && (
-                          <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium line-clamp-2 mt-1">
+                          <p className="text-[11px] text-base-content/70 line-clamp-2 mt-1">
                             {repo.description}
                           </p>
                         )}
                         {repo.topics && repo.topics.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1.5">
                             {repo.topics.slice(0, 4).map((topic, i) => (
-                              <span key={i} className="text-[8px] bg-base-300/60 text-stone-700 dark:text-stone-300 font-medium px-1.5 py-0.5 rounded font-mono">
+                              <span key={i} className="text-[8px] bg-base-300/60 text-base-content/70 px-1.5 py-0.5 rounded font-mono">
                                 #{topic}
                               </span>
                             ))}
@@ -137,7 +137,7 @@ export const GitHubRepoImportModal: React.FC<GitHubRepoImportModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-[10px] text-stone-700 dark:text-stone-300 font-medium font-mono flex items-center gap-1 shrink-0">
+                    <div className="text-[10px] text-base-content/50 font-mono flex items-center gap-1 shrink-0">
                       ⭐ {repo.stargazers_count || 0}
                     </div>
                   </div>
@@ -146,7 +146,7 @@ export const GitHubRepoImportModal: React.FC<GitHubRepoImportModalProps> = ({
             </div>
 
             <div className="flex justify-between items-center pt-3 border-t border-base-300">
-              <span className="text-xs text-stone-700 dark:text-stone-300 font-medium font-semibold">
+              <span className="text-xs text-base-content/60 font-semibold">
                 {selectedIds.length} repository selected
               </span>
               <div className="flex gap-2">
@@ -156,7 +156,7 @@ export const GitHubRepoImportModal: React.FC<GitHubRepoImportModalProps> = ({
                 <button
                   onClick={handleConfirm}
                   disabled={selectedIds.length === 0}
-                  className="btn btn-xs sm:btn-sm bg-primary hover:bg-[#8E1616] text-white border-none rounded-lg font-bold px-4"
+                  className="btn btn-xs sm:btn-sm bg-primary hover:bg-[#059669] text-white border-none rounded-lg font-bold px-4"
                 >
                   Import Selected
                 </button>

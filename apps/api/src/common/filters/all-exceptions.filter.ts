@@ -34,9 +34,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         exception instanceof Error ? exception.stack : String(exception),
       );
     } else {
-      const msg = typeof payload === 'object' ? JSON.stringify(payload) : String(payload);
       this.logger.warn(
-        `[${requestId}] ${request.method} ${request.url} -> ${status} | ${msg}`,
+        `[${requestId}] ${request.method} ${request.url} -> ${status}`,
       );
     }
 

@@ -40,13 +40,7 @@ export class PortfolioSocialLinks {
 
 @Schema({ timestamps: true })
 export class Portfolio extends Document {
-  @Prop({
-    type: Types.ObjectId,
-    ref: 'User',
-    required: true,
-    unique: true,
-    index: true,
-  })
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true, index: true })
   userId!: Types.ObjectId;
 
   @Prop({ required: true, unique: true, index: true })
@@ -77,21 +71,10 @@ export class Portfolio extends Document {
   projects!: PortfolioProject[];
 
   @Prop({ type: [Object], default: [] })
-  experience!: Array<{
-    company: string;
-    role: string;
-    startDate: string;
-    endDate: string;
-    description: string;
-  }>;
+  experience!: Array<{ company: string; role: string; startDate: string; endDate: string; description: string }>;
 
   @Prop({ type: [Object], default: [] })
-  education!: Array<{
-    school: string;
-    degree: string;
-    fieldOfStudy: string;
-    graduateDate: string;
-  }>;
+  education!: Array<{ school: string; degree: string; fieldOfStudy: string; graduateDate: string }>;
 
   @Prop({ type: [Object], default: [] })
   customSections!: Array<{ id: string; title: string; items: string[] }>;

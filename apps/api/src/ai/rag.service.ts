@@ -45,10 +45,8 @@ export class RAGService implements OnModuleInit {
         });
         this.logger.log(`Created Qdrant collection "${name}"`);
       } catch (error: any) {
-        // Qdrant is optional — a missing local instance is expected in
-        // development. Log as debug so it doesn't pollute startup output.
-        this.logger.debug(
-          `Qdrant collection "${name}" unavailable (${error.message}) — RAG will use mocks until Qdrant is reachable.`,
+        this.logger.error(
+          `Could not ensure Qdrant collection "${name}": ${error.message}`,
         );
       }
     }

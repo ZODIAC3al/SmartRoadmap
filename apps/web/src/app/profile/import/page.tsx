@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -129,29 +129,18 @@ export default function ProfileImportPage() {
 
   const loadAll = useCallback(async () => {
     try {
-      const [ghS, ghA, liS, liA, certsRes, projRes] = await Promise.all([
+      const [ghS, ghA, reposRes, liS, liA, certsRes, projRes] = await Promise.all([
         getGitHubStatus().catch(() => ({ configured: false })),
         getGitHubAccount().catch(() => ({ connected: false, account: null })),
+        getGitHubRepos().catch(() => ({ repos: [] })),
         getLinkedInStatus().catch(() => ({ configured: false, apiLimitations: true })),
         getLinkedInAccount().catch(() => ({ connected: false, account: null })),
         getCertificates().catch(() => ({ certificates: [] })),
         getProjects().catch(() => ({ projects: [] })),
       ]);
       setGhConfigured(ghS.configured);
-      const activeGh = ghA.connected ? ghA.account : null;
-      setGhAccount(activeGh);
-
-      // Only load cached repos if connected — avoids downloading hundreds of repos unnecessarily
-      if (activeGh) {
-        getGitHubRepos(false)
-          .then((res) => {
-            if (res.repos?.length) {
-              setRepos(res.repos.map((r) => ({ ...r, checked: false })));
-            }
-          })
-          .catch(() => { });
-      }
-
+      setGhAccount(ghA.connected ? ghA.account : null);
+      setRepos((reposRes.repos ?? []).map((r) => ({ ...r, checked: false })));
       setLiConfigured(liS.configured);
       const activeLi = liA.connected ? liA.account : null;
       setLiAccount(activeLi);
@@ -199,28 +188,24 @@ export default function ProfileImportPage() {
 
   // ── GitHub actions ────────────────────────────────────────────────────
   const connectGitHub = async () => {
+    if (!ghConfigured) {
+      toast.info(L('GitHub OAuth is not configured on this server.', 'لم يتم ضبط تسجيل دخول GitHub على الخادم.'));
+      return;
+    }
     try {
-      const res = await getGitHubAuthUrl();
-      if (res?.url) {
-        window.location.href = res.url;
-      } else {
-        toast.error(L('GitHub OAuth is not configured on this server.', 'لم يتم ضبط تسجيل دخول GitHub على الخادم.'));
-      }
+      const { url } = await getGitHubAuthUrl();
+      if (url) window.location.href = url;
     } catch (e: any) {
-      toast.error(e.message || L('Could not connect to GitHub.', 'تعذر الاتصال بـ GitHub.'));
+      toast.error(e.message);
     }
   };
 
-  const fetchRepos = async (forceSync = true) => {
+  const fetchRepos = async () => {
     setGhBusy(true);
     try {
-      const { repos: list, fromCache } = await getGitHubRepos(forceSync);
+      const { repos: list } = await getGitHubRepos();
       setRepos(list.map((r) => ({ ...r, checked: false })));
-      if (fromCache) {
-        toast.info(L(`${list.length} repositories loaded from cache.`, `تم تحميل ${list.length} مستودعاً من الذاكرة.`));
-      } else {
-        toast.success(L(`${list.length} repositories synchronized from GitHub.`, `تمت مزامنة ${list.length} مستودعاً من GitHub.`));
-      }
+      toast.success(L(`${list.length} repositories loaded.`, `تم تحميل ${list.length} مستودعاً.`));
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -296,11 +281,15 @@ export default function ProfileImportPage() {
 
   // ── LinkedIn actions ─────────────────────────────────────────────────
   const connectLinkedIn = async () => {
+    if (!liConfigured) {
+      toast.info(L('LinkedIn OAuth is not configured — use the manual or PDF import below.', 'لم يتم ضبط LinkedIn — استخدم الاستيراد اليدوي أو عبر PDF أدناه.'));
+      return;
+    }
     try {
       const { url } = await getLinkedInAuthUrl();
       if (url) window.location.href = url;
     } catch (e: any) {
-      toast.error(e.message || L('Could not connect to LinkedIn.', 'تعذر الاتصال بـ LinkedIn.'));
+      toast.error(e.message);
     }
   };
 
@@ -407,7 +396,7 @@ export default function ProfileImportPage() {
       fd.append('file', certFile);
       fd.append('title', certTitle);
       await uploadCertificate(fd);
-      toast.success(L('Certificate uploaded and submitted for verification.', 'تم رفع الشهادة وإرسالها للمراجعة والتوثيق.'));
+      toast.success(L('Certificate uploaded.', 'تم رفع الشهادة.'));
       setCertTitle('');
       setCertFile(null);
       const { certificates } = await getCertificates();
@@ -455,8 +444,7 @@ export default function ProfileImportPage() {
     }
   };
 
-  const updateCert = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const saveCertEdit = async () => {
     if (!editingCert) return;
     try {
       await updateCertificate(editingCert._id, {
@@ -477,41 +465,11 @@ export default function ProfileImportPage() {
   };
 
   const removeCert = async (id: string) => {
-    if (!confirm(L('Delete this certificate?', 'هل أنت متأكد من حذف هذه الشهادة؟'))) return;
+    if (!confirm(L('Delete this certificate?', 'حذف هذه الشهادة؟'))) return;
     try {
       await deleteCertificate(id);
-      toast.success(L('Certificate deleted.', 'تم حذف الشهادة.'));
       setCerts((c) => c.filter((x) => x._id !== id));
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
-  const updateProj = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingProject) return;
-    try {
-      await updateProject(editingProject._id, {
-        name: editingProject.name,
-        description: editingProject.description,
-        demoLink: editingProject.demoLink,
-        technologies: editingProject.technologies,
-      });
-      toast.success(L('Project updated.', 'تم تحديث المشروع.'));
-      setEditingProject(null);
-      const { projects: list } = await getProjects();
-      setProjects(list);
-    } catch (e: any) {
-      toast.error(e.message);
-    }
-  };
-
-  const removeProj = async (id: string) => {
-    if (!confirm(L('Delete this project?', 'هل أنت متأكد من حذف هذا المشروع؟'))) return;
-    try {
-      await deleteProject(id);
-      toast.success(L('Project deleted.', 'تم حذف المشروع.'));
-      setProjects((p) => p.filter((x) => x._id !== id));
+      toast.success(L('Certificate deleted.', 'تم حذف الشهادة.'));
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -562,7 +520,7 @@ export default function ProfileImportPage() {
         <div className="flex items-center justify-between pt-4">
           <div>
             <h1 className="font-extrabold text-xl text-base-content">{L('Import Profile', 'استيراد الملف الشخصي')}</h1>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">
+            <p className="text-xs text-base-content/50 mt-1">
               {L('Connect GitHub, LinkedIn and upload certificates to build your profile.', 'اربط GitHub و LinkedIn وارفع الشهادات لبناء ملفك الشخصي.')}
             </p>
           </div>
@@ -580,7 +538,7 @@ export default function ProfileImportPage() {
               </span>
               <div>
                 <h2 className="font-extrabold text-sm">{L('GitHub', 'GitHub')}</h2>
-                <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">
+                <p className="text-[11px] text-base-content/50">
                   {ghAccount
                     ? `@${ghAccount.username || ghAccount.githubId}`
                     : L('Import repositories as portfolio projects.', 'استورد المستودعات كمشاريع في معرض أعمالك.')}
@@ -588,11 +546,11 @@ export default function ProfileImportPage() {
               </div>
             </div>
             {ghAccount ? (
-              <button type="button" onClick={doDisconnectGitHub} className="btn btn-outline border-error/40 text-error btn-sm rounded-xl">
+              <button onClick={doDisconnectGitHub} className="btn btn-outline border-error/40 text-error btn-sm rounded-xl">
                 {L('Disconnect', 'قطع الاتصال')}
               </button>
             ) : (
-              <button type="button" onClick={connectGitHub} className={PRIMARY + ' btn-sm rounded-xl'}>
+              <button onClick={connectGitHub} className={PRIMARY + ' btn-sm rounded-xl'}>
                 {L('Connect GitHub', 'ربط GitHub')}
               </button>
             )}
@@ -605,26 +563,14 @@ export default function ProfileImportPage() {
                   <img src={ghAccount.avatar} alt="" className="w-12 h-12 rounded-full object-cover border border-base-300" />
                 )}
                 <div className="text-xs">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-bold">{ghAccount.fullName || ghAccount.username}</p>
-                    {ghAccount.username && (
-                      <a
-                        href={ghAccount.website || `https://github.com/${ghAccount.username}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[#7c3aed] hover:underline text-[11px] font-medium"
-                      >
-                        @{ghAccount.username} ↗
-                      </a>
-                    )}
-                  </div>
-                  <p className="text-stone-700 dark:text-stone-300 font-medium">
+                  <p className="font-bold">{ghAccount.fullName || ghAccount.username}</p>
+                  <p className="text-base-content/55">
                     {ghAccount.followers ?? 0} {L('followers', 'متابع')} · {ghAccount.following ?? 0} {L('following', 'يتابع')}
                     {ghAccount.totalStars ? ` · ★ ${ghAccount.totalStars}` : ''}
                     {ghAccount.location ? ` · ${ghAccount.location}` : ''}
                   </p>
                   {ghAccount.lastSyncedAt && (
-                    <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium mt-0.5">
+                    <p className="text-[10px] text-base-content/40 mt-0.5">
                       {L('Last synced:', 'آخر مزامنة:')} {formatDate(ghAccount.lastSyncedAt)}
                     </p>
                   )}
@@ -633,14 +579,14 @@ export default function ProfileImportPage() {
                   <button onClick={refreshGitHubData} disabled={ghBusy} className={OUTLINE + ' btn-sm rounded-xl'}>
                     {ghBusy ? <Spinner /> : L('Refresh GitHub Data', 'تحديث بيانات GitHub')}
                   </button>
-                  <button onClick={() => fetchRepos(true)} disabled={ghBusy} className={OUTLINE + ' btn-sm rounded-xl'}>
+                  <button onClick={fetchRepos} disabled={ghBusy} className={OUTLINE + ' btn-sm rounded-xl'}>
                     {ghBusy ? <Spinner /> : L('Load Repositories', 'تحميل المستودعات')}
                   </button>
                 </div>
               </div>
               {ghAccount.languagesSummary && Object.keys(ghAccount.languagesSummary).length > 0 && (
                 <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-base-200">
-                  <span className="text-[11px] font-semibold text-stone-700 dark:text-stone-300 font-medium mr-1">{L('Top Languages:', 'أبرز اللغات:')}</span>
+                  <span className="text-[11px] font-semibold text-base-content/60 mr-1">{L('Top Languages:', 'أبرز اللغات:')}</span>
                   {Object.entries(ghAccount.languagesSummary).slice(0, 6).map(([lang]) => (
                     <span key={lang} className="badge badge-sm badge-secondary font-medium text-[10px]">
                       {lang}
@@ -648,15 +594,6 @@ export default function ProfileImportPage() {
                   ))}
                 </div>
               )}
-            </div>
-          )}
-
-          {ghAccount && repos.length === 0 && (
-            <div className="mt-4 p-4 rounded-xl bg-base-100 border border-base-300 text-center text-xs text-stone-700 dark:text-stone-300 font-medium">
-              <p>{L('No repositories loaded yet. Click "Load Repositories" to fetch your GitHub projects.', 'لم يتم تحميل أي مستودعات بعد. انقر على "تحميل المستودعات" لجلب مشاريع GitHub الخاصة بك.')}</p>
-              <button onClick={() => fetchRepos(true)} disabled={ghBusy} className={PRIMARY + ' btn-sm rounded-xl mt-2'}>
-                {ghBusy ? <Spinner /> : L('Load Repositories', 'تحميل المستودعات')}
-              </button>
             </div>
           )}
 
@@ -687,7 +624,7 @@ export default function ProfileImportPage() {
                         </td>
                         <td>
                           <p className="font-bold">{r.name}</p>
-                          {r.description && <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium line-clamp-1">{r.description}</p>}
+                          {r.description && <p className="text-[10px] text-base-content/55 line-clamp-1">{r.description}</p>}
                         </td>
                         <td>{r.language || '—'}</td>
                         <td>{r.stargazers_count ?? 0}</td>
@@ -716,7 +653,7 @@ export default function ProfileImportPage() {
               </span>
               <div>
                 <h2 className="font-extrabold text-sm">{L('LinkedIn', 'LinkedIn')}</h2>
-                <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">{L('Connect or import your profile.', 'اربط أو استورد ملفك الشخصي.')}</p>
+                <p className="text-[11px] text-base-content/50">{L('Connect or import your profile.', 'اربط أو استورد ملفك الشخصي.')}</p>
               </div>
             </div>
             {liAccount ? (
@@ -747,8 +684,8 @@ export default function ProfileImportPage() {
                       <CheckIcon /> {L('Identity Verified', 'تم توثيق الهوية')}
                     </span>
                   </div>
-                  {liAccount.email && <p className="text-stone-700 dark:text-stone-300 font-medium">{liAccount.email}</p>}
-                  <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium">
+                  {liAccount.email && <p className="text-base-content/60">{liAccount.email}</p>}
+                  <p className="text-[10px] text-base-content/40">
                     {L('Connected via Sign In with LinkedIn (OpenID Connect)', 'متصل عبر تسجيل الدخول بـ LinkedIn')}
                     {liAccount.connectedAt ? ` · ${formatDate(liAccount.connectedAt)}` : ''}
                   </p>
@@ -757,7 +694,7 @@ export default function ProfileImportPage() {
             </div>
           )}
 
-          <div className="mt-4 bg-info/10 border border-info/30 rounded-xl p-3 text-[11px] text-stone-800 dark:text-stone-200 font-medium">
+          <div className="mt-4 bg-info/10 border border-info/30 rounded-xl p-3 text-[11px] text-base-content/80">
             <p className="font-bold text-info flex items-center gap-1.5">
               <span>ℹ️</span> {L('LinkedIn API Notice', 'تنبيه حول API LinkedIn')}
             </p>
@@ -809,7 +746,7 @@ export default function ProfileImportPage() {
             {/* Alternative: PDF upload */}
             <div className="bg-base-100 border border-base-300 rounded-xl p-4 space-y-3">
               <h3 className="font-bold text-xs">{L('Upload LinkedIn PDF', 'رفع ملف LinkedIn PDF')}</h3>
-              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">{L('Export your LinkedIn profile as PDF and upload it. We extract the text so you can complete the fields above.', 'صدّر ملف LinkedIn كـ PDF وارفعه. نستخرج النص لإكمال الحقول أعلاه.')}</p>
+              <p className="text-[11px] text-base-content/55">{L('Export your LinkedIn profile as PDF and upload it. We extract the text so you can complete the fields above.', 'صدّر ملف LinkedIn كـ PDF وارفعه. نستخرج النص لإكمال الحقول أعلاه.')}</p>
               <input
                 type="file"
                 accept="application/pdf"
@@ -818,7 +755,7 @@ export default function ProfileImportPage() {
                 onChange={(e) => e.target.files?.[0] && onLinkedInPdf(e.target.files[0])}
               />
               {liForm && (
-                <div className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">
+                <div className="text-[11px] text-base-content/55">
                   {liAccount?.importMethod === 'pdf' && L('PDF imported — review the manual fields and save.', 'تم استيراد الـ PDF — راجع الحقول اليدوية واحفظ.')}
                 </div>
               )}
@@ -828,8 +765,8 @@ export default function ProfileImportPage() {
           {liAccount?.profile && (
             <div className="mt-4 bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-2 text-start">
               <h3 className="font-bold">{L('Imported profile preview', 'معاينة الملف المستورد')}</h3>
-              {liAccount.profile.headline && <p className="text-stone-700 dark:text-stone-300 font-medium">{liAccount.profile.headline}</p>}
-              {liAccount.profile.about && <p className="text-stone-700 dark:text-stone-300 font-medium">{liAccount.profile.about}</p>}
+              {liAccount.profile.headline && <p className="text-base-content/70">{liAccount.profile.headline}</p>}
+              {liAccount.profile.about && <p className="text-base-content/60">{liAccount.profile.about}</p>}
               {liAccount.profile.skills && liAccount.profile.skills.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {liAccount.profile.skills.map((s) => (
@@ -849,7 +786,7 @@ export default function ProfileImportPage() {
             </span>
             <div>
               <h2 className="font-extrabold text-sm">{L('Certificates', 'الشهادات')}</h2>
-              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">{L('Upload and manage your professional certifications with official verification.', 'ارفع وأدر شهاداتك المهنية مع التحقق والتوثيق الرسمي.')}</p>
+              <p className="text-[11px] text-base-content/50">{L('Upload and manage your professional certifications.', 'ارفع وأدر شهاداتك المهنية.')}</p>
             </div>
           </div>
 
@@ -857,12 +794,13 @@ export default function ProfileImportPage() {
             {/* Upload form / Drag & Drop area */}
             <div className="lg:col-span-1 space-y-4">
               <div
-                className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer ${dragOver
-                  ? 'border-[#7c3aed] bg-[#7c3aed]/5'
-                  : certFile
+                className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer ${
+                  dragOver
+                    ? 'border-[#7c3aed] bg-[#7c3aed]/5'
+                    : certFile
                     ? 'border-success/50 bg-success/5'
                     : 'border-base-300 hover:border-base-400 bg-base-100/50'
-                  }`}
+                }`}
                 onDragOver={(e) => {
                   e.preventDefault();
                   setDragOver(true);
@@ -884,18 +822,18 @@ export default function ProfileImportPage() {
                   onChange={(e) => e.target.files?.[0] && onCertFileChange(e.target.files[0])}
                 />
                 <div className="flex flex-col items-center justify-center space-y-2">
-                  <span className={`w-8 h-8 rounded-full bg-base-100 flex items-center justify-center border border-base-300 ${certFile ? 'text-success' : 'text-stone-600 dark:text-stone-400 font-medium'}`}>
+                  <span className={`w-8 h-8 rounded-full bg-base-100 flex items-center justify-center border border-base-300 ${certFile ? 'text-success' : 'text-base-content/40'}`}>
                     {certFile ? <CheckIcon /> : <UploadIcon />}
                   </span>
                   {certFile ? (
                     <div className="text-xs">
                       <p className="font-bold truncate max-w-[200px]">{certFile.name}</p>
-                      <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium">{(certFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                      <p className="text-[10px] text-base-content/50">{(certFile.size / 1024 / 1024).toFixed(2)} MB</p>
                     </div>
                   ) : (
-                    <div className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">
+                    <div className="text-[11px] text-base-content/60">
                       <p className="font-bold">{L('Drag & drop your certificate', 'اسحب وأفلت شهادتك هنا')}</p>
-                      <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium mt-1">{L('Supports PDF, JPG, JPEG, PNG up to 5MB', 'يدعم صيغ PDF, JPG, JPEG, PNG حتى 5 ميجابايت')}</p>
+                      <p className="text-[10px] text-base-content/40 mt-1">{L('Supports PDF, JPG, JPEG, PNG up to 5MB', 'يدعم صيغ PDF, JPG, JPEG, PNG حتى 5 ميجابايت')}</p>
                     </div>
                   )}
                 </div>
@@ -922,108 +860,75 @@ export default function ProfileImportPage() {
             {/* Certificate Gallery */}
             <div className="lg:col-span-2 space-y-4">
               <h3 className="font-bold text-xs text-start">{L('Certificate Gallery', 'معرض الشهادات')}</h3>
-
+              
               {certs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 bg-base-100/50 border border-base-300 rounded-xl text-center">
-                  <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">{L('No certificates uploaded yet.', 'لم يتم رفع أي شهادات بعد.')}</p>
+                  <p className="text-xs text-base-content/40">{L('No certificates uploaded yet.', 'لم يتم رفع أي شهادات بعد.')}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {certs.map((c) => {
-                    const status = c.status || 'Pending';
-                    return (
-                      <div key={c._id} className="card card-compact bg-base-100 border border-base-300 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                        <div className="card-body p-4 space-y-3 text-start">
-                          <div className="flex justify-between items-start gap-2">
-                            <div className="min-w-0">
-                              <h4 className="font-extrabold text-xs text-base-content line-clamp-1">{c.title}</h4>
-                              {c.organization && <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium font-semibold">{c.organization}</p>}
-                            </div>
-                            <div className="flex gap-1 flex-shrink-0">
-                              <button
-                                onClick={() => setEditingCert(c)}
-                                className="btn btn-ghost btn-xs text-info p-1 hover:bg-info/10"
-                                title={L('Edit', 'تعديل')}
-                              >
-                                <EditIcon />
-                              </button>
-                              <button
-                                onClick={() => removeCert(c._id)}
-                                className="btn btn-ghost btn-xs text-error p-1 hover:bg-error/10"
-                                title={L('Delete', 'حذف')}
-                              >
-                                <TrashIcon />
-                              </button>
-                            </div>
+                  {certs.map((c) => (
+                    <div key={c._id} className="card card-compact bg-base-100 border border-base-300 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                      <div className="card-body p-4 space-y-3 text-start">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="min-w-0">
+                            <h4 className="font-extrabold text-xs text-base-content line-clamp-1">{c.title}</h4>
+                            {c.organization && <p className="text-[10px] text-base-content/60 font-semibold">{c.organization}</p>}
                           </div>
-
-                          {/* Verification Status Badge */}
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {status === 'Verified' ? (
-                              <span className="badge bg-[#8E1616]/15 text-[#8E1616] border border-[#8E1616]/20/30 text-[10px] font-bold gap-1 py-1 px-2.5">
-                                <CheckIcon /> {L('Verified', 'موثقة ومصدقة')}
-                              </span>
-                            ) : status === 'Rejected' ? (
-                              <span className="badge bg-error/15 text-error border border-error/30 text-[10px] font-bold gap-1 py-1 px-2.5">
-                                ✕ {L('Rejected', 'مرفوضة')}
-                              </span>
-                            ) : (
-                              <span className="badge bg-amber-500/15 text-amber-600 border border-amber-500/30 text-[10px] font-bold gap-1 py-1 px-2.5">
-                                ⏳ {L('Pending Review', 'قيد المراجعة')}
-                              </span>
-                            )}
-                            {status === 'Verified' && c.reviewedAt && (
-                              <span className="text-[9px] text-[#8E1616]/80 font-medium">
-                                {formatDate(c.reviewedAt)}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Rejection Notice if any */}
-                          {status === 'Rejected' && c.rejectionReason && (
-                            <div className="p-2 rounded-lg bg-error/10 border border-error/20 text-[10px] text-error space-y-0.5">
-                              <p className="font-bold">{L('Admin Feedback / Rejection Reason:', 'ملاحظات الإدارة / سبب الرفض:')}</p>
-                              <p className="leading-tight">{c.rejectionReason}</p>
-                            </div>
-                          )}
-
-                          <div className="text-[10px] text-stone-700 dark:text-stone-300 font-medium space-y-1 bg-base-200/50 rounded-lg p-2">
-                            <p>
-                              <span className="font-bold">{L('Issue Date: ', 'تاريخ الإصدار: ')}</span>
-                              {formatDate(c.issueDate)}
-                            </p>
-                            {c.expirationDate && (
-                              <p>
-                                <span className="font-bold">{L('Expires: ', 'ينتهي في: ')}</span>
-                                {formatDate(c.expirationDate)}
-                              </p>
-                            )}
-                            {c.credentialId && (
-                              <p className="truncate">
-                                <span className="font-bold">{L('Credential ID: ', 'معرّف الشهادة: ')}</span>
-                                {c.credentialId}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="card-actions justify-end border-t border-base-300 pt-2 gap-2 mt-auto">
+                          <div className="flex gap-1 flex-shrink-0">
                             <button
-                              onClick={() => openCertificate(c, 'view')}
-                              className="btn btn-ghost btn-xs text-xs font-bold gap-1 p-1"
+                              onClick={() => setEditingCert(c)}
+                              className="btn btn-ghost btn-xs text-info p-1 hover:bg-info/10"
+                              title={L('Edit', 'تعديل')}
                             >
-                              <EyeIcon /> {L('View', 'عرض')}
+                              <EditIcon />
                             </button>
                             <button
-                              onClick={() => openCertificate(c, 'download')}
-                              className="btn btn-ghost btn-xs text-xs font-bold gap-1 p-1"
+                              onClick={() => removeCert(c._id)}
+                              className="btn btn-ghost btn-xs text-error p-1 hover:bg-error/10"
+                              title={L('Delete', 'حذف')}
                             >
-                              <DownloadIcon /> {L('Download', 'تحميل')}
+                              <TrashIcon />
                             </button>
                           </div>
                         </div>
+
+                        <div className="text-[10px] text-base-content/50 space-y-1 bg-base-200/50 rounded-lg p-2">
+                          <p>
+                            <span className="font-bold">{L('Issue Date: ', 'تاريخ الإصدار: ')}</span>
+                            {formatDate(c.issueDate)}
+                          </p>
+                          {c.expirationDate && (
+                            <p>
+                              <span className="font-bold">{L('Expires: ', 'ينتهي في: ')}</span>
+                              {formatDate(c.expirationDate)}
+                            </p>
+                          )}
+                          {c.credentialId && (
+                            <p className="truncate">
+                              <span className="font-bold">{L('Credential ID: ', 'معرّف الشهادة: ')}</span>
+                              {c.credentialId}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="card-actions justify-end border-t border-base-300 pt-2 gap-2 mt-auto">
+                          <button
+                            onClick={() => openCertificate(c, 'view')}
+                            className="btn btn-ghost btn-xs text-xs font-bold gap-1 p-1"
+                          >
+                            <EyeIcon /> {L('View', 'عرض')}
+                          </button>
+                          <button
+                            onClick={() => openCertificate(c, 'download')}
+                            className="btn btn-ghost btn-xs text-xs font-bold gap-1 p-1"
+                          >
+                            <DownloadIcon /> {L('Download', 'تحميل')}
+                          </button>
+                        </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -1041,14 +946,14 @@ export default function ProfileImportPage() {
               </span>
               <div>
                 <h2 className="font-extrabold text-sm">{L('Imported Projects', 'المشاريع المستوردة')}</h2>
-                <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">{L('Manage the projects that have been imported into your profile.', 'أدر المشاريع التي تم استيرادها إلى ملفك الشخصي.')}</p>
+                <p className="text-[11px] text-base-content/50">{L('Manage the projects that have been imported into your profile.', 'أدر المشاريع التي تم استيرادها إلى ملفك الشخصي.')}</p>
               </div>
             </div>
           </div>
 
           {projects.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 bg-base-100/50 border border-base-300 rounded-xl text-center">
-              <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">{L('No portfolio projects imported yet.', 'لم يتم استيراد أي مشاريع في معرض الأعمال بعد.')}</p>
+              <p className="text-xs text-base-content/40">{L('No portfolio projects imported yet.', 'لم يتم استيراد أي مشاريع في معرض الأعمال بعد.')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1063,7 +968,7 @@ export default function ProfileImportPage() {
                             {p.source}
                           </span>
                         </div>
-                        {p.lastUpdated && <p className="text-[9px] text-stone-600 dark:text-stone-400 font-medium mt-0.5">{L('Updated: ', 'تحديث: ')}{formatDate(p.lastUpdated)}</p>}
+                        {p.lastUpdated && <p className="text-[9px] text-base-content/40 mt-0.5">{L('Updated: ', 'تحديث: ')}{formatDate(p.lastUpdated)}</p>}
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
                         <button
@@ -1081,12 +986,12 @@ export default function ProfileImportPage() {
                       </div>
                     </div>
 
-                    {p.description && <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium line-clamp-2 leading-relaxed">{p.description}</p>}
-
+                    {p.description && <p className="text-[11px] text-base-content/60 line-clamp-2 leading-relaxed">{p.description}</p>}
+                    
                     {p.technologies && p.technologies.length > 0 && (
                       <div className="flex flex-wrap gap-1 pt-1">
                         {p.technologies.map((t) => (
-                          <span key={t} className="badge badge-sm font-semibold bg-base-200 border-none text-stone-700 dark:text-stone-300 font-medium text-[9px] px-1.5 py-0.5 rounded">
+                          <span key={t} className="badge badge-sm font-semibold bg-base-200 border-none text-base-content/70 text-[9px] px-1.5 py-0.5 rounded">
                             {t}
                           </span>
                         ))}
@@ -1119,14 +1024,14 @@ export default function ProfileImportPage() {
           <div className="modal-box bg-base-200 border border-base-300 rounded-2xl max-w-md p-6">
             <div className="flex justify-between items-center border-b border-base-300 pb-3 mb-4">
               <h3 className="font-extrabold text-sm text-base-content">{L('Edit Certificate', 'تعديل الشهادة')}</h3>
-              <button onClick={() => setEditingCert(null)} className="btn btn-ghost btn-circle btn-xs text-stone-700 dark:text-stone-300 font-medium">
+              <button onClick={() => setEditingCert(null)} className="btn btn-ghost btn-circle btn-xs text-base-content/60">
                 <CloseIcon />
               </button>
             </div>
 
             <div className="space-y-3 text-start">
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Title *', 'العنوان *')}</label>
+                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Title *', 'العنوان *')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingCert.title || ''}
@@ -1135,7 +1040,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Issuing Organization', 'الجهة المانحة')}</label>
+                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Issuing Organization', 'الجهة المانحة')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingCert.organization || ''}
@@ -1145,7 +1050,7 @@ export default function ProfileImportPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="form-control">
-                  <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Issue Date', 'تاريخ الإصدار')}</label>
+                  <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Issue Date', 'تاريخ الإصدار')}</label>
                   <input
                     type="date"
                     className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
@@ -1154,7 +1059,7 @@ export default function ProfileImportPage() {
                   />
                 </div>
                 <div className="form-control">
-                  <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Expiration Date', 'تاريخ الانتهاء')}</label>
+                  <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Expiration Date', 'تاريخ الانتهاء')}</label>
                   <input
                     type="date"
                     className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
@@ -1165,7 +1070,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Credential ID', 'معرّف الشهادة')}</label>
+                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Credential ID', 'معرّف الشهادة')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingCert.credentialId || ''}
@@ -1174,7 +1079,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Credential URL', 'رابط الشهادة')}</label>
+                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Credential URL', 'رابط الشهادة')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingCert.credentialUrl || ''}
@@ -1187,7 +1092,7 @@ export default function ProfileImportPage() {
               <button onClick={() => setEditingCert(null)} className={OUTLINE + ' btn-xs rounded-xl px-4 py-2'}>
                 {L('Cancel', 'إلغاء')}
               </button>
-              <button onClick={(e) => updateCert(e as unknown as React.FormEvent)} className={PRIMARY + ' btn-xs rounded-xl px-4 py-2'}>
+              <button onClick={saveCertEdit} className={PRIMARY + ' btn-xs rounded-xl px-4 py-2'}>
                 {L('Save', 'حفظ')}
               </button>
             </div>
@@ -1201,14 +1106,14 @@ export default function ProfileImportPage() {
           <div className="modal-box bg-base-200 border border-base-300 rounded-2xl max-w-md p-6">
             <div className="flex justify-between items-center border-b border-base-300 pb-3 mb-4">
               <h3 className="font-extrabold text-sm text-base-content">{L('Edit Project', 'تعديل المشروع')}</h3>
-              <button onClick={() => setEditingProject(null)} className="btn btn-ghost btn-circle btn-xs text-stone-700 dark:text-stone-300 font-medium">
+              <button onClick={() => setEditingProject(null)} className="btn btn-ghost btn-circle btn-xs text-base-content/60">
                 <CloseIcon />
               </button>
             </div>
 
             <div className="space-y-3 text-start">
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Name *', 'الاسم *')}</label>
+                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Name *', 'الاسم *')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingProject.name || ''}
@@ -1217,7 +1122,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Description', 'الوصف')}</label>
+                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Description', 'الوصف')}</label>
                 <textarea
                   className="textarea textarea-bordered textarea-sm w-full bg-base-100 text-xs rounded-xl h-20 resize-none"
                   value={editingProject.description || ''}
@@ -1226,7 +1131,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Demo Link', 'رابط الديمو')}</label>
+                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Demo Link', 'رابط الديمو')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingProject.demoLink || ''}
@@ -1235,7 +1140,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Technologies (comma separated)', 'التقنيات (مفصولة بفاصلة)')}</label>
+                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Technologies (comma separated)', 'التقنيات (مفصولة بفاصلة)')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingProject.technologies ? editingProject.technologies.join(', ') : ''}
@@ -1258,3 +1163,5 @@ export default function ProfileImportPage() {
     </div>
   );
 }
+
+

@@ -10,7 +10,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import axios from 'axios';
 import {
   GitHubAccount,
@@ -52,8 +52,6 @@ export interface GitHubRepoResponse {
   readmeSnippet?: string;
 }
 
-import { AppCacheService } from '../../common/cache/app-cache.service';
-
 @Injectable()
 export class GitHubService {
   private readonly logger = new Logger(GitHubService.name);
@@ -65,38 +63,26 @@ export class GitHubService {
     @InjectModel(Project.name) private readonly projectModel: Model<Project>,
     private readonly config: ConfigService,
     private readonly jwt: JwtService,
-    private readonly cache: AppCacheService,
   ) {
     this.tokenCipher = new TokenCipher(config);
   }
 
-  private get clientId(): string | undefined {
-    return (
-      this.config.get<string>('GITHUB_CLIENT_ID') ||
-      process.env.GITHUB_CLIENT_ID ||
-      undefined
-    );
-  }
-
-  private get clientSecret(): string | undefined {
-    return (
-      this.config.get<string>('GITHUB_CLIENT_SECRET') ||
-      process.env.GITHUB_CLIENT_SECRET ||
-      undefined
-    );
-  }
-
-  /** GitHub OAuth is always accessible (real OAuth if credentials exist, fallback/demo if not). */
+  /** GitHub OAuth is only usable when client credentials are configured. */
   isConfigured(): boolean {
-    return true;
+    if (
+      this.config.get<boolean>('MOCK_MODE') ||
+      process.env.MOCK_MODE === 'true'
+    ) {
+      return true;
+    }
+    return Boolean(
+      this.config.get<string>('GITHUB_CLIENT_ID') &&
+      this.config.get<string>('GITHUB_CLIENT_SECRET'),
+    );
   }
 
   private get apiUrl(): string {
-    return (
-      this.config.get<string>('API_URL') ||
-      process.env.API_URL ||
-      'http://localhost:3000'
-    );
+    return this.config.get<string>('API_URL') ?? 'http://localhost:3000';
   }
 
   private get redirectUri(): string {
@@ -105,26 +91,27 @@ export class GitHubService {
 
   /** Builds the GitHub authorize URL. `state` is a signed JWT carrying the userId. */
   async buildAuthUrl(userId: string): Promise<string> {
+    if (!this.isConfigured()) {
+      throw new BadRequestException(
+        'GitHub integration is not configured on this server.',
+      );
+    }
     const state = await this.jwt.signAsync(
       { sub: userId, type: 'github_oauth' },
       {
-        secret:
-          this.config.get<string>('JWT_SECRET') ||
-          process.env.JWT_SECRET ||
-          'smartroadmap_ultra_secret_key_2026_xyz',
+        secret: this.config.getOrThrow<string>('JWT_SECRET'),
         expiresIn: '10m',
       },
     );
-    const clientId = this.clientId;
     if (
       this.config.get<boolean>('MOCK_MODE') ||
       process.env.MOCK_MODE === 'true' ||
-      !clientId
+      !this.config.get<string>('GITHUB_CLIENT_ID')
     ) {
       return `${this.apiUrl}/profile/github/callback?code=mock-code&state=${state}`;
     }
     const params = new URLSearchParams({
-      client_id: clientId,
+      client_id: this.config.getOrThrow<string>('GITHUB_CLIENT_ID'),
       redirect_uri: this.redirectUri,
       scope: 'read:user',
       state,
@@ -136,10 +123,7 @@ export class GitHubService {
   private async verifyState(state: string): Promise<string> {
     try {
       const payload: any = await this.jwt.verifyAsync(state, {
-        secret:
-          this.config.get<string>('JWT_SECRET') ||
-          process.env.JWT_SECRET ||
-          'smartroadmap_ultra_secret_key_2026_xyz',
+        secret: this.config.getOrThrow<string>('JWT_SECRET'),
       });
       if (payload?.type !== 'github_oauth' || !payload?.sub) {
         throw new Error('invalid state');
@@ -150,58 +134,35 @@ export class GitHubService {
     }
   }
 
-  private toUserObjectId(userId: string | Types.ObjectId): Types.ObjectId {
-    return Types.ObjectId.isValid(userId)
-      ? new Types.ObjectId(userId)
-      : (userId as any);
-  }
-
   /** Exchanges the code, fetches the profile and persists the connection. */
   async handleCallback(code: string, state: string): Promise<GitHubAccount> {
     const userId = await this.verifyState(state);
-    const userObjectId = this.toUserObjectId(userId);
-    const clientId = this.clientId;
-    const clientSecret = this.clientSecret;
 
     if (
       code === 'mock-code' ||
       this.config.get<boolean>('MOCK_MODE') ||
       process.env.MOCK_MODE === 'true' ||
-      !clientId ||
-      !clientSecret
+      !this.config.get<string>('GITHUB_CLIENT_ID')
     ) {
       const mockProfile: GitHubUserResponse = {
-        id:
-          10000000 + (userId ? parseInt(userId.slice(-6), 16) % 100000 : 12345),
-        login: `dev_${userId.slice(-4)}`,
-        name: 'SmartRoadmap Developer',
+        id: 12345678,
+        login: 'mockuser',
+        name: 'Mock Developer',
         avatar_url:
           'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&h=150&q=80',
         bio: 'Passionate full-stack developer working on AI projects.',
         location: 'Cairo, Egypt',
-        blog: 'https://smartroadmap.io',
-        email: `dev_${userId.slice(-4)}@example.com`,
+        blog: 'https://mockuser.dev',
+        email: 'mockuser@example.com',
         followers: 124,
         following: 58,
       };
 
-      const existingOther = await this.githubAccountModel.findOne({
-        githubId: String(mockProfile.id),
-      });
-      if (
-        existingOther &&
-        existingOther.userId?.toString() !== userId.toString()
-      ) {
-        throw new BadRequestException(
-          'That GitHub account is already connected to another account.',
-        );
-      }
-
       const encrypted = this.tokenCipher.encrypt('mock-access-token');
       const account = await this.githubAccountModel.findOneAndUpdate(
-        { userId: userObjectId },
+        { userId },
         {
-          userId: userObjectId,
+          userId,
           githubId: String(mockProfile.id),
           username: mockProfile.login,
           fullName: mockProfile.name ?? undefined,
@@ -219,7 +180,7 @@ export class GitHubService {
         { upsert: true, new: true, setDefaultsOnInsert: true },
       );
       this.logger.log(
-        `GitHub account connected for user ${userId} (${mockProfile.login})`,
+        `GitHub mock account connected for user ${userId} (${mockProfile.login})`,
       );
       return account;
     }
@@ -229,8 +190,8 @@ export class GitHubService {
       tokenRes = await axios.post(
         GITHUB_TOKEN,
         {
-          client_id: clientId,
-          client_secret: clientSecret,
+          client_id: this.config.getOrThrow<string>('GITHUB_CLIENT_ID'),
+          client_secret: this.config.getOrThrow<string>('GITHUB_CLIENT_SECRET'),
           code,
           redirect_uri: this.redirectUri,
           grant_type: 'authorization_code',
@@ -251,32 +212,18 @@ export class GitHubService {
 
     const profile = await this.fetchGitHubUser(accessToken);
 
-    const existingOther = await this.githubAccountModel.findOne({
-      githubId: String(profile.id),
-    });
-    if (
-      existingOther &&
-      existingOther.userId?.toString() !== userId.toString()
-    ) {
-      throw new BadRequestException(
-        'That GitHub account is already connected to another account.',
-      );
-    }
-
     const encrypted = this.tokenCipher.encrypt(accessToken);
     const account = await this.githubAccountModel.findOneAndUpdate(
-      { userId: userObjectId },
+      { userId },
       {
-        userId: userObjectId,
+        userId,
         githubId: String(profile.id),
         username: profile.login,
         fullName: profile.name ?? undefined,
         avatar: profile.avatar_url ?? undefined,
         bio: profile.bio ?? undefined,
         location: profile.location ?? undefined,
-        website:
-          profile.blog ||
-          (profile.login ? `https://github.com/${profile.login}` : undefined),
+        website: profile.blog || undefined,
         email: profile.email ?? undefined,
         followers: profile.followers ?? 0,
         following: profile.following ?? 0,
@@ -313,48 +260,25 @@ export class GitHubService {
 
   /** Returns the stored connection (token intentionally excluded). */
   async getAccount(userId: string): Promise<GitHubAccount | null> {
-    const userObjectId = this.toUserObjectId(userId);
     return this.githubAccountModel
-      .findOne({ userId: userObjectId })
+      .findOne({ userId })
       .lean()
       .exec() as Promise<GitHubAccount | null>;
   }
 
   async disconnect(userId: string): Promise<void> {
-    const userObjectId = this.toUserObjectId(userId);
-    await this.githubAccountModel.deleteOne({ userId: userObjectId }).exec();
+    await this.githubAccountModel.deleteOne({ userId }).exec();
   }
 
-  /** Fetches the user's repositories (cached with TTL, live refresh on demand). */
-  async getRepositories(
-    userId: string,
-    forceRefresh = false,
-  ): Promise<{
-    repos: GitHubRepoResponse[];
-    lastSyncedAt?: Date;
-    fromCache: boolean;
-  }> {
-    const userObjectId = this.toUserObjectId(userId);
-    const cacheKey = `github:repos:${userId}`;
-
-    if (!forceRefresh) {
-      const memCached = this.cache.get<GitHubRepoResponse[]>(cacheKey);
-      if (memCached) {
-        this.logger.debug(
-          `[Cache Hit] Serving ${memCached.length} GitHub repos from memory cache`,
-        );
-        return { repos: memCached, fromCache: true };
-      }
-    }
-
+  /** Fetches the user's repositories live from GitHub using the stored token. */
+  async getRepositories(userId: string): Promise<GitHubRepoResponse[]> {
     const account = await this.githubAccountModel
-      .findOne({ userId: userObjectId })
+      .findOne({ userId })
       .select('+accessToken')
       .lean()
       .exec();
-    if (!account) {
-      return { repos: [], fromCache: false };
-    }
+    if (!account)
+      throw new NotFoundException('GitHub account is not connected.');
 
     let token: string;
     try {
@@ -370,7 +294,7 @@ export class GitHubService {
       this.config.get<boolean>('MOCK_MODE') ||
       process.env.MOCK_MODE === 'true'
     ) {
-      const mockRepos = [
+      return [
         {
           id: 101,
           name: 'smart-roadmap-generator',
@@ -411,56 +335,21 @@ export class GitHubService {
           updated_at: new Date(Date.now() - 3600000 * 24 * 14).toISOString(),
         },
       ];
-
-      const cached =
-        this.config.get<AppCacheService>(AppCacheService as any) ||
-        (this as any).cache;
-      if (cached) cached.set(cacheKey, mockRepos, 3600 * 2);
-      return {
-        repos: mockRepos,
-        lastSyncedAt: (account as any).lastSyncedAt || new Date(),
-        fromCache: false,
-      };
     }
 
     try {
-      let page = 1;
-      const allRepos: GitHubRepoResponse[] = [];
-      while (page <= 5) {
-        const res = await axios.get<GitHubRepoResponse[]>(
-          `${GITHUB_API}/user/repos`,
-          {
-            params: {
-              per_page: 100,
-              page,
-              sort: 'updated',
-              affiliation: 'owner,collaborator',
-            },
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: 'application/vnd.github+json',
-              'User-Agent': 'SmartRoadmap',
-            },
+      const res = await axios.get<GitHubRepoResponse[]>(
+        `${GITHUB_API}/user/repos`,
+        {
+          params: { per_page: 100, sort: 'updated', affiliation: 'owner' },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github+json',
+            'User-Agent': 'SmartRoadmap',
           },
-        );
-        if (!res.data || res.data.length === 0) break;
-        allRepos.push(...res.data);
-        if (res.data.length < 100) break;
-        page++;
-      }
-
-      const syncDate = new Date();
-      await this.githubAccountModel.updateOne(
-        { userId: userObjectId },
-        { $set: { lastSyncedAt: syncDate } },
+        },
       );
-
-      const cached =
-        this.config.get<AppCacheService>(AppCacheService as any) ||
-        (this as any).cache;
-      if (cached) cached.set(cacheKey, allRepos, 3600); // 1 hour memory cache
-
-      return { repos: allRepos, lastSyncedAt: syncDate, fromCache: false };
+      return res.data;
     } catch (err: any) {
       const status = err?.response?.status;
       if (status === 401) {
@@ -486,55 +375,52 @@ export class GitHubService {
 
   /**
    * Imports the selected repositories as portfolio projects.
-   * Re-importing the same repository updates the existing record without duplicates.
+   * Re-importing the same repository is idempotent (skipped, not duplicated).
    */
   async importRepositories(
     userId: string,
     items: GitHubRepoItemDto[],
   ): Promise<{ imported: Project[]; skipped: number }> {
     const imported: Project[] = [];
+    let skipped = 0;
 
     for (const item of items) {
-      const userObjId = Types.ObjectId.isValid(userId)
-        ? new Types.ObjectId(userId)
-        : userId;
-      const project = await this.projectModel.findOneAndUpdate(
-        {
-          userId: userObjId,
-          githubRepoId: item.repoId,
-        },
-        {
-          userId: userObjId,
-          source: 'github',
-          githubRepoId: item.repoId,
-          githubUrl: item.url,
-          name: item.name,
-          description: item.description,
-          demoLink: item.homepage || undefined,
-          technologies: this.technologiesFor(item),
-          readmeSnippet: item.readmeSnippet || undefined,
-          languages:
-            item.languages || (item.language ? { [item.language]: 1 } : {}),
-          stars: item.stars ?? 0,
-          forks: item.forks ?? 0,
-          lastUpdated: item.updatedAt ? new Date(item.updatedAt) : undefined,
-          importedAt: new Date(),
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
-      );
+      const exists = await this.projectModel.exists({
+        userId,
+        githubRepoId: item.repoId,
+      });
+      if (exists) {
+        skipped += 1;
+        continue;
+      }
+      const project = await this.projectModel.create({
+        userId,
+        source: 'github',
+        githubRepoId: item.repoId,
+        githubUrl: item.url,
+        name: item.name,
+        description: item.description,
+        demoLink: item.homepage || undefined,
+        technologies: this.technologiesFor(item),
+        readmeSnippet: item.readmeSnippet || undefined,
+        languages: item.languages || (item.language ? { [item.language]: 1 } : {}),
+        stars: item.stars ?? 0,
+        forks: item.forks ?? 0,
+        lastUpdated: item.updatedAt ? new Date(item.updatedAt) : undefined,
+        importedAt: new Date(),
+      });
       imported.push(project);
     }
 
-    return { imported, skipped: 0 };
+    return { imported, skipped };
   }
 
   /**
    * Refreshes stored profile information, language breakdown, and total stars from GitHub.
    */
   async refreshAccount(userId: string): Promise<GitHubAccount> {
-    const userObjectId = this.toUserObjectId(userId);
     const account = await this.githubAccountModel
-      .findOne({ userId: userObjectId })
+      .findOne({ userId })
       .select('+accessToken')
       .exec();
     if (!account)
@@ -569,7 +455,7 @@ export class GitHubService {
 
     try {
       const profile = await this.fetchGitHubUser(token);
-      const { repos } = await this.getRepositories(userId);
+      const repos = await this.getRepositories(userId);
 
       const languagesSummary: Record<string, number> = {};
       let totalStars = 0;

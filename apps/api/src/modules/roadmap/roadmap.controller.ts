@@ -31,9 +31,8 @@ export class RoadmapController {
   @Post('generate')
   @HttpCode(HttpStatus.CREATED)
   generate(@CurrentUser() user: JwtUser, @Body() dto: GenerateRoadmapDto) {
-    const userId = user?.sub || '507f191e810c19729de860ea';
     return this.roadmapService.generateRoadmap(
-      userId,
+      user.sub,
       dto.targetRole,
       dto.skills ?? [],
     );

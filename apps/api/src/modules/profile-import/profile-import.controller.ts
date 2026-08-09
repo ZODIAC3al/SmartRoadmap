@@ -106,17 +106,8 @@ export class ProfileImportController {
   }
 
   @Get('github/repos')
-  async githubRepos(
-    @CurrentUser() user: JwtUser,
-    @Query('refresh') refresh?: string,
-  ) {
-    const forceRefresh = refresh === 'true' || refresh === '1';
-    const result = await this.github.getRepositories(user.sub, forceRefresh);
-    return {
-      repos: result.repos,
-      lastSyncedAt: result.lastSyncedAt,
-      fromCache: result.fromCache,
-    };
+  async githubRepos(@CurrentUser() user: JwtUser) {
+    return { repos: await this.github.getRepositories(user.sub) };
   }
 
   @Post('github/import')

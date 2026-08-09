@@ -105,7 +105,7 @@ export default function OnboardingPage() {
       }, 2000);
       return () => clearInterval(interval);
     }
-  }, [loadingMessages.length, step]);
+  }, [step, loadingMessages.length]);
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) =>

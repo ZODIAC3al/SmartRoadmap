@@ -84,25 +84,39 @@ export class EmbeddingService {
     const cached = this.readCache(text);
     if (cached) return cached;
 
-    const vector = await this.embedUncached(text);
-    this.writeCache(text, vector);
-    return vector;
+    try {
+      const response = await this.client.embeddings.create({
+        model: this.config.get<string>(
+          'OPENAI_EMBEDDING_MODEL',
+          'text-embedding-3-small',
+        ),
+        input: text,
+      });
+      return response.data[0]?.embedding ?? this.mockEmbedding(text);
+    } catch (error: any) {
+      // Previously: `return this.embed(text)` → infinite recursion.
+      this.logger.error(`OpenAI embedding failed: ${error.message}`);
+      return this.mockEmbedding(text);
+    }
   }
 
-  private async embedUncached(text: string): Promise<number[]> {
-    if (!this.isMockMode && this.client) {
-      try {
-        const response = await this.client.embeddings.create({
-          model: this.config.get<string>(
-            'OPENAI_EMBEDDING_MODEL',
-            'text-embedding-3-small',
-          ),
-          input: text,
-        });
-        return response.data[0]?.embedding ?? this.mockEmbedding(text);
-      } catch (error: any) {
-        this.logger.error(`OpenAI embedding failed: ${error.message}`);
-      }
+  async embedBatch(texts: string[]): Promise<number[][]> {
+    if (this.isMockMode || !this.client)
+      return texts.map((t) => this.mockEmbedding(t));
+
+    try {
+      // One batched request instead of N sequential ones.
+      const response = await this.client.embeddings.create({
+        model: this.config.get<string>(
+          'OPENAI_EMBEDDING_MODEL',
+          'text-embedding-3-small',
+        ),
+        input: texts,
+      });
+      return response.data.map((d) => d.embedding);
+    } catch (error: any) {
+      this.logger.error(`OpenAI batch embedding failed: ${error.message}`);
+      return texts.map((t) => this.mockEmbedding(t));
     }
 
     if (this.geminiApiKey) {

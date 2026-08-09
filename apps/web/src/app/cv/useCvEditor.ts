@@ -136,8 +136,6 @@ export function useCvEditor() {
   };
 
   // AI Generator & ATS Checker States
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [isRegeneratingSection, setIsRegeneratingSection] = useState<Record<string, boolean>>({});
   const [isTailoring, setIsTailoring] = useState(false);
   const [isAtsChecking, setIsAtsChecking] = useState(false);
   const [isAtsAutoFixing, setIsAtsAutoFixing] = useState(false);
@@ -268,55 +266,6 @@ export function useCvEditor() {
       }
     } catch (err) {
       toast.error('Failed to create new CV');
-    }
-  };
-
-  const handleGenerateFromProfile = async (
-    targetTitle?: string,
-    forceRegenerate = false,
-    jobDescription?: string,
-  ) => {
-    setIsParsing(true);
-    try {
-      const res = await apiFetch('/cv/generate-from-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          targetJobTitle: targetTitle || professionalTitle || 'Software Engineer',
-          jobDescription,
-          forceRegenerate,
-        }),
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.message || 'Generation failed');
-      }
-      const json = await res.json();
-      const newCv = json.data;
-      if (newCv) {
-        populateActiveCv(newCv);
-        setCurrentView('editor');
-        setCvList((prev) => [
-          newCv,
-          ...prev.filter(
-            (c) => (c._id || c.id) !== (newCv._id || newCv.id),
-          ),
-        ]);
-        toast.success(
-          locale === 'en'
-            ? '✨ AI Resume generated from your real profile!'
-            : '✨ تم إنشاء السيرة الذاتية من بياناتك الحقيقية بالذكاء الاصطناعي!',
-        );
-      }
-    } catch (err: any) {
-      toast.error(
-        err.message ||
-          (locale === 'en'
-            ? 'Failed to generate AI CV from profile'
-            : 'فشل في إنشاء السيرة الذاتية بالذكاء الاصطناعي'),
-      );
-    } finally {
-      setIsParsing(false);
     }
   };
 
@@ -479,6 +428,17 @@ export function useCvEditor() {
         ...prev.personal,
         name: `${first} ${last}`.trim(),
       },
+    }));
+  };
+
+  const updateProfessionalTitle = (title: string) => {
+    setProfessionalTitle(title);
+    setCv(prev => ({
+      ...prev,
+      personal: {
+        ...prev.personal,
+        title
+      }
     }));
   };
 
@@ -1215,6 +1175,160 @@ export function useCvEditor() {
     }
   };
 
+  // AI Resume Generator & Tailoring
+  const handleGenerateTailoredCv = async (overrideTitle?: string, overrideDesc?: string) => {
+    const title = overrideTitle || targetJobTitle || 'Software Engineer';
+    const desc = overrideDesc !== undefined ? overrideDesc : jobDescription;
+
+    setIsTailoring(true);
+    try {
+      const response = await apiFetch('/cv/generate-tailored', {
+        method: 'POST',
+        body: JSON.stringify({
+          targetJobTitle: title,
+          jobDescription: desc,
+          includeProjects: true,
+          includeCertificates: true,
+          cvData: cv,
+        }),
+      });
+
+      if (!response.ok) throw new Error('AI tailoring failed');
+      const resData = await response.json();
+      const tailored = resData.data;
+
+      if (tailored) {
+        const genTitle = tailored.personal?.title || title;
+        const updatedCv: CVData = {
+          ...cv,
+          personal: {
+            ...cv.personal,
+            title: genTitle,
+            summary: tailored.personal?.summary || cv.personal.summary,
+            name: tailored.personal?.name || cv.personal.name,
+            email: tailored.personal?.email || cv.personal.email,
+            phone: tailored.personal?.phone || cv.personal.phone,
+          },
+          experience: tailored.experience?.length ? tailored.experience : cv.experience,
+          education: tailored.education?.length ? tailored.education : cv.education,
+          skills: tailored.skills?.length ? tailored.skills : cv.skills,
+          projects: tailored.projects?.length ? tailored.projects : cv.projects,
+          certifications: tailored.certifications?.length ? tailored.certifications : cv.certifications,
+          courses: tailored.courses?.length ? tailored.courses : cv.courses,
+          languages: tailored.languages?.length ? tailored.languages : cv.languages,
+          references: tailored.references?.length ? tailored.references : cv.references,
+          hobbies: tailored.hobbies?.length ? tailored.hobbies : cv.hobbies,
+        };
+        setCv(updatedCv);
+        setProfessionalTitle(genTitle);
+
+        if (tailored.personal?.name) {
+          const nameParts = tailored.personal.name.split(' ');
+          setFirstName(nameParts[0] || '');
+          setLastName(nameParts.slice(1).join(' ') || '');
+        }
+
+        setShowTailorModal(false);
+        toast.success(locale === 'en' ? 'Resume generated successfully with AI!' : 'تم إنشاء السيرة الذاتية بنجاح بالذكاء الاصطناعي!');
+      }
+    } catch (err: any) {
+      toast.error(locale === 'en' ? `Generation failed: ${err.message}` : `فشل الإنشاء: ${err.message}`);
+    } finally {
+      setIsTailoring(false);
+    }
+  };
+
+  // ATS Checker
+  const handleRunAtsCheck = async (overrideTitle?: string, overrideDesc?: string) => {
+    const title = overrideTitle || targetJobTitle || 'Software Engineer';
+    const desc = overrideDesc !== undefined ? overrideDesc : jobDescription;
+
+    setIsAtsChecking(true);
+    try {
+      const response = await apiFetch('/cv/ats-check', {
+        method: 'POST',
+        body: JSON.stringify({
+          targetJobTitle: title,
+          jobDescription: desc,
+          cvData: cv,
+        }),
+      });
+
+      if (!response.ok) throw new Error('ATS check failed');
+      const resData = await response.json();
+      const analysis = resData.analysis;
+
+      if (analysis) {
+        setAtsAnalysis(analysis);
+        setCv(prev => ({ ...prev, atsAnalysis: analysis }));
+        setShowAtsDrawer(true);
+        toast.success(locale === 'en' ? `ATS Evaluation complete! Score: ${analysis.overallScore}/100` : `تم تقييم ATS بنجاح! النتيجة: ${analysis.overallScore}/100`);
+      }
+    } catch (err: any) {
+      toast.error(locale === 'en' ? `ATS Check failed: ${err.message}` : `فشل تقييم ATS: ${err.message}`);
+    } finally {
+      setIsAtsChecking(false);
+    }
+  };
+
+  // ATS Auto-Fix missing keywords
+  const handleRunAtsAutoFix = async () => {
+    if (!atsAnalysis?.missingKeywords?.length) {
+      toast.info(locale === 'en' ? 'No missing keywords to auto-fix.' : 'لا توجد كلمات مفتاحية مفقودة للإصلاح.');
+      return;
+    }
+
+    setIsAtsAutoFixing(true);
+    try {
+      const response = await apiFetch('/cv/ats-autofix', {
+        method: 'POST',
+        body: JSON.stringify({
+          targetJobTitle: atsAnalysis.targetJobTitle || targetJobTitle,
+          missingKeywords: atsAnalysis.missingKeywords,
+          cvData: cv,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Auto-fix failed');
+      const resData = await response.json();
+      const updated = resData.data;
+
+      if (updated) {
+        const nextCv = {
+          ...cv,
+          personal: {
+            ...cv.personal,
+            summary: updated.personal?.summary || cv.personal.summary,
+          },
+          skills: updated.skills || cv.skills,
+        };
+        setCv(nextCv);
+
+        toast.success(locale === 'en' ? 'Missing keywords integrated!' : 'تم دمج الكلمات المفتاحية المفقودة بنجاح!');
+        // Re-run ATS check with fixed content
+        const recheckRes = await apiFetch('/cv/ats-check', {
+          method: 'POST',
+          body: JSON.stringify({
+            targetJobTitle: atsAnalysis.targetJobTitle || targetJobTitle,
+            jobDescription,
+            cvData: nextCv,
+          }),
+        });
+        if (recheckRes.ok) {
+          const recheckData = await recheckRes.json();
+          if (recheckData.analysis) {
+            setAtsAnalysis(recheckData.analysis);
+            setCv(prev => ({ ...prev, atsAnalysis: recheckData.analysis }));
+          }
+        }
+      }
+    } catch (err: any) {
+      toast.error(locale === 'en' ? `Auto-fix failed: ${err.message}` : `فشل الإصلاح التلقائي: ${err.message}`);
+    } finally {
+      setIsAtsAutoFixing(false);
+    }
+  };
+
   return {
     cvList,
     currentView,
@@ -1327,11 +1441,12 @@ export function useCvEditor() {
     showCertifications,
     showCourses,
     showHobbies,
-    isAiModalOpen,
-    setIsAiModalOpen,
-    handleAdvancedAiGenerate,
-    handleRegenerateSection,
-    isRegeneratingSection,
+    showLanguages,
+    showPublications,
+    showPwaModal,
+    showReferences,
+    showTailorModal,
+    showVolunteer,
     t,
     targetJobTitle,
     updateCombinedName,

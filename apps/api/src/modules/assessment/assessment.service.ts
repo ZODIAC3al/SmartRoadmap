@@ -89,21 +89,10 @@ export class AssessmentService {
     user?: JwtUser,
   ): Promise<any> {
     const session = await this.sessionModel.findById(sessionId);
-    if (!session) {
-      throw new BadRequestException('Active session not found.');
-    }
-    if (session.status === 'completed') {
-      return {
-        correct: true,
-        explanation: 'Quiz session already completed.',
-        isFinished: true,
-        results: {
-          score: session.score || 100,
-          passed: session.passed ?? true,
-          correctAnswers: session.answers.filter((a) => a.correct).length,
-          totalQuestions: this.TOTAL_QUESTIONS,
-        },
-      };
+    if (!session || session.status === 'completed') {
+      throw new BadRequestException(
+        'Active session not found or already completed.',
+      );
     }
     if (user) assertSelfOrAdmin(user, session.userId.toString());
 
@@ -121,37 +110,10 @@ export class AssessmentService {
       throw new BadRequestException('Invalid question index.');
     }
 
-    // Evaluate answer correctness handling both string values and zero-based numeric option index
-    let expectedAnswerStr = '';
-    const rawCorrect = currentQuestion.correctAnswer;
-    if (
-      typeof rawCorrect === 'number' &&
-      Array.isArray(currentQuestion.options)
-    ) {
-      expectedAnswerStr =
-        currentQuestion.options[rawCorrect] || String(rawCorrect);
-    } else if (
-      typeof rawCorrect === 'string' &&
-      /^\d+$/.test(rawCorrect.trim()) &&
-      Array.isArray(currentQuestion.options) &&
-      currentQuestion.options[parseInt(rawCorrect.trim(), 10)]
-    ) {
-      expectedAnswerStr =
-        currentQuestion.options[parseInt(rawCorrect.trim(), 10)];
-    } else {
-      expectedAnswerStr = String(rawCorrect || '');
-    }
-
+    // Evaluate answer correctness
     const correct =
-      expectedAnswerStr.toLowerCase().trim() ===
-      (answer || '').toLowerCase().trim();
-
-    const rawDiff = String(currentQuestion.difficulty || 'medium')
-      .toLowerCase()
-      .trim();
-    const validDifficulty = (
-      ['easy', 'medium', 'hard'].includes(rawDiff) ? rawDiff : 'medium'
-    ) as 'easy' | 'medium' | 'hard';
+      currentQuestion.correctAnswer.toLowerCase().trim() ===
+      answer.toLowerCase().trim();
 
     // Log answer sub-document
     session.answers.push({
@@ -244,20 +206,6 @@ export class AssessmentService {
           session.userId.toString(),
           session.moduleId,
         );
-        // Auto-issue track certification if ALL modules are now completed
-        const issuedCert = await this.certService.checkAndIssueCertification(
-          session.userId.toString(),
-        );
-        if (issuedCert) {
-          this.eventEmitter.emit('track.completed', {
-            userId: session.userId.toString(),
-            certificateId: issuedCert.certificateId,
-            trackTitle: issuedCert.trackTitle,
-          });
-          this.logger.log(
-            `🎓 Track completed & cert issued for user ${session.userId}: ${issuedCert.certificateId}`,
-          );
-        }
       } else {
         await this.addRemedialModule(
           session.userId.toString(),

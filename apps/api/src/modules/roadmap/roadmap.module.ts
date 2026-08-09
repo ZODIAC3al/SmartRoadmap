@@ -13,11 +13,7 @@ import {
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Roadmap.name, schema: RoadmapSchema },
-      { name: Topic.name, schema: TopicSchema },
-      { name: UserTopicResult.name, schema: UserTopicResultSchema },
-    ]),
+    MongooseModule.forFeature([{ name: Roadmap.name, schema: RoadmapSchema }]),
   ],
   controllers: [RoadmapController],
   providers: [RoadmapService, RemedialNodeQueueService],

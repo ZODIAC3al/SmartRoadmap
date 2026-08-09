@@ -34,11 +34,11 @@ export default async function PublicPortfolioPage({
         </div>
         <h1 className="text-2xl font-extrabold text-white">Portfolio Private or Not Found</h1>
         <p className="text-xs text-slate-400 max-w-sm">
-          The public portfolio for user &quot;<span className="font-mono text-primary">{username}</span>&quot; is either private or has not been published yet.
+          The public portfolio for user "<span className="font-mono text-primary">{username}</span>" is either private or has not been published yet.
         </p>
         <Link
           href="/"
-          className="btn bg-primary hover:bg-[#6E1010] text-white btn-sm rounded-xl font-bold border-none"
+          className="btn bg-primary hover:bg-[#059669] text-white btn-sm rounded-xl font-bold border-none"
         >
           Return to Home
         </Link>

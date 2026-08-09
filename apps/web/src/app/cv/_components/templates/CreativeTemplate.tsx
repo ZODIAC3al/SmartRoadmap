@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import type { CVData } from '../../types';
 
 interface TemplateProps {
@@ -37,7 +37,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ cv }) => {
       <div className="p-6 space-y-5">
         {/* Summary */}
         {personal?.summary && (
-          <div className="bg-indigo-50/60 border-l-4 border-[#8E1616] p-3 rounded-r">
+          <div className="bg-indigo-50/60 border-l-4 border-indigo-600 p-3 rounded-r">
             <h2 className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-900 mb-1">About Me</h2>
             <p className="text-[9px] text-indigo-950 leading-relaxed font-medium">{personal.summary}</p>
           </div>

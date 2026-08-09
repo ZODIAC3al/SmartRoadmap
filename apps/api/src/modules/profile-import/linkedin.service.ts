@@ -47,64 +47,32 @@ export class LinkedInService {
     this.tokenCipher = new TokenCipher(config);
   }
 
-  private get clientId(): string | undefined {
-    return (
-      this.config.get<string>('LINKEDIN_CLIENT_ID') ||
-      process.env.LINKEDIN_CLIENT_ID ||
-      undefined
-    );
-  }
-
-  private get clientSecret(): string | undefined {
-    return (
-      this.config.get<string>('LINKEDIN_CLIENT_SECRET') ||
-      process.env.LINKEDIN_CLIENT_SECRET ||
-      undefined
-    );
-  }
-
   /** LinkedIn OAuth is configured. */
   isConfigured(): boolean {
     return true;
   }
 
   private get apiUrl(): string {
-    return (
-      this.config.get<string>('API_URL') ||
-      process.env.API_URL ||
-      'http://localhost:3000'
-    );
+    return this.config.get<string>('API_URL') ?? 'http://localhost:3000';
   }
 
   private get redirectUri(): string {
-    const configured =
-      this.config.get<string>('LINKEDIN_REDIRECT_URI') ||
-      process.env.LINKEDIN_REDIRECT_URI;
+    const configured = this.config.get<string>('LINKEDIN_REDIRECT_URI');
     if (configured) return configured;
     return `${this.apiUrl}/auth/linkedin/callback`;
   }
 
   /** Builds the LinkedIn OpenID authorize URL (state is a signed userId JWT). */
   async buildAuthUrl(userId: string): Promise<string> {
-    const clientId = this.clientId;
+    const clientId =
+      this.config.get<string>('LINKEDIN_CLIENT_ID') || '781kkhzljdwcaj';
     const state = await this.jwt.signAsync(
       { sub: userId, type: 'linkedin_oauth' },
       {
-        secret:
-          this.config.get<string>('JWT_SECRET') ||
-          process.env.JWT_SECRET ||
-          'smartroadmap_ultra_secret_key_2026_xyz',
+        secret: this.config.getOrThrow<string>('JWT_SECRET'),
         expiresIn: '10m',
       },
     );
-
-    if (
-      !clientId ||
-      this.config.get<boolean>('MOCK_MODE') ||
-      process.env.MOCK_MODE === 'true'
-    ) {
-      return `${this.apiUrl}/auth/linkedin/callback?code=mock-code&state=${state}`;
-    }
 
     const params = new URLSearchParams({
       response_type: 'code',
@@ -119,10 +87,7 @@ export class LinkedInService {
   private async verifyState(state: string): Promise<string> {
     try {
       const payload: any = await this.jwt.verifyAsync(state, {
-        secret:
-          this.config.get<string>('JWT_SECRET') ||
-          process.env.JWT_SECRET ||
-          'smartroadmap_ultra_secret_key_2026_xyz',
+        secret: this.config.getOrThrow<string>('JWT_SECRET'),
       });
       if (payload?.type !== 'linkedin_oauth' || !payload?.sub)
         throw new Error('invalid state');
@@ -132,52 +97,30 @@ export class LinkedInService {
     }
   }
 
-  private toUserObjectId(userId: string | Types.ObjectId): Types.ObjectId {
-    return Types.ObjectId.isValid(userId)
-      ? new Types.ObjectId(userId)
-      : (userId as any);
-  }
-
   /** Exchanges the code and stores the basic OpenID profile only. */
   async handleCallback(code: string, state: string): Promise<LinkedInAccount> {
     const userId = await this.verifyState(state);
-    const userObjectId = this.toUserObjectId(userId);
-    const clientId = this.clientId;
-    const clientSecret = this.clientSecret;
 
     if (
       code === 'mock-code' ||
       this.config.get<boolean>('MOCK_MODE') ||
       process.env.MOCK_MODE === 'true' ||
-      !clientId ||
-      !clientSecret
+      !this.config.get<string>('LINKEDIN_CLIENT_ID')
     ) {
       const mockProfile: LinkedInUserinfo = {
-        sub: `mock-linkedin-${userId}`,
-        name: 'SmartRoadmap Professional',
+        sub: 'mock-linkedin-123',
+        name: 'Mock LinkedIn Professional',
         picture:
           'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=150&h=150&q=80',
-        email: `pro_${userId.slice(-4)}@example.com`,
+        email: 'mockuser@example.com',
       };
-
-      const existingOther = await this.linkedinAccountModel.findOne({
-        linkedinId: mockProfile.sub,
-      });
-      if (
-        existingOther &&
-        existingOther.userId?.toString() !== userId.toString()
-      ) {
-        throw new BadRequestException(
-          'That LinkedIn account is already connected to another account.',
-        );
-      }
 
       const encrypted = this.tokenCipher.encrypt('mock-linkedin-token');
       return this.linkedinAccountModel.findOneAndUpdate(
-        { userId: userObjectId },
+        { userId },
         {
-          userId: userObjectId,
-          linkedinId: mockProfile.sub,
+          userId,
+          linkedinId: mockProfile.sub ?? `oauth-${userId}`,
           accessToken: encrypted,
           connectedAt: new Date(),
           fullName: mockProfile.name ?? undefined,
@@ -197,8 +140,10 @@ export class LinkedInService {
           grant_type: 'authorization_code',
           code,
           redirect_uri: this.redirectUri,
-          client_id: clientId,
-          client_secret: clientSecret,
+          client_id: this.config.getOrThrow<string>('LINKEDIN_CLIENT_ID'),
+          client_secret: this.config.getOrThrow<string>(
+            'LINKEDIN_CLIENT_SECRET',
+          ),
         }).toString(),
         {
           headers: {
@@ -232,14 +177,12 @@ export class LinkedInService {
     const sub = info.sub ?? `oauth-${userId}`;
 
     // Uniqueness check: reject if this LinkedIn account is already linked to another user
-    if (sub) {
+    if (info.sub) {
       const existingOther = await this.linkedinAccountModel.findOne({
-        linkedinId: sub,
+        linkedinId: info.sub,
+        userId: { $ne: new Types.ObjectId(userId) },
       });
-      if (
-        existingOther &&
-        existingOther.userId?.toString() !== userId.toString()
-      ) {
+      if (existingOther) {
         throw new BadRequestException(
           'That LinkedIn account is already connected to another account.',
         );
@@ -248,9 +191,9 @@ export class LinkedInService {
 
     const encrypted = this.tokenCipher.encrypt(accessToken);
     return this.linkedinAccountModel.findOneAndUpdate(
-      { userId: userObjectId },
+      this.buildUserQuery(userId),
       {
-        userId: userObjectId,
+        userId: Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId,
         linkedinId: sub,
         accessToken: encrypted,
         connectedAt: new Date(),
@@ -263,17 +206,27 @@ export class LinkedInService {
     );
   }
 
+  private buildUserQuery(userId: string) {
+    if (Types.ObjectId.isValid(userId)) {
+      return {
+        $or: [
+          { userId: new Types.ObjectId(userId) },
+          { userId: userId as any },
+        ],
+      };
+    }
+    return { userId };
+  }
+
   async getAccount(userId: string): Promise<LinkedInAccount | null> {
-    const userObjectId = this.toUserObjectId(userId);
     return this.linkedinAccountModel
-      .findOne({ userId: userObjectId })
+      .findOne(this.buildUserQuery(userId))
       .lean()
       .exec() as Promise<LinkedInAccount | null>;
   }
 
   async disconnect(userId: string): Promise<void> {
-    const userObjectId = this.toUserObjectId(userId);
-    await this.linkedinAccountModel.deleteOne({ userId: userObjectId }).exec();
+    await this.linkedinAccountModel.deleteOne(this.buildUserQuery(userId)).exec();
   }
 
   /**
@@ -285,14 +238,14 @@ export class LinkedInService {
     userId: string,
     dto: ManualLinkedInDto,
   ): Promise<LinkedInAccount> {
-    const userObjectId = this.toUserObjectId(userId);
+    const query = this.buildUserQuery(userId);
     const existing = await this.linkedinAccountModel
-      .findOne({ userId: userObjectId })
+      .findOne(query)
       .lean()
       .exec();
     if (!existing) {
       return await this.linkedinAccountModel.create({
-        userId: userObjectId,
+        userId: Types.ObjectId.isValid(userId) ? new Types.ObjectId(userId) : userId,
         linkedinId: `manual-${userId}`,
         fullName: dto.fullName,
         profile: { ...dto, importMethod: 'manual' },
@@ -301,7 +254,7 @@ export class LinkedInService {
       });
     }
     return (await this.linkedinAccountModel.findOneAndUpdate(
-      { userId: userObjectId },
+      query,
       {
         $set: {
           profile: { ...dto, importMethod: 'manual' },
@@ -331,21 +284,18 @@ export class LinkedInService {
     }
 
     const parsedProfile = this.parsePdfProfile(text);
-    const firstLine =
-      parsedProfile.fullName ||
-      text
-        .split('\n')
-        .map((l) => l.trim())
-        .find((l) => l.length > 1 && l.length < 120);
+    const firstLine = parsedProfile.fullName || text
+      .split('\n')
+      .map((l) => l.trim())
+      .find((l) => l.length > 1 && l.length < 120);
 
-    const userObjectId = this.toUserObjectId(userId);
     const existing = await this.linkedinAccountModel
-      .findOne({ userId: userObjectId })
+      .findOne({ userId })
       .lean()
       .exec();
     if (!existing) {
       return await this.linkedinAccountModel.create({
-        userId: userObjectId,
+        userId,
         linkedinId: `pdf-${userId}`,
         fullName: firstLine,
         profile: { ...parsedProfile, fullName: firstLine },
@@ -355,7 +305,7 @@ export class LinkedInService {
       });
     }
     return (await this.linkedinAccountModel.findOneAndUpdate(
-      { userId: userObjectId },
+      { userId },
       {
         $set: {
           rawPdfText: text,

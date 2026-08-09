@@ -17,36 +17,6 @@ export class RoadmapService {
     private readonly llmService: LLMService,
   ) {}
 
-  private safeUserObjectId(userId: string): Types.ObjectId {
-    return Types.ObjectId.isValid(userId)
-      ? new Types.ObjectId(userId)
-      : new Types.ObjectId();
-  }
-
-  private sanitizeDifficulty(
-    val: string,
-  ): 'beginner' | 'intermediate' | 'advanced' {
-    if (!val) return 'intermediate';
-    const lower = val.toLowerCase();
-    if (lower === 'easy' || lower === 'beginner') return 'beginner';
-    if (lower === 'hard' || lower === 'advanced') return 'advanced';
-    if (lower === 'medium' || lower === 'intermediate') return 'intermediate';
-    return 'intermediate';
-  }
-
-  private sanitizeStatus(
-    val: string,
-    isFirst: boolean,
-  ): 'locked' | 'in_progress' | 'completed' | 'failed' {
-    if (!val) return isFirst ? 'in_progress' : 'locked';
-    const lower = val.toLowerCase();
-    if (lower === 'completed' || lower === 'done') return 'completed';
-    if (lower === 'failed') return 'failed';
-    if (lower === 'in_progress' || lower === 'active' || lower === 'current')
-      return 'in_progress';
-    return isFirst ? 'in_progress' : 'locked';
-  }
-
   async generateRoadmap(
     userId: string,
     targetRole: string,
@@ -56,14 +26,12 @@ export class RoadmapService {
       `Generating roadmap for user: ${userId}, target role: "${targetRole}"`,
     );
 
-    const userObjId = this.safeUserObjectId(userId);
-
     // 1. Call AI service (falls back to mock if API key is not in .env)
     const generated = await this.llmService.generateRoadmap(targetRole, skills);
 
     // 2. Mark any existing roadmaps as archived
     await this.roadmapModel.updateMany(
-      { userId: userObjId, status: 'active' },
+      { userId: new Types.ObjectId(userId), status: 'active' },
       { status: 'archived' },
     );
 
@@ -103,15 +71,9 @@ export class RoadmapService {
     });
 
     if (!roadmap) {
-      this.logger.log(
-        `No active roadmap found for user ID ${userId}. Auto-generating default initial roadmap.`,
+      throw new NotFoundException(
+        `No active roadmap found for user ID: ${userId}`,
       );
-      roadmap = await this.generateRoadmap(userId, 'Fullstack Web Developer', [
-        'JavaScript',
-        'TypeScript',
-        'React',
-        'Node.js',
-      ]);
     }
 
     return roadmap;

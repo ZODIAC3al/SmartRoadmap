@@ -132,26 +132,32 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
 
     try {
       const response = await apiFetch(`/assessment/session/${session.sessionId}/answer`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answer: answerText, timeTaken: 30 - timer }),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          answer: answerText,
+          timeTaken: 30 - timer,
+        }),
       });
 
-      if (!response.ok) throw new Error("Answer submission failed");
+      if (!response.ok) throw new Error('Answer submission failed');
       const data = await response.json();
 
       setIsCorrect(data.correct);
       setExplanation(data.explanation);
-      setAnsweredHistory((prev) => [...prev, { index: session.currentQuestionIndex, correct: !!data.correct }]);
 
       if (data.isFinished) {
         setIsFinished(true);
         setResults(data.results);
       } else {
-        setSession((prev: any) => ({ ...prev, nextQuestionPayload: data.nextQuestion }));
+        // Prepare next question trigger payload
+        setSession((prev: any) => ({
+          ...prev,
+          nextQuestionPayload: data.nextQuestion,
+        }));
       }
     } catch (err) {
-      alert("Network error submitting answer.");
+      alert('Network error submitting answer.');
       setAnswerSubmitted(false);
     }
   }, [answerSubmitted, session, timer]);

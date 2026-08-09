@@ -36,41 +36,10 @@ export class UploadController {
       return { success: true, url };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new BadRequestException(`Image upload pipeline failed: ${message}`);
-    }
-  }
-
-  @Post('pdf')
-  @HttpCode(HttpStatus.OK)
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadPdf(@UploadedFile() file: any) {
-    if (!file) {
-      throw new BadRequestException('No PDF file provided in upload request.');
-    }
-
-    try {
-      const result = await this.uploadService.uploadEvidencePdf(file, 'evidence');
-      return { success: true, url: result.url, key: result.key };
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new BadRequestException(`PDF upload pipeline failed: ${message}`);
-    }
-  }
-
-  @Post('evidence')
-  @HttpCode(HttpStatus.OK)
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadEvidence(@UploadedFile() file: any) {
-    if (!file) {
-      throw new BadRequestException('No evidence file provided in upload request.');
-    }
-
-    try {
-      const result = await this.uploadService.uploadEvidencePdf(file, 'evidence');
-      return { success: true, url: result.url, key: result.key };
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new BadRequestException(`Evidence upload pipeline failed: ${message}`);
+      throw new BadRequestException(
+        `Image upload pipeline failed: ${message}`,
+      );
     }
   }
 }
+

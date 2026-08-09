@@ -8,7 +8,6 @@ import {
   IsUrl,
   MaxLength,
   Min,
-  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -28,16 +27,10 @@ export class GitHubRepoItemDto {
   description?: string;
 
   @IsOptional()
-  @ValidateIf((_obj, val) =>
-    Boolean(val && typeof val === 'string' && val.trim().length > 0),
-  )
   @IsUrl({}, { message: 'Repository URL must be a valid URL' })
   url?: string;
 
   @IsOptional()
-  @ValidateIf((_obj, val) =>
-    Boolean(val && typeof val === 'string' && val.trim().length > 0),
-  )
   @IsUrl({}, { message: 'Homepage URL must be a valid URL' })
   homepage?: string;
 

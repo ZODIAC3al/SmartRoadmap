@@ -277,27 +277,13 @@ export default function Navbar() {
 
   // Mobile nav links — role-scoped
   const navLinks = [
-    // Learner-only
-    { href: "/roadmap", label: t("nav.roadmap"), show: !!user && (isLearner || isAdmin) },
-    { href: "/cv", label: t("nav.cv"), show: !!user && (isLearner || isAdmin) },
-    { href: "/portfolio/builder", label: "Portfolio", show: !!user && (isLearner || isAdmin) },
-    { href: "/hiring", label: t("nav.jobsMatch"), show: !!user && (isLearner || isAdmin) },
-    { href: "/community", label: locale === "en" ? "Community" : "المجتمع", show: !!user && (isLearner || isAdmin) },
-    { href: "/mentors", label: locale === "en" ? "Mentors" : "الموجهين", show: !!user && (isLearner || isAdmin) },
-    { href: "/resources", label: locale === "en" ? "Resources" : "المراجع", show: !!user && (isLearner || isAdmin) },
-    { href: "/mock-interview", label: "Mock Interview", show: !!user && (isLearner || isAdmin) },
-    // Company-only
-    { href: "/company", label: locale === "en" ? "Overview" : "نظرة عامة", show: !!user && (isCompany || isAdmin) },
-    { href: "/company/jobs", label: locale === "en" ? "Jobs & Pipeline" : "الوظائف", show: !!user && (isCompany || isAdmin) },
-    { href: "/company/talent", label: t("nav.talentBoard"), show: !!user && (isCompany || isAdmin) },
-    { href: "/company/messages", label: locale === "en" ? "Messages" : "الرسائل", show: !!user && (isCompany || isAdmin) },
-    { href: "/company/analytics", label: locale === "en" ? "Analytics" : "التحليلات", show: !!user && (isCompany || isAdmin) },
-    { href: "/company/profile", label: locale === "en" ? "Company Profile" : "ملف الشركة", show: !!user && (isCompany || isAdmin) },
-    // Admin-only
-    { href: "/admin", label: locale === "en" ? "Admin" : "الإدارة", show: !!user && isAdmin },
-    // Always
-    { href: "/pricing", label: t("nav.pricing"), show: true },
-    { href: "/contact", label: t("nav.contact"), show: true },
+    { href: '/roadmap', label: t('nav.roadmap'), show: !!user },
+    { href: '/cv', label: 'CV Studio', show: !!user },
+    { href: '/portfolio/builder', label: 'Portfolio', show: !!user },
+    { href: '/hiring', label: t('nav.jobsMatch'), show: !!user && user?.role === 'learner' },
+    { href: '/company', label: t('nav.talentBoard'), show: !!user && user?.role === 'company' },
+    { href: '/pricing', label: t('nav.pricing'), show: true },
+    { href: '/contact', label: t('nav.contact'), show: true },
   ];
 
   return (

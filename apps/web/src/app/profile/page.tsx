@@ -816,7 +816,7 @@ function ProfileContent() {
                       <h4 className="font-extrabold text-xs text-[#7c3aed]">
                         {locale === 'en' ? 'Quick Profile Import & Certificate Upload' : 'استيراد سريع للملف الشخصي ورفع الشهادات'}
                       </h4>
-                      <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium mt-1 leading-relaxed">
+                      <p className="text-[10px] text-base-content/70 mt-1 leading-relaxed">
                         {locale === 'en'
                           ? 'Populate your profile instantly from GitHub, LinkedIn, or manage your certificates.'
                           : 'املأ ملفك المهني فوراً من GitHub أو LinkedIn أو أدر شهاداتك المهنية.'}
