@@ -359,6 +359,23 @@ export default function ProfilePage() {
               {activeTab === 'account' && (
                 <form onSubmit={handleSaveProfile} className="bg-base-200 border border-base-300 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
                   
+                  {/* Profile Import CTA Card */}
+                  <div className="bg-[#7c3aed]/10 border border-[#7c3aed]/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-start">
+                      <h4 className="font-extrabold text-xs text-[#7c3aed]">
+                        {locale === 'en' ? 'Quick Profile Import & Certificate Upload' : 'استيراد سريع للملف الشخصي ورفع الشهادات'}
+                      </h4>
+                      <p className="text-[10px] text-base-content/70 mt-1 leading-relaxed">
+                        {locale === 'en'
+                          ? 'Populate your profile instantly from GitHub, LinkedIn, or manage your certificates.'
+                          : 'املأ ملفك المهني فوراً من GitHub أو LinkedIn أو أدر شهاداتك المهنية.'}
+                      </p>
+                    </div>
+                    <Link href="/profile/import" className="btn bg-[#7c3aed] hover:bg-[#6d28d9] border-none text-white btn-xs h-8 rounded-xl font-bold whitespace-nowrap px-4 flex items-center justify-center">
+                      {locale === 'en' ? 'Get Started' : 'ابدأ الآن'}
+                    </Link>
+                  </div>
+
                   {/* Profile Picture Upload row */}
                   <div className="space-y-3 text-start">
                     <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-wider block font-mono">

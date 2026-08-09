@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -31,9 +36,15 @@ export class JwtAuthGuard implements CanActivate {
         secret: this.config.getOrThrow<string>('JWT_SECRET'),
       });
       if (payload.type && payload.type !== 'access') {
-        throw new UnauthorizedException('Refresh tokens cannot be used to access resources');
+        throw new UnauthorizedException(
+          'Refresh tokens cannot be used to access resources',
+        );
       }
-      request.user = { sub: payload.sub, email: payload.email, role: payload.role };
+      request.user = {
+        sub: payload.sub,
+        email: payload.email,
+        role: payload.role,
+      };
       return true;
     } catch {
       throw new UnauthorizedException('Invalid or expired token');

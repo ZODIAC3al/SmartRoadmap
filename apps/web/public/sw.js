@@ -49,6 +49,9 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
+  // Ignore non-http(s) schemes (e.g. chrome-extension://, file://, etc.)
+  if (!url.protocol.startsWith('http')) return;
+
   // Always bypass: API calls, Next.js HMR, and webpack chunk requests
   if (
     url.pathname.startsWith('/api') ||

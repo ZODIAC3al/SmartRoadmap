@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { apiFetch, getCachedUser } from '@/lib/api';
 
@@ -96,35 +96,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
     initQuiz();
   }, [moduleId]);
 
-  // Handle countdown clock ticking
-  useEffect(() => {
-    if (session && !answerSubmitted && !isFinished) {
-      setTimer(30);
-      if (timerRef.current) clearInterval(timerRef.current);
-      
-      timerRef.current = setInterval(() => {
-        setTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            autoSubmitTimeout();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [session, answerSubmitted, isFinished]);
-
-  // Submit response when countdown runs out
-  const autoSubmitTimeout = () => {
-    handleSubmitAnswer('Times Up (No Answer)');
-  };
-
-  const handleSubmitAnswer = async (answerText: string) => {
+  const handleSubmitAnswer = useCallback(async (answerText: string) => {
     if (answerSubmitted || !session) return;
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -161,7 +133,35 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
       alert('Network error submitting answer.');
       setAnswerSubmitted(false);
     }
-  };
+  }, [answerSubmitted, session, timer]);
+
+  // Submit response when countdown runs out
+  const autoSubmitTimeout = useCallback(() => {
+    handleSubmitAnswer('Times Up (No Answer)');
+  }, [handleSubmitAnswer]);
+
+  // Handle countdown clock ticking
+  useEffect(() => {
+    if (session && !answerSubmitted && !isFinished) {
+      setTimer(30);
+      if (timerRef.current) clearInterval(timerRef.current);
+      
+      timerRef.current = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current!);
+            autoSubmitTimeout();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [session, answerSubmitted, isFinished, autoSubmitTimeout]);
 
   const handleNextQuestion = () => {
     if (!session || !session.nextQuestionPayload) return;

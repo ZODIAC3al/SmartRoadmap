@@ -3,12 +3,22 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CvController } from './cv.controller';
 import { CvService } from './cv.service';
 import { Cv, CvSchema } from '../../schemas/cv.schema';
+import { User, UserSchema } from '../../schemas/user.schema';
+import { LearnerProfile, LearnerProfileSchema } from '../../schemas/learner-profile.schema';
+import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
+import { QuizSession, QuizSessionSchema } from '../../schemas/quiz-session.schema';
+import { ProfileImportModule } from '../profile-import/profile-import.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Cv.name, schema: CvSchema },
+      { name: User.name, schema: UserSchema },
+      { name: LearnerProfile.name, schema: LearnerProfileSchema },
+      { name: Roadmap.name, schema: RoadmapSchema },
+      { name: QuizSession.name, schema: QuizSessionSchema },
     ]),
+    ProfileImportModule,
   ],
   controllers: [CvController],
   providers: [CvService],

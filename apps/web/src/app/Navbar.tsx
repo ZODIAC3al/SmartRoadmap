@@ -187,7 +187,8 @@ export default function Navbar() {
 
   const navLinks = [
     { href: '/roadmap', label: t('nav.roadmap'), show: !!user },
-    { href: '/cv', label: t('nav.cv'), show: !!user },
+    { href: '/cv', label: 'CV Studio', show: !!user },
+    { href: '/portfolio/builder', label: 'Portfolio', show: !!user },
     { href: '/hiring', label: t('nav.jobsMatch'), show: !!user && user?.role === 'learner' },
     { href: '/company', label: t('nav.talentBoard'), show: !!user && user?.role === 'company' },
     { href: '/pricing', label: t('nav.pricing'), show: true },
