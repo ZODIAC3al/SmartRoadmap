@@ -51,6 +51,30 @@ export const envSchema = z
     OPENAI_MODEL_FAST: z.string().default('gpt-4o-mini'),
     OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
 
+    GEMINI_API_KEY: z.string().optional(),
+    GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+    GEMINI_TTS_MODEL: z.string().default('gemini-2.5-flash-preview-tts'),
+
+    GROQ_API_KEY: z.string().optional(),
+    GROQ_MODEL: z.string().default('llama-3.3-70b-versatile'),
+    GROQ_TTS_MODEL: z.string().default('playai-tts'),
+
+    CODE_EXEC_PROVIDER: z.enum(['piston', 'judge0']).default('piston'),
+    CODE_EXEC_URL: z.string().default('http://localhost:2000'),
+    CODE_EXEC_API_KEY: z.string().optional(),
+
+    PUSH_VAPID_PUBLIC_KEY: z.string().optional(),
+    PUSH_VAPID_PRIVATE_KEY: z.string().optional(),
+    NOTIFICATIONS_QUEUE_DRIVER: z.enum(['memory', 'redis']).default('memory'),
+
+    AUDIO_STORAGE_DRIVER: z.enum(['local', 's3', 'appwrite']).default('local'),
+    AUDIO_STORAGE_BUCKET: z.string().optional(),
+
+    APPWRITE_ENDPOINT: z.string().optional(),
+    APPWRITE_PROJECT_ID: z.string().optional(),
+    APPWRITE_API_KEY: z.string().optional(),
+    APPWRITE_AUDIO_BUCKET_ID: z.string().optional(),
+
     QDRANT_URL: z.string().optional(),
     QDRANT_API_KEY: z.string().optional(),
 
@@ -66,6 +90,10 @@ export const envSchema = z
     CLOUDINARY_CLOUD_NAME: z.string().optional(),
     CLOUDINARY_API_KEY: z.string().optional(),
     CLOUDINARY_API_SECRET: z.string().optional(),
+
+    // Adzuna Job Search API — used for real-time salary data
+    ADZUNA_APP_ID: z.string().optional(),
+    ADZUNA_APP_KEY: z.string().optional(),
 
     THROTTLE_TTL: z.coerce.number().default(60000),
     // Credential endpoints (login/register/google) — keep this low in production.

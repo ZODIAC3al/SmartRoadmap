@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import { useApp } from '@/components/AppContext';
-import { apiFetch, getCachedUser } from '@/lib/api';
-import type { Experience, Education, Project, Reference, CVData } from './types';
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { useApp } from "@/components/AppContext";
+import { apiFetch, getCachedUser, getUserId } from "@/lib/api";
+import type { CVData } from "./types";
 
 /**
  * All CV editor state + side effects.
@@ -14,21 +14,25 @@ import type { Experience, Education, Project, Reference, CVData } from './types'
  */
 export function useCvEditor() {
   const { t, locale } = useApp();
-  const [userId, setUserId] = useState('654321098765432109876543'); // Default fallback test ID
-  const [activeTab, setActiveTab] = useState<'fillin' | 'guidance' | 'analysis' | 'matching'>('fillin');
+  const [userId, setUserId] = useState("654321098765432109876543"); // Default fallback test ID
+  const [activeTab, setActiveTab] = useState<
+    "fillin" | "guidance" | "analysis" | "matching"
+  >("fillin");
   const [isParsing, setIsParsing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isEnhancingIndex, setIsEnhancingIndex] = useState<number | null>(null);
-  
+
   // Segmented control state for mobile/tablet viewports (< 1024px)
-  const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor');
+  const [mobileView, setMobileView] = useState<"editor" | "preview">("editor");
 
   // Form input split name states
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [professionalTitle, setProfessionalTitle] = useState('Senior Frontend Developer');
-  const [phoneCountry, setPhoneCountry] = useState('+880');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [professionalTitle, setProfessionalTitle] = useState(
+    "Senior Frontend Developer",
+  );
+  const [phoneCountry, setPhoneCountry] = useState("+880");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Active section toggles
   const [showCertifications, setShowCertifications] = useState(true);
@@ -42,19 +46,27 @@ export function useCvEditor() {
   const [showHobbies, setShowHobbies] = useState(false);
 
   // PWA and OS-based download state
-  const [os, setOs] = useState<'windows' | 'macos' | 'linux' | 'ios' | 'android' | 'other'>('other');
+  const [os, setOs] = useState<
+    "windows" | "macos" | "linux" | "ios" | "android" | "other"
+  >("other");
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [showPwaModal, setShowPwaModal] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const ua = window.navigator.userAgent.toLowerCase();
-      if (ua.includes('win')) setOs('windows');
-      else if (ua.includes('mac') && !('ontouchend' in document)) setOs('macos');
-      else if (ua.includes('linux')) setOs('linux');
-      else if (ua.includes('iphone') || ua.includes('ipad') || (ua.includes('mac') && 'ontouchend' in document)) setOs('ios');
-      else if (ua.includes('android')) setOs('android');
+      if (ua.includes("win")) setOs("windows");
+      else if (ua.includes("mac") && !("ontouchend" in document))
+        setOs("macos");
+      else if (ua.includes("linux")) setOs("linux");
+      else if (
+        ua.includes("iphone") ||
+        ua.includes("ipad") ||
+        (ua.includes("mac") && "ontouchend" in document)
+      )
+        setOs("ios");
+      else if (ua.includes("android")) setOs("android");
 
       const handleBeforePrompt = (e: any) => {
         e.preventDefault();
@@ -62,15 +74,15 @@ export function useCvEditor() {
         setIsInstallable(true);
       };
 
-      window.addEventListener('beforeinstallprompt', handleBeforePrompt);
+      window.addEventListener("beforeinstallprompt", handleBeforePrompt);
 
       // Check if PWA is already standalone
-      if (window.matchMedia('(display-mode: standalone)').matches) {
+      if (window.matchMedia("(display-mode: standalone)").matches) {
         setIsInstallable(false);
       }
 
       return () => {
-        window.removeEventListener('beforeinstallprompt', handleBeforePrompt);
+        window.removeEventListener("beforeinstallprompt", handleBeforePrompt);
       };
     }
   }, []);
@@ -79,7 +91,7 @@ export function useCvEditor() {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult: any) => {
-        if (choiceResult.outcome === 'accepted') {
+        if (choiceResult.outcome === "accepted") {
           setIsInstallable(false);
         }
         setDeferredPrompt(null);
@@ -137,15 +149,9 @@ export function useCvEditor() {
   // Load CV list and connected accounts on mount
   useEffect(() => {
     const storedUser = getCachedUser();
-    let activeUserId = '654321098765432109876543';
-    if (storedUser) {
-      try {
-        const u = storedUser;
-        if (u.id || u._id) {
-          activeUserId = u.id || u._id;
-          setUserId(activeUserId);
-        }
-      } catch (e) {}
+    const cachedUserId = getUserId(storedUser);
+    if (cachedUserId) {
+      setUserId(cachedUserId);
     }
 
     async function loadCvStudioData() {
@@ -416,12 +422,12 @@ export function useCvEditor() {
   }, [cv]);
 
   const updateCombinedName = (first: string, last: string) => {
-    setCv(prev => ({
+    setCv((prev) => ({
       ...prev,
       personal: {
         ...prev.personal,
-        name: `${first} ${last}`.trim()
-      }
+        name: `${first} ${last}`.trim(),
+      },
     }));
   };
 
@@ -443,11 +449,11 @@ export function useCvEditor() {
 
     setIsParsing(true);
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     try {
-      const response = await apiFetch('/cv/upload', {
-        method: 'POST',
+      const response = await apiFetch("/cv/upload", {
+        method: "POST",
         body: formData,
       });
 
@@ -685,10 +691,17 @@ export function useCvEditor() {
 
   // Revert changes (Cancel Button)
   const handleCancel = async () => {
-    if (!confirm(locale === 'en' ? 'Revert all unsaved changes?' : 'هل تريد التراجع عن التغييرات غير المحفوظة؟')) return;
+    if (
+      !confirm(
+        locale === "en"
+          ? "Revert all unsaved changes?"
+          : "هل تريد التراجع عن التغييرات غير المحفوظة؟",
+      )
+    )
+      return;
 
     try {
-      const response = await apiFetch('/cv/me');
+      const response = await apiFetch("/cv/me");
       if (response.ok) {
         const resData = await response.json();
         const cvObj = resData.data || resData;
@@ -722,7 +735,7 @@ export function useCvEditor() {
         }
       }
     } catch (e) {
-      toast.error('Failed to revert changes.');
+      toast.error("Failed to revert changes.");
     }
   };
 
@@ -733,13 +746,13 @@ export function useCvEditor() {
 
     setIsEnhancingIndex(index);
     try {
-      const response = await apiFetch('/cv/enhance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await apiFetch("/cv/enhance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: textToEnhance }),
       });
 
-      if (!response.ok) throw new Error('Enhance failed');
+      if (!response.ok) throw new Error("Enhance failed");
       const data = await response.json();
 
       const updatedExp = [...cv.experience];
@@ -747,14 +760,20 @@ export function useCvEditor() {
         updatedExp[index].description = data.text;
       }
       setCv({ ...cv, experience: updatedExp });
-      toast.success(locale === 'en' ? 'Enhanced with AI!' : 'تم تحسين النص بالذكاء الاصطناعي!');
+      toast.success(
+        locale === "en"
+          ? "Enhanced with AI!"
+          : "تم تحسين النص بالذكاء الاصطناعي!",
+      );
     } catch (err) {
       const updatedExp = [...cv.experience];
       if (updatedExp[index]) {
-        updatedExp[index].description = updatedExp[index].description + ' (Enhanced with verified metrics and impact-focused statements)';
+        updatedExp[index].description =
+          updatedExp[index].description +
+          " (Enhanced with verified metrics and impact-focused statements)";
       }
       setCv({ ...cv, experience: updatedExp });
-      toast.info('Simulated rewrite applied.');
+      toast.info("Simulated rewrite applied.");
     } finally {
       setIsEnhancingIndex(null);
     }
@@ -764,18 +783,26 @@ export function useCvEditor() {
   const handleSaveCv = async () => {
     setIsSaving(true);
     try {
-      const response = await apiFetch('/cv/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await apiFetch("/cv/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           data: cv,
         }),
       });
 
-      if (!response.ok) throw new Error('Save failed');
-      toast.success(locale === 'en' ? 'CV profile saved successfully in MongoDB!' : 'تم حفظ السيرة الذاتية بنجاح!');
+      if (!response.ok) throw new Error("Save failed");
+      toast.success(
+        locale === "en"
+          ? "CV profile saved successfully in MongoDB!"
+          : "تم حفظ السيرة الذاتية بنجاح!",
+      );
     } catch (err) {
-      toast.success(locale === 'en' ? 'Saved CV settings locally!' : 'تم حفظ السيرة محلياً!');
+      toast.success(
+        locale === "en"
+          ? "Saved CV settings locally!"
+          : "تم حفظ السيرة محلياً!",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -787,27 +814,35 @@ export function useCvEditor() {
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     try {
-      const response = await apiFetch('/upload/image', {
-        method: 'POST',
+      const response = await apiFetch("/upload/image", {
+        method: "POST",
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Upload failed');
+      if (!response.ok) throw new Error("Upload failed");
       const result = await response.json();
 
-      setCv(prev => ({
+      setCv((prev) => ({
         ...prev,
         personal: {
           ...prev.personal,
-          photoUrl: result.url
-        }
+          photoUrl: result.url,
+        },
       }));
-      toast.success(locale === 'en' ? 'Photo uploaded successfully!' : 'تم رفع الصورة بنجاح!');
+      toast.success(
+        locale === "en"
+          ? "Photo uploaded successfully!"
+          : "تم رفع الصورة بنجاح!",
+      );
     } catch (err: any) {
-      toast.error(locale === 'en' ? `Upload failed: ${err.message}` : `فشل الرفع: ${err.message}`);
+      toast.error(
+        locale === "en"
+          ? `Upload failed: ${err.message}`
+          : `فشل الرفع: ${err.message}`,
+      );
     }
   };
 
@@ -820,7 +855,10 @@ export function useCvEditor() {
   const addExperience = () => {
     setCv({
       ...cv,
-      experience: [...(cv.experience || []), { company: '', role: '', startDate: '', endDate: '', description: '' }],
+      experience: [
+        ...(cv.experience || []),
+        { company: "", role: "", startDate: "", endDate: "", description: "" },
+      ],
     });
   };
 
@@ -833,7 +871,10 @@ export function useCvEditor() {
   const addEducation = () => {
     setCv({
       ...cv,
-      education: [...(cv.education || []), { school: '', degree: '', fieldOfStudy: '', graduateDate: '' }],
+      education: [
+        ...(cv.education || []),
+        { school: "", degree: "", fieldOfStudy: "", graduateDate: "" },
+      ],
     });
   };
 
@@ -846,7 +887,10 @@ export function useCvEditor() {
   const addProject = () => {
     setCv({
       ...cv,
-      projects: [...(cv.projects || []), { name: '', description: '', url: '' }],
+      projects: [
+        ...(cv.projects || []),
+        { name: "", description: "", url: "" },
+      ],
     });
   };
 
@@ -859,7 +903,10 @@ export function useCvEditor() {
   const addReference = () => {
     setCv({
       ...cv,
-      references: [...(cv.references || []), { name: '', relationship: '', phone: '', email: '' }],
+      references: [
+        ...(cv.references || []),
+        { name: "", relationship: "", phone: "", email: "" },
+      ],
     });
   };
 
@@ -873,17 +920,28 @@ export function useCvEditor() {
   const handleAddSection = () => {
     if (!showReferences) {
       setShowReferences(true);
-      toast.success(locale === 'en' ? 'References section added!' : 'تم إضافة قسم المراجع!');
+      toast.success(
+        locale === "en" ? "References section added!" : "تم إضافة قسم المراجع!",
+      );
     } else if (!showHobbies) {
       setShowHobbies(true);
-      toast.success(locale === 'en' ? 'Hobbies section added!' : 'تم إضافة قسم الهوايات!');
+      toast.success(
+        locale === "en" ? "Hobbies section added!" : "تم إضافة قسم الهوايات!",
+      );
     } else {
-      toast.info(locale === 'en' ? 'All sections are already added.' : 'تم إضافة جميع الأقسام المتاحة بالفعل.');
+      toast.info(
+        locale === "en"
+          ? "All sections are already added."
+          : "تم إضافة جميع الأقسام المتاحة بالفعل.",
+      );
     }
   };
 
   // Filtering skills or items using the top search bar
-  const filteredSkills = cv.skills.filter(s => searchQuery === '' || s.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredSkills = cv.skills.filter(
+    (s) =>
+      searchQuery === "" || s.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   // AI Resume Generator & Tailoring
   const handleGenerateTailoredCv = async (overrideTitle?: string, overrideDesc?: string) => {

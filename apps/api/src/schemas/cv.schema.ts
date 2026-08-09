@@ -362,5 +362,4 @@ export class Cv extends Document {
   atsAnalysis?: CvAtsAnalysis;
 }
 
-
 export const CvSchema = SchemaFactory.createForClass(Cv);

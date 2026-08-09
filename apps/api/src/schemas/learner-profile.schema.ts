@@ -27,6 +27,15 @@ export class LearnerProfile extends Document {
   @Prop({ type: [String], default: [] })
   skills!: string[];
 
+  @Prop()
+  location?: string;
+
+  @Prop({ type: [String], default: [] })
+  certifications!: string[];
+
+  @Prop()
+  industry?: string;
+
   @Prop({ default: false })
   availableForHire!: boolean;
 }

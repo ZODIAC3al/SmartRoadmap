@@ -1,0 +1,18 @@
+{
+  "name": "SmartRoadmap — AI Career Intelligence Platform",
+  "short_name": "SmartRoadmap",
+  "description": "AI-Powered personalized learning roadmaps, verified skill passports, and direct recruitment matchmaking.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#10B981",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
