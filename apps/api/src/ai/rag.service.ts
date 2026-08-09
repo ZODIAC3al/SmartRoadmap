@@ -11,7 +11,7 @@ const VECTOR_SIZE = 1536;
 export class RAGService implements OnModuleInit {
   private readonly logger = new Logger(RAGService.name);
   private readonly isMockMode: boolean;
-  private readonly client: QdrantClient | null;
+  public readonly client: QdrantClient | null;
 
   constructor(
     private readonly embeddingService: EmbeddingService,
@@ -45,8 +45,10 @@ export class RAGService implements OnModuleInit {
         });
         this.logger.log(`Created Qdrant collection "${name}"`);
       } catch (error: any) {
-        this.logger.error(
-          `Could not ensure Qdrant collection "${name}": ${error.message}`,
+        // Qdrant is optional — a missing local instance is expected in
+        // development. Log as debug so it doesn't pollute startup output.
+        this.logger.debug(
+          `Qdrant collection "${name}" unavailable (${error.message}) — RAG will use mocks until Qdrant is reachable.`,
         );
       }
     }

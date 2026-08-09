@@ -124,7 +124,6 @@ export class CvService {
     if (!cv) {
       cv = await this.cvModel.findOne({ userId: new Types.ObjectId(userId) });
     }
-
     if (!cv) {
       cv = new this.cvModel({
         userId: new Types.ObjectId(userId),
@@ -166,7 +165,7 @@ export class CvService {
 
     const enhanced = await this.llmService.complete(
       `Rewrite this resume bullet to be impactful, active-voice and results-driven. ` +
-        `Return ONLY the rewritten sentence (1-2 sentences):\n\n"${text}"`,
+      `Return ONLY the rewritten sentence (1-2 sentences):\n\n"${text}"`,
       { system: 'You are a professional resume writer.' },
     );
 
@@ -257,9 +256,11 @@ export class CvService {
       'Vue',
       'Next.js',
       'NextJS',
+      'Nuxt',
       'Svelte',
       'JavaScript',
       'TypeScript',
+      'ES6',
       'HTML',
       'CSS',
       'Sass',
@@ -270,15 +271,23 @@ export class CvService {
       'NodeJS',
       'Express',
       'NestJS',
+      'Nest.js',
+      'Koa',
+      'Fastify',
       'Python',
       'Django',
       'Flask',
       'FastAPI',
+      'Ruby',
+      'Rails',
+      'PHP',
+      'Laravel',
       'Java',
       'Spring',
       'Spring Boot',
       'Kotlin',
       'Swift',
+      'Objective-C',
       'Flutter',
       'React Native',
       'Go',
@@ -290,23 +299,43 @@ export class CvService {
       'SQL',
       'MySQL',
       'PostgreSQL',
+      'SQLite',
       'MongoDB',
       'Redis',
+      'Cassandra',
+      'Elasticsearch',
+      'DynamoDB',
       'Docker',
       'Kubernetes',
       'AWS',
       'Azure',
       'GCP',
       'Firebase',
+      'Supabase',
+      'Heroku',
+      'Netlify',
+      'Vercel',
       'Git',
       'GitHub',
+      'GitLab',
       'CI/CD',
-      'GraphQL',
+      'Jenkins',
+      'GitHub Actions',
       'REST',
+      'GraphQL',
+      'gRPC',
+      'WebSockets',
+      'Microservices',
+      'Serverless',
       'Agile',
       'Scrum',
+      'Jira',
       'Figma',
+      'UI/UX',
       'Jest',
+      'Mocha',
+      'Cypress',
+      'Playwright',
     ];
     const skills: string[] = [];
     for (const kw of skillKeywords) {
@@ -628,37 +657,37 @@ ${plainText}`,
 
     try {
       userObj = await this.userModel.findById(userId).exec();
-    } catch {}
+    } catch { }
 
     try {
       learnerProfileObj = await this.learnerProfileModel
         .findOne({ userId: new Types.ObjectId(userId) })
         .exec();
-    } catch {}
+    } catch { }
 
     try {
       roadmapsList = await this.roadmapModel
         .find({ userId: new Types.ObjectId(userId) })
         .exec();
-    } catch {}
+    } catch { }
 
     try {
       quizzesList = await this.quizSessionModel
         .find({ userId: new Types.ObjectId(userId), passed: true })
         .exec();
-    } catch {}
+    } catch { }
 
     try {
       if (dto.includeProjects !== false) {
         projectsList = await this.projectService.list(userId);
       }
-    } catch {}
+    } catch { }
 
     try {
       if (dto.includeCertificates !== false) {
         certsList = await this.certificateService.list(userId);
       }
-    } catch {}
+    } catch { }
 
     try {
       existingCv = await this.getCvByUserId(userId);
@@ -700,20 +729,20 @@ ${plainText}`,
     const verifiedProjects =
       projectsList.length > 0
         ? projectsList.map((p) => ({
-            name: p.name,
-            description: p.description,
-            url: p.demoLink || p.githubUrl || 'https://github.com',
-          }))
+          name: p.name,
+          description: p.description,
+          url: p.demoLink || p.githubUrl || 'https://github.com',
+        }))
         : existingCv?.projects?.length
           ? existingCv.projects
           : [
-              {
-                name: 'SmartRoadmap Core Application',
-                description:
-                  'Engineered full-stack interactive roadmaps and automated skill progress tracker.',
-                url: 'https://github.com/developia/smartroadmap',
-              },
-            ];
+            {
+              name: 'SmartRoadmap Core Application',
+              description:
+                'Engineered full-stack interactive roadmaps and automated skill progress tracker.',
+              url: 'https://github.com/developia/smartroadmap',
+            },
+          ];
 
     const verifiedCertificates = certsList.map((c) => ({
       title: c.title,
@@ -725,26 +754,26 @@ ${plainText}`,
       existingCv?.education?.length > 0
         ? existingCv.education
         : [
-            {
-              school: learnerProfileObj?.educationLevel || 'Computer Science Institute',
-              degree: 'Bachelor of Science in Software Engineering',
-              fieldOfStudy: 'Computer Science',
-              graduateDate: '2024-05',
-            },
-          ];
+          {
+            school: learnerProfileObj?.educationLevel || 'Computer Science Institute',
+            degree: 'Bachelor of Science in Software Engineering',
+            fieldOfStudy: 'Computer Science',
+            graduateDate: '2024-05',
+          },
+        ];
 
     const verifiedExperience =
       existingCv?.experience?.length > 0
         ? existingCv.experience
         : [
-            {
-              company: 'SmartRoadmap Verified Labs',
-              role: `${dto.targetJobTitle} (Project Engineer)`,
-              startDate: '2024-01',
-              endDate: 'Present',
-              description: `Developed and deployed production-ready applications, completed ${completedRoadmapModules.length || 4} learning modules, and scored passing grades on verified technical assessments.`,
-            },
-          ];
+          {
+            company: 'SmartRoadmap Verified Labs',
+            role: `${dto.targetJobTitle} (Project Engineer)`,
+            startDate: '2024-01',
+            endDate: 'Present',
+            description: `Developed and deployed production-ready applications, completed ${completedRoadmapModules.length || 4} learning modules, and scored passing grades on verified technical assessments.`,
+          },
+        ];
 
     const baseData = {
       personal: {
@@ -827,16 +856,16 @@ Instructions:
 
     const cvText = cv
       ? JSON.stringify({
-          personal: cv.personal,
-          summary: cv.personal?.summary,
-          skills: cv.skills,
-          experience: cv.experience,
-          education: cv.education,
-          projects: cv.projects,
-          certifications: cv.certifications,
-          courses: cv.courses,
-          languages: cv.languages,
-        })
+        personal: cv.personal,
+        summary: cv.personal?.summary,
+        skills: cv.skills,
+        experience: cv.experience,
+        education: cv.education,
+        projects: cv.projects,
+        certifications: cv.certifications,
+        courses: cv.courses,
+        languages: cv.languages,
+      })
       : 'No CV content available.';
 
     const prompt = `You are a corporate Applicant Tracking System (ATS) scanner.
@@ -1001,7 +1030,7 @@ Return ONLY a valid JSON object matching the following fields:
         dbCv.atsAnalysis = analysis;
         await dbCv.save();
       }
-    } catch {}
+    } catch { }
 
     return analysis;
   }
@@ -1034,7 +1063,7 @@ Return ONLY a JSON object: { summary: string }.`;
       try {
         const parsed = JSON.parse(raw);
         if (parsed.summary) updatedSummary = parsed.summary;
-      } catch {}
+      } catch { }
     }
 
     const updatedData = {
