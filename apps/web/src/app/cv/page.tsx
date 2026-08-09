@@ -62,7 +62,7 @@ export default function CvPage() {
     handleCancel,
     handleEnhanceDescription,
     handleExportPDF,
-    handleFileUpload,
+    handleGenerateFromProfile,
     handlePhotoUpload,
     handleSaveCv,
     isParsing,
@@ -100,7 +100,7 @@ export default function CvPage() {
           <div>
             <h1 className="font-extrabold text-base leading-none">CV Studio</h1>
             <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
-              Professional Resume Builder & ATS Optimizer
+              Professional AI Resume Generator & ATS Optimizer
             </p>
           </div>
         </div>
@@ -128,19 +128,13 @@ export default function CvPage() {
 
               <button
                 type="button"
-                onClick={() => document.getElementById('resumeFileUploadTrigger')?.click()}
-                className="btn btn-outline border-base-300 text-base-content btn-xs sm:btn-sm rounded-lg flex items-center gap-1"
+                onClick={() => handleGenerateFromProfile()}
+                disabled={isParsing}
+                className="btn bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 btn-xs sm:btn-sm rounded-lg font-bold flex items-center gap-1 border-none shadow-sm"
               >
-                <UploadIcon />
-                Upload PDF
+                {isParsing ? <span className="loading loading-spinner loading-xs mr-1"></span> : <SparklesIcon />}
+                Generate My CV with AI
               </button>
-              <input
-                type="file"
-                id="resumeFileUploadTrigger"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
 
               <button
                 onClick={handleSaveCv}
@@ -170,18 +164,26 @@ export default function CvPage() {
           <div className="bg-gradient-to-r from-primary/10 via-emerald-500/10 to-teal-500/10 border border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
             <div>
               <h2 className="text-xl font-extrabold text-base-content">
-                Create & Optimize Job-Ready Resumes
+                Create & Optimize Job-Ready Resumes with AI
               </h2>
               <p className="text-xs text-base-content/70 mt-1 max-w-xl">
-                Build ATS-compliant CVs customized for every role. Connect GitHub & LinkedIn to auto-import repositories and personal details.
+                Automatically assemble your skills, roadmap milestones, certificates, and projects into an ATS-optimized professional resume.
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={() => handleGenerateFromProfile()}
+                disabled={isParsing}
+                className="btn bg-emerald-600 hover:bg-emerald-700 text-white btn-sm rounded-xl font-bold border-none shadow flex items-center gap-1.5"
+              >
+                {isParsing ? <span className="loading loading-spinner loading-xs"></span> : <SparklesIcon />}
+                Generate My CV with AI
+              </button>
               <button
                 onClick={handleCreateNewCv}
-                className="btn bg-primary hover:bg-[#059669] text-white btn-sm rounded-xl font-bold border-none shadow"
+                className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-sm rounded-xl font-bold"
               >
-                + Create New CV
+                + Blank CV
               </button>
               <Link
                 href="/portfolio/builder"
@@ -205,7 +207,7 @@ export default function CvPage() {
                 <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
                   📝
                 </div>
-                <h4 className="font-extrabold text-base">You don't have any saved CVs yet.</h4>
+                <h4 className="font-extrabold text-base">You don&apos;t have any saved CVs yet.</h4>
                 <p className="text-xs text-base-content/60 max-w-md mx-auto">
                   Create your first CV in minutes with tailored ATS analysis and GitHub repository imports.
                 </p>

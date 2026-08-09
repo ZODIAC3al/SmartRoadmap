@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
@@ -8,12 +9,14 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Job } from '../../schemas/job.schema';
+import { JobApplication } from '../../schemas/job-application.schema';
 import { User } from '../../schemas/user.schema';
 import { Roadmap } from '../../schemas/roadmap.schema';
 import { QuizSession } from '../../schemas/quiz-session.schema';
 import { Cv } from '../../schemas/cv.schema';
 import { RAGService, JOBS_COLLECTION } from '../../ai/rag.service';
 import { EmbeddingService } from '../../ai/embedding.service';
+import { CreateApplicationDto, UpdateApplicationStatusDto } from './dto/hiring.dto';
 
 @Injectable()
 export class HiringService implements OnModuleInit {
@@ -21,6 +24,7 @@ export class HiringService implements OnModuleInit {
 
   constructor(
     @InjectModel(Job.name) private readonly jobModel: Model<Job>,
+    @InjectModel(JobApplication.name) private readonly applicationModel: Model<JobApplication>,
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Roadmap.name) private readonly roadmapModel: Model<Roadmap>,
     @InjectModel(QuizSession.name)
@@ -54,56 +58,51 @@ export class HiringService implements OnModuleInit {
             company: 'Lattice HR',
             location: 'Remote',
             country: 'US',
-            requiredSkills: [
-              'HTML/CSS',
-              'JavaScript',
-              'React',
-              'TypeScript',
-              'Git',
-            ],
+            requiredSkills: ['HTML/CSS', 'JavaScript', 'React', 'TypeScript', 'Git'],
+            technologies: ['React', 'TypeScript', 'Vite', 'Tailwind CSS'],
             salaryMin: 80000,
             salaryMax: 110000,
             remote: true,
+            workType: 'remote',
+            jobType: 'full-time',
+            experienceLevel: 'mid',
             description:
               'Join our premium product team to build and design stunning human-resource workflow visualizations. Requires strong experience in React and TypeScript design tokens.',
+            postedAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
           },
           {
             title: 'NodeJS Backend Developer',
             company: 'Osome Services',
             location: 'Singapore',
             country: 'SG',
-            requiredSkills: [
-              'JavaScript',
-              'TypeScript',
-              'Node.js',
-              'SQL',
-              'Docker',
-              'Git',
-            ],
+            requiredSkills: ['JavaScript', 'TypeScript', 'Node.js', 'SQL', 'Docker', 'Git'],
+            technologies: ['NestJS', 'MongoDB', 'Docker', 'PostgreSQL'],
             salaryMin: 70000,
             salaryMax: 95000,
             remote: true,
+            workType: 'hybrid',
+            jobType: 'full-time',
+            experienceLevel: 'mid',
             description:
               'Help build scalable accounting microservices, integrate MongoDB, design secure authentication pipelines, and deploy using containerized Docker engines.',
+            postedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
           },
           {
             title: 'Full Stack Engineer',
             company: 'Developia Dev',
             location: 'Cairo',
             country: 'EG',
-            requiredSkills: [
-              'HTML/CSS',
-              'JavaScript',
-              'React',
-              'Node.js',
-              'SQL',
-              'Git',
-            ],
+            requiredSkills: ['HTML/CSS', 'JavaScript', 'React', 'Node.js', 'SQL', 'Git'],
+            technologies: ['React', 'Node.js', 'MongoDB', 'Express'],
             salaryMin: 25000,
             salaryMax: 40000,
             remote: false,
+            workType: 'onsite',
+            jobType: 'full-time',
+            experienceLevel: 'entry',
             description:
               'We are seeking a generalist software developer to help support client websites. Work across React frontends and Node/Mongoose API layers.',
+            postedAt: new Date(Date.now() - 7 * 60 * 60 * 1000),
           },
           {
             title: 'Data & Analytics Engineer',
@@ -111,11 +110,50 @@ export class HiringService implements OnModuleInit {
             location: 'New York',
             country: 'US',
             requiredSkills: ['Python', 'SQL', 'Git', 'Docker'],
+            technologies: ['Python', 'Qdrant', 'PostgreSQL', 'Apache Kafka'],
             salaryMin: 95000,
             salaryMax: 130000,
             remote: true,
+            workType: 'remote',
+            jobType: 'full-time',
+            experienceLevel: 'senior',
             description:
               'Maintain vector database connections (Qdrant), orchestrate ETL data pipelines in Python, and align client event streams dynamically.',
+            postedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          },
+          {
+            title: 'Next.js Product Engineer',
+            company: 'Linear App SAS',
+            location: 'Paris',
+            country: 'FR',
+            requiredSkills: ['React', 'TypeScript', 'Next.js', 'CSS'],
+            technologies: ['Next.js', 'TypeScript', 'GraphQL', 'Linear SDK'],
+            salaryMin: 90000,
+            salaryMax: 120000,
+            remote: false,
+            workType: 'hybrid',
+            jobType: 'full-time',
+            experienceLevel: 'mid',
+            description:
+              'Join our client interface team to build fast keyboard-driven features. Focus on design tokens alignment and clean, type-safe API consumption.',
+            postedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          },
+          {
+            title: 'React Prototyping Engineer',
+            company: 'Vercel, Inc.',
+            location: 'Remote',
+            country: 'US',
+            requiredSkills: ['React', 'Next.js', 'JavaScript', 'Docker'],
+            technologies: ['Next.js', 'Vercel Edge', 'React Server Components'],
+            salaryMin: 110000,
+            salaryMax: 135000,
+            remote: true,
+            workType: 'remote',
+            jobType: 'full-time',
+            experienceLevel: 'senior',
+            description:
+              'Seeking a developer focused on rendering pipeline optimization and edge-computing templates. Docker configuration experience is nice to have.',
+            postedAt: new Date(Date.now() - 30 * 60 * 1000),
           },
         ]);
         for (const job of saved) {
@@ -389,6 +427,84 @@ export class HiringService implements OnModuleInit {
       message: `Added ${gap.length} module(s) to your roadmap.`,
     };
   }
+
+  // ── Application Pipeline Methods ────────────────────────────────────────────
+
+  async getApplicationsForUser(userId: string): Promise<JobApplication[]> {
+    return this.applicationModel
+      .find({ userId: new Types.ObjectId(userId) })
+      .sort({ updatedAt: -1 })
+      .exec();
+  }
+
+  async getApplicationByJobId(userId: string, jobId: string): Promise<JobApplication | null> {
+    return this.applicationModel.findOne({
+      userId: new Types.ObjectId(userId),
+      jobId,
+    }).exec();
+  }
+
+  async upsertApplication(
+    userId: string,
+    dto: CreateApplicationDto,
+  ): Promise<JobApplication> {
+    const existing = await this.applicationModel.findOne({
+      userId: new Types.ObjectId(userId),
+      jobId: dto.jobId,
+    });
+
+    if (existing) {
+      // If moving from interested → applied, set appliedAt
+      if (dto.status === 'applied' && existing.status === 'interested') {
+        existing.appliedAt = new Date();
+      }
+      // Allow status upgrade but block downgrade of applied to interested
+      if (existing.status === 'applied' && dto.status === 'interested') {
+        throw new ConflictException('Cannot revert status from applied to interested.');
+      }
+      Object.assign(existing, {
+        status: dto.status || existing.status,
+        cvId: dto.cvId || existing.cvId,
+        cvTitle: dto.cvTitle || existing.cvTitle,
+        matchScore: dto.matchScore ?? existing.matchScore,
+        notes: dto.notes ?? existing.notes,
+      });
+      return existing.save();
+    }
+
+    const app = new this.applicationModel({
+      userId: new Types.ObjectId(userId),
+      jobId: dto.jobId,
+      jobTitle: dto.jobTitle,
+      company: dto.company,
+      cvId: dto.cvId,
+      cvTitle: dto.cvTitle,
+      matchScore: dto.matchScore ?? 0,
+      status: dto.status || 'interested',
+      notes: dto.notes,
+      appliedAt: dto.status === 'applied' ? new Date() : undefined,
+    });
+    return app.save();
+  }
+
+  async updateApplicationStatus(
+    userId: string,
+    applicationId: string,
+    dto: UpdateApplicationStatusDto,
+  ): Promise<JobApplication> {
+    const app = await this.applicationModel.findOne({
+      _id: applicationId,
+      userId: new Types.ObjectId(userId),
+    });
+    if (!app) throw new NotFoundException('Application not found.');
+
+    app.status = dto.status;
+    if (dto.notes !== undefined) app.notes = dto.notes;
+    if (dto.status === 'applied' && !app.appliedAt) app.appliedAt = new Date();
+    return app.save();
+  }
+
+  // ────────────────────────────────────────────────────────────────────────────
 
   async getCandidates(): Promise<any[]> {
     this.logger.log(
