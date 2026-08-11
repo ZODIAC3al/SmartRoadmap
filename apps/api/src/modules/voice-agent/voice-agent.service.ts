@@ -12,7 +12,7 @@ export class VoiceAgentService {
   private readonly apiKey: string;
 
   constructor(private readonly config: ConfigService) {
-    this.apiKey = this.config.getOrThrow<string>('ASSEMBLYAI_API_KEY');
+    this.apiKey = this.config.get<string>('ASSEMBLYAI_API_KEY') ?? '';
   }
 
   /**
@@ -23,6 +23,11 @@ export class VoiceAgentService {
    * The token expires in 60 s and is single-use per session.
    */
   async mintToken(maxSessionSeconds = 1800): Promise<{ token: string }> {
+    if (!this.apiKey) {
+      throw new InternalServerErrorException(
+        'ASSEMBLYAI_API_KEY is not configured on the server',
+      );
+    }
     try {
       const res = await axios.get<{ token: string }>(
         'https://agents.assemblyai.com/v1/token',

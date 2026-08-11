@@ -612,11 +612,15 @@ export function AppContextProvider({
     const savedTheme = localStorage.getItem("smart_theme") as Theme;
     const savedLocale = localStorage.getItem("smart_locale") as Locale;
 
-    if (savedTheme) {
-      setThemeState(savedTheme);
-      document.documentElement.setAttribute("data-theme", savedTheme);
+    const initialTheme = savedTheme || "smartdark";
+    setThemeState(initialTheme);
+    document.documentElement.setAttribute("data-theme", initialTheme);
+    if (initialTheme === "smartlight") {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
     } else {
-      document.documentElement.setAttribute("data-theme", "smartlight");
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
     }
 
     if (savedLocale) {
@@ -682,6 +686,13 @@ export function AppContextProvider({
     setThemeState(newTheme);
     localStorage.setItem("smart_theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
+    if (newTheme === "smartlight") {
+      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("light");
+    } else {
+      document.documentElement.classList.remove("light");
+      document.documentElement.classList.add("dark");
+    }
   };
 
   const toggleTheme = () => {

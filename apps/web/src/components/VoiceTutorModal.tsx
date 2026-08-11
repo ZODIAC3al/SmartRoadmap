@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { useVoiceTutor } from "@/hooks/useVoiceTutor";
 import { Mic, MicOff, BookOpen, BrainCircuit, X, Play, Square, AlertCircle, Volume2 } from "lucide-react";
 
@@ -60,7 +60,7 @@ export default function VoiceTutorModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 select-none">
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -151,7 +151,7 @@ export default function VoiceTutorModal({
               <div className="relative flex items-center justify-center">
                 <AnimatePresence>
                   {(status === "talking" || status === "listening") && (
-                    <motion.div
+                    <m.div
                       initial={{ scale: 0.8, opacity: 0.5 }}
                       animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
                       exit={{ opacity: 0 }}
@@ -247,7 +247,7 @@ export default function VoiceTutorModal({
             </button>
           </div>
         )}
-      </motion.div>
+      </m.div>
     </div>
   );
 }

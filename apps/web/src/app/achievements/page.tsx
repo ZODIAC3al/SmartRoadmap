@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { apiFetch, getToken } from "@/lib/api";
 import { Trophy, Star, Shield, Lock, CheckCircle2, Zap } from "lucide-react";
 
@@ -124,7 +124,7 @@ export default function AchievementsPage() {
         {newUnlocks.map((key) => {
           const ach = achievements.find((a) => a.key === key);
           return (
-            <motion.div
+            <m.div
               key={key}
               initial={{ opacity: 0, y: -60, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -140,7 +140,7 @@ export default function AchievementsPage() {
                 <p className="text-xs font-black text-yellow-300 uppercase tracking-wider">Achievement Unlocked!</p>
                 <p className="text-sm font-bold text-base-content">{ach?.title}</p>
               </div>
-            </motion.div>
+            </m.div>
           );
         })}
       </AnimatePresence>
@@ -247,7 +247,7 @@ export default function AchievementsPage() {
             {filtered.map((ach, i) => {
               const tier = TIER_STYLES[ach.tier];
               return (
-                <motion.div
+                <m.div
                   key={ach.key}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -292,14 +292,14 @@ export default function AchievementsPage() {
 
                   {/* Shimmer on newly unlocked */}
                   {newUnlocks.includes(ach.key) && (
-                    <motion.div
+                    <m.div
                       initial={{ opacity: 0.8, scale: 1 }}
                       animate={{ opacity: 0, scale: 1.1 }}
                       transition={{ duration: 1.5 }}
                       className="absolute inset-0 rounded-2xl bg-yellow-400/20 pointer-events-none"
                     />
                   )}
-                </motion.div>
+                </m.div>
               );
             })}
           </div>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import Link from "next/link";
 
 type CalendarEventItem = {
@@ -233,7 +233,7 @@ export default function CalendarPage() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* LEFT COLUMN: Isabella Santos Profile Card & Subjects (Image 3 layout) */}
-        <motion.aside 
+        <m.aside 
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
@@ -333,7 +333,7 @@ export default function CalendarPage() {
               Save availability configuration
             </button>
           </div>
-        </motion.aside>
+        </m.aside>
 
         {/* MIDDLE/RIGHT PANEL STRUCTURE (Image 3 details) */}
         <div className="lg:col-span-9 space-y-8">
@@ -342,7 +342,7 @@ export default function CalendarPage() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             
             {/* Card 1: Schedule session Calendar Grid widget */}
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
@@ -363,10 +363,10 @@ export default function CalendarPage() {
                 <span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span className="bg-indigo-500 text-white rounded-full p-0.5">15</span><span>16</span>
                 <span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* Card 2: Reviews Panel (mimics Biology Sarah Blue review cards list) */}
-            <motion.div 
+            <m.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
@@ -397,12 +397,12 @@ export default function CalendarPage() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
 
           </div>
 
           {/* Row 2: Current week schedule weekly layout Grid (13:00 to 20:00) */}
-          <motion.div 
+          <m.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
@@ -514,7 +514,7 @@ export default function CalendarPage() {
               )}
 
             </div>
-          </motion.div>
+          </m.div>
 
         </div>
 
@@ -523,7 +523,7 @@ export default function CalendarPage() {
       {/* Add Custom Event Modal Overlay */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="w-full max-w-md bg-base-250 border border-base-300 rounded-[2rem] p-6 shadow-2xl space-y-5 text-start bg-base-200"
@@ -628,7 +628,7 @@ export default function CalendarPage() {
                 </button>
               </div>
             </form>
-          </motion.div>
+          </m.div>
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { m, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useApp } from "@/components/AppContext";
 import { toast } from "react-toastify";
 import { apiFetch, hasSession } from "@/lib/api";
@@ -134,14 +134,14 @@ export default function NotificationsPage() {
               {tr("back")}
             </Link>
             {unreadCount > 0 && (
-              <motion.button
+              <m.button
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
                 onClick={handleMarkAllRead}
                 className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-xs sm:btn-sm rounded-lg text-xs font-bold gap-1.5"
               >
                 <i className="lni lni-checkmark-circle" />
                 {tr("markAll")}
-              </motion.button>
+              </m.button>
             )}
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function NotificationsPage() {
         {!loading && (
           <div className="relative">
             {filteredNotifications.length === 0 ? (
-              <motion.div
+              <m.div
                 initial={prefersReducedMotion ? undefined : { opacity: 0, y: 8 }}
                 animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 className="bg-base-200 border border-base-300 rounded-2xl p-12 text-center"
@@ -193,7 +193,7 @@ export default function NotificationsPage() {
                 <p className="text-xs text-base-content/50 font-bold mt-3">
                   {filter === "unread" ? tr("emptyUnread") : tr("empty")}
                 </p>
-              </motion.div>
+              </m.div>
             ) : (
               <div className="relative ps-1">
                 {/* connecting vertical line */}
@@ -204,7 +204,7 @@ export default function NotificationsPage() {
                     {filteredNotifications.map((n, i) => {
                       const meta = typeMeta(n.type);
                       return (
-                        <motion.li
+                        <m.li
                           key={n._id}
                           layout
                           initial={prefersReducedMotion ? undefined : { opacity: 0, x: isAr ? 12 : -12 }}
@@ -271,7 +271,7 @@ export default function NotificationsPage() {
                               </button>
                             </div>
                           </div>
-                        </motion.li>
+                        </m.li>
                       );
                     })}
                   </AnimatePresence>

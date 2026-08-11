@@ -4,32 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { motion, useReducedMotion } from "framer-motion";
-import {
-  RadialBarChart,
-  RadialBar,
-  PolarAngleAxis,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarRadiusAxis,
-  ComposedChart,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from "recharts";
+import { m, useReducedMotion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useApp } from "@/components/AppContext";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 import {
@@ -70,6 +46,28 @@ import {
   Check,
 } from "lucide-react";
 import VoiceTutorModal from "@/components/VoiceTutorModal";
+
+// ─── Charts ────────────────────────────────────────────────────────────────
+// Recharts and its d3 dependencies are ~200 kB. None of it is needed to paint
+// the page, so it loads after hydration instead of blocking first render.
+// All eight pull from the same module, so they share one async chunk.
+const ChartSkeleton = () => (
+  <div className="h-full w-full animate-pulse rounded-xl bg-base-300/40" aria-hidden />
+);
+const lazyChart = <P,>(pick: (m: any) => React.ComponentType<P>) =>
+  dynamic<P>(() => import("@/components/charts/DashboardCharts").then(pick), {
+    ssr: false,
+    loading: ChartSkeleton,
+  });
+
+const ProgressRadial = lazyChart<{ data: any[] }>((m) => m.ProgressRadial);
+const StreakBars = lazyChart<{ data: any[]; daysLabel: string }>((m) => m.StreakBars);
+const QuizHistoryLine = lazyChart<{ data: any[] }>((m) => m.QuizHistoryLine);
+const StudyTimeArea = lazyChart<{ data: any[] }>((m) => m.StudyTimeArea);
+const SkillRadar = lazyChart<{ data: any[] }>((m) => m.SkillRadar);
+const TopicDonut = lazyChart<{ data: any[] }>((m) => m.TopicDonut);
+const DailyMinutesArea = lazyChart<{ data: any[] }>((m) => m.DailyMinutesArea);
+const QuizzesAndScoreBars = lazyChart<{ data: any[] }>((m) => m.QuizzesAndScoreBars);
 
 // ─── Types (unchanged contract with backend) ───────────────────────────────
 type Module = {
@@ -1028,15 +1026,15 @@ export default function DashboardPage() {
     <div dir={isAr ? "rtl" : "ltr"} className="bg-base-100 text-base-content min-h-screen pb-12 pt-6 px-4 sm:px-8 overflow-x-hidden">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Greeting */}
-        <motion.div {...fadeUp} transition={{ duration: 0.4 }} className="space-y-2 text-start">
+        <m.div {...fadeUp} transition={{ duration: 0.4 }} className="space-y-2 text-start">
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-base-content">
             {tr("greeting", { name: user.name })}
           </h1>
           <p className="text-sm text-base-content/45 max-w-xl">{tr("intro")}</p>
-        </motion.div>
+        </m.div>
 
         {/* Action cards */}
-        <motion.div
+        <m.div
           variants={container}
           initial="hidden"
           animate="show"
@@ -1047,7 +1045,7 @@ export default function DashboardPage() {
             { icon: <Zap className="w-5 h-5" />, title: tr("card2Title"), body: tr("card2Body"), color: "bg-emerald-600/10 text-emerald-600" },
             { icon: <Users className="w-5 h-5" />, title: tr("card3Title"), body: tr("card3Body"), color: "bg-purple-600/10 text-purple-600" },
           ].map((c, i) => (
-            <motion.div
+            <m.div
               key={i}
               variants={item}
               className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm flex items-start gap-4 hover:shadow-md transition-all duration-300"
@@ -1059,9 +1057,9 @@ export default function DashboardPage() {
                 <h3 className="font-bold text-base-content text-sm">{c.title}</h3>
                 <p className="text-xs text-base-content/45">{c.body}</p>
               </div>
-            </motion.div>
+            </m.div>
           ))}
-        </motion.div>
+        </m.div>
 
         {/* Tab Switcher */}
         <div className="flex border-b border-base-300 gap-6 text-sm font-semibold mb-6">
@@ -1093,26 +1091,12 @@ export default function DashboardPage() {
             {/* LEFT COLUMN */}
             <div className="lg:col-span-8 space-y-6">
               {/* Progress + Streak charts (Recharts, real data only) */}
-              <motion.div {...fadeUp} transition={{ duration: 0.4 }} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <m.div {...fadeUp} transition={{ duration: 0.4 }} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Roadmap progress radial */}
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start">
                   <h3 className="font-bold text-base-content text-sm mb-2">{tr("progressTitle")}</h3>
                   <div className="relative h-40">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadialBarChart
-                        cx="50%"
-                        cy="50%"
-                        innerRadius="70%"
-                        outerRadius="100%"
-                        barSize={14}
-                        data={progressData}
-                        startAngle={90}
-                        endAngle={-270}
-                      >
-                        <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                        <RadialBar background dataKey="value" cornerRadius={12} />
-                      </RadialBarChart>
-                    </ResponsiveContainer>
+                    <ProgressRadial data={progressData} />
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-2xl font-black text-indigo-600">{summary.roadmapProgress}%</span>
                     </div>
@@ -1130,39 +1114,20 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   <div className="h-40">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={streakData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.15} />
-                        <XAxis dataKey="name" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                        <Tooltip
-                          formatter={(v: any) => [`${v} ${tr("days")}`, ""]}
-                          contentStyle={{ borderRadius: 12, fontSize: 12 }}
-                        />
-                        <Bar dataKey="value" fill="#f59e0b" radius={[6, 6, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <StreakBars data={streakData} daysLabel={tr("days")} />
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
 
               {/* Assessment & Study Time Charts */}
-              <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.05 }} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <m.div {...fadeUp} transition={{ duration: 0.4, delay: 0.05 }} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* LineChart for Quiz Performance */}
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start">
                   <h3 className="font-bold text-base-content text-sm mb-4 flex items-center gap-1.5">
                     <Activity className="w-4 h-4 text-indigo-500" /> Assessment History
                   </h3>
                   <div className="h-40">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={quizHistoryData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.15} />
-                        <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} domain={[0, 100]} />
-                        <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-                        <Line type="monotone" dataKey="score" stroke="#4f46e5" strokeWidth={3} activeDot={{ r: 6 }} dot={{ strokeWidth: 2, r: 4 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <QuizHistoryLine data={quizHistoryData} />
                   </div>
                 </div>
 
@@ -1172,27 +1137,13 @@ export default function DashboardPage() {
                     <i className="lni lni-timer text-emerald-500" /> Study Activity
                   </h3>
                   <div className="h-40">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={studyTimeData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="colorMinutes" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.15} />
-                        <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-                        <Area type="monotone" dataKey="minutes" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorMinutes)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                    <StudyTimeArea data={studyTimeData} />
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
 
               {/* Skill Radar & Topic Allocation Charts */}
-              <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.07 }} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <m.div {...fadeUp} transition={{ duration: 0.4, delay: 0.07 }} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* RadarChart for Skill Mastery Matrix */}
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start">
                   <h3 className="font-bold text-base-content text-sm mb-2 flex items-center gap-1.5">
@@ -1200,13 +1151,7 @@ export default function DashboardPage() {
                     <span>Skill Mastery Matrix 🎯</span>
                   </h3>
                   <div className="h-44">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarSkillData}>
-                        <PolarGrid stroke="#cbd5e1" opacity={0.3} />
-                        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: "#64748b" }} />
-                        <Radar name="Mastery %" dataKey="A" stroke="#6366f1" fill="#6366f1" fillOpacity={0.4} />
-                      </RadarChart>
-                    </ResponsiveContainer>
+                    <SkillRadar data={radarSkillData} />
                   </div>
                 </div>
 
@@ -1217,31 +1162,13 @@ export default function DashboardPage() {
                     <span>Study Time Allocation 📊</span>
                   </h3>
                   <div className="h-44 flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={topicDistributionData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={35}
-                          outerRadius={60}
-                          paddingAngle={4}
-                          dataKey="value"
-                        >
-                          {topicDistributionData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(v: any) => [`${v}% of total time`, "Weight"]} contentStyle={{ borderRadius: 12, fontSize: 11 }} />
-                        <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '10px' }} />
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <TopicDonut data={topicDistributionData} />
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
 
               {/* Notifications */}
-              <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.08 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
+              <m.div {...fadeUp} transition={{ duration: 0.4, delay: 0.08 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-base-content text-sm">{tr("notifTitle")}</h3>
                   <Link href="/notifications" className="text-xs text-indigo-600 hover:underline font-bold">
@@ -1266,10 +1193,10 @@ export default function DashboardPage() {
                     <div className="text-xs text-base-content/40 italic py-4">{tr("noNotif")}</div>
                   )}
                 </div>
-              </motion.div>
+              </m.div>
 
               {/* Current assignment */}
-              <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.1 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
+              <m.div {...fadeUp} transition={{ duration: 0.4, delay: 0.1 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-base-content text-sm">{tr("assignmentTitle")}</h3>
                   <span className="text-[10px] bg-amber-500/10 text-amber-600 font-mono font-bold px-2.5 py-0.5 rounded">
@@ -1303,10 +1230,10 @@ export default function DashboardPage() {
                 ) : (
                   <div className="text-xs text-base-content/40 italic py-4">{tr("noModule")}</div>
                 )}
-              </motion.div>
+              </m.div>
 
               {/* Today tasks */}
-              <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.15 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
+              <m.div {...fadeUp} transition={{ duration: 0.4, delay: 0.15 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-base-content text-sm">{tr("todayTasks")}</h3>
                   <span className="text-xs font-mono font-bold text-base-content/40">
@@ -1333,10 +1260,10 @@ export default function DashboardPage() {
                     <div className="text-xs text-base-content/40 italic py-4">{tr("noTasks")}</div>
                   )}
                 </div>
-              </motion.div>
+              </m.div>
 
               {/* AI Study Vault & Generated Cheatsheets Section */}
-              <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.12 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
+              <m.div {...fadeUp} transition={{ duration: 0.4, delay: 0.12 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center border-b border-base-300 pb-3">
                   <div>
                     <h3 className="font-extrabold text-base-content text-sm flex items-center gap-2">
@@ -1441,10 +1368,10 @@ export default function DashboardPage() {
                     );
                   })}
                 </div>
-              </motion.div>
+              </m.div>
 
               {/* Detailed Study History Tracker & Activity Timeline */}
-              <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.14 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
+              <m.div {...fadeUp} transition={{ duration: 0.4, delay: 0.14 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center border-b border-base-300 pb-3">
                   <div>
                     <h3 className="font-extrabold text-base-content text-sm flex items-center gap-2">
@@ -1489,13 +1416,13 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
-              </motion.div>
+              </m.div>
             </div>
 
             {/* RIGHT COLUMN */}
             <div className="lg:col-span-4 space-y-6">
               {/* Schedule summary */}
-              <motion.div {...fadeUp} transition={{ duration: 0.4 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
+              <m.div {...fadeUp} transition={{ duration: 0.4 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-base-content text-sm">{tr("scheduleSummary")}</h3>
                   <Link href="/calendar" className="text-xs text-indigo-600 hover:underline font-bold">
@@ -1519,10 +1446,10 @@ export default function DashboardPage() {
                     <div className="text-[11px] text-base-content/40 italic">{tr("noSessions")}</div>
                   )}
                 </div>
-              </motion.div>
+              </m.div>
 
               {/* Go premium */}
-              <motion.div
+              <m.div
                 {...fadeUp}
                 transition={{ duration: 0.4, delay: 0.05 }}
                 className="bg-indigo-600 text-white rounded-2xl p-6 shadow-md text-start space-y-4 relative overflow-hidden"
@@ -1537,10 +1464,10 @@ export default function DashboardPage() {
                 <Link href="/pricing" className="btn bg-white hover:bg-base-100 text-indigo-600 border-none btn-sm rounded-xl font-bold w-full relative z-10">
                   {tr("findOutMore")}
                 </Link>
-              </motion.div>
+              </m.div>
 
               {/* Certification Export Card */}
-              <motion.div
+              <m.div
                 {...fadeUp}
                 transition={{ duration: 0.4, delay: 0.08 }}
                 className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 text-white border border-indigo-500/30 rounded-2xl p-6 shadow-xl text-start space-y-4 relative overflow-hidden"
@@ -1573,10 +1500,10 @@ export default function DashboardPage() {
                   )}
                   {isAr ? "تصدير الشهادة الرسمية" : "Export Certification"}
                 </button>
-              </motion.div>
+              </m.div>
 
               {/* Achievements */}
-              <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.1 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
+              <m.div {...fadeUp} transition={{ duration: 0.4, delay: 0.1 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <h3 className="font-bold text-base-content text-sm flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-amber-500" /> {tr("badgesTitle")}
                 </h3>
@@ -1620,12 +1547,12 @@ export default function DashboardPage() {
                     );
                   })}
                 </div>
-              </motion.div>
+              </m.div>
             </div>
           </div>
         ) : (
           /* Activity Analytics Dashboard Tab */
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6 text-start"
@@ -1725,24 +1652,7 @@ export default function DashboardPage() {
                     {isAr ? "وقت الدراسة اليومي بالدقائق" : "Daily Study Time Trend"}
                   </h4>
                   <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={activityData.days} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="activityMinutesGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.25} />
-                            <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                        <XAxis dataKey="date" tickFormatter={(str) => str.slice(5)} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <Tooltip
-                          contentStyle={{ borderRadius: 12, fontSize: 12, background: "rgba(15, 23, 42, 0.9)", border: "none", color: "#fff" }}
-                          labelFormatter={(label) => `Date: ${label}`}
-                        />
-                        <Area type="monotone" dataKey="minutesStudied" name="Minutes" stroke="#4f46e5" strokeWidth={2.5} fill="url(#activityMinutesGrad)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                    <DailyMinutesArea data={activityData.days} />
                   </div>
                 </div>
 
@@ -1753,17 +1663,7 @@ export default function DashboardPage() {
                     {isAr ? "الاختبارات المنجزة ومتوسط النتائج" : "Quizzes Completed & Average Score"}
                   </h4>
                   <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={activityData.days} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} />
-                        <XAxis dataKey="date" tickFormatter={(str) => str.slice(5)} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                        <YAxis yAxisId="left" orientation="left" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} label={{ value: "Quizzes", angle: -90, position: "insideLeft", fontSize: 10 }} />
-                        <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} label={{ value: "Avg Score %", angle: 90, position: "insideRight", fontSize: 10 }} />
-                        <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, background: "rgba(15, 23, 42, 0.9)", border: "none", color: "#fff" }} />
-                        <Bar yAxisId="left" dataKey="quizzes" name="Quizzes" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={30} />
-                        <Line yAxisId="right" type="monotone" dataKey="avgScore" name="Avg Score %" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 3 }} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <QuizzesAndScoreBars data={activityData.days} />
                   </div>
                 </div>
               </div>
@@ -1772,14 +1672,14 @@ export default function DashboardPage() {
                 {isAr ? "لا توجد سجلات نشاط متاحة للفترة المحددة." : "No study activity logs recorded for this period."}
               </div>
             )}
-          </motion.div>
+          </m.div>
         )}
       </div>
 
       {/* Certification Export Modal */}
       {certModalOpen && certData && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-base-100 border border-base-300 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-6 text-start relative overflow-hidden"
@@ -1928,7 +1828,7 @@ export default function DashboardPage() {
                 {isAr ? "تحميل الشهادة (JSON)" : "Download Credential"}
               </button>
             </div>
-          </motion.div>
+          </m.div>
         </div>
       )}
 

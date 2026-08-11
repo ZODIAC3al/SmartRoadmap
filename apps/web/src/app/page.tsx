@@ -4,28 +4,51 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { apiFetch, hasSession } from "@/lib/api";
+import {
+  Sparkles,
+  ArrowRight,
+  Code2,
+  CheckCircle2,
+  AlertCircle,
+  Play,
+  Star,
+  Clock,
+  BookOpen,
+  Layers,
+  Terminal,
+  ShieldCheck,
+  Compass,
+  Cpu,
+  Globe,
+  Database,
+  Search,
+  ExternalLink,
+  ChevronRight,
+} from "lucide-react";
 
 export default function Home() {
   // Interactive Skill Gap Analyzer State
-  const [roleInput, setRoleInput] = useState("Frontend Developer");
-  const [analyzerResult, setAnalyzerResult] = useState({
-    score: 42,
-    role: "Frontend Developer",
-    missingSkills: [
-      "TypeScript",
-      "Testing (Jest/Cypress)",
-      "Docker",
-      "CI/CD Pipelines",
-    ],
+  const [targetRole, setTargetRole] = useState("Fullstack Architect");
+  const [activeTab, setActiveTab] = useState("All Paths");
+  const [activeRoadmap, setActiveRoadmap] = useState<any>(null);
+
+  // Skill Audit result state
+  const [auditResult, setAuditResult] = useState({
+    score: 84,
+    role: "Fullstack Architect",
     verifiedSkills: [
-      "HTML5 & CSS3",
-      "JavaScript (ES6+)",
-      "React Core",
-      "Tailwind CSS",
+      "TypeScript Strict Mode",
+      "React 18 & Server Components",
+      "NestJS Microservices",
+      "Redis Caching & PubSub",
+      "REST & GraphQL Federation",
+    ],
+    missingSkills: [
+      "Distributed Event Sourcing (Kafka)",
+      "Qdrant Vector Database & Embeddings",
+      "Kubernetes Multi-Cluster Deployments",
     ],
   });
-
-  const [activeRoadmap, setActiveRoadmap] = useState<any>(null);
 
   useEffect(() => {
     if (hasSession()) {
@@ -43,349 +66,305 @@ export default function Home() {
     }
   }, []);
 
-  const handleAnalyze = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!roleInput.trim()) {
-      toast.error("Please enter a target role name");
-      return;
-    }
-
-    // Simulate dynamic role checking
-    const roleLower = roleInput.toLowerCase();
-    toast.success(`AI Skill Gap Audit completed for ${roleInput}!`);
-
-    if (roleLower.includes("back")) {
-      setAnalyzerResult({
-        score: 35,
-        role: roleInput,
-        missingSkills: [
-          "Node.js & Express",
-          "MongoDB / Mongoose",
-          "Redis Caching",
-          "Docker & Containerization",
-        ],
+  const handleRoleChange = (role: string) => {
+    setTargetRole(role);
+    if (role === "Frontend Architect") {
+      setAuditResult({
+        score: 88,
+        role: "Frontend Architect",
         verifiedSkills: [
-          "Basic SQL",
-          "HTTP Protocols",
-          "Git / GitHub",
-          "System Architecture",
+          "React 18 & Next.js 14 App Router",
+          "TypeScript Strict Generics",
+          "Design Systems & Token Architecture",
+          "Web Vitals & Performance Profiling",
+        ],
+        missingSkills: [
+          "Micro-Frontends & Module Federation",
+          "End-to-End Playwright Automation",
+          "WebAssembly (Wasm) Integration",
         ],
       });
-    } else if (roleLower.includes("full") || roleLower.includes("software")) {
-      setAnalyzerResult({
-        score: 48,
-        role: roleInput,
-        missingSkills: [
-          "PostgreSQL & Mongoose",
-          "Docker & Kubernetes",
-          "System Architecture",
-          "CI/CD Pipelines",
-        ],
+    } else if (role === "Backend & Distributed Systems") {
+      setAuditResult({
+        score: 82,
+        role: "Backend & Distributed Systems",
         verifiedSkills: [
-          "React / Next.js",
-          "Node.js Basics",
-          "CSS/Tailwind",
-          "Authentication (JWT)",
+          "NestJS Modular Architecture",
+          "MongoDB Sharding & Aggregations",
+          "Redis In-Memory Caching",
+          "JWT & RBAC Security Protocols",
+        ],
+        missingSkills: [
+          "High-Throughput RabbitMQ/BullMQ",
+          "Vector Database (Qdrant) Embeddings",
+          "Docker Multi-Stage Optimization",
         ],
       });
-    } else if (
-      roleLower.includes("design") ||
-      roleLower.includes("ux") ||
-      roleLower.includes("ui")
-    ) {
-      setAnalyzerResult({
-        score: 55,
-        role: roleInput,
-        missingSkills: [
-          "Figma Advanced Layouts",
-          "Design Systems (Tokens)",
-          "Usability Audits",
-          "Mobile UX Patterns",
-        ],
+    } else if (role === "AI & Vector Systems Engineer") {
+      setAuditResult({
+        score: 76,
+        role: "AI & Vector Systems Engineer",
         verifiedSkills: [
-          "Wireframing",
-          "Color Theory",
-          "User Interviews",
-          "Prototyping",
+          "Python & TypeScript AI SDKs",
+          "OpenAI & Gemini API Integration",
+          "RAG Pipeline Architecture",
+          "Prompt Engineering & Structured Outputs",
+        ],
+        missingSkills: [
+          "Qdrant Hybrid Vector Search",
+          "Voice Agents (AssemblyAI / WebSockets)",
+          "Local LLM Fine-Tuning & Quantization",
         ],
       });
     } else {
-      setAnalyzerResult({
-        score: 30,
-        role: roleInput,
-        missingSkills: [
-          "System Design",
-          "Docker & Deployment",
-          "Advanced Frameworks",
-          "Testing Suites",
-        ],
+      setAuditResult({
+        score: 84,
+        role: "Fullstack Architect",
         verifiedSkills: [
-          "Logical Programming",
-          "Version Control",
-          "Basic Database Management",
-          "API Integrations",
+          "TypeScript Strict Mode",
+          "React 18 & Server Components",
+          "NestJS Microservices",
+          "Redis Caching & PubSub",
+          "REST & GraphQL Federation",
+        ],
+        missingSkills: [
+          "Distributed Event Sourcing (Kafka)",
+          "Qdrant Vector Database & Embeddings",
+          "Kubernetes Multi-Cluster Deployments",
         ],
       });
     }
   };
 
-  return (
-    <div className="bg-base-100 text-base-content min-h-screen font-sans selection:bg-[#10B981] selection:text-white relative overflow-hidden">
-      {/* Subtle grid background pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-[0.04] pointer-events-none" />
+  // Learning Paths dataset (Frontend Masters style)
+  const LEARNING_PATHS = [
+    {
+      id: "fullstack",
+      category: "Fullstack",
+      title: "Fullstack Engineering & Distributed Systems",
+      level: "Advanced",
+      duration: "42 Hours",
+      coursesCount: 12,
+      topics: ["React 18", "Next.js", "NestJS", "MongoDB", "Redis", "Docker"],
+      instructor: "Mohamed Elsaied",
+      instructorRole: "Staff Software Engineer",
+      gradient: "from-[#E1251B] to-[#FA5D29]",
+      featured: true,
+    },
+    {
+      id: "frontend",
+      category: "Frontend",
+      title: "Modern Frontend Architecture & Design Systems",
+      level: "Intermediate to Advanced",
+      duration: "34 Hours",
+      coursesCount: 9,
+      topics: ["TypeScript", "Next.js 14", "Tailwind CSS", "State Machines", "Web Vitals"],
+      instructor: "Sarah Jenkins",
+      instructorRole: "Frontend Lead at Stripe",
+      gradient: "from-[#FF4538] to-[#FF8C38]",
+      featured: false,
+    },
+    {
+      id: "backend",
+      category: "Backend",
+      title: "Enterprise Backend Microservices & MongoDB",
+      level: "Advanced",
+      duration: "38 Hours",
+      coursesCount: 11,
+      topics: ["NestJS", "Mongoose", "Aggregation Pipeline", "BullMQ", "Auth & RBAC"],
+      instructor: "David Miller",
+      instructorRole: "Principal Architect",
+      gradient: "from-[#E1251B] to-[#991B1B]",
+      featured: false,
+    },
+    {
+      id: "ai",
+      category: "AI & Vectors",
+      title: "Applied AI Engineering & Vector Databases",
+      level: "Cutting-Edge",
+      duration: "28 Hours",
+      coursesCount: 8,
+      topics: ["Qdrant", "RAG Systems", "Voice Agents", "LLM Tool Calling", "Gemini 2.5"],
+      instructor: "Dr. Elena Rostova",
+      instructorRole: "AI Research Fellow",
+      gradient: "from-[#FA5D29] to-[#F59E0B]",
+      featured: true,
+    },
+    {
+      id: "devops",
+      category: "DevOps & Cloud",
+      title: "Cloud Native DevOps, Docker & CI/CD Pipelines",
+      level: "Intermediate",
+      duration: "26 Hours",
+      coursesCount: 7,
+      topics: ["Docker", "Kubernetes", "GitHub Actions", "Nginx", "Monitoring"],
+      instructor: "Alexandre Vance",
+      instructorRole: "Infrastructure Lead",
+      gradient: "from-[#E1251B] to-[#C81E15]",
+      featured: false,
+    },
+    {
+      id: "algorithms",
+      category: "Practice",
+      title: "Algorithmic Problem Solving & System Design",
+      level: "All Levels",
+      duration: "30 Hours",
+      coursesCount: 10,
+      topics: ["Data Structures", "Dynamic Programming", "System Design", "Scalability"],
+      instructor: "Marcus Vance",
+      instructorRole: "Senior Engineer at Google",
+      gradient: "from-[#FF4538] to-[#E1251B]",
+      featured: false,
+    },
+  ];
 
-      {/* SECTION 1 — HERO */}
-      <section className="relative pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10">
+  const filteredPaths =
+    activeTab === "All Paths"
+      ? LEARNING_PATHS
+      : LEARNING_PATHS.filter((p) => p.category === activeTab);
+
+  return (
+    <div className="bg-base-100 text-base-content min-h-screen font-sans selection:bg-[#E1251B] selection:text-white relative overflow-hidden">
+      {/* Ambient Red Glows in Frontend Masters style */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[450px] bg-gradient-to-b from-[#E1251B]/15 via-[#FA5D29]/5 to-transparent blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-96 right-0 w-[500px] h-[500px] bg-[#E1251B]/8 blur-[120px] pointer-events-none -z-10" />
+
+      {/* Grid line pattern */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 1: HERO (FRONTEND MASTERS HIGH-IMPACT STYLE)
+      ───────────────────────────────────────────────────────────── */}
+      <section className="relative pt-6 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10">
         <div className="grid lg:grid-cols-12 gap-12 items-center">
-          {/* Left Hero Texts */}
-          <div className="lg:col-span-7 space-y-8 text-start">
-            <div className="inline-flex items-center gap-2 bg-[#10B981]/10 border border-[#10B981]/25 text-[#059669] px-4.5 py-1.5 rounded-full font-mono text-xs uppercase tracking-wider font-semibold">
-              <span className="w-2 h-2 rounded-full bg-[#10B981] animate-ping" />
-              Verified Talent Ecosystem
+          {/* Left Text Column */}
+          <div className="lg:col-span-7 space-y-7 text-start">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-base-200 border border-base-300 text-xs font-mono font-bold tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-[#E1251B] animate-pulse" />
+              <span className="text-[#FF7B72]">THE PREMIER ENGINEERING ROADMAP PLATFORM</span>
             </div>
 
-            <h1 className="text-display-xl tracking-tight leading-[1.02] text-base-content font-extrabold max-w-2xl">
-              Land Better Jobs Through{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#10B981] to-[#34D399]">
-                Verified Skills
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] text-base-content">
+              Advance Your Engineering Career with{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#E1251B] via-[#FF5A4E] to-[#FA5D29]">
+                Deep Technical Mastery
               </span>
             </h1>
 
-            <p className="text-body-lg text-base-content/75 max-w-xl leading-relaxed">
-              Career assessment, adaptive learning paths, verified skill
-              testing, and focused job matching. Don&apos;t just learn
-              — prove your mastery and connect directly to top hiring managers.
+            <p className="text-base sm:text-lg text-base-content/80 max-w-2xl leading-relaxed">
+              Step beyond basic tutorials. Follow in-depth, adaptive learning paths, solve real-world system architecture challenges, prove verified skills, and connect directly to top hiring engineering teams.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-3.5 pt-2">
+              <Link
+                href="/roadmap"
+                className="btn fem-btn-primary h-13 px-8 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-xl shadow-red-600/25"
+              >
+                <span>Explore Learning Paths</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
               <Link
                 href="/onboarding"
-                className="btn bg-[#10B981] hover:bg-[#059669] border-none text-white px-8 rounded-xl font-semibold shadow-md transition-all duration-200"
+                className="btn fem-btn-secondary h-13 px-7 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
               >
-                Get My Career Score
+                <Terminal className="w-4 h-4 text-[#FF5A4E]" />
+                <span>Audit Technical Skills</span>
               </Link>
-              <button
-                onClick={() =>
-                  toast.info(
-                    "Watch Demo simulation triggered. Video loads on staging environment.",
-                  )
-                }
-                className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 px-8 rounded-xl font-semibold transition-all"
-              >
-                Watch Demo
-              </button>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-3 gap-6 pt-4 border-t border-base-300">
+              <div>
+                <div className="text-2xl sm:text-3xl font-black font-mono text-base-content">40+</div>
+                <div className="text-xs text-base-content/60 font-medium">Curated Tracks</div>
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black font-mono text-[#E1251B]">98%</div>
+                <div className="text-xs text-base-content/60 font-medium">Recruiter Match Rate</div>
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black font-mono text-base-content">100%</div>
+                <div className="text-xs text-base-content/60 font-medium">Verified Code Audits</div>
+              </div>
             </div>
           </div>
 
-          {/* Right Hero Dashboard Preview */}
+          {/* Right Featured Masterclass Card (Frontend Masters Look) */}
           <div className="lg:col-span-5 relative">
-            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#10B981] to-[#34D399] opacity-10 blur-xl pointer-events-none" />
+            <div className="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-[#E1251B] to-[#FA5D29] opacity-25 blur-2xl pointer-events-none" />
 
-            {/* High-Fidelity Mockup Dashboard Box */}
-            <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-xl relative z-10 space-y-6">
-              <div className="flex justify-between items-center border-b border-base-300 pb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-3.5 h-3.5 rounded-full bg-red-400" />
-                  <div className="w-3.5 h-3.5 rounded-full bg-yellow-400" />
-                  <div className="w-3.5 h-3.5 rounded-full bg-green-400" />
+            <div className="fem-card p-6 shadow-2xl space-y-5 text-start relative z-10 border border-base-300">
+              {/* Header Badge */}
+              <div className="flex items-center justify-between border-b border-base-300 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#E1251B]" />
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-base-content/75">
+                    FEATURED MASTERCLASS
+                  </span>
                 </div>
-                <span className="text-xs text-base-content/40 font-mono">
-                  passport_preview_v2.json
+                <span className="fem-chip fem-chip-red text-[11px]">
+                  ADVANCED
                 </span>
               </div>
 
-              {/* Grid Layout inside Hero Mockup Preview */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Career Score */}
-                <div className="border border-base-300 bg-base-100 rounded-xl p-4 text-start">
-                  <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider block">
-                    Career Score
-                  </span>
-                  <span className="text-3xl font-black font-mono text-[#059669]">
-                    {activeRoadmap
-                      ? `${Math.max(45, Math.min(98, 50 + Math.round((activeRoadmap.modules?.filter((m: any) => m.status === "completed").length || 0) / (activeRoadmap.modules?.length || 1) * 45)))}%`
-                      : "82%"}
-                  </span>
-                  <span className="text-[9px] text-[#22C55E] block mt-1">
-                    ↑ Top 10% of candidates
-                  </span>
-                </div>
-
-                {/* Match Percentage */}
-                <div className="border border-base-300 bg-base-100 rounded-xl p-4 text-start">
-                  <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider block">
-                    Match Rate
-                  </span>
-                  <span className="text-3xl font-black font-mono text-[#10B981]">
-                    {activeRoadmap ? "95%" : "98%"}
-                  </span>
-                  <span className="text-[9px] text-base-content/50 block mt-1 truncate max-w-full">
-                    {activeRoadmap ? activeRoadmap.targetRole : "Frontend Engineer at Stripe"}
-                  </span>
+              {/* Course Title & Rating */}
+              <div>
+                <h3 className="text-xl font-extrabold text-base-content leading-snug">
+                  Fullstack Distributed Systems & Microservices Architecture
+                </h3>
+                <div className="flex items-center gap-2 mt-2 text-xs text-base-content/60 font-mono">
+                  <div className="flex text-amber-400">
+                    {"★★★★★"}
+                  </div>
+                  <span>4.98 (1,420 ratings)</span>
                 </div>
               </div>
 
-              {/* Skill Passport Mini Card */}
-              <div className="border border-base-300 rounded-xl p-4 text-start space-y-3.5">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-base-content/50">
-                    Skill Passport (Vetted)
-                  </span>
-                  <span className="text-[9px] bg-green-100 text-[#059669] font-mono px-2 py-0.5 rounded-full font-bold">
-                    ACTIVE
-                  </span>
+              {/* Instructor Pill */}
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-base-200/80 border border-base-300">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E1251B] to-[#FF5A4E] text-white flex items-center justify-center font-bold text-sm shadow-md">
+                  ME
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {activeRoadmap && activeRoadmap.modules?.filter((m: any) => m.status === "completed").length > 0 ? (
-                    activeRoadmap.modules
-                      .filter((m: any) => m.status === "completed")
-                      .slice(0, 3)
-                      .map((m: any, i: number) => (
-                        <span key={i} className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
-                          ✓ {m.title}
-                        </span>
-                      ))
-                  ) : (
-                    <>
-                      <span className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
-                        ✓ React.js (92%)
-                      </span>
-                      <span className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
-                        ✓ Node.js (87%)
-                      </span>
-                      <span className="badge bg-[#10B981]/10 text-[#059669] border-[#10B981]/20 text-[10px] py-2 px-2.5 rounded-md">
-                        ✓ TypeScript (95%)
-                      </span>
-                    </>
-                  )}
+                <div className="truncate">
+                  <div className="text-xs font-bold text-base-content truncate">Mohamed Elsaied</div>
+                  <div className="text-[11px] text-base-content/60 truncate">Staff Engineer & Platform Architect</div>
                 </div>
               </div>
 
-              {/* Progress Slider Bar */}
-              <div className="space-y-2 text-start">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-base-content/40 font-semibold">
-                    Adaptive Roadmap Progress
-                  </span>
-                  <span className="font-bold text-[#059669]">
-                    {activeRoadmap
-                      ? `${Math.round((activeRoadmap.modules?.filter((m: any) => m.status === "completed").length || 0) / (activeRoadmap.modules?.length || 1) * 100)}% Complete`
-                      : "78% Complete"}
-                  </span>
+              {/* Key Syllabus Accordion Items */}
+              <div className="space-y-2 text-xs">
+                <div className="p-2.5 rounded-lg bg-base-200/60 border border-base-300 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#E1251B] font-mono font-bold">01</span>
+                    <span className="text-base-content/90 font-semibold">Modular NestJS & Async Queues</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-base-content/50">45 mins</span>
                 </div>
-                <div className="w-full bg-base-100 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-[#10B981] to-[#34D399] h-full transition-all duration-500"
-                    style={{
-                      width: activeRoadmap
-                        ? `${Math.round((activeRoadmap.modules?.filter((m: any) => m.status === "completed").length || 0) / (activeRoadmap.modules?.length || 1) * 100)}%`
-                        : "78%"
-                    }}
-                  />
+                <div className="p-2.5 rounded-lg bg-base-200/60 border border-base-300 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#E1251B] font-mono font-bold">02</span>
+                    <span className="text-base-content/90 font-semibold">MongoDB Sharding & Aggregation Mastery</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-base-content/50">1 hr 15 mins</span>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 2 — SKILL GAP ANALYZER */}
-      <section className="bg-base-200 border-y border-base-300 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-5 text-start space-y-6">
-            <h2 className="text-display-md tracking-tight text-base-content font-extrabold">
-              Pinpoint and Fix Your Career Skill Gaps
-            </h2>
-            <p className="text-body-md text-base-content/70 leading-relaxed">
-              Input any target career role. Our AI instantly audits the global
-              hiring pipeline requirements, matches them against your verified
-              profile, and maps out the exact skills you need to land an offer.
-            </p>
-
-            {/* Interactive Search Box */}
-            <form onSubmit={handleAnalyze} className="space-y-3.5 pt-2">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="e.g. Backend Developer, UI Designer..."
-                  className="input input-bordered w-full rounded-xl bg-base-100 border-base-300 text-sm focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] h-12"
-                  value={roleInput}
-                  onChange={(e) => setRoleInput(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl h-12 px-6"
-                >
-                  Audit Gaps
-                </button>
-              </div>
-              <span className="text-[10px] text-base-content/40 block italic">
-                Type &quot;Backend&quot;, &quot;Software&quot;, or
-                &quot;Design&quot; to check simulator presets.
-              </span>
-            </form>
-          </div>
-
-          <div className="lg:col-span-7">
-            {/* Interactive Simulation Dashboard View */}
-            <div className="border border-base-300 rounded-2xl p-6 bg-base-100 shadow-sm text-start space-y-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider block font-mono">
-                    Job Role Target
-                  </span>
-                  <span className="text-lg font-black text-base-content">
-                    {analyzerResult.role}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider block font-mono">
-                    Compatibility score
-                  </span>
-                  <span className="text-2xl font-black font-mono text-[#059669]">
-                    {analyzerResult.score}%
-                  </span>
+                <div className="p-2.5 rounded-lg bg-base-200/60 border border-base-300 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[#E1251B] font-mono font-bold">03</span>
+                    <span className="text-base-content/90 font-semibold">Vector Embeddings with Qdrant</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-base-content/50">55 mins</span>
                 </div>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                {/* Verified Skills list */}
-                <div className="bg-base-200 border border-base-300 rounded-xl p-4 space-y-3">
-                  <span className="text-xs font-bold text-[#22C55E] flex items-center gap-1.5">
-                    ✓ Verified In Passport
-                  </span>
-                  <ul className="space-y-2 text-xs text-base-content/75">
-                    {analyzerResult.verifiedSkills.map((s, i) => (
-                      <li key={i} className="flex gap-2 items-center">
-                        <span className="text-[#22C55E]">●</span>
-                        <span>{s}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Missing Skills list */}
-                <div className="bg-base-200 border border-base-300 rounded-xl p-4 space-y-3">
-                  <span className="text-xs font-bold text-[#EF4444] flex items-center gap-1.5">
-                    ⚠ Gaps Found (Needs Roadmap)
-                  </span>
-                  <ul className="space-y-2 text-xs text-base-content/75">
-                    {analyzerResult.missingSkills.map((s, i) => (
-                      <li key={i} className="flex gap-2 items-center">
-                        <span className="text-[#EF4444]">●</span>
-                        <span className="font-semibold">{s}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-2">
+              {/* Progress / CTA */}
+              <div className="pt-2">
                 <Link
-                  href="/onboarding"
-                  className="btn btn-outline border-[#10B981] hover:bg-[#10B981] hover:text-white text-[#10B981] btn-sm rounded-lg text-xs"
+                  href="/roadmap"
+                  className="btn fem-btn-primary w-full h-11 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
                 >
-                  Generate Roadmap to Close Gaps →
+                  <Play className="w-4 h-4 fill-current" />
+                  <span>Start Learning This Track</span>
                 </Link>
               </div>
             </div>
@@ -393,447 +372,451 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 3 — HOW IT WORKS */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-display-lg tracking-tight font-extrabold text-base-content">
-            The Path to Verification
-          </h2>
-          <p className="text-body-md text-base-content/60 mt-3">
-            Traditional CVs are based on claims. SmartRoadmap transforms your
-            career journey into verified facts.
-          </p>
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 2: POPULAR LEARNING PATHS & TRACKS (FRONTEND MASTERS STYLE)
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-base-300">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 text-start">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-mono font-bold text-[#FF7B72] uppercase tracking-wider mb-2">
+              <span>⚡</span> STRUCTURED CURRICULUM
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-base-content tracking-tight">
+              Curated Engineering Learning Paths
+            </h2>
+            <p className="text-base-content/70 text-sm mt-2 max-w-xl">
+              Follow comprehensive roadmaps designed by industry staff engineers. Master entire tech stacks from foundations to advanced production patterns.
+            </p>
+          </div>
+
+          {/* Track Filter Tabs */}
+          <div className="flex flex-wrap gap-2">
+            {["All Paths", "Frontend", "Backend", "Fullstack", "AI & Vectors"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === tab
+                    ? "bg-[#E1251B] text-white shadow-md shadow-red-600/30"
+                    : "bg-base-200 text-base-content/70 hover:text-base-content hover:bg-base-300 border border-base-300"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Timeline Grid layout */}
-        <div className="grid md:grid-cols-4 gap-8 relative">
-          {[
-            {
-              step: "1",
-              title: "Assess",
-              desc: "Complete adaptive career diagnostic tests to identify your base knowledge level and skill gaps.",
-            },
-            {
-              step: "2",
-              title: "Learn",
-              desc: "Follow an AI-tailored dynamic learning syllabus targeting only topics you need to master.",
-            },
-            {
-              step: "3",
-              title: "Verify",
-              desc: "Take proctored competency assessments and projects to write permanent verified scores to your Passport.",
-            },
-            {
-              step: "4",
-              title: "Get Hired",
-              desc: "Unlock instant job matching pipelines where recruiters filter by verified, proven skills.",
-            },
-          ].map((t, idx) => (
+        {/* Tracks Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 text-start">
+          {filteredPaths.map((path) => (
             <div
-              key={idx}
-              className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm relative group hover:border-[#10B981]/50 transition-all text-start"
+              key={path.id}
+              className="fem-card p-6 flex flex-col justify-between group hover:border-[#E1251B]/50 transition-all duration-300"
             >
-              <span className="w-10 h-10 rounded-xl bg-[#10B981]/10 text-[#059669] flex items-center justify-center font-mono font-bold text-md mb-4 group-hover:bg-[#10B981] group-hover:text-white transition-colors">
-                {t.step}
-              </span>
-              <h3 className="font-extrabold text-base-content text-lg mb-2">
-                {t.title}
-              </h3>
-              <p className="text-xs text-base-content/60 leading-relaxed">
-                {t.desc}
-              </p>
+              <div>
+                {/* Header meta */}
+                <div className="flex justify-between items-start gap-2 mb-4">
+                  <span className="fem-chip fem-chip-red text-[10px]">
+                    {path.category.toUpperCase()}
+                  </span>
+                  <span className="text-[11px] font-mono text-base-content/60 flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-[#E1251B]" />
+                    {path.duration}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h3 className="text-lg font-bold text-base-content group-hover:text-[#E1251B] transition-colors leading-snug mb-3">
+                  {path.title}
+                </h3>
+
+                {/* Topics chips */}
+                <div className="flex flex-wrap gap-1.5 mb-6">
+                  {path.topics.map((t, idx) => (
+                    <span
+                      key={idx}
+                      className="px-2 py-0.5 rounded text-[10px] font-mono bg-base-200 text-base-content/80 border border-base-300"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bottom footer: instructor + CTA */}
+              <div className="border-t border-base-300 pt-4 mt-2 flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-base-content">{path.instructor}</div>
+                  <div className="text-[10px] text-base-content/60 font-mono">{path.instructorRole}</div>
+                </div>
+                <Link
+                  href="/roadmap"
+                  className="w-9 h-9 rounded-lg bg-base-200 group-hover:bg-[#E1251B] text-base-content/70 group-hover:text-white flex items-center justify-center transition-colors border border-base-300 group-hover:border-[#E1251B]"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* SECTION 4 — SKILL PASSPORT */}
-      <section className="bg-base-200 border-y border-base-300 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-6 relative">
-            {/* The Skill Passport Core Visual Asset */}
-            <div className="border border-base-300 bg-base-100 rounded-2xl shadow-xl p-8 text-start space-y-6">
-              <div className="flex justify-between items-start border-b border-base-300 pb-5">
-                <div>
-                  <h3 className="font-black text-xl text-base-content tracking-tight">
-                    SKILL PASSPORT
-                  </h3>
-                  <p className="text-xs text-base-content/40 font-mono mt-1">
-                    ID: VET-2026-X892-AM
-                  </p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-[#10B981]/15 text-[#059669] flex items-center justify-center font-bold text-lg border border-[#10B981]/30">
-                  AM
-                </div>
-              </div>
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 3: INTERACTIVE TERMINAL & SKILL GAP AUDIT
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-base-300">
+        <div className="grid lg:grid-cols-12 gap-12 items-center">
+          {/* Left Text */}
+          <div className="lg:col-span-5 text-start space-y-6">
+            <div className="inline-flex items-center gap-2 text-xs font-mono font-bold text-[#FF7B72] uppercase tracking-wider">
+              <span>🛠️</span> LIVE SKILL AUDITING
+            </div>
 
-              {/* Grid metrics */}
-              <div className="grid grid-cols-3 gap-4 border-b border-base-300 pb-5">
-                <div>
-                  <span className="text-[9px] uppercase tracking-wider text-base-content/40 font-mono block">
-                    Career Score
-                  </span>
-                  <span className="text-2xl font-black text-[#059669] font-mono">
-                    82%
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[9px] uppercase tracking-wider text-base-content/40 font-mono block">
-                    Vetted badges
-                  </span>
-                  <span className="text-2xl font-black text-base-content font-mono">
-                    14 Passed
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[9px] uppercase tracking-wider text-base-content/40 font-mono block">
-                    Hiring Readiness
-                  </span>
-                  <span className="text-2xl font-black text-[#10B981] font-mono">
-                    94/100
-                  </span>
-                </div>
-              </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-base-content tracking-tight">
+              Audit Gaps & Build Your Career Roadmap
+            </h2>
 
-              {/* Verified Skills list */}
-              <div className="space-y-3">
-                <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider block font-mono">
-                  Assessment Scores
-                </span>
-                <div className="space-y-2.5">
-                  {[
-                    {
-                      skill: "React Framework Architecture",
-                      score: 92,
-                      status: "VETTED",
-                    },
-                    {
-                      skill: "TypeScript Strict Mode Interfaces",
-                      score: 95,
-                      status: "VETTED",
-                    },
-                    {
-                      skill: "Tailwind Design System Tokens",
-                      score: 89,
-                      status: "VETTED",
-                    },
-                  ].map((s, i) => (
-                    <div
-                      key={i}
-                      className="flex justify-between items-center bg-base-200 p-3 rounded-lg border border-base-300"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#22C55E]">✓</span>
-                        <span className="text-xs font-semibold">{s.skill}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-mono font-bold text-[#059669]">
-                          {s.score}%
-                        </span>
-                        <span className="text-[8px] bg-green-100 text-[#059669] font-mono px-1.5 py-0.5 rounded font-bold">
-                          {s.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <p className="text-base-content/80 text-sm leading-relaxed">
+              Select your target engineering archetype. Our system evaluates real job market competency benchmarks, pinpoints exact missing skills, and inserts targeted remedial syllabus nodes.
+            </p>
 
-              {/* Projects & Certifications */}
-              <div className="grid grid-cols-2 gap-4 border-t border-base-300 pt-5">
-                <div>
-                  <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider block font-mono">
-                    Verified Project
-                  </span>
-                  <p className="text-xs font-bold mt-1">
-                    Custom NestJS Microservices
-                  </p>
-                  <span className="text-[9px] text-[#22C55E] block mt-0.5">
-                    Code Audit Passed ✓
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider block font-mono">
-                    Interview Readiness
-                  </span>
-                  <p className="text-xs font-bold mt-1">
-                    Excellent (System Design)
-                  </p>
-                  <span className="text-[9px] text-base-content/40 block mt-0.5">
-                    Mock session logged ✓
-                  </span>
-                </div>
+            {/* Quick role selectors */}
+            <div className="space-y-2">
+              <span className="text-xs font-mono uppercase text-base-content/60 font-bold block">
+                Select Target Archetype:
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {[
+                  "Fullstack Architect",
+                  "Frontend Architect",
+                  "Backend & Distributed Systems",
+                  "AI & Vector Systems Engineer",
+                ].map((role) => (
+                  <button
+                    key={role}
+                    onClick={() => handleRoleChange(role)}
+                    className={`p-3 rounded-xl text-xs font-bold text-left transition-all flex items-center justify-between border ${
+                      targetRole === role
+                        ? "bg-[#E1251B]/15 border-[#E1251B] text-base-content"
+                        : "bg-base-200 border-base-300 text-base-content/70 hover:text-base-content hover:bg-base-300"
+                    }`}
+                  >
+                    <span>{role}</span>
+                    {targetRole === role && (
+                      <CheckCircle2 className="w-4 h-4 text-[#E1251B]" />
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
 
-          <div className="lg:col-span-6 text-start space-y-6">
-            <h2 className="text-display-md tracking-tight font-extrabold text-base-content">
-              Your Verified Skill Passport: The Vetted Candidate Standard
-            </h2>
-            <p className="text-body-md text-base-content/60 leading-relaxed">
-              The Skill Passport is the core visual asset of the SmartRoadmap
-              ecosystem. It replaces traditional unverified CVs with real-time
-              competency indexes, showing certified assessment scores, verified
-              code audits, and hiring readiness parameters.
-            </p>
-            <p className="text-xs text-base-content/40">
-              * Every credential in the passport corresponds to a completed
-              module assessment with anti-cheat telemetry validation.
-            </p>
-            <div className="pt-2">
+            <div>
               <Link
                 href="/onboarding"
-                className="btn bg-[#10B981] hover:bg-[#059669] border-none text-white px-8 rounded-xl font-semibold"
+                className="btn fem-btn-primary px-6 rounded-xl font-bold text-xs h-11 inline-flex items-center gap-2"
               >
-                Generate My Passport Profile
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 5 — JOB MATCHING */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-6 text-start space-y-6">
-            <h2 className="text-display-md tracking-tight font-extrabold text-base-content">
-              98% Semantic Match. AI Matching Pipeline.
-            </h2>
-            <p className="text-body-md text-base-content/60 leading-relaxed">
-              No more random job board postings. Recruiters use our vector
-              database search index to find candidates matching their exact
-              skill parameters. If you match, the pipeline updates your
-              dashboard immediately.
-            </p>
-
-            <div className="space-y-4 pt-2">
-              {[
-                {
-                  match: "98%",
-                  role: "Senior Frontend Engineer",
-                  company: "Stripe, Inc.",
-                  type: "Remote (USD)",
-                  confidence: "Exceptional Fit",
-                },
-                {
-                  match: "95%",
-                  role: "React Framework Engineer",
-                  company: "Vercel Platform Corp",
-                  type: "Hybrid (USD)",
-                  confidence: "High Confidence",
-                },
-                {
-                  match: "89%",
-                  role: "Next.js developer",
-                  company: "Linear App SAS",
-                  type: "Remote (EUR)",
-                  confidence: "Compatible Fit",
-                },
-              ].map((job, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between bg-base-200 border border-base-300 p-4 rounded-xl shadow-sm hover:border-[#10B981]/40 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-12 h-12 bg-[#10B981]/10 text-[#059669] rounded-xl flex items-center justify-center font-mono font-black text-xs animate-pulse">
-                      {job.match}
-                    </span>
-                    <div>
-                      <h4 className="font-extrabold text-xs text-base-content">
-                        {job.role}
-                      </h4>
-                      <p className="text-[10px] text-base-content/50">
-                        {job.company} • {job.type}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-[9px] bg-[#10B981]/10 text-[#059669] font-mono px-2 py-0.5 rounded-full font-bold">
-                    {job.confidence}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="lg:col-span-6">
-            <div className="border border-base-300 rounded-2xl bg-base-200 p-6 shadow-sm text-start space-y-4">
-              <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider font-mono">
-                Recruiter Match Analytics
-              </span>
-
-              <div className="bg-base-100 border border-base-300 rounded-xl p-4 space-y-3">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-bold">
-                    Recruitment Confidence Factor
-                  </span>
-                  <span className="font-mono text-[#059669] font-extrabold">
-                    94% Excellent
-                  </span>
-                </div>
-                <div className="w-full bg-base-200 rounded-full h-2.5 overflow-hidden">
-                  <div
-                    className="bg-[#10B981] h-full"
-                    style={{ width: "94%" }}
-                  />
-                </div>
-              </div>
-
-              {/* Skills Gaps identified indicator */}
-              <div className="space-y-2 text-xs">
-                <span className="font-bold text-base-content/50">
-                  Close Gaps to Reach 100% Match:
-                </span>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  <span className="bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded text-[10px] font-mono">
-                    ❌ GraphQL Federation
-                  </span>
-                  <span className="bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded text-[10px] font-mono">
-                    ❌ Advanced WebSockets
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 6 — SUCCESS STORIES */}
-      <section className="bg-base-200 border-t border-base-300 py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center space-y-12">
-          <div className="max-w-2xl mx-auto space-y-3">
-            <h2 className="text-display-lg tracking-tight font-extrabold text-base-content">
-              Proven Career Outcomes
-            </h2>
-            <p className="text-body-md text-base-content/60">
-              See how learners went from scattered tutorials to verified talent
-              profiles hired by top tech engineering guilds.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 text-start">
-            {[
-              {
-                name: "Mohamed Elsaied",
-                role: "Full Stack Engineer at Stripe",
-                quote:
-                  "I was tired of sending out resume templates. SmartRoadmap allowed me to prove my actual JavaScript and NestJS microservices skills in real-time. Within weeks, Stripe recruiters reached out.",
-                badge: "Learner Archetype",
-              },
-              {
-                name: "Ali Maher",
-                role: "UX UI Designer at Lattice",
-                quote:
-                  "The portfolio audit tool analyzed the missing gaps in my Figma component design system skills. Closed the gaps using the learning timeline, got verified, and got instantly matched.",
-                badge: "Career Switcher",
-              },
-              {
-                name: "Marina George",
-                role: "Backend Engineer at Duolingo",
-                quote:
-                  "The adaptive test logs provided the recruiter with documented proof of my database indexing knowledge, cutting screening times to zero. Highly recommend!",
-                badge: "Fresh Graduate",
-              },
-            ].map((s, idx) => (
-              <div
-                key={idx}
-                className="border border-base-300 bg-base-100 rounded-2xl p-6 shadow-sm relative flex flex-col justify-between hover:border-[#10B981]/50 transition-all"
-              >
-                <div>
-                  <span className="text-[10px] bg-base-200 text-base-content/70 font-mono px-2 py-0.5 rounded-full font-bold uppercase block w-max mb-4">
-                    {s.badge}
-                  </span>
-                  <p className="text-xs text-base-content/70 leading-relaxed italic mb-6">
-                    &ldquo;{s.quote}&rdquo;
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 border-t border-base-300 pt-4">
-                  <div className="w-8 h-8 rounded-full bg-[#10B981] text-white flex items-center justify-center font-bold text-xs">
-                    {s.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-xs text-base-content">
-                      {s.name}
-                    </h4>
-                    <p className="text-[10px] text-base-content/50">{s.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 7 — COMPANIES */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-5 text-start space-y-6">
-            <h2 className="text-display-md tracking-tight font-extrabold text-base-content">
-              Recruiter Dashboard: Vetted Sourcing Pipeline
-            </h2>
-            <p className="text-body-md text-base-content/60 leading-relaxed">
-              Tech recruiters no longer sift through generic resume PDFs. Search
-              and rank candidates by verified assessment scores, completed
-              project validation logs, and matching compatibility percentages.
-            </p>
-            <div className="pt-2">
-              <Link
-                href="/auth/register"
-                className="btn bg-base-content text-base-100 hover:bg-base-content/90 rounded-xl font-semibold text-xs h-11 border-none px-6"
-              >
-                Recruit Verified Candidates
+                <span>Launch Full Custom Career Audit</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
 
+          {/* Right: Frontend Masters Styled Code Terminal Simulator */}
           <div className="lg:col-span-7">
-            {/* Recruiters Board Visual mock */}
-            <div className="border border-base-300 rounded-2xl bg-base-200 p-6 shadow-md text-start space-y-4">
-              <span className="text-xs font-bold text-base-content/40 uppercase tracking-wider font-mono">
-                Hiring Manager Candidates Board
-              </span>
+            <div className="fem-terminal p-6 space-y-5 text-start border border-base-300">
+              {/* Terminal Window Header */}
+              <div className="flex items-center justify-between border-b border-[#202533] pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-[#FF5F56]" />
+                  <span className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
+                  <span className="w-3 h-3 rounded-full bg-[#27C93F]" />
+                  <span className="text-xs font-mono text-slate-400 ml-2">
+                    devotopia-audit-engine ~ v2.4
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono text-[#00D2FF]">
+                  NODE_ENV=production
+                </span>
+              </div>
 
-              <div className="space-y-3">
+              {/* Terminal Output Body */}
+              <div className="font-mono text-xs space-y-4">
+                <div className="text-slate-400 flex items-center gap-2">
+                  <span className="text-[#E1251B] font-bold">➜</span>
+                  <span>smartroadmap audit --role=&quot;{auditResult.role}&quot;</span>
+                </div>
+
+                <div className="p-4 rounded-lg bg-[#090B0E] border border-[#1E222D] space-y-3">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-slate-300 font-bold">COMPATIBILITY SCORE:</span>
+                    <span className="text-[#E1251B] font-black text-sm">{auditResult.score}% READY</span>
+                  </div>
+
+                  {/* Verified Skills */}
+                  <div>
+                    <div className="text-[11px] font-bold text-emerald-400 mb-1.5 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>VERIFIED IN PASSPORT ({auditResult.verifiedSkills.length})</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {auditResult.verifiedSkills.map((s, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 rounded text-[10px] bg-emerald-950/40 text-emerald-300 border border-emerald-800/40"
+                        >
+                          ✓ {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Missing Skills */}
+                  <div>
+                    <div className="text-[11px] font-bold text-[#FF7B72] mb-1.5 flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>IDENTIFIED SYLLABUS GAPS ({auditResult.missingSkills.length})</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {auditResult.missingSkills.map((s, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 rounded text-[10px] bg-red-950/40 text-[#FF7B72] border border-red-800/40"
+                        >
+                          ⚠ {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-slate-400 text-[11px]">
+                  <span className="text-emerald-400">✔</span> Generated 4 adaptive remedial roadmap modules to achieve 100% hiring readiness.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 4: LEARN FROM WORLD-CLASS INSTRUCTORS & MENTORS
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-base-300">
+        <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
+          <div className="inline-flex items-center gap-2 text-xs font-mono font-bold text-[#FF7B72] uppercase tracking-wider">
+            <span>🎓</span> INDUSTRY EXPERTS
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-base-content tracking-tight">
+            Learn from Staff Engineers & Tech Leaders
+          </h2>
+          <p className="text-base-content/60 text-sm">
+            Our curriculum and mentoring guilds are led by engineers actively shipping production code at leading technology companies.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-4 gap-6 text-start">
+          {[
+            {
+              name: "Mohamed Elsaied",
+              role: "Staff Platform Engineer",
+              company: "Devotopia Core Team",
+              topics: "NestJS, Microservices, MongoDB",
+              initials: "ME",
+              gradient: "from-[#E1251B] to-[#FF4538]",
+            },
+            {
+              name: "Sarah Jenkins",
+              role: "Lead Frontend Architect",
+              company: "Stripe",
+              topics: "React 18, Design Systems",
+              initials: "SJ",
+              gradient: "from-[#FF4538] to-[#FA5D29]",
+            },
+            {
+              name: "Marcus Vance",
+              role: "Principal Systems Engineer",
+              company: "Google Cloud",
+              topics: "Distributed Systems, Go, K8s",
+              initials: "MV",
+              gradient: "from-[#FA5D29] to-[#F59E0B]",
+            },
+            {
+              name: "Dr. Elena Rostova",
+              role: "AI & Vector Search Fellow",
+              company: "Qdrant AI Guild",
+              topics: "RAG, Vector DB, LLMs",
+              initials: "ER",
+              gradient: "from-[#E1251B] to-[#991B1B]",
+            },
+          ].map((inst, idx) => (
+            <div
+              key={idx}
+              className="fem-card p-6 space-y-4 hover:border-[#E1251B]/40 transition-all text-start border border-base-300"
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${inst.gradient} text-white flex items-center justify-center font-bold text-sm shadow-md`}
+                >
+                  {inst.initials}
+                </div>
+                <div className="truncate">
+                  <h4 className="font-extrabold text-sm text-base-content truncate">{inst.name}</h4>
+                  <p className="text-[11px] text-[#FF7B72] font-mono truncate">{inst.company}</p>
+                </div>
+              </div>
+
+              <div className="text-xs text-base-content/80 font-medium">
+                {inst.role}
+              </div>
+
+              <div className="pt-2 border-t border-base-300 text-[11px] text-base-content/60 font-mono">
+                Focus: {inst.topics}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 5: VERIFIED SKILL PASSPORT & DIRECT HIRING GATEWAY
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-base-300">
+        <div className="grid lg:grid-cols-12 gap-12 items-center">
+          {/* Left Passport Visual */}
+          <div className="lg:col-span-6 relative">
+            <div className="fem-card p-7 space-y-6 text-start border border-base-300">
+              <div className="flex justify-between items-start border-b border-base-300 pb-4">
+                <div>
+                  <span className="text-[10px] font-mono text-[#E1251B] font-bold tracking-widest uppercase block">
+                    DEVOTOPIA VERIFIED CREDENTIAL
+                  </span>
+                  <h3 className="text-xl font-black text-base-content tracking-tight mt-0.5">
+                    TECHNICAL SKILL PASSPORT
+                  </h3>
+                </div>
+                <span className="fem-chip fem-chip-red text-[10px]">
+                  VERIFIED PASS
+                </span>
+              </div>
+
+              {/* Scores Grid */}
+              <div className="grid grid-cols-3 gap-4 border-b border-base-300 pb-5 font-mono">
+                <div>
+                  <span className="text-[10px] text-base-content/60 block uppercase">Career Score</span>
+                  <span className="text-2xl font-black text-[#E1251B]">94%</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-base-content/60 block uppercase">Vetted Badges</span>
+                  <span className="text-2xl font-black text-base-content">18 Total</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-base-content/60 block uppercase">Match Factor</span>
+                  <span className="text-2xl font-black text-emerald-500">98/100</span>
+                </div>
+              </div>
+
+              {/* Assessment list */}
+              <div className="space-y-2 text-xs">
                 {[
-                  {
-                    name: "Mohamed Elsaied",
-                    score: "95% Pass",
-                    role: "Full Stack Engineer",
-                    verified: "12 Assessments",
-                    matching: "98% Match",
-                  },
-                  {
-                    name: "Ali Maher",
-                    score: "92% Pass",
-                    role: "Frontend Engineer",
-                    verified: "8 Assessments",
-                    matching: "95% Match",
-                  },
-                ].map((cand, idx) => (
+                  { name: "React 18 & Server Components", score: "96%", status: "PASSED" },
+                  { name: "NestJS Microservices Architecture", score: "92%", status: "PASSED" },
+                  { name: "MongoDB Aggregation Pipeline", score: "95%", status: "PASSED" },
+                ].map((item, i) => (
                   <div
-                    key={idx}
-                    className="flex justify-between items-center bg-base-100 border border-base-300 p-4 rounded-xl"
+                    key={i}
+                    className="p-2.5 rounded-lg bg-base-200/60 border border-base-300 flex items-center justify-between"
                   >
-                    <div>
-                      <h4 className="font-extrabold text-xs text-base-content">
-                        {cand.name}
-                      </h4>
-                      <p className="text-[10px] text-base-content/50">
-                        {cand.role} • {cand.verified}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="font-semibold text-base-content/90">{item.name}</span>
                     </div>
-                    <div className="text-right flex items-center gap-3">
-                      <span className="badge bg-green-100 text-[#059669] font-mono text-[10px] py-2 px-2.5 rounded font-bold">
-                        {cand.score}
-                      </span>
-                      <span className="text-xs font-bold">{cand.matching}</span>
-                    </div>
+                    <span className="font-mono text-xs font-bold text-[#E1251B]">{item.score}</span>
                   </div>
                 ))}
               </div>
+
+              <div className="text-[11px] text-base-content/60 font-mono pt-2">
+                🔒 Cryptographically signed with anti-cheat telemetry validation.
+              </div>
+            </div>
+          </div>
+
+          {/* Right Content */}
+          <div className="lg:col-span-6 text-start space-y-6">
+            <div className="inline-flex items-center gap-2 text-xs font-mono font-bold text-[#FF7B72] uppercase tracking-wider">
+              <span>🎯</span> THE VETTED STANDARD
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-base-content tracking-tight">
+              Replace Resume Claims with Verified Proof
+            </h2>
+
+            <p className="text-base-content/80 text-sm leading-relaxed">
+              Traditional tech hiring is broken with unverified claims and slow screening rounds. SmartRoadmap empowers you to prove your code mastery through proctored diagnostic testing and live project assessments.
+            </p>
+
+            <ul className="space-y-3 text-xs text-base-content/80">
+              <li className="flex items-center gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-[#E1251B]/20 text-[#E1251B] flex items-center justify-center font-bold text-xs">✓</span>
+                <span>Direct semantic search indexing into top tech recruiter pipelines.</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-[#E1251B]/20 text-[#E1251B] flex items-center justify-center font-bold text-xs">✓</span>
+                <span>Verified technical certificate exportable to LinkedIn and GitHub.</span>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-[#E1251B]/20 text-[#E1251B] flex items-center justify-center font-bold text-xs">✓</span>
+                <span>AI-powered mock interview practice with live voice feedback.</span>
+              </li>
+            </ul>
+
+            <div>
+              <Link
+                href="/onboarding"
+                className="btn fem-btn-primary px-7 rounded-xl font-bold text-xs h-11"
+              >
+                Generate My Skill Passport
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
+          SECTION 6: CALL TO ACTION BANNER (FRONTEND MASTERS RED GLOW)
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="relative rounded-3xl p-10 sm:p-14 bg-gradient-to-br from-base-200 via-base-200 to-base-300 border border-base-300 text-center overflow-hidden shadow-2xl">
+          {/* Flame radiant glow */}
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#E1251B]/25 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-2xl mx-auto space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E1251B]/20 border border-[#E1251B]/40 text-[#FF7B72] text-xs font-mono font-bold">
+              🔥 START YOUR TRANSFORMATION TODAY
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-base-content tracking-tight leading-tight">
+              Ready to Master Modern Software Engineering?
+            </h2>
+
+            <p className="text-base-content/80 text-sm sm:text-base leading-relaxed">
+              Join thousands of software engineers learning with structured, deep-dive curriculum tracks and verified skill benchmarks.
+            </p>
+
+            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+              <Link
+                href="/auth/register"
+                className="btn fem-btn-primary h-13 px-9 rounded-xl font-bold text-sm shadow-xl shadow-red-600/30"
+              >
+                Get Started for Free
+              </Link>
+              <Link
+                href="/pricing"
+                className="btn fem-btn-secondary h-13 px-8 rounded-xl font-bold text-sm"
+              >
+                View Plans & Pricing
+              </Link>
             </div>
           </div>
         </div>

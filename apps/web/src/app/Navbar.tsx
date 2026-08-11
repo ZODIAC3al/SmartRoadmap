@@ -233,6 +233,35 @@ export default function Navbar() {
   }, [pathname]);
 
   useEffect(() => {
+    // Warm up and prefetch all key route bundles for 0ms instant response
+    const keyRoutes = [
+      "/cv",
+      "/mock-interview",
+      "/community",
+      "/resources",
+      "/hiring",
+      "/company",
+      "/roadmap",
+      "/dashboard",
+      "/practice",
+      "/mentors",
+      "/pricing",
+      "/profile",
+      "/contact",
+    ];
+    keyRoutes.forEach((route) => {
+      try {
+        router.prefetch(route);
+      } catch (err) {}
+    });
+  }, [router]);
+
+  const handleNavClick = () => {
+    (document.activeElement as HTMLElement)?.blur();
+    setMobileOpen(false);
+  };
+
+  useEffect(() => {
     if (user && hasSession()) {
       fetchNotifications();
       const interval = setInterval(fetchNotifications, 30000);
@@ -270,169 +299,200 @@ export default function Navbar() {
 
   const isLinkActive = (path: string) => pathname === path;
 
-  const navLinks = [
-    { href: "/roadmap", label: t("nav.roadmap"), show: !!user },
-    { href: "/cv", label: t("nav.cv"), show: !!user },
-    {
-      href: "/hiring",
-      label: t("nav.jobsMatch"),
-      show: !!user && user?.role === "learner",
-    },
-    {
-      href: "/company",
-      label: t("nav.talentBoard"),
-      show: !!user && user?.role === "company",
-    },
-    {
-      href: "/community",
-      label: locale === "en" ? "Community" : "المجتمع",
-      show: !!user,
-    },
-    {
-      href: "/mentors",
-      label: locale === "en" ? "Mentors" : "الموجهين",
-      show: !!user,
-    },
-    {
-      href: "/resources",
-      label: locale === "en" ? "Resources" : "المراجع",
-      show: !!user,
-    },
-    {
-      href: "/admin",
-      label: locale === "en" ? "Admin" : "الإدارة",
-      show: !!user && user?.role === "admin",
-    },
-    { href: "/pricing", label: t("nav.pricing"), show: true },
-    { href: "/contact", label: t("nav.contact"), show: true },
-    // Mock Interview link
-    { href: "/mock-interview", label: "Mock Interview", show: !!user },
-  ];
-
   return (
-    <header className="sticky top-4 z-50 px-4 w-full">
-      <div className="max-w-5xl mx-auto rounded-full bg-base-200/90 backdrop-blur-md text-base-content border border-base-300 shadow-lg px-3 sm:px-6 h-14 flex items-center justify-between gap-2 sm:gap-4 transition-all duration-200">
+    <header className="sticky top-3 z-50 px-4 w-full">
+      <div className="max-w-6xl mx-auto rounded-2xl bg-base-200/90 backdrop-blur-xl text-base-content border border-base-300 shadow-xl px-4 sm:px-6 h-16 flex items-center justify-between gap-3 sm:gap-6 transition-all duration-200">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
-          <img
-            src="/logo.svg"
-            alt="SmartRoadmap Logo"
-            className="w-8 h-8 sm:w-9 sm:h-9 hover:scale-105 transition-transform duration-200"
-          />
-          <span className="hidden sm:inline font-black tracking-tight text-sm text-base-content">
-            {t("nav.logo")}
+        <Link href="/" prefetch={true} onClick={handleNavClick} className="flex items-center gap-2.5 shrink-0 group">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#E1251B] to-[#FF5A4E] flex items-center justify-center shadow-lg shadow-red-600/30 group-hover:scale-105 transition-transform duration-200">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white fill-current">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" />
+            </svg>
+          </div>
+          <span className="font-extrabold tracking-tight text-base text-base-content flex items-center gap-1">
+            Devotopia <span className="text-[#E1251B] text-xs font-mono font-bold bg-[#E1251B]/15 px-1.5 py-0.5 rounded border border-[#E1251B]/30">MASTERS</span>
           </span>
         </Link>
 
         {/* Desktop nav links */}
-        <nav className="hidden lg:flex items-center gap-3 xl:gap-5 text-[11px] font-bold uppercase tracking-wider flex-1 justify-center">
-          {/* Primary core links */}
+        <nav className="hidden lg:flex items-center gap-4 xl:gap-6 text-xs font-bold uppercase tracking-wider flex-1 justify-center">
+          <Link
+            href="/roadmap"
+            prefetch={true}
+            onClick={handleNavClick}
+            className={`transition-all duration-150 hover:text-[#E1251B] ${
+              isLinkActive("/roadmap")
+                ? "text-[#E1251B] font-black border-b-2 border-[#E1251B] pb-0.5"
+                : "text-base-content/75"
+            }`}
+          >
+            {locale === "en" ? "Learning Paths" : "مسارات التعلم"}
+          </Link>
           <Link
             href="/dashboard"
-            className={`transition-colors hover:text-[#10B981] ${
+            prefetch={true}
+            onClick={handleNavClick}
+            className={`transition-all duration-150 hover:text-[#E1251B] ${
               isLinkActive("/dashboard")
-                ? "text-[#10B981] font-black"
-                : "text-base-content/70"
+                ? "text-[#E1251B] font-black border-b-2 border-[#E1251B] pb-0.5"
+                : "text-base-content/75"
             }`}
           >
             {locale === "en" ? "Dashboard" : "لوحة التحكم"}
           </Link>
           <Link
-            href="/roadmap"
-            className={`transition-colors hover:text-[#10B981] ${
-              isLinkActive("/roadmap")
-                ? "text-[#10B981] font-black"
-                : "text-base-content/70"
+            href="/practice"
+            prefetch={true}
+            onClick={handleNavClick}
+            className={`transition-all duration-150 hover:text-[#E1251B] ${
+              isLinkActive("/practice")
+                ? "text-[#E1251B] font-black border-b-2 border-[#E1251B] pb-0.5"
+                : "text-base-content/75"
             }`}
           >
-            {t("nav.roadmap")}
+            {locale === "en" ? "Practice" : "تحديات برمجية"}
           </Link>
           <Link
-            href="/cv"
-            className={`transition-colors hover:text-[#10B981] ${
-              isLinkActive("/cv")
-                ? "text-[#10B981] font-black"
-                : "text-base-content/70"
+            href="/mentors"
+            prefetch={true}
+            onClick={handleNavClick}
+            className={`transition-all duration-150 hover:text-[#E1251B] ${
+              isLinkActive("/mentors")
+                ? "text-[#E1251B] font-black border-b-2 border-[#E1251B] pb-0.5"
+                : "text-base-content/75"
             }`}
           >
-            {t("nav.cv")}
+            {locale === "en" ? "Mentors" : "الموجهين"}
           </Link>
           <Link
-            href="/community"
-            className={`transition-colors hover:text-[#10B981] ${
-              isLinkActive("/community")
-                ? "text-[#10B981] font-black"
-                : "text-base-content/70"
+            href="/pricing"
+            prefetch={true}
+            onClick={handleNavClick}
+            className={`transition-all duration-150 hover:text-[#E1251B] ${
+              isLinkActive("/pricing")
+                ? "text-[#E1251B] font-black border-b-2 border-[#E1251B] pb-0.5"
+                : "text-base-content/75"
             }`}
           >
-            {locale === "en" ? "Community" : "المجتمع"}
+            {t("nav.pricing")}
           </Link>
 
-          {/* Explore Dropdown with Professional Lucide Icons */}
-          <div className="dropdown dropdown-hover dropdown-bottom dropdown-end">
+          {/* Explore Dropdown */}
+          <div
+            className="dropdown dropdown-hover dropdown-bottom dropdown-end"
+            onMouseEnter={() => {
+              ["/cv", "/mock-interview", "/community", "/resources", "/hiring", "/company", "/admin", "/contact"].forEach(
+                (p) => {
+                  try {
+                    router.prefetch(p);
+                  } catch (e) {}
+                }
+              );
+            }}
+          >
             <label
               tabIndex={0}
-              className="flex items-center gap-1.5 cursor-pointer transition-colors text-base-content/70 hover:text-[#10B981] font-bold py-1 px-1.5 rounded-lg"
+              className="flex items-center gap-1.5 cursor-pointer transition-colors text-base-content/75 hover:text-[#E1251B] font-bold py-1 px-1.5 rounded-lg"
             >
-              <Compass className="w-3.5 h-3.5 text-[#10B981]" />
-              <span>{locale === "en" ? "Explore" : "استكشف"}</span>
+              <Compass className="w-3.5 h-3.5 text-[#E1251B]" />
+              <span>{locale === "en" ? "More" : "المزيد"}</span>
               <ChevronDown className="w-3.5 h-3.5 text-base-content/50" />
             </label>
             <ul
               tabIndex={0}
-              className="dropdown-content menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-md border border-base-300 rounded-2xl w-52 space-y-1 z-[200] text-start capitalize normal-case text-xs font-semibold"
+              className="dropdown-content menu p-2 shadow-2xl bg-base-200 border border-base-300 rounded-2xl w-56 space-y-1 z-[200] text-start capitalize normal-case text-xs font-semibold text-base-content"
             >
               <li>
-                <Link href="/mentors" className={`flex items-center gap-2.5 ${isLinkActive("/mentors") ? "text-[#10B981] font-bold" : ""}`}>
-                  <GraduationCap className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>{locale === "en" ? "Mentors" : "الموجهين"}</span>
+                <Link
+                  href="/cv"
+                  prefetch={true}
+                  onClick={handleNavClick}
+                  className={`flex items-center gap-2.5 ${isLinkActive("/cv") ? "text-[#E1251B] font-bold" : "text-base-content/85 hover:text-base-content"}`}
+                >
+                  <FileText className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>{t("nav.cv")}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/resources" className={`flex items-center gap-2.5 ${isLinkActive("/resources") ? "text-[#10B981] font-bold" : ""}`}>
-                  <BookOpen className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span>{locale === "en" ? "Resources" : "المراجع"}</span>
+                <Link
+                  href="/community"
+                  prefetch={true}
+                  onClick={handleNavClick}
+                  className={`flex items-center gap-2.5 ${isLinkActive("/community") ? "text-[#E1251B] font-bold" : "text-base-content/85 hover:text-base-content"}`}
+                >
+                  <Building2 className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span>{locale === "en" ? "Community" : "المجتمع"}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/mock-interview" className={`flex items-center gap-2.5 ${isLinkActive("/mock-interview") ? "text-[#10B981] font-bold" : ""}`}>
-                  <Mic className="w-4 h-4 text-indigo-500 shrink-0" />
+                <Link
+                  href="/resources"
+                  prefetch={true}
+                  onClick={handleNavClick}
+                  className={`flex items-center gap-2.5 ${isLinkActive("/resources") ? "text-[#E1251B] font-bold" : "text-base-content/85 hover:text-base-content"}`}
+                >
+                  <BookOpen className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{locale === "en" ? "Resources & Cheatsheets" : "المراجع"}</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/mock-interview"
+                  prefetch={true}
+                  onClick={handleNavClick}
+                  className={`flex items-center gap-2.5 ${isLinkActive("/mock-interview") ? "text-[#E1251B] font-bold" : "text-base-content/85 hover:text-base-content"}`}
+                >
+                  <Mic className="w-4 h-4 text-orange-400 shrink-0" />
                   <span>{locale === "en" ? "Mock Interview" : "مقابلة تجريبية"}</span>
                 </Link>
               </li>
               {user?.role === "learner" && (
                 <li>
-                  <Link href="/hiring" className={`flex items-center gap-2.5 ${isLinkActive("/hiring") ? "text-[#10B981] font-bold" : ""}`}>
-                    <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
+                  <Link
+                    href="/hiring"
+                    prefetch={true}
+                    onClick={handleNavClick}
+                    className={`flex items-center gap-2.5 ${isLinkActive("/hiring") ? "text-[#E1251B] font-bold" : "text-base-content/85 hover:text-base-content"}`}
+                  >
+                    <Briefcase className="w-4 h-4 text-amber-400 shrink-0" />
                     <span>{t("nav.jobsMatch")}</span>
                   </Link>
                 </li>
               )}
               {user?.role === "company" && (
                 <li>
-                  <Link href="/company" className={`flex items-center gap-2.5 ${isLinkActive("/company") ? "text-[#10B981] font-bold" : ""}`}>
-                    <Building2 className="w-4 h-4 text-purple-500 shrink-0" />
+                  <Link
+                    href="/company"
+                    prefetch={true}
+                    onClick={handleNavClick}
+                    className={`flex items-center gap-2.5 ${isLinkActive("/company") ? "text-[#E1251B] font-bold" : "text-base-content/85 hover:text-base-content"}`}
+                  >
+                    <Building2 className="w-4 h-4 text-purple-400 shrink-0" />
                     <span>{t("nav.talentBoard")}</span>
                   </Link>
                 </li>
               )}
               {user?.role === "admin" && (
                 <li>
-                  <Link href="/admin" className={`flex items-center gap-2.5 ${isLinkActive("/admin") ? "text-[#10B981] font-bold" : ""}`}>
-                    <ShieldCheck className="w-4 h-4 text-red-500 shrink-0" />
+                  <Link
+                    href="/admin"
+                    prefetch={true}
+                    onClick={handleNavClick}
+                    className={`flex items-center gap-2.5 ${isLinkActive("/admin") ? "text-[#E1251B] font-bold" : "text-base-content/85 hover:text-base-content"}`}
+                  >
+                    <ShieldCheck className="w-4 h-4 text-red-400 shrink-0" />
                     <span>{locale === "en" ? "Admin Panel" : "لوحة الإدارة"}</span>
                   </Link>
                 </li>
               )}
               <li className="border-t border-base-300 pt-1">
-                <Link href="/pricing" className={`flex items-center gap-2.5 ${isLinkActive("/pricing") ? "text-[#10B981] font-bold" : ""}`}>
-                  <Gem className="w-4 h-4 text-cyan-500 shrink-0" />
-                  <span>{t("nav.pricing")}</span>
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className={`flex items-center gap-2.5 ${isLinkActive("/contact") ? "text-[#10B981] font-bold" : ""}`}>
-                  <Mail className="w-4 h-4 text-orange-500 shrink-0" />
+                <Link
+                  href="/contact"
+                  prefetch={true}
+                  onClick={handleNavClick}
+                  className={`flex items-center gap-2.5 ${isLinkActive("/contact") ? "text-[#E1251B] font-bold" : "text-base-content/85 hover:text-base-content"}`}
+                >
+                  <Mail className="w-4 h-4 text-orange-400 shrink-0" />
                   <span>{t("nav.contact")}</span>
                 </Link>
               </li>
@@ -545,8 +605,8 @@ export default function Navbar() {
                         </p>
                         <span className="text-[8px] text-base-content/30 block font-mono">
                           {new Date(n.createdAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
+                              hour: "2-digit",
+                              minute: "2-digit",
                           })}
                         </span>
                       </div>
@@ -572,7 +632,7 @@ export default function Navbar() {
             <div className="dropdown dropdown-end">
               <label
                 tabIndex={0}
-                className="btn btn-xs rounded-full bg-base-100 border border-base-300 text-base-content hover:bg-base-300 font-bold px-2 sm:px-3 flex items-center gap-1 sm:gap-1.5 cursor-pointer normal-case shadow-sm transition-all"
+                className="btn btn-xs rounded-full bg-base-300/80 border border-base-300 text-base-content hover:bg-base-300 font-bold px-2 sm:px-3 flex items-center gap-1 sm:gap-1.5 cursor-pointer normal-case shadow-sm transition-all"
               >
                 {user.avatarUrl ? (
                   <img
@@ -581,21 +641,21 @@ export default function Navbar() {
                     className="w-5 h-5 rounded-full object-cover border border-base-300 shrink-0"
                   />
                 ) : (
-                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[9px] shrink-0 font-sans">
+                  <div className="w-5 h-5 rounded-full bg-[#E1251B] text-white flex items-center justify-center font-bold text-[9px] shrink-0 font-sans">
                     {user.name
                       .split(" ")
                       .map((n: string) => n[0])
                       .join("")}
                   </div>
                 )}
-                <span className="hidden sm:block max-w-[100px] truncate text-[11px] font-mono">
+                <span className="hidden sm:block max-w-[100px] truncate text-[11px] font-mono text-base-content/80">
                   {user.email}
                 </span>
                 <ChevronDown className="w-3 h-3 text-base-content/50" />
               </label>
               <ul
                 tabIndex={0}
-                className="menu menu-sm dropdown-content mt-3 z-[100] p-3 shadow-lg bg-base-200 text-base-content border border-base-300 rounded-2xl w-60 space-y-1"
+                className="menu menu-sm dropdown-content mt-3 z-[100] p-3 shadow-2xl bg-base-200 text-base-content border border-base-300 rounded-2xl w-60 space-y-1"
               >
                 <li className="px-3 py-2 border-b border-base-300 mb-1 flex flex-row gap-2.5 items-center">
                   {user.avatarUrl ? (
@@ -605,7 +665,7 @@ export default function Navbar() {
                       className="w-8 h-8 rounded-full object-cover border border-base-300 shrink-0"
                     />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs shrink-0 font-sans">
+                    <div className="w-8 h-8 rounded-full bg-[#E1251B] text-white flex items-center justify-center font-bold text-xs shrink-0 font-sans">
                       {user.name
                         .split(" ")
                         .map((n: string) => n[0])
@@ -623,51 +683,51 @@ export default function Navbar() {
                 </li>
                 {user.role === "learner" && (
                   <li>
-                    <Link href="/dashboard" className="flex items-center gap-2">
-                      <LayoutDashboard className="w-4 h-4 text-indigo-500" />
+                    <Link href="/dashboard" prefetch={true} onClick={handleNavClick} className="flex items-center gap-2 hover:text-[#E1251B]">
+                      <LayoutDashboard className="w-4 h-4 text-indigo-400" />
                       <span>{t("nav.dashboard")}</span>
                     </Link>
                   </li>
                 )}
                 <li>
-                  <Link href="/roadmap" className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-emerald-500" />
+                  <Link href="/roadmap" prefetch={true} onClick={handleNavClick} className="flex items-center gap-2 hover:text-[#E1251B]">
+                    <MapPin className="w-4 h-4 text-[#E1251B]" />
                     <span>{t("nav.roadmap")}</span>
                   </Link>
                 </li>
                 <li>
-                  <Link href="/cv" className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-500" />
+                  <Link href="/cv" prefetch={true} onClick={handleNavClick} className="flex items-center gap-2 hover:text-[#E1251B]">
+                    <FileText className="w-4 h-4 text-blue-400" />
                     <span>{t("nav.cv")}</span>
                   </Link>
                 </li>
                 {user.role === "learner" && (
                   <li>
-                    <Link href="/hiring" className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-amber-500" />
+                    <Link href="/hiring" prefetch={true} onClick={handleNavClick} className="flex items-center gap-2 hover:text-[#E1251B]">
+                      <Briefcase className="w-4 h-4 text-amber-400" />
                       <span>{t("nav.jobsMatch")}</span>
                     </Link>
                   </li>
                 )}
                 {user.role === "learner" && (
                   <li>
-                    <Link href="/profile?tab=salary" className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-purple-500" />
+                    <Link href="/profile?tab=salary" prefetch={true} onClick={handleNavClick} className="flex items-center gap-2 hover:text-[#E1251B]">
+                      <TrendingUp className="w-4 h-4 text-purple-400" />
                       <span>{locale === "en" ? "Salary Insights" : "تقديرات الرواتب"}</span>
                     </Link>
                   </li>
                 )}
                 {user.role === "company" && (
                   <li>
-                    <Link href="/company" className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-purple-500" />
+                    <Link href="/company" prefetch={true} onClick={handleNavClick} className="flex items-center gap-2 hover:text-[#E1251B]">
+                      <Building2 className="w-4 h-4 text-purple-400" />
                       <span>{t("nav.talentBoard")}</span>
                     </Link>
                   </li>
                 )}
                 <li>
-                  <Link href="/profile" className="flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-slate-500" />
+                  <Link href="/profile" prefetch={true} onClick={handleNavClick} className="flex items-center gap-2 hover:text-[#E1251B]">
+                    <Settings className="w-4 h-4 text-base-content/50" />
                     <span>{locale === "en" ? "Settings" : "الإعدادات"}</span>
                   </Link>
                 </li>
@@ -680,20 +740,20 @@ export default function Navbar() {
               </ul>
             </div>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               <Link
                 href="/auth/login"
-                className="hidden sm:inline text-xs font-bold text-base-content/75 hover:text-[#10B981] transition-colors"
+                className="hidden sm:inline text-xs font-bold text-base-content/75 hover:text-base-content px-2 py-1 transition-colors"
               >
                 {t("nav.login")}
               </Link>
               <Link
                 href="/auth/register"
-                className="btn btn-xs rounded-full bg-[#10B981] hover:bg-[#059669] text-white border-none px-3 sm:px-4 font-bold text-xs shadow-sm transition-all"
+                className="btn btn-xs rounded-lg fem-btn-primary px-3 sm:px-4 font-bold text-xs shadow-md transition-all"
               >
-                {t("nav.signup")}
+                {locale === "en" ? "Start Learning" : "ابدأ التعلم"}
               </Link>
-            </>
+            </div>
           )}
 
           {/* Mobile menu toggle */}
@@ -714,21 +774,34 @@ export default function Navbar() {
       {/* Mobile dropdown panel */}
       {mobileOpen && (
         <div className="md:hidden mt-2 max-w-5xl mx-auto bg-base-200 border border-base-300 rounded-2xl p-4 space-y-3 shadow-lg text-start">
-          {navLinks
-            .filter((l) => l.show)
-            .map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`block text-sm font-bold transition-all ${isLinkActive(link.href) ? "text-[#10B981]" : "text-base-content/75"}`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          {[
+            { href: "/roadmap", label: locale === "en" ? "Learning Paths" : "مسارات التعلم" },
+            { href: "/dashboard", label: locale === "en" ? "Dashboard" : "لوحة التحكم" },
+            { href: "/practice", label: locale === "en" ? "Practice" : "تحديات برمجية" },
+            { href: "/mentors", label: locale === "en" ? "Mentors" : "الموجهين" },
+            { href: "/pricing", label: t("nav.pricing") },
+            { href: "/cv", label: t("nav.cv") },
+            { href: "/mock-interview", label: locale === "en" ? "Mock Interview" : "مقابلة تجريبية" },
+            { href: "/community", label: locale === "en" ? "Community" : "المجتمع" },
+            { href: "/resources", label: locale === "en" ? "Resources" : "المراجع" },
+            { href: "/contact", label: t("nav.contact") },
+          ].map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              prefetch={true}
+              onClick={handleNavClick}
+              className={`block text-sm font-bold transition-all ${isLinkActive(link.href) ? "text-[#E1251B]" : "text-base-content/75 hover:text-[#E1251B]"}`}
+            >
+              {link.label}
+            </Link>
+          ))}
           {!user && (
             <Link
               href="/auth/login"
-              className="block text-sm font-bold text-base-content/75 pt-2 border-t border-base-300"
+              prefetch={true}
+              onClick={handleNavClick}
+              className="block text-sm font-bold text-base-content/75 pt-2 border-t border-base-300 hover:text-primary"
             >
               {t("nav.login")}
             </Link>

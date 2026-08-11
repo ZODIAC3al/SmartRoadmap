@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
 import { apiFetch, getCachedUser, hasSession, API_BASE } from "@/lib/api";
@@ -1513,7 +1513,7 @@ export default function RoadmapPage() {
         {selectedModule && (
           <>
             {/* Backdrop Overlay */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -1522,7 +1522,7 @@ export default function RoadmapPage() {
             />
 
             {/* Slide-over Drawer Panel */}
-            <motion.div
+            <m.div
               initial={{ x: isAr ? "-100%" : "100%" }}
               animate={{ x: 0 }}
               exit={{ x: isAr ? "-100%" : "100%" }}
@@ -1773,7 +1773,7 @@ export default function RoadmapPage() {
                 <span>{tr("startChallenge")}</span>
                 <ArrowRight className="w-4 h-4 text-white" />
               </button>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>

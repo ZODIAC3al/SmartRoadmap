@@ -81,16 +81,27 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-neutral text-neutral-content px-4 py-16 border-t border-base-300/10">
-      <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-10">
-        <div className="flex-1 w-full">
-          <h2 className="font-serif text-3xl sm:text-4xl leading-tight mb-8 max-w-md font-bold text-white">
+    <footer className="bg-base-200 text-base-content px-4 py-16 border-t border-base-300 relative overflow-hidden">
+      {/* Red ambient glow */}
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#E1251B]/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
+        <div className="flex-1 w-full max-w-xl text-start">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E1251B]/15 border border-[#E1251B]/30 text-[#FF7B72] text-xs font-mono font-bold mb-4">
+            <span>🔥</span> STAY AHEAD IN SOFTWARE ENGINEERING
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight mb-4 text-base-content">
             {t("contact.newsletter_title")}
           </h2>
+          <p className="text-xs text-base-content/70 mb-6 leading-relaxed">
+            {locale === "en" 
+              ? "Weekly deep-dive articles, career roadmaps, and software engineering masterclasses directly to your inbox." 
+              : "مقالات أسبوعية معمقة، وخرائط طريق مهنية، ودروس متقدمة في هندسة البرمجيات مباشرة إلى بريدك."}
+          </p>
           {!newsletterSubmitted ? (
             <form
               onSubmit={handleNewsletterSubmit}
-              className="flex flex-col sm:flex-row gap-3 max-w-md"
+              className="flex flex-col sm:flex-row gap-2.5 max-w-md"
             >
               <input
                 required
@@ -98,86 +109,46 @@ export default function Footer() {
                 placeholder={t("contact.email")}
                 value={newsletterEmail}
                 onChange={(e) => setNewsletterEmail(e.target.value)}
-                className="input flex-1 bg-neutral border border-neutral-content/30 rounded-full h-12 text-sm text-neutral-content placeholder:text-neutral-content/50 focus:border-white focus:outline-none px-5"
+                className="input flex-1 bg-base-100 border border-base-300 rounded-xl h-12 text-sm text-base-content placeholder:text-base-content/40 focus:border-[#E1251B] focus:outline-none px-4"
               />
               <button
                 type="submit"
-                className="btn bg-transparent border-2 border-neutral-content text-neutral-content hover:bg-neutral-content hover:text-neutral rounded-full h-12 px-7 font-bold text-sm"
+                className="btn fem-btn-primary rounded-xl h-12 px-6 font-bold text-xs"
               >
                 {t("contact.newsletter_btn")}
               </button>
             </form>
           ) : (
-            <p className="text-sm text-neutral-content/85">
+            <p className="text-sm text-emerald-500 font-semibold">
               {locale === "en"
-                ? "You're subscribed — welcome aboard."
-                : "تم اشتراكك بنجاح — مرحباً بك معنا."}
+                ? "✓ You're subscribed — welcome aboard."
+                : "✓ تم اشتراكك بنجاح — مرحباً بك معنا."}
             </p>
           )}
-          <p className="text-[11px] text-neutral-content/40 mt-4">
-            {t("contact.terms_warning")}
-          </p>
         </div>
 
-        {/* Right illustration - person with megaphone */}
-        <div className="hidden md:block w-44 flex-shrink-0">
-          <svg
-            viewBox="0 0 160 200"
-            className="w-full text-neutral-content/50"
-            fill="none"
-          >
-            <circle
-              cx="85"
-              cy="45"
-              r="17"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              fill="none"
-            />
-            <path
-              d="M70 55 Q85 68 100 55"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              fill="none"
-              strokeLinecap="round"
-            />
-            <path
-              d="M58 85 Q85 70 112 85 L120 155 Q85 170 50 155 Z"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              fill="none"
-            />
-            <path
-              d="M55 95 L20 80 L10 90 L40 110 Z"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              fill="none"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M10 90 L-5 85 M10 90 L-5 95 M10 90 L-8 90"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <line
-              x1="40"
-              y1="170"
-              x2="130"
-              y2="170"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
+        {/* Right illustration / badge */}
+        <div className="w-full md:w-auto p-6 rounded-2xl bg-base-100 border border-base-300 text-start max-w-xs space-y-3 shadow-md">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E1251B] to-[#FF5A4E] flex items-center justify-center font-bold text-white shadow-lg shadow-red-600/30">
+              <span className="text-lg">⚡</span>
+            </div>
+            <div>
+              <div className="text-base-content font-extrabold text-sm">Devotopia Masters</div>
+              <div className="text-base-content/60 text-xs font-mono">Continuous Growth</div>
+            </div>
+          </div>
+          <p className="text-xs text-base-content/70 leading-relaxed">
+            Master Frontend, Backend, Cloud & AI with proven engineering roadmaps.
+          </p>
         </div>
       </div>
 
       {/* Footer columns */}
-      <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-10 border-t border-neutral-content/10">
+      <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-10 border-t border-base-300 text-start">
         {FOOTER_COLUMNS.map((col) => (
           <div key={col.title}>
-            <h4 className="text-[11px] uppercase tracking-wider text-neutral-content/40 font-bold mb-4">
+            <h4 className="text-xs uppercase tracking-wider text-base-content/60 font-bold mb-4 font-mono">
               {col.title}
             </h4>
             <ul className="space-y-2.5">
@@ -185,7 +156,7 @@ export default function Footer() {
                 <li key={link}>
                   <a
                     href="#"
-                    className="text-sm text-neutral-content/70 hover:text-white transition-colors"
+                    className="text-xs text-base-content/75 hover:text-[#E1251B] transition-colors"
                   >
                     {link}
                   </a>
@@ -197,22 +168,15 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 mt-12 pt-6 border-t border-neutral-content/10">
-        <div className="flex items-center gap-2 font-bold text-white">
-          <svg
-            className="w-5 h-5 text-secondary"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M12 2L15 8L22 9L17 14L18 21L12 17L6 21L7 14L2 9L9 8L12 2Z"
-              fill="currentColor"
-            />
-          </svg>
-          {t("nav.logo")}
+      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 mt-12 pt-6 border-t border-base-300">
+        <div className="flex items-center gap-2 font-bold text-base-content text-sm">
+          <div className="w-5 h-5 rounded bg-[#E1251B] flex items-center justify-center text-white text-xs font-black">
+            D
+          </div>
+          Devotopia SmartRoadmap
         </div>
-        <p className="text-[11px] text-neutral-content/40 text-center">
-          © 2026 SmartRoadmap. All rights reserved.
+        <p className="text-xs text-base-content/50 text-center font-mono">
+          © 2026 Devotopia Masters. All rights reserved.
         </p>
       </div>
     </footer>

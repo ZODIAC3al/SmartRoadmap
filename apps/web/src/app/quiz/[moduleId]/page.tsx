@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from "recharts";
+import { m, AnimatePresence, useReducedMotion } from "framer-motion";
+import CountdownRing from "@/components/CountdownRing";
 import { useApp } from "@/components/AppContext";
 import { apiFetch, getCachedUser } from "@/lib/api";
 
@@ -219,8 +219,6 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
     );
   }
 
-  const timerData = [{ name: "timer", value: (timer / 30) * 100, fill: timer <= 10 ? "#ef4444" : "#6366f1" }];
-
   return (
     <div dir={isAr ? "rtl" : "ltr"} className="flex flex-col min-h-screen bg-base-100 text-base-content pb-12 px-4">
       <div className="max-w-4xl mx-auto w-full">
@@ -235,7 +233,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
         {!isFinished ? (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* MAIN QUESTION PANEL */}
-            <motion.div
+            <m.div
               key={session.currentQuestionIndex}
               initial={prefersReducedMotion ? undefined : { opacity: 0, x: isAr ? 16 : -16 }}
               animate={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
@@ -285,7 +283,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
 
                 <AnimatePresence>
                   {answerSubmitted && (
-                    <motion.div
+                    <m.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
@@ -310,32 +308,21 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                           </button>
                         )}
                       </div>
-                    </motion.div>
+                    </m.div>
                   )}
                 </AnimatePresence>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* RIGHT PANEL — countdown ring + live progress list */}
             <div className="md:col-span-4 space-y-4">
               <div className="card bg-base-200 border border-base-300 shadow-sm">
                 <div className="card-body p-5 items-center">
                   <div className="relative w-24 h-24">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadialBarChart
-                        cx="50%"
-                        cy="50%"
-                        innerRadius="72%"
-                        outerRadius="100%"
-                        barSize={8}
-                        data={timerData}
-                        startAngle={90}
-                        endAngle={-270}
-                      >
-                        <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                        <RadialBar background dataKey="value" cornerRadius={8} />
-                      </RadialBarChart>
-                    </ResponsiveContainer>
+                    <CountdownRing
+                      percent={(timer / 30) * 100}
+                      color={timer <= 10 ? "#ef4444" : "#6366f1"}
+                    />
                     <div className="absolute inset-0 flex items-center justify-center">
                       <span className={`text-xl font-black font-mono ${timer <= 10 ? "text-error" : "text-indigo-600"}`}>
                         {timer}s
@@ -393,7 +380,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
           </div>
         ) : (
           /* RESULTS */
-          <motion.div
+          <m.div
             initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.97 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1 }}
             className="card bg-base-200 border border-base-300 shadow-sm text-center max-w-2xl mx-auto"
@@ -429,7 +416,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                 </Link>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </div>
     </div>

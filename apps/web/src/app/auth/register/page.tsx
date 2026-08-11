@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, storeSession } from "@/lib/api";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useApp } from "@/components/AppContext";
 import {
   GraduationCap,
@@ -199,7 +199,7 @@ export default function RegisterPage() {
       </div>
 
       {/* LEFT FORM BLOCK */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, x: isRtl ? 50 : -50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -462,7 +462,7 @@ export default function RegisterPage() {
             <a href="#" className="hover:underline">{tLocal('support')}</a>
           </div>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* RIGHT SIDE PANEL: CURVED INDIGO BLUE PANEL WITH FLOATING ELEMENTS */}
       <div className="col-span-12 md:col-span-7 hidden md:flex flex-col justify-between bg-gradient-to-tr from-indigo-700 via-indigo-600 to-indigo-500 text-white p-16 relative overflow-hidden">
@@ -482,10 +482,10 @@ export default function RegisterPage() {
           <div className="absolute w-72 h-72 rounded-full bg-white/10 blur-3xl animate-pulse" />
 
           {/* Widget 1: Sparkline Chart Box */}
-          <motion.div
-            initial={{ y: -30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
+          <m.div
+            initial={{ y: -30 }}
+            animate={{ y: 0 }}
+            transition={{ delay: 0.04, duration: 0.35 }}
             className="bg-white text-slate-800 rounded-3xl p-6 shadow-xl border border-slate-100 w-64 absolute top-10 left-12 flex flex-col text-start space-y-4 hover:scale-105 transition-transform duration-300"
           >
             <div className="flex justify-between items-start">
@@ -500,32 +500,32 @@ export default function RegisterPage() {
             <svg className="w-full h-12 stroke-indigo-500 fill-none" viewBox="0 0 100 20">
               <path d="M 0 18 Q 15 2 30 15 T 60 4 T 90 12" strokeWidth="2.5" strokeLinecap="round" />
             </svg>
-          </motion.div>
+          </m.div>
 
           {/* Social Badges floating outside */}
-          <motion.div
+          <m.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.5, type: "spring" }}
+            transition={{ delay: 0.12, type: "spring" }}
             className="w-12 h-12 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 absolute top-20 right-10 shadow-lg flex items-center justify-center text-white text-lg hover:rotate-12 transition-transform cursor-pointer"
           >
             <Code className="w-5 h-5 text-white" />
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.6, type: "spring" }}
+            transition={{ delay: 0.16, type: "spring" }}
             className="w-12 h-12 rounded-full bg-slate-950 absolute top-56 right-4 shadow-lg flex items-center justify-center text-white text-lg hover:rotate-12 transition-transform cursor-pointer border border-white/20"
           >
             <Globe className="w-5 h-5 text-white" />
-          </motion.div>
+          </m.div>
 
           {/* Widget 2: Key card "Your data, your rules" */}
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
+          <m.div
+            initial={{ y: 30 }}
+            animate={{ y: 0 }}
+            transition={{ delay: 0.08, duration: 0.35 }}
             className="bg-white text-slate-800 rounded-3xl p-6 shadow-xl border border-slate-100 w-72 absolute bottom-12 right-6 flex flex-col text-start space-y-4 hover:scale-105 transition-transform duration-300"
           >
             <div className="flex items-center gap-3">
@@ -543,7 +543,7 @@ export default function RegisterPage() {
               <div className="h-1.5 bg-slate-100 rounded-full w-5/6" />
               <div className="h-1.5 bg-slate-100 rounded-full w-4/6" />
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </div>
 

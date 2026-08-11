@@ -64,6 +64,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "lineicons/dist/lineicons.css";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import MotionProvider from "@/components/MotionProvider";
+
+import TopProgressBar from "@/components/TopProgressBar";
 
 export default function RootLayout({
   children,
@@ -74,22 +77,25 @@ export default function RootLayout({
     <html
       lang="en"
       dir="ltr"
-      data-theme="smartlight"
+      data-theme="smartdark"
       className={`${inter.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="bg-base-100 text-base-content min-h-screen font-sans antialiased flex flex-col relative">
+      <body className="bg-base-100 text-base-content min-h-screen font-sans antialiased flex flex-col relative selection:bg-[#E1251B] selection:text-white transition-colors duration-200">
         <AppContextProvider>
-          <AnimatedBackground />
-          <Navbar />
-          <main className="flex-grow pt-24 pb-16 md:pb-0">{children}</main>
-          <Footer />
-          <BottomNav />
-          <ToastContainer
-            position="bottom-right"
-            autoClose={3000}
-            theme="colored"
-          />
-          <ChatSidebar />
+          <MotionProvider>
+            <TopProgressBar />
+            <AnimatedBackground />
+            <Navbar />
+            <main className="flex-grow pt-24 pb-16 md:pb-0">{children}</main>
+            <Footer />
+            <BottomNav />
+            <ToastContainer
+              position="bottom-right"
+              autoClose={3000}
+              theme="colored"
+            />
+            <ChatSidebar />
+          </MotionProvider>
         </AppContextProvider>
       </body>
     </html>
