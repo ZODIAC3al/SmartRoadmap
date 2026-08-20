@@ -3,7 +3,10 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Report extends Document {
-  @Prop({ required: true, enum: ['post', 'comment', 'resource', 'mentor_profile'] })
+  @Prop({
+    required: true,
+    enum: ['post', 'comment', 'resource', 'mentor_profile'],
+  })
   contentType!: 'post' | 'comment' | 'resource' | 'mentor_profile';
 
   @Prop({ required: true, index: true })

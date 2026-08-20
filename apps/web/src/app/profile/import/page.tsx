@@ -129,18 +129,29 @@ export default function ProfileImportPage() {
 
   const loadAll = useCallback(async () => {
     try {
-      const [ghS, ghA, reposRes, liS, liA, certsRes, projRes] = await Promise.all([
+      const [ghS, ghA, liS, liA, certsRes, projRes] = await Promise.all([
         getGitHubStatus().catch(() => ({ configured: false })),
         getGitHubAccount().catch(() => ({ connected: false, account: null })),
-        getGitHubRepos().catch(() => ({ repos: [] })),
         getLinkedInStatus().catch(() => ({ configured: false, apiLimitations: true })),
         getLinkedInAccount().catch(() => ({ connected: false, account: null })),
         getCertificates().catch(() => ({ certificates: [] })),
         getProjects().catch(() => ({ projects: [] })),
       ]);
       setGhConfigured(ghS.configured);
-      setGhAccount(ghA.connected ? ghA.account : null);
-      setRepos((reposRes.repos ?? []).map((r) => ({ ...r, checked: false })));
+      const activeGh = ghA.connected ? ghA.account : null;
+      setGhAccount(activeGh);
+
+      // Only load cached repos if connected — avoids downloading hundreds of repos unnecessarily
+      if (activeGh) {
+        getGitHubRepos(false)
+          .then((res) => {
+            if (res.repos?.length) {
+              setRepos(res.repos.map((r) => ({ ...r, checked: false })));
+            }
+          })
+          .catch(() => { });
+      }
+
       setLiConfigured(liS.configured);
       const activeLi = liA.connected ? liA.account : null;
       setLiAccount(activeLi);
@@ -188,24 +199,28 @@ export default function ProfileImportPage() {
 
   // ── GitHub actions ────────────────────────────────────────────────────
   const connectGitHub = async () => {
-    if (!ghConfigured) {
-      toast.info(L('GitHub OAuth is not configured on this server.', 'لم يتم ضبط تسجيل دخول GitHub على الخادم.'));
-      return;
-    }
     try {
-      const { url } = await getGitHubAuthUrl();
-      if (url) window.location.href = url;
+      const res = await getGitHubAuthUrl();
+      if (res?.url) {
+        window.location.href = res.url;
+      } else {
+        toast.error(L('GitHub OAuth is not configured on this server.', 'لم يتم ضبط تسجيل دخول GitHub على الخادم.'));
+      }
     } catch (e: any) {
-      toast.error(e.message);
+      toast.error(e.message || L('Could not connect to GitHub.', 'تعذر الاتصال بـ GitHub.'));
     }
   };
 
-  const fetchRepos = async () => {
+  const fetchRepos = async (forceSync = true) => {
     setGhBusy(true);
     try {
-      const { repos: list } = await getGitHubRepos();
+      const { repos: list, fromCache } = await getGitHubRepos(forceSync);
       setRepos(list.map((r) => ({ ...r, checked: false })));
-      toast.success(L(`${list.length} repositories loaded.`, `تم تحميل ${list.length} مستودعاً.`));
+      if (fromCache) {
+        toast.info(L(`${list.length} repositories loaded from cache.`, `تم تحميل ${list.length} مستودعاً من الذاكرة.`));
+      } else {
+        toast.success(L(`${list.length} repositories synchronized from GitHub.`, `تمت مزامنة ${list.length} مستودعاً من GitHub.`));
+      }
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -281,15 +296,11 @@ export default function ProfileImportPage() {
 
   // ── LinkedIn actions ─────────────────────────────────────────────────
   const connectLinkedIn = async () => {
-    if (!liConfigured) {
-      toast.info(L('LinkedIn OAuth is not configured — use the manual or PDF import below.', 'لم يتم ضبط LinkedIn — استخدم الاستيراد اليدوي أو عبر PDF أدناه.'));
-      return;
-    }
     try {
       const { url } = await getLinkedInAuthUrl();
       if (url) window.location.href = url;
     } catch (e: any) {
-      toast.error(e.message);
+      toast.error(e.message || L('Could not connect to LinkedIn.', 'تعذر الاتصال بـ LinkedIn.'));
     }
   };
 
@@ -396,7 +407,7 @@ export default function ProfileImportPage() {
       fd.append('file', certFile);
       fd.append('title', certTitle);
       await uploadCertificate(fd);
-      toast.success(L('Certificate uploaded.', 'تم رفع الشهادة.'));
+      toast.success(L('Certificate uploaded and submitted for verification.', 'تم رفع الشهادة وإرسالها للمراجعة والتوثيق.'));
       setCertTitle('');
       setCertFile(null);
       const { certificates } = await getCertificates();
@@ -444,7 +455,8 @@ export default function ProfileImportPage() {
     }
   };
 
-  const saveCertEdit = async () => {
+  const updateCert = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!editingCert) return;
     try {
       await updateCertificate(editingCert._id, {
@@ -465,11 +477,41 @@ export default function ProfileImportPage() {
   };
 
   const removeCert = async (id: string) => {
-    if (!confirm(L('Delete this certificate?', 'حذف هذه الشهادة؟'))) return;
+    if (!confirm(L('Delete this certificate?', 'هل أنت متأكد من حذف هذه الشهادة؟'))) return;
     try {
       await deleteCertificate(id);
-      setCerts((c) => c.filter((x) => x._id !== id));
       toast.success(L('Certificate deleted.', 'تم حذف الشهادة.'));
+      setCerts((c) => c.filter((x) => x._id !== id));
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const updateProj = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProject) return;
+    try {
+      await updateProject(editingProject._id, {
+        name: editingProject.name,
+        description: editingProject.description,
+        demoLink: editingProject.demoLink,
+        technologies: editingProject.technologies,
+      });
+      toast.success(L('Project updated.', 'تم تحديث المشروع.'));
+      setEditingProject(null);
+      const { projects: list } = await getProjects();
+      setProjects(list);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
+  const removeProj = async (id: string) => {
+    if (!confirm(L('Delete this project?', 'هل أنت متأكد من حذف هذا المشروع؟'))) return;
+    try {
+      await deleteProject(id);
+      toast.success(L('Project deleted.', 'تم حذف المشروع.'));
+      setProjects((p) => p.filter((x) => x._id !== id));
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -546,11 +588,11 @@ export default function ProfileImportPage() {
               </div>
             </div>
             {ghAccount ? (
-              <button onClick={doDisconnectGitHub} className="btn btn-outline border-error/40 text-error btn-sm rounded-xl">
+              <button type="button" onClick={doDisconnectGitHub} className="btn btn-outline border-error/40 text-error btn-sm rounded-xl">
                 {L('Disconnect', 'قطع الاتصال')}
               </button>
             ) : (
-              <button onClick={connectGitHub} className={PRIMARY + ' btn-sm rounded-xl'}>
+              <button type="button" onClick={connectGitHub} className={PRIMARY + ' btn-sm rounded-xl'}>
                 {L('Connect GitHub', 'ربط GitHub')}
               </button>
             )}
@@ -563,7 +605,19 @@ export default function ProfileImportPage() {
                   <img src={ghAccount.avatar} alt="" className="w-12 h-12 rounded-full object-cover border border-base-300" />
                 )}
                 <div className="text-xs">
-                  <p className="font-bold">{ghAccount.fullName || ghAccount.username}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-bold">{ghAccount.fullName || ghAccount.username}</p>
+                    {ghAccount.username && (
+                      <a
+                        href={ghAccount.website || `https://github.com/${ghAccount.username}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#7c3aed] hover:underline text-[11px] font-medium"
+                      >
+                        @{ghAccount.username} ↗
+                      </a>
+                    )}
+                  </div>
                   <p className="text-base-content/55">
                     {ghAccount.followers ?? 0} {L('followers', 'متابع')} · {ghAccount.following ?? 0} {L('following', 'يتابع')}
                     {ghAccount.totalStars ? ` · ★ ${ghAccount.totalStars}` : ''}
@@ -579,7 +633,7 @@ export default function ProfileImportPage() {
                   <button onClick={refreshGitHubData} disabled={ghBusy} className={OUTLINE + ' btn-sm rounded-xl'}>
                     {ghBusy ? <Spinner /> : L('Refresh GitHub Data', 'تحديث بيانات GitHub')}
                   </button>
-                  <button onClick={fetchRepos} disabled={ghBusy} className={OUTLINE + ' btn-sm rounded-xl'}>
+                  <button onClick={() => fetchRepos(true)} disabled={ghBusy} className={OUTLINE + ' btn-sm rounded-xl'}>
                     {ghBusy ? <Spinner /> : L('Load Repositories', 'تحميل المستودعات')}
                   </button>
                 </div>
@@ -594,6 +648,15 @@ export default function ProfileImportPage() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {ghAccount && repos.length === 0 && (
+            <div className="mt-4 p-4 rounded-xl bg-base-100 border border-base-300 text-center text-xs text-base-content/60">
+              <p>{L('No repositories loaded yet. Click "Load Repositories" to fetch your GitHub projects.', 'لم يتم تحميل أي مستودعات بعد. انقر على "تحميل المستودعات" لجلب مشاريع GitHub الخاصة بك.')}</p>
+              <button onClick={() => fetchRepos(true)} disabled={ghBusy} className={PRIMARY + ' btn-sm rounded-xl mt-2'}>
+                {ghBusy ? <Spinner /> : L('Load Repositories', 'تحميل المستودعات')}
+              </button>
             </div>
           )}
 
@@ -786,7 +849,7 @@ export default function ProfileImportPage() {
             </span>
             <div>
               <h2 className="font-extrabold text-sm">{L('Certificates', 'الشهادات')}</h2>
-              <p className="text-[11px] text-base-content/50">{L('Upload and manage your professional certifications.', 'ارفع وأدر شهاداتك المهنية.')}</p>
+              <p className="text-[11px] text-base-content/50">{L('Upload and manage your professional certifications with official verification.', 'ارفع وأدر شهاداتك المهنية مع التحقق والتوثيق الرسمي.')}</p>
             </div>
           </div>
 
@@ -794,13 +857,12 @@ export default function ProfileImportPage() {
             {/* Upload form / Drag & Drop area */}
             <div className="lg:col-span-1 space-y-4">
               <div
-                className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer ${
-                  dragOver
-                    ? 'border-[#7c3aed] bg-[#7c3aed]/5'
-                    : certFile
+                className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer ${dragOver
+                  ? 'border-[#7c3aed] bg-[#7c3aed]/5'
+                  : certFile
                     ? 'border-success/50 bg-success/5'
                     : 'border-base-300 hover:border-base-400 bg-base-100/50'
-                }`}
+                  }`}
                 onDragOver={(e) => {
                   e.preventDefault();
                   setDragOver(true);
@@ -860,75 +922,108 @@ export default function ProfileImportPage() {
             {/* Certificate Gallery */}
             <div className="lg:col-span-2 space-y-4">
               <h3 className="font-bold text-xs text-start">{L('Certificate Gallery', 'معرض الشهادات')}</h3>
-              
+
               {certs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 bg-base-100/50 border border-base-300 rounded-xl text-center">
                   <p className="text-xs text-base-content/40">{L('No certificates uploaded yet.', 'لم يتم رفع أي شهادات بعد.')}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {certs.map((c) => (
-                    <div key={c._id} className="card card-compact bg-base-100 border border-base-300 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                      <div className="card-body p-4 space-y-3 text-start">
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="min-w-0">
-                            <h4 className="font-extrabold text-xs text-base-content line-clamp-1">{c.title}</h4>
-                            {c.organization && <p className="text-[10px] text-base-content/60 font-semibold">{c.organization}</p>}
+                  {certs.map((c) => {
+                    const status = c.status || 'Pending';
+                    return (
+                      <div key={c._id} className="card card-compact bg-base-100 border border-base-300 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div className="card-body p-4 space-y-3 text-start">
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="min-w-0">
+                              <h4 className="font-extrabold text-xs text-base-content line-clamp-1">{c.title}</h4>
+                              {c.organization && <p className="text-[10px] text-base-content/60 font-semibold">{c.organization}</p>}
+                            </div>
+                            <div className="flex gap-1 flex-shrink-0">
+                              <button
+                                onClick={() => setEditingCert(c)}
+                                className="btn btn-ghost btn-xs text-info p-1 hover:bg-info/10"
+                                title={L('Edit', 'تعديل')}
+                              >
+                                <EditIcon />
+                              </button>
+                              <button
+                                onClick={() => removeCert(c._id)}
+                                className="btn btn-ghost btn-xs text-error p-1 hover:bg-error/10"
+                                title={L('Delete', 'حذف')}
+                              >
+                                <TrashIcon />
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex gap-1 flex-shrink-0">
-                            <button
-                              onClick={() => setEditingCert(c)}
-                              className="btn btn-ghost btn-xs text-info p-1 hover:bg-info/10"
-                              title={L('Edit', 'تعديل')}
-                            >
-                              <EditIcon />
-                            </button>
-                            <button
-                              onClick={() => removeCert(c._id)}
-                              className="btn btn-ghost btn-xs text-error p-1 hover:bg-error/10"
-                              title={L('Delete', 'حذف')}
-                            >
-                              <TrashIcon />
-                            </button>
-                          </div>
-                        </div>
 
-                        <div className="text-[10px] text-base-content/50 space-y-1 bg-base-200/50 rounded-lg p-2">
-                          <p>
-                            <span className="font-bold">{L('Issue Date: ', 'تاريخ الإصدار: ')}</span>
-                            {formatDate(c.issueDate)}
-                          </p>
-                          {c.expirationDate && (
+                          {/* Verification Status Badge */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {status === 'Verified' ? (
+                              <span className="badge bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 text-[10px] font-bold gap-1 py-1 px-2.5">
+                                <CheckIcon /> {L('Verified', 'موثقة ومصدقة')}
+                              </span>
+                            ) : status === 'Rejected' ? (
+                              <span className="badge bg-error/15 text-error border border-error/30 text-[10px] font-bold gap-1 py-1 px-2.5">
+                                ✕ {L('Rejected', 'مرفوضة')}
+                              </span>
+                            ) : (
+                              <span className="badge bg-amber-500/15 text-amber-600 border border-amber-500/30 text-[10px] font-bold gap-1 py-1 px-2.5">
+                                ⏳ {L('Pending Review', 'قيد المراجعة')}
+                              </span>
+                            )}
+                            {status === 'Verified' && c.reviewedAt && (
+                              <span className="text-[9px] text-emerald-600/80 font-medium">
+                                {formatDate(c.reviewedAt)}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Rejection Notice if any */}
+                          {status === 'Rejected' && c.rejectionReason && (
+                            <div className="p-2 rounded-lg bg-error/10 border border-error/20 text-[10px] text-error space-y-0.5">
+                              <p className="font-bold">{L('Admin Feedback / Rejection Reason:', 'ملاحظات الإدارة / سبب الرفض:')}</p>
+                              <p className="leading-tight">{c.rejectionReason}</p>
+                            </div>
+                          )}
+
+                          <div className="text-[10px] text-base-content/50 space-y-1 bg-base-200/50 rounded-lg p-2">
                             <p>
-                              <span className="font-bold">{L('Expires: ', 'ينتهي في: ')}</span>
-                              {formatDate(c.expirationDate)}
+                              <span className="font-bold">{L('Issue Date: ', 'تاريخ الإصدار: ')}</span>
+                              {formatDate(c.issueDate)}
                             </p>
-                          )}
-                          {c.credentialId && (
-                            <p className="truncate">
-                              <span className="font-bold">{L('Credential ID: ', 'معرّف الشهادة: ')}</span>
-                              {c.credentialId}
-                            </p>
-                          )}
-                        </div>
+                            {c.expirationDate && (
+                              <p>
+                                <span className="font-bold">{L('Expires: ', 'ينتهي في: ')}</span>
+                                {formatDate(c.expirationDate)}
+                              </p>
+                            )}
+                            {c.credentialId && (
+                              <p className="truncate">
+                                <span className="font-bold">{L('Credential ID: ', 'معرّف الشهادة: ')}</span>
+                                {c.credentialId}
+                              </p>
+                            )}
+                          </div>
 
-                        <div className="card-actions justify-end border-t border-base-300 pt-2 gap-2 mt-auto">
-                          <button
-                            onClick={() => openCertificate(c, 'view')}
-                            className="btn btn-ghost btn-xs text-xs font-bold gap-1 p-1"
-                          >
-                            <EyeIcon /> {L('View', 'عرض')}
-                          </button>
-                          <button
-                            onClick={() => openCertificate(c, 'download')}
-                            className="btn btn-ghost btn-xs text-xs font-bold gap-1 p-1"
-                          >
-                            <DownloadIcon /> {L('Download', 'تحميل')}
-                          </button>
+                          <div className="card-actions justify-end border-t border-base-300 pt-2 gap-2 mt-auto">
+                            <button
+                              onClick={() => openCertificate(c, 'view')}
+                              className="btn btn-ghost btn-xs text-xs font-bold gap-1 p-1"
+                            >
+                              <EyeIcon /> {L('View', 'عرض')}
+                            </button>
+                            <button
+                              onClick={() => openCertificate(c, 'download')}
+                              className="btn btn-ghost btn-xs text-xs font-bold gap-1 p-1"
+                            >
+                              <DownloadIcon /> {L('Download', 'تحميل')}
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -987,7 +1082,7 @@ export default function ProfileImportPage() {
                     </div>
 
                     {p.description && <p className="text-[11px] text-base-content/60 line-clamp-2 leading-relaxed">{p.description}</p>}
-                    
+
                     {p.technologies && p.technologies.length > 0 && (
                       <div className="flex flex-wrap gap-1 pt-1">
                         {p.technologies.map((t) => (
@@ -1092,7 +1187,7 @@ export default function ProfileImportPage() {
               <button onClick={() => setEditingCert(null)} className={OUTLINE + ' btn-xs rounded-xl px-4 py-2'}>
                 {L('Cancel', 'إلغاء')}
               </button>
-              <button onClick={saveCertEdit} className={PRIMARY + ' btn-xs rounded-xl px-4 py-2'}>
+              <button onClick={(e) => updateCert(e as unknown as React.FormEvent)} className={PRIMARY + ' btn-xs rounded-xl px-4 py-2'}>
                 {L('Save', 'حفظ')}
               </button>
             </div>
@@ -1163,5 +1258,3 @@ export default function ProfileImportPage() {
     </div>
   );
 }
-
-

@@ -1,4 +1,12 @@
-import { IsEnum, IsString, IsUrl, MaxLength, MinLength, IsOptional, IsArray } from 'class-validator';
+import {
+  IsEnum,
+  IsString,
+  IsUrl,
+  MaxLength,
+  MinLength,
+  IsOptional,
+  IsArray,
+} from 'class-validator';
 
 export class CreateResourceDto {
   @IsString()

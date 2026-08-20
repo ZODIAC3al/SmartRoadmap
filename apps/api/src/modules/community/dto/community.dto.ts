@@ -1,4 +1,12 @@
-import { IsEnum, IsString, MaxLength, MinLength, IsOptional, IsArray, IsBoolean } from 'class-validator';
+import {
+  IsEnum,
+  IsString,
+  MaxLength,
+  MinLength,
+  IsOptional,
+  IsArray,
+  IsBoolean,
+} from 'class-validator';
 
 export class CreateSpaceDto {
   @IsString()

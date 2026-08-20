@@ -76,4 +76,5 @@ export class InterviewSession {
   completedAt?: Date;
 }
 
-export const InterviewSessionSchema = SchemaFactory.createForClass(InterviewSession);
+export const InterviewSessionSchema =
+  SchemaFactory.createForClass(InterviewSession);

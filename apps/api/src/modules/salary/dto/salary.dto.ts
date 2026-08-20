@@ -139,11 +139,11 @@ export interface SalaryInsightsResponse {
   dataStatus: SalaryDataStatus;
 
   /** null when dataStatus is NO_DATA or API_ERROR */
-  minSalary:  number | null;
+  minSalary: number | null;
   /** null when dataStatus is NO_DATA or API_ERROR */
-  avgSalary:  number | null;
+  avgSalary: number | null;
   /** null when dataStatus is NO_DATA or API_ERROR */
-  maxSalary:  number | null;
+  maxSalary: number | null;
 
   /** What the centre figure actually is */
   salaryMetricLabel: 'average' | 'median' | 'estimate';

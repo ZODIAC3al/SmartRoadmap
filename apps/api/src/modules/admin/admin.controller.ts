@@ -9,13 +9,18 @@ import {
   Post,
   Put,
   Delete,
+  Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
-import { ResolveReportDto } from './dto/admin.dto';
+import { ResolveReportDto, VerifyCertificateDto } from './dto/admin.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
+import type { Response } from 'express';
 
 @ApiTags('admin')
 @ApiBearerAuth()
@@ -46,7 +51,11 @@ export class AdminController {
   }
 
   @Put('users/:id')
-  updateUser(@CurrentUser() admin: JwtUser, @Param('id') id: string, @Body() dto: any) {
+  updateUser(
+    @CurrentUser() admin: JwtUser,
+    @Param('id') id: string,
+    @Body() dto: any,
+  ) {
     return this.adminService.updateUser(id, dto, admin.sub);
   }
 
@@ -61,7 +70,11 @@ export class AdminController {
   }
 
   @Patch('reports/:id/resolve')
-  resolveReport(@CurrentUser() admin: JwtUser, @Param('id') id: string, @Body() dto: ResolveReportDto) {
+  resolveReport(
+    @CurrentUser() admin: JwtUser,
+    @Param('id') id: string,
+    @Body() dto: ResolveReportDto,
+  ) {
     return this.adminService.resolveReport(id, dto, admin.sub);
   }
 
@@ -78,5 +91,37 @@ export class AdminController {
   @Get('analytics/insights')
   getAIInsights() {
     return this.adminService.getAIInsights();
+  }
+
+  // ───────────────────────── Certificate Verification ─────────────────────────
+
+  @Get('certificates')
+  getCertificates(
+    @Query('status') status?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.adminService.getCertificates(status, search);
+  }
+
+  @Patch('certificates/:id/verify')
+  verifyCertificate(
+    @CurrentUser() admin: JwtUser,
+    @Param('id') id: string,
+    @Body() dto: VerifyCertificateDto,
+  ) {
+    return this.adminService.verifyCertificate(id, dto, admin.sub);
+  }
+
+  @Get('certificates/:id/file')
+  async getCertificateFile(
+    @Param('id') id: string,
+    @Query('download') download: string,
+    @Res() res: Response,
+  ) {
+    const url = await this.adminService.getCertificateFileUrl(id);
+    if (download === '1' || download === 'true') {
+      res.setHeader('Content-Disposition', 'attachment');
+    }
+    return res.redirect(url);
   }
 }

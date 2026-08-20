@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, storeSession } from "@/lib/api";
+import { apiFetch, extractErrorMessage, storeSession } from "@/lib/api";
 import { motion } from "framer-motion";
 import { useApp } from "@/components/AppContext";
 import {
@@ -142,6 +142,14 @@ export default function RegisterPage() {
         setErrorMsg("Please populate all credential fields.");
         return;
       }
+      if (password.length < 8) {
+        setErrorMsg("Password must be at least 8 characters long.");
+        return;
+      }
+      if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
+        setErrorMsg("Password must contain at least one letter and one number.");
+        return;
+      }
       setErrorMsg("");
       setStep(2);
     }
@@ -159,9 +167,9 @@ export default function RegisterPage() {
         body: JSON.stringify({ email, name, password, role }),
       });
 
-      const regData = await regRes.json();
+      const regData = await regRes.json().catch(() => ({}));
       if (!regRes.ok) {
-        throw new Error(regData.message || "Registration failed.");
+        throw new Error(extractErrorMessage(regData, "Registration failed."));
       }
 
       if (role === "learner") {

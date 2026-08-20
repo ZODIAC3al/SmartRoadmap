@@ -61,6 +61,10 @@ export class CreateJobDto {
 }
 
 export type ApplicationStatus =
+  | 'Applied'
+  | 'Interviewing'
+  | 'Accepted'
+  | 'Rejected'
   | 'interested'
   | 'applied'
   | 'under_review'
@@ -69,19 +73,31 @@ export type ApplicationStatus =
   | 'offer'
   | 'hired';
 
-const APPLICATION_STATUSES: ApplicationStatus[] = [
-  'interested', 'applied', 'under_review', 'interview', 'rejected', 'offer', 'hired',
+export const APPLICATION_STATUSES: ApplicationStatus[] = [
+  'Applied',
+  'Interviewing',
+  'Accepted',
+  'Rejected',
+  'interested',
+  'applied',
+  'under_review',
+  'interview',
+  'rejected',
+  'offer',
+  'hired',
 ];
 
 export class CreateApplicationDto {
   @IsString()
   jobId!: string;
 
+  @IsOptional()
   @IsString()
-  jobTitle!: string;
+  jobTitle?: string;
 
+  @IsOptional()
   @IsString()
-  company!: string;
+  company?: string;
 
   @IsOptional()
   @IsString()
@@ -103,6 +119,12 @@ export class CreateApplicationDto {
   @IsString()
   @MaxLength(2000)
   notes?: string;
+
+  @IsOptional()
+  cvSnapshot?: Record<string, any>;
+
+  @IsOptional()
+  passportSnapshot?: Record<string, any>;
 }
 
 export class UpdateApplicationStatusDto {

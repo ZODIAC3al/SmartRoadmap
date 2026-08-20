@@ -2,11 +2,23 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RecommendationController } from './recommendation.controller';
 import { RecommendationService } from './recommendation.service';
-import { UserRecommendation, UserRecommendationSchema } from '../../schemas/recommendation.schema';
-import { LearnerProfile, LearnerProfileSchema } from '../../schemas/learner-profile.schema';
+import {
+  UserRecommendation,
+  UserRecommendationSchema,
+} from '../../schemas/recommendation.schema';
+import {
+  LearnerProfile,
+  LearnerProfileSchema,
+} from '../../schemas/learner-profile.schema';
 import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
-import { QuizSession, QuizSessionSchema } from '../../schemas/quiz-session.schema';
-import { InterviewSession, InterviewSessionSchema } from '../../schemas/interview-session.schema';
+import {
+  QuizSession,
+  QuizSessionSchema,
+} from '../../schemas/quiz-session.schema';
+import {
+  InterviewSession,
+  InterviewSessionSchema,
+} from '../../schemas/interview-session.schema';
 import { Job, JobSchema } from '../../schemas/job.schema';
 import { AIModule } from '../../ai/ai.module';
 

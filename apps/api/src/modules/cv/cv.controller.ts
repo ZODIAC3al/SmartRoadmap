@@ -23,6 +23,7 @@ import {
   AtsAutoFixDto,
   AtsCheckDto,
   EnhanceDto,
+  GenerateFromProfileDto,
   GenerateTailoredCvDto,
   SaveCvDto,
 } from './dto/cv.dto';
@@ -105,11 +106,16 @@ export class CvController {
   @HttpCode(HttpStatus.OK)
   async generateFromProfile(
     @CurrentUser() user: JwtUser,
-    @Body() body: { targetJobTitle?: string },
+    @Body() dto: GenerateFromProfileDto,
   ) {
     return {
       success: true,
-      data: await this.cvService.generateFromProfile(user.sub, body?.targetJobTitle),
+      data: await this.cvService.generateFromProfile(
+        user.sub,
+        dto?.targetJobTitle,
+        dto?.jobDescription,
+        dto?.forceRegenerate,
+      ),
     };
   }
 
@@ -188,4 +194,3 @@ export class CvController {
     return this.cvService.getCvByUserId(userId);
   }
 }
-

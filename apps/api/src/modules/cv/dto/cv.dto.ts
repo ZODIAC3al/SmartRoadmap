@@ -74,3 +74,20 @@ export class AtsAutoFixDto {
   @IsObject()
   cvData?: Record<string, any>;
 }
+
+export class GenerateFromProfileDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  targetJobTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(5000)
+  jobDescription?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  forceRegenerate?: boolean;
+}
+

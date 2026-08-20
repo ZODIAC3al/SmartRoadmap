@@ -1,15 +1,16 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CommunityService } from './community.service';
-import { CreateSpaceDto, CreatePostDto, CreateCommentDto, CreateReportDto } from './dto/community.dto';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CreateSpaceDto,
+  CreatePostDto,
+  CreateCommentDto,
+  CreateReportDto,
+} from './dto/community.dto';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 
 @ApiTags('community')
 @ApiBearerAuth()

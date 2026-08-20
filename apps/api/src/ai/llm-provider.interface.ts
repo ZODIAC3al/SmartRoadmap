@@ -4,5 +4,8 @@ export interface ChatMessage {
 }
 
 export interface LLMProvider {
-  chat(messages: ChatMessage[], options?: { isJson?: boolean }): Promise<string>;
+  chat(
+    messages: ChatMessage[],
+    options?: { isJson?: boolean },
+  ): Promise<string>;
 }
