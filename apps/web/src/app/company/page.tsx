@@ -7,7 +7,7 @@ import { logout } from "@/lib/api";
 import { useCompanyDashboard } from "./useCompanyDashboard";
 
 const STATUS_BADGES: Record<string, { bg: string; text: string; icon: string }> = {
-  Applied: { bg: "bg-[#8E1616]/10 border-[#8E1616]/20/20", text: "text-[#8E1616]", icon: "🚀" },
+  Applied: { bg: "bg-emerald-500/10 border-emerald-500/20", text: "text-emerald-600", icon: "🚀" },
   Interviewing: { bg: "bg-amber-500/10 border-amber-500/20", text: "text-amber-600", icon: "🎙️" },
   Accepted: { bg: "bg-green-500/10 border-green-500/30", text: "text-green-600", icon: "🎉" },
   Rejected: { bg: "bg-red-500/10 border-red-500/20", text: "text-red-600", icon: "❌" },
@@ -75,8 +75,8 @@ export default function CompanyPage() {
     return (
       <div className="flex min-h-screen bg-base-100 items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
-          <span className="text-sm font-mono text-stone-700 dark:text-stone-300 font-medium">
+          <span className="loading loading-spinner loading-lg text-emerald-500"></span>
+          <span className="text-sm font-mono text-base-content/50">
             Loading recruitment management system...
           </span>
         </div>
@@ -88,21 +88,21 @@ export default function CompanyPage() {
     return (
       <div className="flex flex-col min-h-[85vh] items-center justify-center p-8 text-center bg-base-100">
         <div className="max-w-md bg-base-200 border border-base-300 p-8 rounded-2xl shadow-sm space-y-6">
-          <div className="w-16 h-16 bg-[#8E1616]/10 text-[#8E1616] rounded-full flex items-center justify-center mx-auto text-3xl font-bold">
+          <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto text-3xl font-bold">
             💼
           </div>
           <div className="space-y-2">
             <h2 className="text-xl font-extrabold text-base-content leading-tight">
               Recruiter & Employer Access Only
             </h2>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+            <p className="text-xs text-base-content/60">
               Only verified company and admin accounts can manage job postings, review applicants, and update hiring statuses.
             </p>
           </div>
           <div className="pt-2">
             <Link
               href="/auth/login"
-              className="btn bg-[#8E1616] hover:bg-[#8E1616]/10 text-white rounded-xl h-12 w-full font-bold"
+              className="btn bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-12 w-full font-bold"
             >
               Sign In with Employer Credentials
             </Link>
@@ -118,12 +118,12 @@ export default function CompanyPage() {
         {/* Top Employer Banner */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-[#8E1616]/15 text-[#8E1616] flex items-center justify-center font-black text-lg border border-[#8E1616]/20/20">
+            <div className="w-11 h-11 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center font-black text-lg border border-emerald-500/20">
               {user.name?.charAt(0) || "C"}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-[#8E1616] font-bold uppercase tracking-wider font-mono bg-[#8E1616]/10 px-2 py-0.5 rounded">
+                <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
                   {user.role === "admin" ? "Platform Administrator" : "Verified Employer"}
                 </span>
               </div>
@@ -135,7 +135,7 @@ export default function CompanyPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowAddJobModal(true)}
-              className="btn btn-sm bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none rounded-xl font-bold text-xs px-4"
+              className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold text-xs px-4"
             >
               + Post New Job
             </button>
@@ -145,7 +145,7 @@ export default function CompanyPage() {
                 setUser(null);
                 toast.info("Logged out from employer session.");
               }}
-              className="btn btn-ghost btn-xs text-stone-700 dark:text-stone-300 font-medium hover:bg-base-300 rounded-lg"
+              className="btn btn-ghost btn-xs text-base-content/50 hover:bg-base-300 rounded-lg"
             >
               Log Out
             </button>
@@ -155,35 +155,35 @@ export default function CompanyPage() {
         {/* Analytics row */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-start">
           <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm space-y-1">
-            <span className="text-[10px] uppercase font-bold text-stone-700 dark:text-stone-300 font-medium tracking-wider block font-mono">
+            <span className="text-[10px] uppercase font-bold text-base-content/50 tracking-wider block font-mono">
               Received Applications
             </span>
             <span className="text-3xl font-black font-mono text-base-content">
               {applications.length}
             </span>
-            <span className="text-[10px] text-[#8E1616] block font-bold">
+            <span className="text-[10px] text-emerald-600 block font-bold">
               ✓ Ready for review & interviewing
             </span>
           </div>
           <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm space-y-1">
-            <span className="text-[10px] uppercase font-bold text-stone-700 dark:text-stone-300 font-medium tracking-wider block font-mono">
+            <span className="text-[10px] uppercase font-bold text-base-content/50 tracking-wider block font-mono">
               Active Job Listings
             </span>
-            <span className="text-3xl font-black font-mono text-[#8E1616]">
+            <span className="text-3xl font-black font-mono text-emerald-600">
               {jobs.length}
             </span>
-            <span className="text-[10px] text-stone-700 dark:text-stone-300 font-medium block font-semibold">
+            <span className="text-[10px] text-base-content/60 block font-semibold">
               Live in MongoDB database
             </span>
           </div>
           <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm space-y-1">
-            <span className="text-[10px] uppercase font-bold text-stone-700 dark:text-stone-300 font-medium tracking-wider block font-mono">
+            <span className="text-[10px] uppercase font-bold text-base-content/50 tracking-wider block font-mono">
               Pre-Vetted Talent Pool
             </span>
             <span className="text-3xl font-black font-mono text-base-content">
               {candidates.length}
             </span>
-            <span className="text-[10px] text-[#8E1616] block font-bold">
+            <span className="text-[10px] text-emerald-600 block font-bold">
               Verified skills & Skill Passports
             </span>
           </div>
@@ -195,8 +195,8 @@ export default function CompanyPage() {
             onClick={() => setActiveTab("applications")}
             className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
               activeTab === "applications"
-                ? "bg-[#8E1616] text-white shadow-sm"
-                : "text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
+                ? "bg-emerald-500 text-white shadow-sm"
+                : "text-base-content/60 hover:text-base-content"
             }`}
           >
             📋 Candidate Applications ({applications.length})
@@ -205,8 +205,8 @@ export default function CompanyPage() {
             onClick={() => setActiveTab("jobs")}
             className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
               activeTab === "jobs"
-                ? "bg-[#8E1616] text-white shadow-sm"
-                : "text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
+                ? "bg-emerald-500 text-white shadow-sm"
+                : "text-base-content/60 hover:text-base-content"
             }`}
           >
             💼 My Job Postings ({jobs.length})
@@ -215,8 +215,8 @@ export default function CompanyPage() {
             onClick={() => setActiveTab("candidates")}
             className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
               activeTab === "candidates"
-                ? "bg-[#8E1616] text-white shadow-sm"
-                : "text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
+                ? "bg-emerald-500 text-white shadow-sm"
+                : "text-base-content/60 hover:text-base-content"
             }`}
           >
             👥 Talent Directory ({filteredCandidates.length})
@@ -231,153 +231,95 @@ export default function CompanyPage() {
                 <h3 className="font-extrabold text-lg text-base-content">
                   Applicant Review & Decision Pipeline
                 </h3>
-                <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+                <p className="text-xs text-base-content/60">
                   Review submitted resumes, inspect verified Skill Passports, evaluate Needed Skills, and update hiring statuses.
                 </p>
               </div>
             </div>
 
             {applications.length === 0 ? (
-              <div className="p-12 text-center text-stone-700 dark:text-stone-300 font-medium text-xs">
+              <div className="p-12 text-center text-base-content/50 text-xs">
                 No applications submitted yet for your postings. Post a job or share your openings!
               </div>
-            ) : (() => {
-              const APP_PAGE_SIZE = 6;
-              const sortedApps = [...applications].sort((a: any, b: any) => {
-                const ta = a.appliedAt || a.createdAt || 0;
-                const tb = b.appliedAt || b.createdAt || 0;
-                return new Date(tb).getTime() - new Date(ta).getTime();
-              });
-              const appTotalPages = Math.ceil(sortedApps.length / APP_PAGE_SIZE) || 1;
-              const appStart = (appPage - 1) * APP_PAGE_SIZE;
-              const pageApps = sortedApps.slice(appStart, appStart + APP_PAGE_SIZE);
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="table table-zebra w-full text-xs">
+                  <thead>
+                    <tr className="border-base-300 text-base-content/60 uppercase font-mono text-[10px]">
+                      <th>Candidate</th>
+                      <th>Applied Role</th>
+                      <th>Match Score</th>
+                      <th>Applied Date</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {applications.map((app) => {
+                      const userObj = typeof app.userId === "object" && app.userId !== null ? app.userId : null;
+                      const candidateName = userObj?.name || app.passportSnapshot?.name || "Candidate";
+                      const candidateEmail = userObj?.email || app.passportSnapshot?.email || "";
+                      const norm = normalizeStatus(app.status);
+                      const badge = STATUS_BADGES[norm] || STATUS_BADGES.Applied;
 
-              return (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center text-xs text-stone-700 dark:text-stone-300 font-medium font-mono">
-                    <span>
-                      Showing {Math.min(appStart + 1, sortedApps.length)}-{Math.min(appStart + APP_PAGE_SIZE, sortedApps.length)} of {sortedApps.length} applications
-                    </span>
-                    <span>Newest first</span>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="table table-zebra w-full text-xs">
-                      <thead>
-                        <tr className="border-base-300 text-stone-700 dark:text-stone-300 font-medium uppercase font-mono text-[10px]">
-                          <th>Candidate</th>
-                          <th>Applied Role</th>
-                          <th>Match Score</th>
-                          <th>Applied Date</th>
-                          <th>Status</th>
-                          <th>Actions</th>
+                      return (
+                        <tr key={app._id} className="border-base-300 hover:bg-base-100/50">
+                          <td>
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 font-bold flex items-center justify-center border border-emerald-500/20 text-xs shrink-0">
+                                {candidateName.charAt(0)}
+                              </div>
+                              <div>
+                                <span className="font-extrabold text-sm text-base-content block">
+                                  {candidateName}
+                                </span>
+                                <span className="text-[11px] text-base-content/50 font-mono">
+                                  {candidateEmail}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div>
+                              <span className="font-bold text-xs text-base-content block">
+                                {app.jobTitle}
+                              </span>
+                              <span className="text-[10px] text-base-content/50">
+                                {app.company}
+                              </span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="font-mono font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                              {app.matchScore}%
+                            </span>
+                          </td>
+                          <td>
+                            <span className="text-xs text-base-content/60 font-mono">
+                              {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : new Date(app.createdAt).toLocaleDateString()}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold font-mono ${badge.bg} ${badge.text}`}>
+                              <span>{badge.icon}</span>
+                              <span>{app.status}</span>
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              onClick={() => setSelectedApplication(app)}
+                              className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold text-[10px] px-3"
+                            >
+                              Review Candidate
+                            </button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {pageApps.map((app: any) => {
-                          const userObj = typeof app.userId === "object" && app.userId !== null ? app.userId : null;
-                          const candidateName = userObj?.name || app.candidateName || app.passportSnapshot?.name || "Candidate";
-                          const candidateEmail = userObj?.email || app.passportSnapshot?.email || "";
-                          const norm = normalizeStatus(app.status);
-                          const badge = STATUS_BADGES[norm] || STATUS_BADGES.Applied;
-
-                          return (
-                            <tr key={app._id || app.id} className="border-base-300 hover:bg-base-100/50">
-                              <td>
-                                <div className="flex items-center gap-2.5">
-                                  <div className="w-8 h-8 rounded-full bg-[#8E1616]/10 text-[#8E1616] font-bold flex items-center justify-center border border-[#8E1616]/20/20 text-xs shrink-0">
-                                    {candidateName.charAt(0)}
-                                  </div>
-                                  <div>
-                                    <span className="font-extrabold text-sm text-base-content block">
-                                      {candidateName}
-                                    </span>
-                                    <span className="text-[11px] text-stone-700 dark:text-stone-300 font-medium font-mono">
-                                      {candidateEmail}
-                                    </span>
-                                  </div>
-                                </div>
-                              </td>
-                              <td>
-                                <div>
-                                  <span className="font-bold text-xs text-base-content block">
-                                    {app.jobTitle}
-                                  </span>
-                                  <span className="text-[10px] text-stone-700 dark:text-stone-300 font-medium">
-                                    {app.company}
-                                  </span>
-                                </div>
-                              </td>
-                              <td>
-                                <span className="font-mono font-bold text-[#8E1616] bg-[#8E1616]/10 px-2 py-0.5 rounded border border-[#8E1616]/20/20">
-                                  {app.matchScore}%
-                                </span>
-                              </td>
-                              <td>
-                                <span className="text-xs text-stone-700 dark:text-stone-300 font-medium font-mono">
-                                  {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : new Date(app.createdAt).toLocaleDateString()}
-                                </span>
-                              </td>
-                              <td>
-                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold font-mono ${badge.bg} ${badge.text}`}>
-                                  <span>{badge.icon}</span>
-                                  <span>{app.status}</span>
-                                </span>
-                              </td>
-                              <td>
-                                <button
-                                  onClick={() => setSelectedApplication(app)}
-                                  className="btn btn-xs bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none rounded-lg font-bold text-[10px] px-3"
-                                >
-                                  Review Candidate
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Pagination Controls */}
-                  {appTotalPages > 1 && (
-                    <div className="flex justify-center items-center gap-2 pt-3 border-t border-base-300">
-                      <button
-                        onClick={() => setAppPage((p) => Math.max(p - 1, 1))}
-                        disabled={appPage === 1}
-                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
-                      >
-                        Previous
-                      </button>
-
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: appTotalPages }, (_, i) => i + 1).map((page) => (
-                          <button
-                            key={page}
-                            onClick={() => setAppPage(page)}
-                            className={`w-7 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-all ${
-                              appPage === page
-                                ? 'bg-[#8E1616] text-white shadow-xs'
-                                : 'bg-base-200 text-stone-700 dark:text-stone-300 font-medium hover:bg-base-300'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        ))}
-                      </div>
-
-                      <button
-                        onClick={() => setAppPage((p) => Math.min(p + 1, appTotalPages))}
-                        disabled={appPage === appTotalPages}
-                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
@@ -389,27 +331,27 @@ export default function CompanyPage() {
                 <h3 className="font-extrabold text-lg text-base-content">
                   Active Job Postings
                 </h3>
-                <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+                <p className="text-xs text-base-content/60">
                   Manage live job openings visible to all candidates across the platform.
                 </p>
               </div>
               <button
                 onClick={() => setShowAddJobModal(true)}
-                className="btn btn-sm bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none rounded-xl font-bold text-xs"
+                className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold text-xs"
               >
                 + Post Job
               </button>
             </div>
 
             {jobs.length === 0 ? (
-              <div className="p-12 text-center text-stone-700 dark:text-stone-300 font-medium text-xs">
+              <div className="p-12 text-center text-base-content/50 text-xs">
                 No jobs posted yet. Click &quot;+ Post New Job&quot; above to create your first opening!
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {jobs.map((job: any) => (
+                {jobs.map((job) => (
                   <div
-                    key={job._id || job.id}
+                    key={job._id}
                     className="bg-base-100 border border-base-300 rounded-2xl p-5 space-y-3 flex flex-col justify-between"
                   >
                     <div>
@@ -418,8 +360,8 @@ export default function CompanyPage() {
                           <h4 className="font-extrabold text-base text-base-content">
                             {job.title}
                           </h4>
-                          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium font-medium mt-0.5">
-                            {job.company || "Company"} • {job.location} ({job.country || "US"})
+                          <p className="text-xs text-base-content/60 font-medium mt-0.5">
+                            {job.company} • {job.location} ({job.country || "US"})
                           </p>
                         </div>
                         <span className="badge badge-sm badge-neutral font-mono text-[9px] uppercase">
@@ -428,24 +370,24 @@ export default function CompanyPage() {
                       </div>
 
                       <div className="flex flex-wrap gap-1.5 mt-3">
-                        {(job.requiredSkills || []).map((s: string, i: number) => (
-                          <span key={i} className="badge badge-xs bg-base-200 border-base-300 text-stone-700 dark:text-stone-300 font-medium font-mono text-[9px]">
+                        {job.requiredSkills.map((s, i) => (
+                          <span key={i} className="badge badge-xs bg-base-200 border-base-300 text-base-content/70 font-mono text-[9px]">
                             {s}
                           </span>
                         ))}
                       </div>
 
-                      <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-2 line-clamp-2">
-                        {job.description || ""}
+                      <p className="text-xs text-base-content/70 mt-2 line-clamp-2">
+                        {job.description}
                       </p>
                     </div>
 
-                    <div className="flex justify-between items-center border-t border-base-200 pt-3 text-[10px] font-mono text-stone-700 dark:text-stone-300 font-medium">
+                    <div className="flex justify-between items-center border-t border-base-200 pt-3 text-[10px] font-mono text-base-content/50">
                       <span>
                         {job.salaryMin ? `$${job.salaryMin.toLocaleString()} - $${(job.salaryMax || 0).toLocaleString()}` : "Competitive Salary"}
                       </span>
                       <button
-                        onClick={() => handleDeleteJob(job._id || job.id)}
+                        onClick={() => handleDeleteJob(job._id)}
                         className="text-red-500 hover:underline font-bold"
                       >
                         Delete Job
@@ -468,19 +410,13 @@ export default function CompanyPage() {
                 placeholder="Search candidates by name, target role, or verified skill..."
                 className="input input-bordered input-sm w-full md:w-96 rounded-xl text-xs bg-base-100"
                 value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setTalentPage(1);
-                }}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
               <div className="flex items-center gap-2 w-full md:w-auto">
                 <select
                   className="select select-bordered select-sm rounded-xl text-xs bg-base-100"
                   value={roleFilter}
-                  onChange={(e) => {
-                    setRoleFilter(e.target.value);
-                    setTalentPage(1);
-                  }}
+                  onChange={(e) => setRoleFilter(e.target.value)}
                 >
                   <option value="all">All Roles</option>
                   <option value="Frontend">Frontend</option>
@@ -491,115 +427,41 @@ export default function CompanyPage() {
               </div>
             </div>
 
-            {/* Candidates Grid Sorted from Top Scores First */}
-            {(() => {
-              const sortedCandidates = [...filteredCandidates].sort(
-                (a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0),
-              );
-              const PAGE_SIZE = 6;
-              const totalPages = Math.ceil(sortedCandidates.length / PAGE_SIZE) || 1;
-              const startIdx = (talentPage - 1) * PAGE_SIZE;
-              const pageCandidates = sortedCandidates.slice(startIdx, startIdx + PAGE_SIZE);
-
-              return (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center text-xs text-stone-700 dark:text-stone-300 font-medium font-mono">
-                    <span>
-                      Showing {Math.min(startIdx + 1, sortedCandidates.length)}-
-                      {Math.min(startIdx + PAGE_SIZE, sortedCandidates.length)} of {sortedCandidates.length} top candidates
-                    </span>
-                    <span>Sorted by highest AI match fit</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {pageCandidates.map((cand: any) => (
-                      <div
-                        key={cand.userId}
-                        className="bg-base-200 border border-base-300 rounded-2xl p-5 space-y-4 flex flex-col justify-between hover:border-[#8E1616]/20/40 transition-colors"
-                      >
-                        <div>
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-10 h-10 rounded-full bg-[#8E1616]/10 text-[#8E1616] font-black flex items-center justify-center border border-[#8E1616]/20/20 text-sm">
-                                {cand.name.charAt(0)}
-                              </div>
-                              <div>
-                                <h4 className="font-extrabold text-sm text-base-content">
-                                  {cand.name}
-                                </h4>
-                                <span className="text-[11px] text-stone-700 dark:text-stone-300 font-medium block">
-                                  {cand.targetRole}
-                                </span>
-                              </div>
-                            </div>
-                            <span className="font-mono font-bold text-xs text-[#8E1616] bg-[#8E1616]/10 px-2 py-0.5 rounded border border-[#8E1616]/20/20">
-                              {cand.matchScore}% Fit
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2 mt-4 text-[11px]">
-                            <div className="bg-base-100 p-2 rounded-xl border border-base-300">
-                              <span className="text-[9px] uppercase font-mono text-stone-700 dark:text-stone-300 font-medium block">Milestones</span>
-                              <span className="font-bold text-xs text-base-content">{cand.completedMilestones} completed</span>
-                            </div>
-                            <div className="bg-base-100 p-2 rounded-xl border border-base-300">
-                              <span className="text-[9px] uppercase font-mono text-stone-700 dark:text-stone-300 font-medium block">Avg Quiz</span>
-                              <span className="font-bold text-xs text-[#8E1616]">{cand.averageQuizScore}%</span>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap gap-1 mt-3">
-                            {(cand.verifiedSkills || []).slice(0, 4).map((s: string, i: number) => (
-                              <span key={i} className="badge badge-xs bg-[#8E1616]/10 text-[#8E1616] border-[#8E1616]/20/20 text-[9px] font-mono">
-                                ✓ {s}
-                              </span>
-                            ))}
-                          </div>
+            {/* Candidates Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCandidates.map((cand) => (
+                <div
+                  key={cand.userId}
+                  className="bg-base-200 border border-base-300 rounded-2xl p-5 space-y-4 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 font-black flex items-center justify-center border border-emerald-500/20 text-sm">
+                          {cand.name.charAt(0)}
                         </div>
-
-                        <div className="flex gap-2 pt-2 border-t border-base-300">
-                          <button
-                            onClick={() => copyPassportLink(cand.userId)}
-                            className="btn btn-xs btn-outline border-base-300 rounded-lg flex-1 text-[10px] font-bold"
-                          >
-                            🔗 Share Passport
-                          </button>
-                          <button
-                            onClick={() => setContactCandidate(cand)}
-                            className="btn btn-xs bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none rounded-lg flex-1 text-[10px] font-bold"
-                          >
-                            Invite
-                          </button>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-base-content">
+                            {cand.name}
+                          </h4>
+                          <span className="text-[11px] text-base-content/60 block">
+                            {cand.targetRole}
+                          </span>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      <span className="font-mono font-bold text-xs text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        {cand.matchScore}% Fit
+                      </span>
+                    </div>
 
-                  {/* Pagination Controls */}
-                  {totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-2 pt-4 border-t border-base-300">
-                      <button
-                        onClick={() => setTalentPage((p) => Math.max(p - 1, 1))}
-                        disabled={talentPage === 1}
-                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
-                      >
-                        Previous
-                      </button>
-
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                          <button
-                            key={page}
-                            onClick={() => setTalentPage(page)}
-                            className={`w-7 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-all ${
-                              talentPage === page
-                                ? 'bg-[#8E1616] text-white shadow-xs'
-                                : 'bg-base-200 text-stone-700 dark:text-stone-300 font-medium hover:bg-base-300'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        ))}
+                    <div className="grid grid-cols-2 gap-2 mt-4 text-[11px]">
+                      <div className="bg-base-100 p-2 rounded-xl border border-base-300">
+                        <span className="text-[9px] uppercase font-mono text-base-content/50 block">Milestones</span>
+                        <span className="font-bold text-xs text-base-content">{cand.completedMilestones} completed</span>
+                      </div>
+                      <div className="bg-base-100 p-2 rounded-xl border border-base-300">
+                        <span className="text-[9px] uppercase font-mono text-base-content/50 block">Avg Quiz</span>
+                        <span className="font-bold text-xs text-emerald-600">{cand.averageQuizScore}%</span>
                       </div>
 
                       <button
@@ -610,10 +472,33 @@ export default function CompanyPage() {
                         Next
                       </button>
                     </div>
-                  )}
+
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      {cand.verifiedSkills.slice(0, 4).map((s, i) => (
+                        <span key={i} className="badge badge-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-mono">
+                          ✓ {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2 border-t border-base-300">
+                    <button
+                      onClick={() => copyPassportLink(cand.userId)}
+                      className="btn btn-xs btn-outline border-base-300 rounded-lg flex-1 text-[10px] font-bold"
+                    >
+                      🔗 Share Passport
+                    </button>
+                    <button
+                      onClick={() => setContactCandidate(cand)}
+                      className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg flex-1 text-[10px] font-bold"
+                    >
+                      Invite
+                    </button>
+                  </div>
                 </div>
-              );
-            })()}
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -633,7 +518,7 @@ export default function CompanyPage() {
 
             <form onSubmit={handleCreateJob} className="space-y-3 text-xs">
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
                   Job Title *
                 </label>
                 <input
@@ -648,7 +533,7 @@ export default function CompanyPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
                     Company Name
                   </label>
                   <input
@@ -660,7 +545,7 @@ export default function CompanyPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
                     Location
                   </label>
                   <input
@@ -674,7 +559,7 @@ export default function CompanyPage() {
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
                   Required Skills * (Comma separated)
                 </label>
                 <input
@@ -689,7 +574,7 @@ export default function CompanyPage() {
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
                     Work Type
                   </label>
                   <select
@@ -703,7 +588,7 @@ export default function CompanyPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
                     Job Type
                   </label>
                   <select
@@ -718,7 +603,7 @@ export default function CompanyPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
                     Experience
                   </label>
                   <select
@@ -735,7 +620,7 @@ export default function CompanyPage() {
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
                   Job Description *
                 </label>
                 <textarea
@@ -759,7 +644,7 @@ export default function CompanyPage() {
                 <button
                   type="submit"
                   disabled={creatingJob}
-                  className="btn bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none btn-sm rounded-xl font-bold text-xs px-6"
+                  className="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none btn-sm rounded-xl font-bold text-xs px-6"
                 >
                   {creatingJob ? "Publishing..." : "Publish Job Opening"}
                 </button>
@@ -775,7 +660,7 @@ export default function CompanyPage() {
           <div className="modal-box rounded-2xl bg-base-200 border border-base-300 text-start space-y-5 max-w-3xl max-h-[88vh] overflow-y-auto">
             <div className="flex justify-between items-start border-b border-base-300 pb-4">
               <div>
-                <span className="text-[10px] text-[#8E1616] font-mono font-bold uppercase tracking-wider">
+                <span className="text-[10px] text-emerald-500 font-mono font-bold uppercase tracking-wider">
                   APPLICANT PROFILE REVIEW
                 </span>
                 <h3 className="font-black text-xl text-base-content mt-0.5">
@@ -783,7 +668,7 @@ export default function CompanyPage() {
                     ? (selectedApplication.userId as any).name
                     : selectedApplication.passportSnapshot?.name || "Candidate"}
                 </h3>
-                <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+                <p className="text-xs text-base-content/60">
                   Applied for: <span className="font-bold text-base-content">{selectedApplication.jobTitle}</span> ({selectedApplication.company})
                 </p>
               </div>
@@ -796,7 +681,7 @@ export default function CompanyPage() {
             <div className="bg-base-100 border border-base-300 rounded-xl p-4 space-y-3">
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                 <div>
-                  <span className="text-[10px] font-mono uppercase font-bold text-stone-700 dark:text-stone-300 font-medium block">
+                  <span className="text-[10px] font-mono uppercase font-bold text-base-content/50 block">
                     Current Hiring Status
                   </span>
                   <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold font-mono mt-1 ${
@@ -810,22 +695,22 @@ export default function CompanyPage() {
                 {/* Status Update Buttons */}
                 <div className="flex flex-wrap gap-2">
                   <button
-                    disabled={updatingStatusId === (selectedApplication._id || selectedApplication.id)}
-                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id || selectedApplication.id, "Interviewing", statusNote)}
+                    disabled={updatingStatusId === selectedApplication._id}
+                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id, "Interviewing", statusNote)}
                     className="btn btn-xs bg-amber-500 hover:bg-amber-600 text-white border-none rounded-lg font-bold"
                   >
                     🎙️ Move to Interviewing
                   </button>
                   <button
-                    disabled={updatingStatusId === (selectedApplication._id || selectedApplication.id)}
-                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id || selectedApplication.id, "Accepted", statusNote)}
-                    className="btn btn-xs bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none rounded-lg font-bold"
+                    disabled={updatingStatusId === selectedApplication._id}
+                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id, "Accepted", statusNote)}
+                    className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold"
                   >
                     🎉 Accept Candidate
                   </button>
                   <button
-                    disabled={updatingStatusId === (selectedApplication._id || selectedApplication.id)}
-                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id || selectedApplication.id, "Rejected", statusNote)}
+                    disabled={updatingStatusId === selectedApplication._id}
+                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id, "Rejected", statusNote)}
                     className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none rounded-lg font-bold"
                   >
                     ❌ Reject
@@ -848,30 +733,30 @@ export default function CompanyPage() {
             {/* Submitted CV Snapshot */}
             {selectedApplication.cvSnapshot && (
               <div className="space-y-2">
-                <span className="text-[10px] text-stone-700 dark:text-stone-300 font-medium font-bold uppercase font-mono block">
+                <span className="text-[10px] text-base-content/50 font-bold uppercase font-mono block">
                   📄 Submitted Resume (CV)
                 </span>
                 <div className="bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="font-black text-sm text-base-content">{selectedApplication.cvSnapshot.title || "Resume Snapshot"}</span>
-                    <span className="text-[10px] font-mono text-[#8E1616]">Transmitted with Application</span>
+                    <span className="text-[10px] font-mono text-emerald-500">Transmitted with Application</span>
                   </div>
 
                   {selectedApplication.cvSnapshot.summary && (
-                    <div className="bg-base-200 p-3 rounded-lg text-stone-800 dark:text-stone-200 font-medium italic">
+                    <div className="bg-base-200 p-3 rounded-lg text-base-content/80 italic">
                       &quot;{selectedApplication.cvSnapshot.summary}&quot;
                     </div>
                   )}
 
                   {selectedApplication.cvSnapshot.experience && selectedApplication.cvSnapshot.experience.length > 0 && (
                     <div>
-                      <span className="text-[10px] font-bold uppercase font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">Work Experience:</span>
+                      <span className="text-[10px] font-bold uppercase font-mono text-base-content/50 block mb-1">Work Experience:</span>
                       <div className="space-y-2">
                         {selectedApplication.cvSnapshot.experience.map((exp: any, i: number) => (
-                          <div key={i} className="border-l-2 border-[#8E1616]/20 pl-3 py-0.5">
+                          <div key={i} className="border-l-2 border-emerald-500 pl-3 py-0.5">
                             <span className="font-bold text-xs block">{exp.role || exp.title} at {exp.company}</span>
-                            <span className="text-[10px] text-stone-700 dark:text-stone-300 font-medium">{exp.startDate} - {exp.endDate || "Present"}</span>
-                            {exp.description && <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium mt-1">{exp.description}</p>}
+                            <span className="text-[10px] text-base-content/50">{exp.startDate} - {exp.endDate || "Present"}</span>
+                            {exp.description && <p className="text-[11px] text-base-content/70 mt-1">{exp.description}</p>}
                           </div>
                         ))}
                       </div>
@@ -880,7 +765,7 @@ export default function CompanyPage() {
 
                   {selectedApplication.cvSnapshot.skills && (
                     <div>
-                      <span className="text-[10px] font-bold uppercase font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">Candidate Skills:</span>
+                      <span className="text-[10px] font-bold uppercase font-mono text-base-content/50 block mb-1">Candidate Skills:</span>
                       <div className="flex flex-wrap gap-1">
                         {selectedApplication.cvSnapshot.skills.map((s: string, i: number) => (
                           <span key={i} className="badge badge-xs badge-neutral text-[9px] font-mono">{s}</span>
@@ -895,31 +780,31 @@ export default function CompanyPage() {
             {/* Submitted Skill Passport Snapshot */}
             {selectedApplication.passportSnapshot && (
               <div className="space-y-2">
-                <span className="text-[10px] text-stone-700 dark:text-stone-300 font-medium font-bold uppercase font-mono block">
+                <span className="text-[10px] text-base-content/50 font-bold uppercase font-mono block">
                   🛡️ Verified Skill Passport
                 </span>
                 <div className="bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-3">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     <div className="bg-base-200 p-2.5 rounded-lg">
-                      <span className="text-[9px] uppercase font-mono text-stone-700 dark:text-stone-300 font-medium block">Target Role</span>
+                      <span className="text-[9px] uppercase font-mono text-base-content/50 block">Target Role</span>
                       <span className="font-bold text-xs">{selectedApplication.passportSnapshot.targetRole || "Software Developer"}</span>
                     </div>
                     <div className="bg-base-200 p-2.5 rounded-lg">
-                      <span className="text-[9px] uppercase font-mono text-stone-700 dark:text-stone-300 font-medium block">Roadmap Progress</span>
-                      <span className="font-bold text-xs text-[#8E1616]">{selectedApplication.passportSnapshot.roadmap?.progressPercentage || 100}%</span>
+                      <span className="text-[9px] uppercase font-mono text-base-content/50 block">Roadmap Progress</span>
+                      <span className="font-bold text-xs text-emerald-600">{selectedApplication.passportSnapshot.roadmap?.progressPercentage || 100}%</span>
                     </div>
                     <div className="bg-base-200 p-2.5 rounded-lg">
-                      <span className="text-[9px] uppercase font-mono text-stone-700 dark:text-stone-300 font-medium block">Quiz Performance</span>
-                      <span className="font-bold text-xs text-[#8E1616]">{selectedApplication.passportSnapshot.quizPerformance?.averageScore || 90}% avg</span>
+                      <span className="text-[9px] uppercase font-mono text-base-content/50 block">Quiz Performance</span>
+                      <span className="font-bold text-xs text-emerald-600">{selectedApplication.passportSnapshot.quizPerformance?.averageScore || 90}% avg</span>
                     </div>
                   </div>
 
                   {selectedApplication.passportSnapshot.verifiedSkills && selectedApplication.passportSnapshot.verifiedSkills.length > 0 && (
                     <div>
-                      <span className="text-[10px] font-bold uppercase font-mono text-stone-700 dark:text-stone-300 font-medium block mb-1">Verified Skills in Passport:</span>
+                      <span className="text-[10px] font-bold uppercase font-mono text-base-content/50 block mb-1">Verified Skills in Passport:</span>
                       <div className="flex flex-wrap gap-1">
                         {selectedApplication.passportSnapshot.verifiedSkills.map((s: string, i: number) => (
-                          <span key={i} className="badge badge-xs bg-[#8E1616]/10 text-[#8E1616] border-[#8E1616]/20/20 text-[9px] font-mono">
+                          <span key={i} className="badge badge-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-mono">
                             ✓ {s}
                           </span>
                         ))}
@@ -953,7 +838,7 @@ export default function CompanyPage() {
             </div>
 
             <div className="text-xs space-y-2">
-              <p className="text-stone-700 dark:text-stone-300 font-medium">
+              <p className="text-base-content/70">
                 Transmit an interview invitation to <span className="font-bold text-base-content">{contactCandidate.name}</span> ({contactCandidate.email}):
               </p>
               <textarea
@@ -973,7 +858,7 @@ export default function CompanyPage() {
                   toast.success(`Interview invitation sent to ${contactCandidate.name}!`);
                   setContactCandidate(null);
                 }}
-                className="btn bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none btn-sm rounded-xl font-bold text-xs px-6"
+                className="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none btn-sm rounded-xl font-bold text-xs px-6"
               >
                 Send Invite
               </button>

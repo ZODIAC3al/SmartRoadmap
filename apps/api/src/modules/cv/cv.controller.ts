@@ -23,6 +23,7 @@ import {
   AtsAutoFixDto,
   AtsCheckDto,
   EnhanceDto,
+  GenerateFromProfileDto,
   GenerateTailoredCvDto,
   SaveCvDto,
 } from './dto/cv.dto';
@@ -101,6 +102,23 @@ export class CvController {
     };
   }
 
+  @Post('generate-from-profile')
+  @HttpCode(HttpStatus.OK)
+  async generateFromProfile(
+    @CurrentUser() user: JwtUser,
+    @Body() dto: GenerateFromProfileDto,
+  ) {
+    return {
+      success: true,
+      data: await this.cvService.generateFromProfile(
+        user.sub,
+        dto?.targetJobTitle,
+        dto?.jobDescription,
+        dto?.forceRegenerate,
+      ),
+    };
+  }
+
   @Post('ats-check')
   @HttpCode(HttpStatus.OK)
   async atsCheck(@CurrentUser() user: JwtUser, @Body() dto: AtsCheckDto) {
@@ -176,4 +194,3 @@ export class CvController {
     return this.cvService.getCvByUserId(userId);
   }
 }
-

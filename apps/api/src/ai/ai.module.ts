@@ -4,7 +4,6 @@ import { EmbeddingService } from './embedding.service';
 import { RAGService } from './rag.service';
 import { AiProviderFactory } from './ai-provider.factory';
 import { AppCacheService } from '../common/cache/app-cache.service';
-import { AiGatewayService } from './gateway/ai-gateway.service';
 
 @Global()
 @Module({
@@ -14,7 +13,6 @@ import { AiGatewayService } from './gateway/ai-gateway.service';
     RAGService,
     AiProviderFactory,
     AppCacheService,
-    AiGatewayService,
   ],
   exports: [
     LLMService,
@@ -22,7 +20,6 @@ import { AiGatewayService } from './gateway/ai-gateway.service';
     RAGService,
     AiProviderFactory,
     AppCacheService,
-    AiGatewayService,
   ],
 })
 export class AIModule {}

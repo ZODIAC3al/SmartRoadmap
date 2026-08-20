@@ -67,7 +67,9 @@ export class UploadService {
                   'Cloudinary upload stream failed:',
                   error.message,
                 );
-                return reject(error instanceof Error ? error : new Error(String(error)));
+                return reject(
+                  error instanceof Error ? error : new Error(String(error)),
+                );
               }
               if (!result || !result.secure_url) {
                 return reject(
@@ -131,7 +133,9 @@ export class UploadService {
                     'Cloudinary certificate upload failed:',
                     error.message,
                   );
-                  return reject(error instanceof Error ? error : new Error(String(error)));
+                  return reject(
+                    error instanceof Error ? error : new Error(String(error)),
+                  );
                 }
                 if (!result || !result.secure_url) {
                   return reject(
@@ -156,4 +160,3 @@ export class UploadService {
     return { url: this.encodeAsBase64(file) };
   }
 }
-

@@ -104,35 +104,14 @@ export class LLMService {
     targetRole: string,
     skills: string[] = [],
   ): Promise<any> {
-    if (this.isMockMode || !this.client) return this.mockRoadmap(targetRole);
-
-    try {
-      const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('OPENAI_MODEL_SMART', 'gpt-4o'),
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are a curriculum designer. Reply with ONLY a JSON object of shape ' +
-              '{title, totalEstimatedHours, modules:[{id,title,description,prerequisites[],' +
-              'estimatedHours,topics[],difficulty,status,positionX,positionY}]}.',
-          },
-          {
-            role: 'user',
-            content: `Target role: "${targetRole}". Existing skills: ${skills.join(', ') || 'none'}.`,
-          },
-        ],
-      });
-
-      const parsed = JSON.parse(response.choices[0]?.message?.content ?? '{}');
-      if (!Array.isArray(parsed.modules) || parsed.modules.length === 0) {
-        throw new Error('LLM returned a roadmap with no modules');
-      }
-      return parsed;
-    } catch (error: any) {
-      this.logger.error(`OpenAI roadmap generation failed: ${error.message}`);
-      return this.mockRoadmap(targetRole); // graceful, terminating fallback
+    const sortedSkills = [...skills].sort().join(',');
+    const cacheKey = `ai:roadmap:${this.cache.hashKey({ targetRole: targetRole.toLowerCase(), sortedSkills })}`;
+    const cached = this.cache.get<any>(cacheKey);
+    if (cached) {
+      this.logger.debug(
+        `[Cache Hit] Reusing cached roadmap for "${targetRole}"`,
+      );
+      return cached;
     }
 
     const providers = this.aiProviderFactory.getProvidersChain();
@@ -205,25 +184,11 @@ export class LLMService {
     prompt: string,
     options: { json?: boolean; system?: string } = {},
   ): Promise<string | null> {
-    if (this.isMockMode || !this.client) return null;
-
-    try {
-      const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('OPENAI_MODEL_FAST', 'gpt-4o-mini'),
-        ...(options.json
-          ? { response_format: { type: 'json_object' as const } }
-          : {}),
-        messages: [
-          ...(options.system
-            ? [{ role: 'system' as const, content: options.system }]
-            : []),
-          { role: 'user' as const, content: prompt },
-        ],
-      });
-      return response.choices[0]?.message?.content?.trim() ?? null;
-    } catch (error: any) {
-      this.logger.error(`OpenAI completion failed: ${error.message}`);
-      return null;
+    const cacheKey = `ai:complete:${this.cache.hashKey({ prompt, options })}`;
+    const cached = this.cache.get<string>(cacheKey);
+    if (cached) {
+      this.logger.debug(`[Cache Hit] Reusing cached completion`);
+      return cached;
     }
 
     const providers = this.aiProviderFactory.getProvidersChain();
@@ -264,33 +229,11 @@ export class LLMService {
     difficulty: string,
     count = 5,
   ): Promise<any[]> {
-    if (this.isMockMode || !this.client)
-      return this.mockQuiz(topic, difficulty, count);
-
-    try {
-      const response = await this.client.chat.completions.create({
-        model: this.config.get<string>('OPENAI_MODEL_FAST', 'gpt-4o-mini'),
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Reply with ONLY a JSON object {questions: [{id, question, options[], correctAnswer, explanation, difficulty}]}.',
-          },
-          {
-            role: 'user',
-            content: `Generate ${count} questions about "${topic}" at ${difficulty} level.`,
-          },
-        ],
-      });
-
-      const parsed = JSON.parse(response.choices[0]?.message?.content ?? '{}');
-      const questions = Array.isArray(parsed.questions) ? parsed.questions : [];
-      if (questions.length === 0) throw new Error('LLM returned no questions');
-      return questions;
-    } catch (error: any) {
-      this.logger.error(`OpenAI quiz generation failed: ${error.message}`);
-      return this.mockQuiz(topic, difficulty, count);
+    const cacheKey = `ai:quiz:${this.cache.hashKey({ topic: topic.toLowerCase(), difficulty: difficulty.toLowerCase(), count })}`;
+    const cached = this.cache.get<any[]>(cacheKey);
+    if (cached) {
+      this.logger.debug(`[Cache Hit] Reusing cached quiz for "${topic}"`);
+      return cached;
     }
 
     const providers = this.aiProviderFactory.getProvidersChain();

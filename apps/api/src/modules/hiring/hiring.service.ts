@@ -1,4 +1,6 @@
 import {
+  ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -17,11 +19,8 @@ import { TrackCertification } from '../../schemas/track-certification.schema';
 import { Certificate } from '../../schemas/certificate.schema';
 import { Project } from '../../schemas/project.schema';
 import { CompanyProfile } from '../../schemas/company-profile.schema';
-import { SavedSearch } from '../../schemas/saved-search.schema';
-import { Subscription } from '../../schemas/subscription.schema';
 import { RAGService, JOBS_COLLECTION } from '../../ai/rag.service';
 import { EmbeddingService } from '../../ai/embedding.service';
-import { AiGatewayService } from '../../ai/gateway/ai-gateway.service';
 import type { JwtUser } from '../../common/decorators/current-user.decorator';
 import { AppCacheService } from '../../common/cache/app-cache.service';
 import {
@@ -51,15 +50,10 @@ export class HiringService implements OnModuleInit {
     @InjectModel(Project.name) private readonly projectModel: Model<Project>,
     @InjectModel(CompanyProfile.name)
     private readonly companyProfileModel: Model<CompanyProfile>,
-    @InjectModel(SavedSearch.name)
-    private readonly savedSearchModel: Model<SavedSearch>,
-    @InjectModel(Subscription.name)
-    private readonly subscriptionModel: Model<Subscription>,
     private readonly config: ConfigService,
     private readonly ragService: RAGService,
     private readonly embeddingService: EmbeddingService,
     private readonly cache: AppCacheService,
-    private readonly aiGateway: AiGatewayService,
   ) {}
 
   /**
@@ -92,6 +86,7 @@ export class HiringService implements OnModuleInit {
               'TypeScript',
               'Git',
             ],
+            technologies: ['React', 'TypeScript', 'Vite', 'Tailwind CSS'],
             salaryMin: 80000,
             salaryMax: 110000,
             remote: true,
@@ -111,6 +106,7 @@ export class HiringService implements OnModuleInit {
               'Docker',
               'Git',
             ],
+            technologies: ['NestJS', 'MongoDB', 'Docker', 'PostgreSQL'],
             salaryMin: 70000,
             salaryMax: 95000,
             remote: true,
@@ -130,6 +126,7 @@ export class HiringService implements OnModuleInit {
               'SQL',
               'Git',
             ],
+            technologies: ['React', 'Node.js', 'MongoDB', 'Express'],
             salaryMin: 25000,
             salaryMax: 40000,
             remote: false,
@@ -381,48 +378,73 @@ export class HiringService implements OnModuleInit {
   }
 
   async matchJobsForLearner(userId: string): Promise<any[]> {
-    this.logger.log(`Matching jobs for learner ID: ${userId}`);
-
-    // 1. Fetch user active roadmap to identify completed modules (verified skills)
-    const roadmap = await this.roadmapModel.findOne({
-      userId: new Types.ObjectId(userId),
-      status: 'active',
-    });
-
-    const verifiedSkills: string[] = [];
-    if (roadmap) {
-      roadmap.modules.forEach((mod) => {
-        if (mod.status === 'completed') {
-          // Add module title and topics to verified skills
-          verifiedSkills.push(mod.title.toLowerCase());
-          mod.topics.forEach((t) => verifiedSkills.push(t.toLowerCase()));
-        }
-      });
+    const cacheKey = `match:jobs:${userId}`;
+    const cached = this.cache.get<any[]>(cacheKey);
+    if (cached) {
+      this.logger.debug(
+        `[Cache Hit] Serving cached job match scores for user ${userId}`,
+      );
+      return cached;
     }
 
-    // 2. Fetch all jobs
-    const jobs = await this.jobModel.find();
+    this.logger.log(`Computing job match scores for learner ID: ${userId}`);
 
-    // 3. Score overlap
+    const { skills } = await this.collectLearnerSkillsPool(userId);
+    const normalizedUserSkills = skills.map((s) => this.normalizeSkill(s));
+
+    const jobs = await this.jobModel
+      .find()
+      .sort({ postedAt: -1, createdAt: -1 })
+      .lean()
+      .exec();
+
     const scoredJobs = jobs.map((job) => {
-      const requirements = job.requiredSkills.map((s) => s.toLowerCase());
-      if (requirements.length === 0) {
-        return { job, matchScore: 100, skillsGap: [] };
+      const required = Array.isArray(job.requiredSkills)
+        ? job.requiredSkills
+        : [];
+      if (required.length === 0) {
+        return {
+          _id: job._id.toString(),
+          title: job.title,
+          company: job.company,
+          location: job.location,
+          country: job.country,
+          requiredSkills: required,
+          technologies: job.technologies || [],
+          salaryMin: job.salaryMin,
+          salaryMax: job.salaryMax,
+          remote: job.remote,
+          workType: job.workType,
+          jobType: job.jobType,
+          experienceLevel: job.experienceLevel,
+          description: job.description,
+          externalUrl: job.externalUrl,
+          postedAt: job.postedAt || (job as any).createdAt,
+          matchScore: 100,
+          matchingSkills: [],
+          neededSkills: [],
+          skillsGap: [],
+        };
       }
 
-      const matching = requirements.filter((req) => {
-        // Match either exact skills tags or key substrings
-        return verifiedSkills.some((v) => v.includes(req) || req.includes(v));
-      });
+      const matchingSkills: string[] = [];
+      const neededSkills: string[] = [];
+
+      for (const req of required) {
+        const normReq = this.normalizeSkill(req);
+        const hasSkill = normalizedUserSkills.some(
+          (u) => u.includes(normReq) || normReq.includes(u),
+        );
+        if (hasSkill) {
+          matchingSkills.push(req);
+        } else {
+          neededSkills.push(req);
+        }
+      }
 
       const matchPercent = Math.round(
-        (matching.length / requirements.length) * 100,
+        (matchingSkills.length / required.length) * 100,
       );
-      const skillsGap = job.requiredSkills.filter((req) => {
-        return !verifiedSkills.some(
-          (v) => v.includes(req.toLowerCase()) || req.toLowerCase().includes(v),
-        );
-      });
 
       return {
         _id: job._id.toString(),
@@ -442,7 +464,9 @@ export class HiringService implements OnModuleInit {
         externalUrl: job.externalUrl,
         postedAt: job.postedAt || (job as any).createdAt,
         matchScore: matchPercent,
-        skillsGap,
+        matchingSkills,
+        neededSkills,
+        skillsGap: neededSkills,
       };
     });
 
@@ -462,68 +486,16 @@ export class HiringService implements OnModuleInit {
     const job = await this.jobModel.findById(jobId);
     if (!job) throw new NotFoundException(`Job not found: ${jobId}`);
 
-    const roadmap = await this.roadmapModel.findOne({
-      userId: new Types.ObjectId(userId),
-      status: 'active',
-    });
-    if (!roadmap) {
-      throw new NotFoundException(
-        'You need an active roadmap before closing a skill gap.',
-      );
-    }
+    const { skills } = await this.collectLearnerSkillsPool(userId);
+    const normalizedUserSkills = skills.map((s) => this.normalizeSkill(s));
 
-    const verified = new Set<string>();
-    roadmap.modules.forEach((mod) => {
-      if (mod.status === 'completed') {
-        verified.add(mod.title.toLowerCase());
-        mod.topics.forEach((t) => verified.add(t.toLowerCase()));
-      }
-    });
-
-    const gap = job.requiredSkills.filter((skill) => {
-      const s = skill.toLowerCase();
-      const alreadyKnown = [...verified].some(
-        (v) => v.includes(s) || s.includes(v),
-      );
-      const alreadyPlanned = roadmap.modules.some(
-        (m) =>
-          m.title.toLowerCase() === s ||
-          m.topics.some((t) => t.toLowerCase() === s),
+    const neededSkills = (job.requiredSkills || []).filter((req) => {
+      const normReq = this.normalizeSkill(req);
+      return !normalizedUserSkills.some(
+        (u) => u.includes(normReq) || normReq.includes(u),
       );
     });
 
-    if (gap.length === 0) {
-      return {
-        success: true,
-        added: [],
-        message:
-          'No gap left — your roadmap already covers everything this job asks for.',
-      };
-    }
-
-    let x = 300;
-    gap.forEach((skill) => {
-      roadmap.modules.push({
-        id: `gap-${skill.toLowerCase().replace(/\s+/g, '-')}`,
-        title: skill,
-        description: `Added to close the skill gap for "${job.title}" at ${job.company}.`,
-        difficulty: 'intermediate',
-        estimatedHours: 8,
-        topics: [skill],
-        prerequisites: [],
-        status: 'in_progress',
-        positionX: x,
-        positionY: 340,
-      } as any);
-      x += 200;
-    });
-
-    roadmap.markModified('modules');
-    await roadmap.save();
-
-    this.logger.log(
-      `Added ${gap.length} gap module(s) for user ${userId} (job ${jobId})`,
-    );
     return {
       success: true,
       neededSkills,
@@ -898,53 +870,34 @@ export class HiringService implements OnModuleInit {
     const candidates: any[] = [];
 
     for (const learner of learners) {
-      // Get learner active roadmap
-      const roadmap = await this.roadmapModel.findOne({
-        userId: learner._id,
-        status: 'active',
-      });
+      const learnerId = learner._id.toString();
+      const pool = await this.collectLearnerSkillsPool(learnerId);
 
-      // Get quiz sessions to compute averages
-      const quizSessions = await this.quizSessionModel.find({
-        userId: learner._id,
-        status: 'completed',
-      });
-
-      // Get CV if uploaded
-      const userCv = await this.cvModel.findOne({ userId: learner._id });
-
-      const completedCount = roadmap
-        ? roadmap.modules.filter((m) => m.status === 'completed').length
+      const completedCount = pool.roadmap?.modules
+        ? pool.roadmap.modules.filter((m: any) => m.status === 'completed')
+            .length
         : 0;
-      const totalCount = roadmap ? roadmap.modules.length : 0;
-
-      const verifiedSkills: string[] = [];
-      if (roadmap) {
-        roadmap.modules.forEach((m) => {
-          if (m.status === 'completed') {
-            verifiedSkills.push(m.title);
-          }
-        });
-      }
+      const totalCount = pool.roadmap?.modules?.length || 0;
 
       let totalQuizScore = 0;
       let passedQuizCount = 0;
-      quizSessions.forEach((q) => {
-        if (q.score !== null && q.score !== undefined) {
+      pool.quizSessions.forEach((q) => {
+        if (q.score !== null && q.score !== undefined)
           totalQuizScore += q.score;
         if (q.passed) passedQuizCount++;
       });
 
       const averageScore =
-        quizSessions.length > 0
-          ? Math.round(totalQuizScore / quizSessions.length)
+        pool.quizSessions.length > 0
+          ? Math.round(totalQuizScore / pool.quizSessions.length)
           : null;
 
       candidates.push({
         userId: learnerId,
         name: learner.name,
         email: learner.email,
-        targetRole: roadmap ? roadmap.targetRole : 'Not Defined Yet',
+        avatarUrl: learner.avatarUrl,
+        targetRole: pool.roadmap?.targetRole || 'Software Professional',
         progress:
           totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
         completedMilestones: completedCount,

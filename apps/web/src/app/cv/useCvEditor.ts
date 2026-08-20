@@ -269,6 +269,55 @@ export function useCvEditor() {
     }
   };
 
+  const handleGenerateFromProfile = async (
+    targetTitle?: string,
+    forceRegenerate = false,
+    jobDescription?: string,
+  ) => {
+    setIsParsing(true);
+    try {
+      const res = await apiFetch('/cv/generate-from-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetJobTitle: targetTitle || professionalTitle || 'Software Engineer',
+          jobDescription,
+          forceRegenerate,
+        }),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || 'Generation failed');
+      }
+      const json = await res.json();
+      const newCv = json.data;
+      if (newCv) {
+        populateActiveCv(newCv);
+        setCurrentView('editor');
+        setCvList((prev) => [
+          newCv,
+          ...prev.filter(
+            (c) => (c._id || c.id) !== (newCv._id || newCv.id),
+          ),
+        ]);
+        toast.success(
+          locale === 'en'
+            ? '✨ AI Resume generated from your real profile!'
+            : '✨ تم إنشاء السيرة الذاتية من بياناتك الحقيقية بالذكاء الاصطناعي!',
+        );
+      }
+    } catch (err: any) {
+      toast.error(
+        err.message ||
+          (locale === 'en'
+            ? 'Failed to generate AI CV from profile'
+            : 'فشل في إنشاء السيرة الذاتية بالذكاء الاصطناعي'),
+      );
+    } finally {
+      setIsParsing(false);
+    }
+  };
+
   const handleSelectCv = (targetCv: CVData) => {
     populateActiveCv(targetCv);
     setCurrentView('editor');

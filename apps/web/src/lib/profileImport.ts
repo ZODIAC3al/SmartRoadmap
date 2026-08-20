@@ -55,6 +55,13 @@ export interface LinkedInAccount {
 
 export interface Certificate {
   _id: string;
+  userId?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    role?: string;
+    avatar?: string;
+  } | string;
   title: string;
   organization?: string;
   issueDate?: string;
@@ -64,6 +71,14 @@ export interface Certificate {
   fileUrl?: string;
   fileName?: string;
   fileType?: string;
+  status: 'Pending' | 'Verified' | 'Rejected';
+  rejectionReason?: string;
+  reviewedBy?: {
+    _id: string;
+    name?: string;
+    email?: string;
+  } | string;
+  reviewedAt?: string;
   createdAt?: string;
 }
 
@@ -88,7 +103,10 @@ export interface Project {
 export const getGitHubStatus = () => apiJson<{ configured: boolean }>('/profile/github/status');
 export const getGitHubAuthUrl = () => apiJson<{ configured: boolean; url: string | null }>('/profile/github/auth-url');
 export const getGitHubAccount = () => apiJson<{ connected: boolean; account: GitHubAccount | null }>('/profile/github/account');
-export const getGitHubRepos = () => apiJson<{ repos: GitHubRepo[] }>('/profile/github/repos');
+export const getGitHubRepos = (refresh = false) =>
+  apiJson<{ repos: GitHubRepo[]; lastSyncedAt?: string; fromCache?: boolean }>(
+    `/profile/github/repos${refresh ? '?refresh=true' : ''}`,
+  );
 export const refreshGitHub = () => apiJson<{ success: boolean; account: GitHubAccount }>('/profile/github/refresh', { method: 'POST' });
 export const importGitHubRepos = (repos: unknown[]) =>
   apiJson<{ imported: Project[]; skipped: number }>('/profile/github/import', {
@@ -130,6 +148,24 @@ export async function fetchCertificateBlob(id: string): Promise<Blob> {
   return res.blob();
 }
 
+// ── Admin Certificate Review ──────────────────────────────────────────
+export const getAdminCertificates = (status?: string, search?: string) => {
+  const params = new URLSearchParams();
+  if (status && status !== 'ALL') params.set('status', status);
+  if (search?.trim()) params.set('search', search.trim());
+  const qs = params.toString();
+  return apiJson<Certificate[]>(`/admin/certificates${qs ? `?${qs}` : ''}`);
+};
+
+export const verifyAdminCertificate = (id: string, status: 'Verified' | 'Rejected', reason?: string) =>
+  apiJson<Certificate>(`/admin/certificates/${id}/verify`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status, reason }),
+  });
+
+export const adminCertificateFileUrl = (id: string, download = false) =>
+  `${API_BASE}/admin/certificates/${id}/file${download ? '?download=1' : ''}`;
+
 // ── Projects (imported GitHub / LinkedIn / manual) ──────────────────────
 export const getProjects = () => apiJson<{ projects: Project[] }>('/profile/projects');
 export const updateProject = (id: string, dto: unknown) =>
@@ -139,3 +175,4 @@ export const deleteProject = (id: string) =>
 
 export const certificateFileUrl = (id: string, download = false) =>
   `${API_BASE}/profile/certificates/${id}/file${download ? '?download=1' : ''}`;
+

@@ -44,8 +44,6 @@ import { BillingModule } from '../billing/billing.module';
       { name: Certificate.name, schema: CertificateSchema },
       { name: Project.name, schema: ProjectSchema },
       { name: CompanyProfile.name, schema: CompanyProfileSchema },
-      { name: SavedSearch.name, schema: SavedSearchSchema },
-      { name: Subscription.name, schema: SubscriptionSchema },
     ]),
     BillingModule,
   ],

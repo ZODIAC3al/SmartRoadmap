@@ -300,7 +300,24 @@ export class Cv extends Document {
   @Prop({ default: 'modern' })
   template!: string;
 
-  @Prop({ type: [String], default: ['summary', 'experience', 'projects', 'skills', 'education', 'certifications', 'courses', 'languages', 'volunteerExperience', 'publications', 'awards', 'references', 'hobbies'] })
+  @Prop({
+    type: [String],
+    default: [
+      'summary',
+      'experience',
+      'projects',
+      'skills',
+      'education',
+      'certifications',
+      'courses',
+      'languages',
+      'volunteerExperience',
+      'publications',
+      'awards',
+      'references',
+      'hobbies',
+    ],
+  })
   sectionOrder!: string[];
 
   @Prop({ default: false })

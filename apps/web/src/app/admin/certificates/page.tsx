@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -109,7 +109,7 @@ export default function AdminCertificatesPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
+        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
       </div>
     );
   }
@@ -127,7 +127,7 @@ export default function AdminCertificatesPage() {
             <h1 className="text-2xl sm:text-3xl font-black text-base-content mt-1">
               {L("Certificate Verification & Review", "مراجعة وتوثيق الشهادات المهنية")}
             </h1>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium max-w-2xl mt-1">
+            <p className="text-xs text-base-content/60 max-w-2xl mt-1">
               {L(
                 "Review user-submitted certifications, inspect uploaded credentials, approve verified achievements, or provide feedback for rejected submissions.",
                 "راجع الشهادات المرفوعة من قبل المستخدمين، افحص الملفات المرفقة، وثّق الإنجازات المعتمدة، أو ارفض غير المطابقة مع توضيح السبب."
@@ -168,7 +168,7 @@ export default function AdminCertificatesPage() {
                 : "bg-base-200 border-base-300 hover:border-base-400"
             }`}
           >
-            <span className="text-[10px] uppercase font-bold text-stone-700 dark:text-stone-300 font-medium block">
+            <span className="text-[10px] uppercase font-bold text-base-content/50 block">
               {L("Total Submissions", "إجمالي الشهادات")}
             </span>
             <span className="text-2xl font-black text-base-content block mt-1">
@@ -197,14 +197,14 @@ export default function AdminCertificatesPage() {
             onClick={() => setStatusFilter("Verified")}
             className={`p-4 rounded-2xl border text-start transition-all ${
               statusFilter === "Verified"
-                ? "bg-[#8E1616]/10 border-[#8E1616]/20 shadow-sm"
+                ? "bg-emerald-500/10 border-emerald-500 shadow-sm"
                 : "bg-base-200 border-base-300 hover:border-base-400"
             }`}
           >
-            <span className="text-[10px] uppercase font-bold text-[#8E1616] block">
+            <span className="text-[10px] uppercase font-bold text-emerald-600 block">
               {L("Verified", "موثقة ومعتمدة")}
             </span>
-            <span className="text-2xl font-black text-[#8E1616] block mt-1">
+            <span className="text-2xl font-black text-emerald-600 block mt-1">
               {verifiedCount}
             </span>
           </button>
@@ -251,7 +251,7 @@ export default function AdminCertificatesPage() {
         <div className="bg-base-200 border border-base-300 rounded-3xl p-6 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="table table-sm text-xs">
-              <thead className="bg-base-100 text-stone-700 dark:text-stone-300 font-medium">
+              <thead className="bg-base-100 text-base-content/70">
                 <tr>
                   <th>{L("Candidate / User", "المستخدم")}</th>
                   <th>{L("Certificate Details", "تفاصيل الشهادة")}</th>
@@ -264,7 +264,7 @@ export default function AdminCertificatesPage() {
               <tbody>
                 {certificates.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-stone-700 dark:text-stone-300 font-medium">
+                    <td colSpan={6} className="text-center py-12 text-base-content/50">
                       {L("No certificates found in this view.", "لا توجد شهادات في هذا القسم حالياً.")}
                     </td>
                   </tr>
@@ -292,7 +292,7 @@ export default function AdminCertificatesPage() {
                             )}
                             <div>
                               <p className="font-bold text-xs text-base-content">{u?.name || L("Anonymous User", "مستخدم")}</p>
-                              <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium">{u?.email || (typeof cert.userId === 'string' ? cert.userId : '')}</p>
+                              <p className="text-[10px] text-base-content/50">{u?.email || (typeof cert.userId === 'string' ? cert.userId : '')}</p>
                               {u?.role && (
                                 <span className="badge badge-xs badge-neutral text-[9px] mt-0.5 uppercase font-mono">
                                   {u.role}
@@ -309,7 +309,7 @@ export default function AdminCertificatesPage() {
                             <p className="text-[11px] text-[#7c3aed] font-medium">{cert.organization}</p>
                           )}
                           {cert.credentialId && (
-                            <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium font-mono mt-0.5">
+                            <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
                               ID: {cert.credentialId}
                             </p>
                           )}
@@ -326,18 +326,18 @@ export default function AdminCertificatesPage() {
                         </td>
 
                         {/* Dates */}
-                        <td className="align-top py-3.5 text-[10px] text-stone-700 dark:text-stone-300 font-medium space-y-0.5">
+                        <td className="align-top py-3.5 text-[10px] text-base-content/60 space-y-0.5">
                           <p>
-                            <span className="font-semibold text-stone-600 dark:text-stone-400 font-medium">{L("Issued:", "صدرت:")}</span>{" "}
+                            <span className="font-semibold text-base-content/40">{L("Issued:", "صدرت:")}</span>{" "}
                             {cert.issueDate || "—"}
                           </p>
                           {cert.expirationDate && (
                             <p>
-                              <span className="font-semibold text-stone-600 dark:text-stone-400 font-medium">{L("Expires:", "تنتهي:")}</span>{" "}
+                              <span className="font-semibold text-base-content/40">{L("Expires:", "تنتهي:")}</span>{" "}
                               {cert.expirationDate}
                             </p>
                           )}
-                          <p className="text-stone-600 dark:text-stone-400 font-medium text-[9px]">
+                          <p className="text-base-content/40 text-[9px]">
                             {L("Uploaded:", "رُفعت:")} {cert.createdAt ? new Date(cert.createdAt).toLocaleDateString() : "—"}
                           </p>
                         </td>
@@ -346,11 +346,11 @@ export default function AdminCertificatesPage() {
                         <td className="align-top py-3.5">
                           {status === "Verified" ? (
                             <div className="space-y-1">
-                              <span className="badge bg-[#8E1616]/15 text-[#8E1616] border border-[#8E1616]/20/30 text-[10px] font-bold py-1 px-2">
+                              <span className="badge bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 text-[10px] font-bold py-1 px-2">
                                 ✓ {L("Verified", "موثقة")}
                               </span>
                               {cert.reviewedAt && (
-                                <p className="text-[9px] text-[#8E1616]/70">
+                                <p className="text-[9px] text-emerald-600/70">
                                   {new Date(cert.reviewedAt).toLocaleDateString()}
                                 </p>
                               )}
@@ -384,7 +384,7 @@ export default function AdminCertificatesPage() {
                             </button>
                             <button
                               onClick={() => openFile(cert, true)}
-                              className="btn btn-xs btn-ghost text-stone-700 dark:text-stone-300 font-medium rounded-lg text-[10px] gap-1"
+                              className="btn btn-xs btn-ghost text-base-content/70 rounded-lg text-[10px] gap-1"
                             >
                               ⬇️ {L("Download", "تحميل")}
                             </button>
@@ -398,7 +398,7 @@ export default function AdminCertificatesPage() {
                               <button
                                 onClick={() => handleApprove(cert)}
                                 disabled={isBusy}
-                                className="btn btn-xs bg-[#8E1616]/10 hover:bg-[#8E1616]/10 text-white border-none rounded-xl font-bold gap-1 shadow-sm"
+                                className="btn btn-xs bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-xl font-bold gap-1 shadow-sm"
                               >
                                 {isBusy ? <span className="loading loading-spinner loading-xs" /> : "✓ " + L("Approve", "توثيق")}
                               </button>
@@ -418,7 +418,7 @@ export default function AdminCertificatesPage() {
                             )}
 
                             {status === "Verified" && (
-                              <span className="text-[10px] text-[#8E1616] font-bold">
+                              <span className="text-[10px] text-emerald-600 font-bold">
                                 {L("Approved", "معتمد")}
                               </span>
                             )}
@@ -440,7 +440,7 @@ export default function AdminCertificatesPage() {
               <h3 className="font-black text-lg text-base-content">
                 {L("Reject Certificate Submission", "رفض طلب توثيق الشهادة")}
               </h3>
-              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">
+              <p className="text-xs text-base-content/60 mt-1">
                 {L(
                   `Are you sure you want to reject "${rejectingCert.title}"? Please provide a helpful reason for the user.`,
                   `هل أنت متأكد من رفض توثيق "${rejectingCert.title}"؟ يرجى كتابة سبب الرفض لتوجيه المستخدم.`

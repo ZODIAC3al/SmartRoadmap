@@ -7,6 +7,9 @@ import { LearnerProfile } from '../../schemas/learner-profile.schema';
 import { Roadmap } from '../../schemas/roadmap.schema';
 import { QuizSession } from '../../schemas/quiz-session.schema';
 import { LLMService } from '../../ai/llm.service';
+import { TrackCertification } from '../../schemas/track-certification.schema';
+import { AchievementDefinition } from '../../schemas/achievement-definition.schema';
+import { AppCacheService } from '../../common/cache/app-cache.service';
 import { ProjectService } from '../profile-import/project.service';
 import { CertificateService } from '../profile-import/certificate.service';
 import {
@@ -31,9 +34,20 @@ export class CvService {
     @InjectModel(Roadmap.name) private readonly roadmapModel: Model<Roadmap>,
     @InjectModel(QuizSession.name)
     private readonly quizSessionModel: Model<QuizSession>,
+    @InjectModel('GitHubAccount')
+    private readonly githubAccountModel: Model<any>,
+    @InjectModel('LinkedInAccount')
+    private readonly linkedinAccountModel: Model<any>,
+    @InjectModel('UserAchievement')
+    private readonly userAchievementModel: Model<any>,
+    @InjectModel(TrackCertification.name)
+    private readonly trackCertificationModel: Model<TrackCertification>,
+    @InjectModel(AchievementDefinition.name)
+    private readonly achievementDefModel: Model<AchievementDefinition>,
     private readonly llmService: LLMService,
     private readonly projectService: ProjectService,
     private readonly certificateService: CertificateService,
+    private readonly cache: AppCacheService,
   ) {
     const apiKey = process.env.AFFINDA_API_KEY;
     this.isMockMode = !apiKey || apiKey.includes('placeholder');
@@ -46,7 +60,9 @@ export class CvService {
 
   async listCvsByUserId(userId: string): Promise<Cv[]> {
     const userObjId = new Types.ObjectId(userId);
-    let cvs = await this.cvModel.find({ userId: userObjId }).sort({ updatedAt: -1 });
+    let cvs = await this.cvModel
+      .find({ userId: userObjId })
+      .sort({ updatedAt: -1 });
     if (!cvs || cvs.length === 0) {
       const defaultCv = new this.cvModel({
         userId: userObjId,
@@ -85,7 +101,21 @@ export class CvService {
       projects: data?.projects || [],
       certifications: data?.certifications || [],
       customSections: data?.customSections || [],
-      sectionOrder: data?.sectionOrder || ['summary', 'experience', 'projects', 'skills', 'education', 'certifications', 'courses', 'languages', 'volunteerExperience', 'publications', 'awards', 'references', 'hobbies'],
+      sectionOrder: data?.sectionOrder || [
+        'summary',
+        'experience',
+        'projects',
+        'skills',
+        'education',
+        'certifications',
+        'courses',
+        'languages',
+        'volunteerExperience',
+        'publications',
+        'awards',
+        'references',
+        'hobbies',
+      ],
     });
     return cv.save();
   }
@@ -118,7 +148,10 @@ export class CvService {
     let cv: Cv | null = null;
 
     if (cvId && Types.ObjectId.isValid(cvId)) {
-      cv = await this.cvModel.findOne({ _id: cvId, userId: new Types.ObjectId(userId) });
+      cv = await this.cvModel.findOne({
+        _id: cvId,
+        userId: new Types.ObjectId(userId),
+      });
     }
 
     if (!cv) {
@@ -214,7 +247,10 @@ export class CvService {
     const urls = text.match(urlRegex) || [];
     const linkedIn = urls.find((u) => u.includes('linkedin.com')) || '';
     const gitHub = urls.find((u) => u.includes('github.com')) || '';
-    const website = urls.find((u) => !u.includes('linkedin.com') && !u.includes('github.com')) || '';
+    const website =
+      urls.find(
+        (u) => !u.includes('linkedin.com') && !u.includes('github.com'),
+      ) || '';
 
     let summary = '';
     const summaryLines: string[] = [];
@@ -320,7 +356,14 @@ export class CvService {
     const lowerText = text.toLowerCase();
     const expIndex = lowerText.indexOf('experience');
     if (expIndex !== -1) {
-      const nextHeaders = ['education', 'skills', 'projects', 'languages', 'certifications', 'references'];
+      const nextHeaders = [
+        'education',
+        'skills',
+        'projects',
+        'languages',
+        'certifications',
+        'references',
+      ];
       let endIdx = text.length;
       for (const header of nextHeaders) {
         const idx = lowerText.indexOf(header, expIndex + 10);
@@ -330,7 +373,10 @@ export class CvService {
       }
       const expText = text.substring(expIndex + 10, endIdx).trim();
       if (expText) {
-        const expLines = expText.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
+        const expLines = expText
+          .split('\n')
+          .map((l) => l.trim())
+          .filter((l) => l.length > 0);
         let currentCompany = '';
         let currentRole = '';
         let currentDesc = '';
@@ -338,7 +384,9 @@ export class CvService {
 
         for (const line of expLines) {
           const dateMatch = line.match(/\b(19|20)\d{2}\b/);
-          const hasPresent = line.toLowerCase().includes('present') || line.toLowerCase().includes('current');
+          const hasPresent =
+            line.toLowerCase().includes('present') ||
+            line.toLowerCase().includes('current');
 
           if (dateMatch || hasPresent) {
             if (currentCompany || currentRole) {
@@ -346,7 +394,8 @@ export class CvService {
                 company: currentCompany || 'Company',
                 role: currentRole || 'Software Engineer',
                 startDate: currentDates.split(/[-–—]|\bto\b/i)[0]?.trim() || '',
-                endDate: currentDates.split(/[-–—]|\bto\b/i)[1]?.trim() || 'Present',
+                endDate:
+                  currentDates.split(/[-–—]|\bto\b/i)[1]?.trim() || 'Present',
                 description: currentDesc.trim(),
               });
             }
@@ -354,9 +403,17 @@ export class CvService {
             currentCompany = '';
             currentRole = '';
             currentDesc = '';
-          } else if (!currentRole && line.length < 50 && line.split(' ').length <= 4) {
+          } else if (
+            !currentRole &&
+            line.length < 50 &&
+            line.split(' ').length <= 4
+          ) {
             currentRole = line;
-          } else if (!currentCompany && line.length < 50 && line.split(' ').length <= 4) {
+          } else if (
+            !currentCompany &&
+            line.length < 50 &&
+            line.split(' ').length <= 4
+          ) {
             currentCompany = line;
           } else {
             currentDesc += ' ' + line;
@@ -367,7 +424,8 @@ export class CvService {
             company: currentCompany || 'Company',
             role: currentRole || 'Software Engineer',
             startDate: currentDates.split(/[-–—]|\bto\b/i)[0]?.trim() || '',
-            endDate: currentDates.split(/[-–—]|\bto\b/i)[1]?.trim() || 'Present',
+            endDate:
+              currentDates.split(/[-–—]|\bto\b/i)[1]?.trim() || 'Present',
             description: currentDesc.trim(),
           });
         }
@@ -377,7 +435,14 @@ export class CvService {
     const education: any[] = [];
     const eduIndex = lowerText.indexOf('education');
     if (eduIndex !== -1) {
-      const nextHeaders = ['experience', 'skills', 'projects', 'languages', 'certifications', 'references'];
+      const nextHeaders = [
+        'experience',
+        'skills',
+        'projects',
+        'languages',
+        'certifications',
+        'references',
+      ];
       let endIdx = text.length;
       for (const header of nextHeaders) {
         const idx = lowerText.indexOf(header, eduIndex + 10);
@@ -387,7 +452,10 @@ export class CvService {
       }
       const eduText = text.substring(eduIndex + 10, endIdx).trim();
       if (eduText) {
-        const eduLines = eduText.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
+        const eduLines = eduText
+          .split('\n')
+          .map((l) => l.trim())
+          .filter((l) => l.length > 0);
         let school = '';
         let degree = '';
         let gradDate = '';
@@ -438,7 +506,14 @@ export class CvService {
     const projects: any[] = [];
     const projIndex = lowerText.indexOf('projects');
     if (projIndex !== -1) {
-      const nextHeaders = ['education', 'experience', 'skills', 'languages', 'certifications', 'references'];
+      const nextHeaders = [
+        'education',
+        'experience',
+        'skills',
+        'languages',
+        'certifications',
+        'references',
+      ];
       let endIdx = text.length;
       for (const header of nextHeaders) {
         const idx = lowerText.indexOf(header, projIndex + 8);
@@ -446,16 +521,27 @@ export class CvService {
       }
       const projText = text.substring(projIndex + 8, endIdx).trim();
       if (projText) {
-        const projLines = projText.split('\n').map((l) => l.trim()).filter((l) => l.length > 0);
+        const projLines = projText
+          .split('\n')
+          .map((l) => l.trim())
+          .filter((l) => l.length > 0);
         let currentProjName = '';
         let currentProjDesc = '';
         let currentProjUrl = '';
         for (const line of projLines) {
           if (line.startsWith('http') || line.includes('github.com')) {
             currentProjUrl = line;
-          } else if (!currentProjName && line.length < 60 && !line.includes('.')) {
+          } else if (
+            !currentProjName &&
+            line.length < 60 &&
+            !line.includes('.')
+          ) {
             if (currentProjName) {
-              projects.push({ name: currentProjName, description: currentProjDesc.trim(), url: currentProjUrl });
+              projects.push({
+                name: currentProjName,
+                description: currentProjDesc.trim(),
+                url: currentProjUrl,
+              });
               currentProjDesc = '';
               currentProjUrl = '';
             }
@@ -465,27 +551,51 @@ export class CvService {
           }
         }
         if (currentProjName) {
-          projects.push({ name: currentProjName, description: currentProjDesc.trim(), url: currentProjUrl });
+          projects.push({
+            name: currentProjName,
+            description: currentProjDesc.trim(),
+            url: currentProjUrl,
+          });
         }
       }
     }
 
     // Heuristic Certifications Extraction
     const certifications: any[] = [];
-    const certIdx = lowerText.indexOf('certification') !== -1 ? lowerText.indexOf('certification') : lowerText.indexOf('certificates');
+    const certIdx =
+      lowerText.indexOf('certification') !== -1
+        ? lowerText.indexOf('certification')
+        : lowerText.indexOf('certificates');
     if (certIdx !== -1) {
       const certText = text.substring(certIdx + 13, certIdx + 400).trim();
-      const certLines = certText.split('\n').map((l) => l.trim()).filter((l) => l.length > 3);
+      const certLines = certText
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 3);
       for (const line of certLines.slice(0, 3)) {
-        if (!line.toLowerCase().includes('education') && !line.toLowerCase().includes('experience')) {
-          certifications.push({ name: line, organization: 'Verified Issuer', issueDate: '' });
+        if (
+          !line.toLowerCase().includes('education') &&
+          !line.toLowerCase().includes('experience')
+        ) {
+          certifications.push({
+            name: line,
+            organization: 'Verified Issuer',
+            issueDate: '',
+          });
         }
       }
     }
 
     // Heuristic Languages Extraction
     const languages: any[] = [];
-    const commonLangs = ['English', 'Arabic', 'French', 'German', 'Spanish', 'Chinese'];
+    const commonLangs = [
+      'English',
+      'Arabic',
+      'French',
+      'German',
+      'Spanish',
+      'Chinese',
+    ];
     for (const lang of commonLangs) {
       if (new RegExp(`\\b${lang}\\b`, 'i').test(text)) {
         languages.push({ language: lang, proficiency: 'Professional' });
@@ -530,8 +640,8 @@ export class CvService {
       const lowerName = fileName.toLowerCase();
       if (lowerName.endsWith('.pdf')) {
         let pdfFn = pdfParse;
-        if (typeof pdfFn !== 'function' && (pdfFn as any)?.default) {
-          pdfFn = (pdfFn as any).default;
+        if (typeof pdfFn !== 'function' && pdfFn?.default) {
+          pdfFn = pdfFn.default;
         }
         if (typeof pdfFn === 'function') {
           const data = await pdfFn(fileBuffer);
@@ -613,10 +723,15 @@ ${plainText}`,
   async generateTailoredCv(
     userId: string,
     dto: GenerateTailoredCvDto,
+    forceRegenerate = false,
   ): Promise<any> {
     this.logger.log(
       `Generating AI tailored CV for user ${userId} targeting role "${dto.targetJobTitle}"`,
     );
+
+    const userObjId = Types.ObjectId.isValid(userId)
+      ? new Types.ObjectId(userId)
+      : undefined;
 
     let userObj: any = null;
     let learnerProfileObj: any = null;
@@ -624,48 +739,139 @@ ${plainText}`,
     let quizzesList: any[] = [];
     let projectsList: any[] = [];
     let certsList: any[] = [];
+    let trackCertsList: any[] = [];
+    let achievementsList: any[] = [];
+    let achievementDefsList: any[] = [];
     let existingCv: any = null;
 
-    try {
-      userObj = await this.userModel.findById(userId).exec();
-    } catch {}
+    // Parallel database queries to fetch all candidate records in one batch
+    await Promise.all([
+      (async () => {
+        try {
+          if (userObjId) userObj = await this.userModel.findById(userObjId).lean().exec();
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          if (userObjId) learnerProfileObj = await this.learnerProfileModel.findOne({ userId: userObjId }).lean().exec();
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          if (userObjId) githubAccountObj = await this.githubAccountModel.findOne({ userId: userObjId }).lean().exec();
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          if (userObjId) linkedinAccountObj = await this.linkedinAccountModel.findOne({ userId: userObjId }).lean().exec();
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          if (userObjId) roadmapsList = await this.roadmapModel.find({ userId: userObjId }).lean().exec();
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          if (userObjId) quizzesList = await this.quizSessionModel.find({ userId: userObjId, passed: true }).lean().exec();
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          if (dto.includeProjects !== false) {
+            projectsList = await this.projectService.list(userId);
+          }
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          if (dto.includeCertificates !== false) {
+            certsList = await this.certificateService.list(userId);
+          }
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          if (userObjId) trackCertsList = await this.trackCertificationModel.find({ userId: userObjId }).lean().exec();
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          if (userObjId) achievementsList = await this.userAchievementModel.find({ userId: userObjId }).lean().exec();
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          achievementDefsList = await this.achievementDefModel.find({}).lean().exec();
+        } catch {}
+      })(),
+      (async () => {
+        try {
+          existingCv = await this.getCvByUserId(userId);
+        } catch {
+          existingCv = dto.cvData || null;
+        }
+      })(),
+    ]);
 
-    try {
-      learnerProfileObj = await this.learnerProfileModel
-        .findOne({ userId: new Types.ObjectId(userId) })
-        .exec();
-    } catch {}
+    // 1. Gather Personal Details (real data only)
+    const candidateName =
+      userObj?.name ||
+      linkedinAccountObj?.fullName ||
+      githubAccountObj?.fullName ||
+      existingCv?.personal?.name ||
+      '';
 
-    try {
-      roadmapsList = await this.roadmapModel
-        .find({ userId: new Types.ObjectId(userId) })
-        .exec();
-    } catch {}
+    const candidateEmail =
+      userObj?.email ||
+      linkedinAccountObj?.email ||
+      githubAccountObj?.email ||
+      existingCv?.personal?.email ||
+      '';
 
-    try {
-      quizzesList = await this.quizSessionModel
-        .find({ userId: new Types.ObjectId(userId), passed: true })
-        .exec();
-    } catch {}
+    const candidatePhone =
+      userObj?.phone ||
+      existingCv?.personal?.phone ||
+      '';
 
-    try {
-      if (dto.includeProjects !== false) {
-        projectsList = await this.projectService.list(userId);
-      }
-    } catch {}
+    const candidateLocation =
+      learnerProfileObj?.location ||
+      githubAccountObj?.location ||
+      userObj?.location ||
+      existingCv?.personal?.location ||
+      '';
 
-    try {
-      if (dto.includeCertificates !== false) {
-        certsList = await this.certificateService.list(userId);
-      }
-    } catch {}
+    const candidateSummary =
+      userObj?.bio ||
+      learnerProfileObj?.bio ||
+      linkedinAccountObj?.profile?.about ||
+      existingCv?.personal?.summary ||
+      '';
 
-    try {
-      existingCv = await this.getCvByUserId(userId);
-    } catch {
-      existingCv = dto.cvData || null;
-    }
+    const targetTitle =
+      dto?.targetJobTitle ||
+      learnerProfileObj?.targetRole ||
+      learnerProfileObj?.currentRole ||
+      existingCv?.title?.replace(/\s*\([^)]*\)/g, '') ||
+      'Software Engineer';
 
+    const gitHubUrl = githubAccountObj?.username
+      ? `https://github.com/${githubAccountObj.username}`
+      : learnerProfileObj?.github || existingCv?.personal?.gitHub || '';
+
+    const linkedInUrl =
+      linkedinAccountObj?.profile?.profileUrl ||
+      learnerProfileObj?.linkedIn ||
+      existingCv?.personal?.linkedIn ||
+      '';
+
+    const websiteUrl =
+      githubAccountObj?.website ||
+      learnerProfileObj?.portfolioUrl ||
+      existingCv?.personal?.website ||
+      '';
+
+    // 2. Gather Skills (real data only, deduplicated)
     const completedRoadmapModules = (roadmapsList || [])
       .flatMap((r) => r.modules || [])
       .filter((m) => m.status === 'completed');
@@ -674,28 +880,29 @@ ${plainText}`,
       (m) => m.topics || [],
     );
 
+    const projectTechs = (projectsList || []).flatMap(
+      (p) => p.technologies || Object.keys(p.languages || {}),
+    );
+
     const mergedSkills = Array.from(
       new Set([
         ...(learnerProfileObj?.skills || []),
         ...(existingCv?.skills || []),
         ...roadmapSkillTopics,
-        dto.targetJobTitle,
-        'TypeScript',
-        'Git',
-        'Problem Solving',
+        ...projectTechs,
       ]),
-    ).filter(Boolean);
+    ).filter((s) => typeof s === 'string' && s.trim().length > 0);
 
-    const candidateName =
-      userObj?.name || existingCv?.personal?.name || 'SmartRoadmap Learner';
-    const candidateEmail =
-      userObj?.email || existingCv?.personal?.email || 'learner@smartroadmap.app';
-    const candidatePhone =
-      userObj?.phone || existingCv?.personal?.phone || '+1 (555) 019-2834';
-    const candidateBio =
-      userObj?.bio ||
-      existingCv?.personal?.summary ||
-      `Dedicated ${dto.targetJobTitle} with hands-on experience completing practical roadmaps and building software applications.`;
+    // 3. Gather Projects (real data only)
+    const verifiedProjects = (projectsList || []).map((p) => ({
+      name: p.name,
+      description:
+        p.description || (p.readmeSnippet ? p.readmeSnippet.slice(0, 300) : ''),
+      technologies: p.technologies || Object.keys(p.languages || {}),
+      url: p.demoLink || p.githubUrl || '',
+      githubUrl: p.githubUrl || '',
+      stars: p.stars || 0,
+    }));
 
     const verifiedProjects =
       projectsList.length > 0
@@ -715,84 +922,261 @@ ${plainText}`,
               },
             ];
 
-    const verifiedCertificates = certsList.map((c) => ({
-      title: c.title,
-      organization: c.organization,
-      issuedAt: c.issuedAt,
-    }));
+    // 4. Gather Certifications (real data only: uploaded + platform track certs + linkedin certs)
+    const verifiedCertificates: any[] = [];
 
-    const verifiedEducation =
-      existingCv?.education?.length > 0
-        ? existingCv.education
-        : [
-            {
-              school: learnerProfileObj?.educationLevel || 'Computer Science Institute',
-              degree: 'Bachelor of Science in Software Engineering',
-              fieldOfStudy: 'Computer Science',
-              graduateDate: '2024-05',
-            },
-          ];
+    // 4a. Platform Track Certifications (Verified)
+    (trackCertsList || []).forEach((tc) => {
+      verifiedCertificates.push({
+        title: `${tc.trackTitle} Professional Track Certification`,
+        organization: 'SmartRoadmap Learning Infrastructure',
+        issuedAt: tc.createdAt ? new Date(tc.createdAt).toISOString().split('T')[0] : '',
+        credentialUrl: tc.shareableUrl || '',
+        isVerified: true,
+      });
+    });
 
-    const verifiedExperience =
-      existingCv?.experience?.length > 0
-        ? existingCv.experience
-        : [
-            {
-              company: 'SmartRoadmap Verified Labs',
-              role: `${dto.targetJobTitle} (Project Engineer)`,
-              startDate: '2024-01',
-              endDate: 'Present',
-              description: `Developed and deployed production-ready applications, completed ${completedRoadmapModules.length || 4} learning modules, and scored passing grades on verified technical assessments.`,
-            },
-          ];
+    // 4b. Uploaded / Imported User Certificates
+    (certsList || []).forEach((c) => {
+      verifiedCertificates.push({
+        title: c.title,
+        organization: c.organization || '',
+        issuedAt: c.issueDate || c.issuedAt || '',
+        credentialUrl: c.credentialUrl || '',
+        isVerified: c.status === 'Verified',
+      });
+    });
+
+    // 4c. LinkedIn Certifications
+    if (linkedinAccountObj?.profile?.certifications?.length > 0) {
+      linkedinAccountObj.profile.certifications.forEach((c: any) => {
+        const title = c.name || c.title || '';
+        if (!verifiedCertificates.some((existing) => existing.title === title)) {
+          verifiedCertificates.push({
+            title,
+            organization: c.authority || c.organization || '',
+            issuedAt: c.issueDate || '',
+            credentialUrl: c.credentialUrl || '',
+            isVerified: false,
+          });
+        }
+      });
+    }
+
+    if (verifiedCertificates.length === 0 && existingCv?.certifications?.length > 0) {
+      verifiedCertificates.push(...existingCv.certifications);
+    }
+
+    // 5. Gather Experience (real data only)
+    const verifiedExperience = [
+      ...(linkedinAccountObj?.profile?.experience || []),
+      ...(existingCv?.experience || []),
+    ];
+
+    // 6. Gather Education (real data only)
+    const verifiedEducation = [
+      ...(linkedinAccountObj?.profile?.education || []),
+      ...(existingCv?.education || []),
+    ];
+
+    if (verifiedEducation.length === 0 && learnerProfileObj?.educationLevel) {
+      verifiedEducation.push({
+        school: '',
+        degree: learnerProfileObj.educationLevel,
+        fieldOfStudy: '',
+        graduateDate: '',
+      });
+    }
+
+    // 7. Gather Achievements / Badges (real data only with human-readable titles)
+    const defMap = new Map<string, any>();
+    (achievementDefsList || []).forEach((def) => {
+      defMap.set(def.key, def);
+    });
+
+    const earnedBadges = (achievementsList || []).map((a) => {
+      const def = defMap.get(a.achievementKey);
+      return def ? `${def.title} (${def.tier.toUpperCase()} Tier) - ${def.description}` : a.achievementKey;
+    });
 
     const baseData = {
       personal: {
         name: candidateName,
         email: candidateEmail,
         phone: candidatePhone,
-        summary: candidateBio,
+        location: candidateLocation,
+        summary: candidateSummary,
+        gitHub: gitHubUrl,
+        linkedIn: linkedInUrl,
+        website: websiteUrl,
       },
       experience: verifiedExperience,
       education: verifiedEducation,
       skills: mergedSkills,
       projects: verifiedProjects,
+      certifications: verifiedCertificates,
+      achievements: earnedBadges,
+      courses: existingCv?.courses || [],
+      languages:
+        linkedinAccountObj?.profile?.languages || existingCv?.languages || [],
+      customSections: existingCv?.customSections || [],
       references: existingCv?.references || [],
       hobbies: existingCv?.hobbies || ['Coding', 'Tech Blogging', 'Open Source'],
     };
 
-    const prompt = `You are an expert ATS Resume Writer. Create an ATS-optimized CV tailored for "${dto.targetJobTitle}".
-${dto.jobDescription ? `Target Job Description:\n"${dto.jobDescription}"\n` : ''}
+    // ── Smart Cache Check (Token Optimization) ──────────────────────────────
+    const profileHash = this.cache.hashKey({
+      userId,
+      candidateName,
+      targetTitle,
+      candidateSummary,
+      skills: mergedSkills,
+      projects: verifiedProjects,
+      certs: verifiedCertificates,
+      experience: verifiedExperience,
+      education: verifiedEducation,
+      jobDescription: dto.jobDescription || '',
+    });
 
-Verified Candidate SmartRoadmap Profile Data:
-- Candidate Name: ${candidateName}
-- Email: ${candidateEmail}
-- Skills: ${mergedSkills.join(', ')}
-- Completed Learning Modules: ${completedRoadmapModules.map((m) => m.title).join(', ') || 'Core Fundamentals'}
-- Verified Projects: ${JSON.stringify(verifiedProjects)}
-- Verified Certifications: ${JSON.stringify(verifiedCertificates)}
-- Verified Quiz Pass Count: ${quizzesList.length}
+    const cacheKey = `ai:cv:${profileHash}`;
+    if (!forceRegenerate) {
+      const cached = this.cache.get<any>(cacheKey);
+      if (cached) {
+        this.logger.debug(
+          `[Cache Hit] Reusing existing AI-generated CV for user ${userId} (target: "${targetTitle}")`,
+        );
+        return cached;
+      }
+    }
 
-Instructions:
-1. Write a compelling, 2-3 sentence summary specifically tailored for "${dto.targetJobTitle}".
-2. Rewrite work experience descriptions into action-oriented bullet points with quantified achievements.
-3. Organize skills array cleanly to highlight critical keywords for "${dto.targetJobTitle}".
-4. Return ONLY valid JSON matching keys: personal {name, email, phone, summary, address, website}, experience[] {company, role, startDate, endDate, description}, education[] {school, degree, fieldOfStudy, graduateDate}, skills[], projects[] {name, description, url}, references[] {name, relationship, phone, email}, hobbies[].`;
+    // ── Gemini AI Structured Prompt ──────────────────────────────────────────
+    const prompt = `You are a Principal Technical Recruiter and ATS Optimization Expert.
+Generate an industry-leading, ATS-compliant professional software resume in JSON format.
+
+CRITICAL ANTI-HALLUCINATION RULES:
+1. ONLY USE THE CANDIDATE'S ACTUAL PROVIDED DATA BELOW.
+2. NEVER invent fake companies, fake schools, fake degrees, fake phone numbers, or fake certificates.
+3. If a section is empty in the candidate's data, leave it empty.
+4. For the Professional Summary: Write a compelling, tailored 2-4 sentence narrative synthesizing their actual strongest skills, real projects, certifications, and experience for the target role "${targetTitle}". NEVER use generic phrases like "Motivated professional looking for opportunities".
+5. For Experience & Projects: Formulate high-impact, active-voice bullet points (using verbs like Engineered, Architected, Implemented, Deployed, Optimized) highlighting the technologies used and outcomes.
+
+Candidate Ground Truth Data:
+- Name: "${candidateName}"
+- Email: "${candidateEmail}"
+- Phone: "${candidatePhone}"
+- Location: "${candidateLocation}"
+- Target Role: "${targetTitle}"
+- Bio/Summary Input: "${candidateSummary}"
+- GitHub Profile: "${gitHubUrl}"
+- LinkedIn Profile: "${linkedInUrl}"
+- Website: "${websiteUrl}"
+- Real Technical Skills: ${JSON.stringify(mergedSkills)}
+- Real Projects: ${JSON.stringify(verifiedProjects)}
+- Real Work Experience: ${JSON.stringify(verifiedExperience)}
+- Real Education: ${JSON.stringify(verifiedEducation)}
+- Real Certifications: ${JSON.stringify(verifiedCertificates)}
+- Real Achievements/Badges: ${JSON.stringify(earnedBadges)}
+- Real Languages: ${JSON.stringify(baseData.languages)}
+${dto.jobDescription ? `- Target Job Description to optimize for: "${dto.jobDescription.slice(0, 1000)}"` : ''}
+
+Output ONLY valid JSON matching this exact structure:
+{
+  "personal": {
+    "name": "${candidateName}",
+    "email": "${candidateEmail}",
+    "phone": "${candidatePhone}",
+    "location": "${candidateLocation}",
+    "summary": "Impactful 2-4 sentence tailored professional summary",
+    "gitHub": "${gitHubUrl}",
+    "linkedIn": "${linkedInUrl}",
+    "website": "${websiteUrl}"
+  },
+  "experience": [
+    {
+      "company": "Company Name",
+      "role": "Job Role",
+      "startDate": "YYYY-MM",
+      "endDate": "YYYY-MM or Present",
+      "description": "Action-oriented bullet points"
+    }
+  ],
+  "education": [
+    {
+      "school": "School Name",
+      "degree": "Degree Level",
+      "fieldOfStudy": "Field of Study",
+      "graduateDate": "Year"
+    }
+  ],
+  "skills": ["Skill1", "Skill2", "Skill3"],
+  "projects": [
+    {
+      "name": "Project Name",
+      "description": "Concise technical description of features and architecture",
+      "technologies": ["Tech1", "Tech2"],
+      "url": "Project URL or GitHub URL"
+    }
+  ],
+  "certifications": [
+    {
+      "title": "Certification Title",
+      "organization": "Issuing Organization",
+      "issuedAt": "YYYY-MM-DD",
+      "credentialUrl": "Credential URL if available"
+    }
+  ],
+  "achievements": ["Achievement 1", "Achievement 2"],
+  "languages": ["Language 1"],
+  "hobbies": []
+}`;
 
     const raw = await this.llmService.complete(prompt, { json: true });
+
+    let finalCvData = baseData;
 
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
-        if (parsed.personal?.summary || parsed.skills?.length) {
-          return {
+        if (
+          parsed.personal?.name ||
+          parsed.skills?.length ||
+          parsed.projects?.length ||
+          parsed.personal?.summary
+        ) {
+          finalCvData = {
+            ...baseData,
             ...parsed,
             personal: {
               ...baseData.personal,
               ...parsed.personal,
-              name: candidateName, // Retain verified name
-              email: candidateEmail, // Retain verified email
+              name: candidateName || parsed.personal?.name || '',
+              email: candidateEmail || parsed.personal?.email || '',
+              phone: candidatePhone || parsed.personal?.phone || '',
+              location: candidateLocation || parsed.personal?.location || '',
+              gitHub: gitHubUrl || parsed.personal?.gitHub || '',
+              linkedIn: linkedInUrl || parsed.personal?.linkedIn || '',
+              website: websiteUrl || parsed.personal?.website || '',
             },
+            skills: Array.isArray(parsed.skills) && parsed.skills.length > 0
+              ? Array.from(new Set([...parsed.skills, ...mergedSkills]))
+              : mergedSkills,
+            projects: Array.isArray(parsed.projects) && parsed.projects.length > 0
+              ? parsed.projects.map((p: any, i: number) => ({
+                  name: p.name || verifiedProjects[i]?.name || 'Project',
+                  description: p.description || verifiedProjects[i]?.description || '',
+                  technologies: p.technologies || verifiedProjects[i]?.technologies || [],
+                  url: p.url || verifiedProjects[i]?.url || verifiedProjects[i]?.githubUrl || '',
+                }))
+              : verifiedProjects,
+            certifications: Array.isArray(parsed.certifications) && parsed.certifications.length > 0
+              ? parsed.certifications
+              : verifiedCertificates,
+            experience: Array.isArray(parsed.experience) && parsed.experience.length > 0
+              ? parsed.experience
+              : verifiedExperience,
+            education: Array.isArray(parsed.education) && parsed.education.length > 0
+              ? parsed.education
+              : verifiedEducation,
           };
         }
       } catch (err: any) {
@@ -802,13 +1186,33 @@ Instructions:
       }
     }
 
-    return {
-      ...baseData,
-      personal: {
-        ...baseData.personal,
-        summary: `Results-oriented ${dto.targetJobTitle} with verified expertise in ${mergedSkills.slice(0, 4).join(', ')} and software application architecture.`,
+    // Cache the validated result for 24 hours to minimize token usage
+    this.cache.set(cacheKey, finalCvData, 3600 * 24);
+
+    return finalCvData;
+  }
+
+  async generateFromProfile(
+    userId: string,
+    targetJobTitle?: string,
+    jobDescription?: string,
+    forceRegenerate = false,
+  ): Promise<Cv> {
+    const jobTitle = targetJobTitle || 'Software Engineer';
+    const generatedData = await this.generateTailoredCv(
+      userId,
+      {
+        targetJobTitle: jobTitle,
+        jobDescription,
       },
-    };
+      forceRegenerate,
+    );
+
+    return this.saveCv(userId, {
+      title: `${jobTitle} Resume (AI Generated)`,
+      template: 'modern',
+      ...generatedData,
+    });
   }
 
   async checkAts(userId: string, dto: AtsCheckDto): Promise<any> {
@@ -905,10 +1309,15 @@ Return ONLY a valid JSON object matching the following fields:
               : ['Use strong action verbs at the beginning of bullet points.'],
             strengths: Array.isArray(parsed.strengths)
               ? parsed.strengths
-              : ['Clear educational history', 'Relevant technical skills listed'],
+              : [
+                  'Clear educational history',
+                  'Relevant technical skills listed',
+                ],
             weaknesses: Array.isArray(parsed.weaknesses)
               ? parsed.weaknesses
-              : ['Could include more metric-backed metrics in project descriptions'],
+              : [
+                  'Could include more metric-backed metrics in project descriptions',
+                ],
             skillsAnalysis: parsed.skillsAnalysis || {
               matchedSkills: cv?.skills?.slice(0, 5) || ['React', 'TypeScript'],
               missingSkills: ['Docker', 'Kubernetes'],
