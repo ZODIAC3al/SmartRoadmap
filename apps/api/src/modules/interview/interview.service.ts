@@ -1,11 +1,27 @@
 // apps/api/src/modules/interview/interview.service.ts
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { InterviewEngine } from './interview-engine';
-import { StartInterviewDto, SubmitInterviewAnswerDto } from './dto/interview.dto';
-import { InterviewSession, InterviewSessionDocument, InterviewConfig, InterviewStatus } from '../../schemas/interview-session.schema';
-import { InterviewReport, InterviewReportDocument } from '../../schemas/interview-report.schema';
+import {
+  StartInterviewDto,
+  SubmitInterviewAnswerDto,
+} from './dto/interview.dto';
+import {
+  InterviewSession,
+  InterviewSessionDocument,
+  InterviewConfig,
+  InterviewStatus,
+} from '../../schemas/interview-session.schema';
+import {
+  InterviewReport,
+  InterviewReportDocument,
+} from '../../schemas/interview-report.schema';
 
 @Injectable()
 export class InterviewService {
@@ -13,8 +29,10 @@ export class InterviewService {
 
   constructor(
     private readonly engine: InterviewEngine,
-    @InjectModel(InterviewSession.name) private readonly sessionModel: Model<InterviewSessionDocument>,
-    @InjectModel(InterviewReport.name) private readonly reportModel: Model<InterviewReportDocument>,
+    @InjectModel(InterviewSession.name)
+    private readonly sessionModel: Model<InterviewSessionDocument>,
+    @InjectModel(InterviewReport.name)
+    private readonly reportModel: Model<InterviewReportDocument>,
   ) {}
 
   /** Start a new interview session */
@@ -23,7 +41,7 @@ export class InterviewService {
       type: dto.type as any,
       difficulty: dto.difficulty as any,
       durationMinutes: dto.durationMinutes,
-      language: dto.language as any,
+      language: dto.language,
       mode: dto.mode as any,
     };
 
@@ -40,7 +58,10 @@ export class InterviewService {
 
     const session = new this.sessionModel(sessionData);
 
-    const first = await this.engine.generateFirstQuestion(config, dto.roadmapId ?? 'general');
+    const first = await this.engine.generateFirstQuestion(
+      config,
+      dto.roadmapId ?? 'general',
+    );
     session.questions = [{ id: first.id, text: first.text }];
     await session.save();
 
@@ -60,14 +81,19 @@ export class InterviewService {
       throw new BadRequestException('Session is not active');
     }
 
-    this.logger.log(`Submitting answer for session ${sessionId}, questionIndex: ${session.currentQuestionIndex}`);
+    this.logger.log(
+      `Submitting answer for session ${sessionId}, questionIndex: ${session.currentQuestionIndex}`,
+    );
     const currentQuestion = session.questions[session.currentQuestionIndex];
-    if (!currentQuestion) throw new BadRequestException('No current question found');
+    if (!currentQuestion)
+      throw new BadRequestException('No current question found');
 
     const questionNumber = session.currentQuestionIndex + 1; // 1-based count of answered questions
     const usedTexts = session.questions.map((q: any) => q.text);
 
-    this.logger.log(`Evaluating answer for session ${sessionId}, question number ${questionNumber}`);
+    this.logger.log(
+      `Evaluating answer for session ${sessionId}, question number ${questionNumber}`,
+    );
 
     const evaluation = await this.engine.evaluateAnswer(
       currentQuestion.id,
@@ -78,7 +104,9 @@ export class InterviewService {
       usedTexts,
     );
 
-    this.logger.log(`Evaluation complete. Score: ${evaluation.score}. Recording answer in DB...`);
+    this.logger.log(
+      `Evaluation complete. Score: ${evaluation.score}. Recording answer in DB...`,
+    );
     // Record answer with all metadata
     session.answers.push({
       questionId: currentQuestion.id,
@@ -93,7 +121,9 @@ export class InterviewService {
       improvementTips: evaluation.improvementTips,
       timestamp: new Date(),
     });
-    this.logger.log(`Session answers array updated. Total answers: ${session.answers.length}`);
+    this.logger.log(
+      `Session answers array updated. Total answers: ${session.answers.length}`,
+    );
 
     if (evaluation.finished || !evaluation.nextQuestion) {
       // Session complete — generate and save report immediately
@@ -102,7 +132,9 @@ export class InterviewService {
       this.logger.log(`Saving updated session status as completed...`);
       await session.save();
 
-      this.logger.log(`Building final report for session ${sessionId} after answering final question.`);
+      this.logger.log(
+        `Building final report for session ${sessionId} after answering final question.`,
+      );
       const reportData = await this.engine.buildReport(
         sessionId,
         session.userId,
@@ -119,22 +151,33 @@ export class InterviewService {
         })),
       );
 
-      this.logger.log(`Attempting to save final report in DB for session ${sessionId}`);
+      this.logger.log(
+        `Attempting to save final report in DB for session ${sessionId}`,
+      );
       let savedReport;
       try {
         savedReport = await this.reportModel.create(reportData);
-        this.logger.log(`Successfully saved report in DB with ID: ${savedReport._id}`);
+        this.logger.log(
+          `Successfully saved report in DB with ID: ${savedReport._id}`,
+        );
       } catch (err: any) {
-        this.logger.error(`Failed to save report in submitAnswer DB write: ${err.stack || err.message}`);
+        this.logger.error(
+          `Failed to save report in submitAnswer DB write: ${err.stack || err.message}`,
+        );
         savedReport = { ...reportData, status: 'error_saving' };
       }
       return { finished: true, report: savedReport };
     }
 
     // Add next question to session
-    session.questions.push({ id: evaluation.nextQuestion.id, text: evaluation.nextQuestion.text });
+    session.questions.push({
+      id: evaluation.nextQuestion.id,
+      text: evaluation.nextQuestion.text,
+    });
     session.currentQuestionIndex += 1;
-    this.logger.log(`Saving active session state. New currentQuestionIndex: ${session.currentQuestionIndex}`);
+    this.logger.log(
+      `Saving active session state. New currentQuestionIndex: ${session.currentQuestionIndex}`,
+    );
     await session.save();
 
     return {
@@ -154,7 +197,9 @@ export class InterviewService {
     const session = await this.sessionModel.findById(sessionId);
     if (!session) throw new NotFoundException('Interview session not found');
     if (session.status !== InterviewStatus.InProgress) {
-      throw new BadRequestException('Cannot pause a session that is not in progress');
+      throw new BadRequestException(
+        'Cannot pause a session that is not in progress',
+      );
     }
     session.status = InterviewStatus.Paused;
     session.pausedAt = new Date();
@@ -193,7 +238,9 @@ export class InterviewService {
     session.completedAt = new Date();
     await session.save();
 
-    this.logger.log(`Building report for session ${sessionId} after early termination.`);
+    this.logger.log(
+      `Building report for session ${sessionId} after early termination.`,
+    );
     const reportData = await this.engine.buildReport(
       sessionId,
       session.userId,
@@ -210,13 +257,19 @@ export class InterviewService {
       })),
     );
 
-    this.logger.log(`Attempting to save manually ended interview report in DB for session ${sessionId}`);
+    this.logger.log(
+      `Attempting to save manually ended interview report in DB for session ${sessionId}`,
+    );
     let saved;
     try {
       saved = await this.reportModel.create(reportData);
-      this.logger.log(`Successfully saved manually ended report with ID: ${saved._id}`);
+      this.logger.log(
+        `Successfully saved manually ended report with ID: ${saved._id}`,
+      );
     } catch (err: any) {
-      this.logger.error(`Failed to save report in endInterview DB write: ${err.stack || err.message}`);
+      this.logger.error(
+        `Failed to save report in endInterview DB write: ${err.stack || err.message}`,
+      );
       saved = { ...reportData, status: 'error_saving' };
     }
     return { finished: true, report: saved };
@@ -225,16 +278,27 @@ export class InterviewService {
   /** Fetch a completed interview report by sessionId */
   async getReport(sessionId: string) {
     this.logger.log(`Fetching report for session ${sessionId}`);
-    let report = await this.reportModel.findOne({ sessionId }).lean();
+    const report = await this.reportModel.findOne({ sessionId }).lean();
     if (!report) {
-      this.logger.log(`Report not found in DB for session ${sessionId}. Checking session status...`);
+      this.logger.log(
+        `Report not found in DB for session ${sessionId}. Checking session status...`,
+      );
       const session = await this.sessionModel.findById(sessionId);
       if (session) {
-        this.logger.log(`Session found for ${sessionId}. Status is ${session.status}`);
-        if (session.status === InterviewStatus.Completed || session.status === InterviewStatus.TimedOut) {
-          this.logger.warn(`Session ${sessionId} is completed but no report was found in DB. Triggering self-healing report generation.`);
+        this.logger.log(
+          `Session found for ${sessionId}. Status is ${session.status}`,
+        );
+        if (
+          session.status === InterviewStatus.Completed ||
+          session.status === InterviewStatus.TimedOut
+        ) {
+          this.logger.warn(
+            `Session ${sessionId} is completed but no report was found in DB. Triggering self-healing report generation.`,
+          );
           try {
-            this.logger.log(`Self-healing: generating report for session ${sessionId}`);
+            this.logger.log(
+              `Self-healing: generating report for session ${sessionId}`,
+            );
             const reportData = await this.engine.buildReport(
               sessionId,
               session.userId,
@@ -251,21 +315,35 @@ export class InterviewService {
               })),
             );
 
-            this.logger.log(`Self-healing: saving report to DB for session ${sessionId}`);
+            this.logger.log(
+              `Self-healing: saving report to DB for session ${sessionId}`,
+            );
             const saved = await this.reportModel.create(reportData);
-            this.logger.log(`Self-healing: successfully saved report for session ${sessionId}`);
+            this.logger.log(
+              `Self-healing: successfully saved report for session ${sessionId}`,
+            );
             return { status: 'ready', report: saved.toObject() };
           } catch (err: any) {
-            this.logger.error(`Self-healing report generation failed for ${sessionId}: ${err.stack || err.message}`);
-            return { status: 'error', message: `Report generation failed due to a server error: ${err.message}` };
+            this.logger.error(
+              `Self-healing report generation failed for ${sessionId}: ${err.stack || err.message}`,
+            );
+            return {
+              status: 'error',
+              message: `Report generation failed due to a server error: ${err.message}`,
+            };
           }
         }
-        return { status: 'pending', message: 'Report is still being generated or session is active.' };
+        return {
+          status: 'pending',
+          message: 'Report is still being generated or session is active.',
+        };
       }
       this.logger.warn(`Session not found for id: ${sessionId}`);
       throw new NotFoundException('Report not found');
     }
-    this.logger.log(`Report successfully retrieved from DB for session ${sessionId}`);
+    this.logger.log(
+      `Report successfully retrieved from DB for session ${sessionId}`,
+    );
     return { status: 'ready', report };
   }
 

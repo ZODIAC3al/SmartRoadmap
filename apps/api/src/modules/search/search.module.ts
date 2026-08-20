@@ -3,7 +3,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { SearchController } from './search.controller';
 import { SearchService } from './search.service';
 import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
-import { LearningResource, LearningResourceSchema } from '../../schemas/learning-resource.schema';
+import {
+  LearningResource,
+  LearningResourceSchema,
+} from '../../schemas/learning-resource.schema';
 import { AIModule } from '../../ai/ai.module';
 
 @Module({

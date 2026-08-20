@@ -8,9 +8,9 @@ const ADZUNA_BASE = 'https://api.adzuna.com/v1/api';
 // ─── Country catalogue ────────────────────────────────────────────────────────
 
 export interface CountryEntry {
-  code: string;       // ISO-3166-1 alpha-2
+  code: string; // ISO-3166-1 alpha-2
   label: string;
-  currency: string;   // ISO-4217
+  currency: string; // ISO-4217
   /**
    * Adzuna endpoint country code.
    * null  = Adzuna does not support this country.
@@ -30,19 +30,19 @@ export interface CountryEntry {
  */
 export const COUNTRY_MAP: Record<string, CountryEntry> = {
   // ── Middle East / Africa — not on Adzuna, AI handles them ────────────────
-  eg: { code: 'eg', label: 'Egypt',        currency: 'EGP', adzunaCode: null },
+  eg: { code: 'eg', label: 'Egypt', currency: 'EGP', adzunaCode: null },
   sa: { code: 'sa', label: 'Saudi Arabia', currency: 'SAR', adzunaCode: null },
-  ae: { code: 'ae', label: 'UAE',          currency: 'AED', adzunaCode: null },
+  ae: { code: 'ae', label: 'UAE', currency: 'AED', adzunaCode: null },
   // ── Adzuna-native: salaries returned as-is in their own currency ─────────
-  us: { code: 'us', label: 'USA',          currency: 'USD', adzunaCode: 'us' },
-  gb: { code: 'gb', label: 'UK',           currency: 'GBP', adzunaCode: 'gb' },
-  ca: { code: 'ca', label: 'Canada',       currency: 'CAD', adzunaCode: 'ca' },
-  au: { code: 'au', label: 'Australia',    currency: 'AUD', adzunaCode: 'au' },
-  de: { code: 'de', label: 'Germany',      currency: 'EUR', adzunaCode: 'de' },
-  fr: { code: 'fr', label: 'France',       currency: 'EUR', adzunaCode: 'fr' },
-  nl: { code: 'nl', label: 'Netherlands',  currency: 'EUR', adzunaCode: 'nl' },
-  in: { code: 'in', label: 'India',        currency: 'INR', adzunaCode: 'in' },
-  sg: { code: 'sg', label: 'Singapore',    currency: 'SGD', adzunaCode: 'sg' },
+  us: { code: 'us', label: 'USA', currency: 'USD', adzunaCode: 'us' },
+  gb: { code: 'gb', label: 'UK', currency: 'GBP', adzunaCode: 'gb' },
+  ca: { code: 'ca', label: 'Canada', currency: 'CAD', adzunaCode: 'ca' },
+  au: { code: 'au', label: 'Australia', currency: 'AUD', adzunaCode: 'au' },
+  de: { code: 'de', label: 'Germany', currency: 'EUR', adzunaCode: 'de' },
+  fr: { code: 'fr', label: 'France', currency: 'EUR', adzunaCode: 'fr' },
+  nl: { code: 'nl', label: 'Netherlands', currency: 'EUR', adzunaCode: 'nl' },
+  in: { code: 'in', label: 'India', currency: 'INR', adzunaCode: 'in' },
+  sg: { code: 'sg', label: 'Singapore', currency: 'SGD', adzunaCode: 'sg' },
 };
 
 // ─── Result interface ─────────────────────────────────────────────────────────
@@ -107,17 +107,60 @@ export class AdzunaService {
   /** Derive a CountryEntry from a free-text location string. */
   resolveCountryFromLocation(location: string): CountryEntry {
     const l = (location || '').toLowerCase();
-    if (l.includes('egypt') || l.includes('cairo') || l.includes('alexandria') || l.includes('giza')) return COUNTRY_MAP.eg;
-    if (l.includes('saudi') || l.includes('riyadh') || l.includes('jeddah') || l.includes('ksa'))    return COUNTRY_MAP.sa;
-    if (l.includes('uae') || l.includes('dubai') || l.includes('abu dhabi') || l.includes('emirates')) return COUNTRY_MAP.ae;
-    if (l.includes('uk') || l.includes('united kingdom') || l.includes('britain') || l.includes('london') || l.includes('england')) return COUNTRY_MAP.gb;
-    if (l.includes('canada') || l.includes('toronto') || l.includes('vancouver'))                    return COUNTRY_MAP.ca;
-    if (l.includes('australia') || l.includes('sydney') || l.includes('melbourne'))                  return COUNTRY_MAP.au;
-    if (l.includes('germany') || l.includes('berlin') || l.includes('munich'))                       return COUNTRY_MAP.de;
-    if (l.includes('france') || l.includes('paris'))                                                 return COUNTRY_MAP.fr;
-    if (l.includes('india') || l.includes('bangalore') || l.includes('mumbai') || l.includes('delhi')) return COUNTRY_MAP.in;
-    if (l.includes('netherlands') || l.includes('amsterdam'))                                        return COUNTRY_MAP.nl;
-    if (l.includes('singapore'))                                                                     return COUNTRY_MAP.sg;
+    if (
+      l.includes('egypt') ||
+      l.includes('cairo') ||
+      l.includes('alexandria') ||
+      l.includes('giza')
+    )
+      return COUNTRY_MAP.eg;
+    if (
+      l.includes('saudi') ||
+      l.includes('riyadh') ||
+      l.includes('jeddah') ||
+      l.includes('ksa')
+    )
+      return COUNTRY_MAP.sa;
+    if (
+      l.includes('uae') ||
+      l.includes('dubai') ||
+      l.includes('abu dhabi') ||
+      l.includes('emirates')
+    )
+      return COUNTRY_MAP.ae;
+    if (
+      l.includes('uk') ||
+      l.includes('united kingdom') ||
+      l.includes('britain') ||
+      l.includes('london') ||
+      l.includes('england')
+    )
+      return COUNTRY_MAP.gb;
+    if (
+      l.includes('canada') ||
+      l.includes('toronto') ||
+      l.includes('vancouver')
+    )
+      return COUNTRY_MAP.ca;
+    if (
+      l.includes('australia') ||
+      l.includes('sydney') ||
+      l.includes('melbourne')
+    )
+      return COUNTRY_MAP.au;
+    if (l.includes('germany') || l.includes('berlin') || l.includes('munich'))
+      return COUNTRY_MAP.de;
+    if (l.includes('france') || l.includes('paris')) return COUNTRY_MAP.fr;
+    if (
+      l.includes('india') ||
+      l.includes('bangalore') ||
+      l.includes('mumbai') ||
+      l.includes('delhi')
+    )
+      return COUNTRY_MAP.in;
+    if (l.includes('netherlands') || l.includes('amsterdam'))
+      return COUNTRY_MAP.nl;
+    if (l.includes('singapore')) return COUNTRY_MAP.sg;
     return COUNTRY_MAP.us;
   }
 
@@ -146,12 +189,16 @@ export class AdzunaService {
         : this.resolveCountryFromLocation(params.location);
 
     if (!this.enabled) {
-      this.logger.warn(`[Salary Debug] Adzuna not configured (ADZUNA_APP_ID: "${this.appId ? 'PRESENT' : 'MISSING'}", ADZUNA_APP_KEY: "${this.appKey ? 'PRESENT' : 'MISSING'}") — skipping`);
+      this.logger.warn(
+        `[Salary Debug] Adzuna not configured (ADZUNA_APP_ID: "${this.appId ? 'PRESENT' : 'MISSING'}", ADZUNA_APP_KEY: "${this.appKey ? 'PRESENT' : 'MISSING'}") — skipping`,
+      );
       return null;
     }
 
     if (!country.adzunaCode) {
-      this.logger.log(`[Salary Debug] Country "${country.label}" (${country.code}) is non-Adzuna — delegating to AI/local DB`);
+      this.logger.log(
+        `[Salary Debug] Country "${country.label}" (${country.code}) is non-Adzuna — delegating to AI/local DB`,
+      );
       return null;
     }
 
@@ -161,7 +208,10 @@ export class AdzunaService {
     // Query candidate variations: 1) exact title, 2) broader title
     const queryCandidates: string[] = [originalTitle];
 
-    if (originalTitle.toLowerCase().startsWith('junior ') || originalTitle.toLowerCase().startsWith('senior ')) {
+    if (
+      originalTitle.toLowerCase().startsWith('junior ') ||
+      originalTitle.toLowerCase().startsWith('senior ')
+    ) {
       const broader = originalTitle.replace(/^(junior|senior)\s+/i, '').trim();
       if (broader && !queryCandidates.includes(broader)) {
         queryCandidates.push(broader);
@@ -197,38 +247,52 @@ export class AdzunaService {
           (j) => (j.salary_min ?? 0) > 0 || (j.salary_max ?? 0) > 0,
         );
 
-        const sampleMin = salaryJobs[0]?.salary_min ?? salaryJobs[0]?.salary_max ?? 0;
-        const sampleMax = salaryJobs[0]?.salary_max ?? salaryJobs[0]?.salary_min ?? 0;
+        const sampleMin =
+          salaryJobs[0]?.salary_min ?? salaryJobs[0]?.salary_max ?? 0;
+        const sampleMax =
+          salaryJobs[0]?.salary_max ?? salaryJobs[0]?.salary_min ?? 0;
 
         this.logger.log(
           `[Salary Debug]\n` +
-          `Country: ${country.label} (${country.code})\n` +
-          `Job: ${originalTitle} (used: "${query}")\n` +
-          `Adzuna URL: ${url}\n` +
-          `Status: ${searchResp.status}\n` +
-          `Total jobs: ${totalCount}\n` +
-          `Jobs with salary: ${salaryJobs.length}\n` +
-          `Sample salary_min: ${sampleMin}\n` +
-          `Sample salary_max: ${sampleMax}\n` +
-          `Currency: ${country.currency}`
+            `Country: ${country.label} (${country.code})\n` +
+            `Job: ${originalTitle} (used: "${query}")\n` +
+            `Adzuna URL: ${url}\n` +
+            `Status: ${searchResp.status}\n` +
+            `Total jobs: ${totalCount}\n` +
+            `Jobs with salary: ${salaryJobs.length}\n` +
+            `Sample salary_min: ${sampleMin}\n` +
+            `Sample salary_max: ${sampleMax}\n` +
+            `Currency: ${country.currency}`,
         );
 
         if (salaryJobs.length >= 1) {
-          const mins = salaryJobs.map((j) => j.salary_min ?? j.salary_max ?? 0).filter(Boolean);
-          const maxs = salaryJobs.map((j) => j.salary_max ?? j.salary_min ?? 0).filter(Boolean);
+          const mins = salaryJobs
+            .map((j) => j.salary_min ?? j.salary_max ?? 0)
+            .filter(Boolean);
+          const maxs = salaryJobs
+            .map((j) => j.salary_max ?? j.salary_min ?? 0)
+            .filter(Boolean);
           const all = [...mins, ...maxs];
 
           const minSalary = Math.round(Math.min(...mins));
           const maxSalary = Math.round(Math.max(...maxs));
-          const avgSalary = Math.round(all.reduce((a, b) => a + b, 0) / all.length);
+          const avgSalary = Math.round(
+            all.reduce((a, b) => a + b, 0) / all.length,
+          );
 
-          const salaryGrowthTrends = await this.fetchSalaryHistory(apiCode, query);
+          const salaryGrowthTrends = await this.fetchSalaryHistory(
+            apiCode,
+            query,
+          );
           const trendingSkills = this.extractTrendingSkills(
             jobs.map((j) => j.title ?? ''),
             params.skills ?? [],
           );
 
-          const confidenceScore = Math.min(100, Math.round((salaryJobs.length / 50) * 100));
+          const confidenceScore = Math.min(
+            100,
+            Math.round((salaryJobs.length / 50) * 100),
+          );
           const marketDemand = this.deriveMarketDemand(totalCount);
 
           return {
@@ -246,8 +310,12 @@ export class AdzunaService {
         }
       } catch (err: any) {
         const httpStatus = err.response?.status ?? 'NETWORK_ERROR';
-        const httpBody = err.response?.data ? JSON.stringify(err.response.data) : err.message;
-        this.logger.error(`[Salary Debug] Adzuna HTTP ${httpStatus} error: ${httpBody}`);
+        const httpBody = err.response?.data
+          ? JSON.stringify(err.response.data)
+          : err.message;
+        this.logger.error(
+          `[Salary Debug] Adzuna HTTP ${httpStatus} error: ${httpBody}`,
+        );
         return null;
       }
     }
@@ -292,7 +360,9 @@ export class AdzunaService {
         if (vals?.length) {
           result.push({
             year: y,
-            averageSalary: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
+            averageSalary: Math.round(
+              vals.reduce((a, b) => a + b, 0) / vals.length,
+            ),
           });
         }
       }
@@ -303,13 +373,50 @@ export class AdzunaService {
     }
   }
 
-  private extractTrendingSkills(titles: string[], userSkills: string[]): string[] {
+  private extractTrendingSkills(
+    titles: string[],
+    userSkills: string[],
+  ): string[] {
     const keywords = [
-      'react','vue','angular','node','python','typescript','javascript','java',
-      'kotlin','swift','go','rust','c#','.net','php','ruby','docker','kubernetes',
-      'aws','azure','gcp','terraform','ansible','postgresql','mongodb','redis',
-      'elasticsearch','graphql','rest','machine learning','ai','data science',
-      'devops','ci/cd','agile','microservices','serverless','security','linux',
+      'react',
+      'vue',
+      'angular',
+      'node',
+      'python',
+      'typescript',
+      'javascript',
+      'java',
+      'kotlin',
+      'swift',
+      'go',
+      'rust',
+      'c#',
+      '.net',
+      'php',
+      'ruby',
+      'docker',
+      'kubernetes',
+      'aws',
+      'azure',
+      'gcp',
+      'terraform',
+      'ansible',
+      'postgresql',
+      'mongodb',
+      'redis',
+      'elasticsearch',
+      'graphql',
+      'rest',
+      'machine learning',
+      'ai',
+      'data science',
+      'devops',
+      'ci/cd',
+      'agile',
+      'microservices',
+      'serverless',
+      'security',
+      'linux',
     ];
 
     const freq: Record<string, number> = {};

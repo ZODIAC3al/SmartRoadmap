@@ -44,17 +44,25 @@ export class UserRecommendation {
   @Prop()
   url?: string;
 
-  @Prop({ enum: ['beginner', 'intermediate', 'advanced'], default: 'intermediate' })
+  @Prop({
+    enum: ['beginner', 'intermediate', 'advanced'],
+    default: 'intermediate',
+  })
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
 
   @Prop()
   estimatedTime?: string;
 
-  @Prop({ enum: RecommendationStatus, default: RecommendationStatus.Active, index: true })
+  @Prop({
+    enum: RecommendationStatus,
+    default: RecommendationStatus.Active,
+    index: true,
+  })
   status!: RecommendationStatus;
 
   @Prop()
   aiInsight?: string;
 }
 
-export const UserRecommendationSchema = SchemaFactory.createForClass(UserRecommendation);
+export const UserRecommendationSchema =
+  SchemaFactory.createForClass(UserRecommendation);

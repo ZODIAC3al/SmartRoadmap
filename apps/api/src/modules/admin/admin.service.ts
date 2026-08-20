@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -11,7 +16,8 @@ import { Comment } from '../../schemas/comment.schema';
 import { LearningResource } from '../../schemas/learning-resource.schema';
 import { MentorProfile } from '../../schemas/mentor-profile.schema';
 import { MentorshipSession } from '../../schemas/mentorship-session.schema';
-import { ResolveReportDto } from './dto/admin.dto';
+import { Certificate } from '../../schemas/certificate.schema';
+import { ResolveReportDto, VerifyCertificateDto } from './dto/admin.dto';
 import { LLMService } from '../../ai/llm.service';
 
 @Injectable()
@@ -22,12 +28,18 @@ export class AdminService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Report.name) private readonly reportModel: Model<Report>,
     @InjectModel(AuditLog.name) private readonly auditLogModel: Model<AuditLog>,
-    @InjectModel(QuizSession.name) private readonly quizSessionModel: Model<QuizSession>,
+    @InjectModel(QuizSession.name)
+    private readonly quizSessionModel: Model<QuizSession>,
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
-    @InjectModel(LearningResource.name) private readonly resourceModel: Model<LearningResource>,
-    @InjectModel(MentorProfile.name) private readonly mentorProfileModel: Model<MentorProfile>,
-    @InjectModel(MentorshipSession.name) private readonly sessionModel: Model<MentorshipSession>,
+    @InjectModel(LearningResource.name)
+    private readonly resourceModel: Model<LearningResource>,
+    @InjectModel(MentorProfile.name)
+    private readonly mentorProfileModel: Model<MentorProfile>,
+    @InjectModel(MentorshipSession.name)
+    private readonly sessionModel: Model<MentorshipSession>,
+    @InjectModel(Certificate.name)
+    private readonly certificateModel: Model<Certificate>,
     private readonly llmService: LLMService,
   ) {}
 
@@ -71,10 +83,17 @@ export class AdminService {
         { email: new RegExp(search, 'i') },
       ];
     }
-    return this.userModel.find(filter).select('-passwordHash -refreshTokenHashes').exec();
+    return this.userModel
+      .find(filter)
+      .select('-passwordHash -refreshTokenHashes')
+      .exec();
   }
 
-  async updateUserRole(userId: string, role: 'learner' | 'company' | 'admin' | 'mentor', adminId?: string): Promise<User> {
+  async updateUserRole(
+    userId: string,
+    role: 'learner' | 'company' | 'admin' | 'mentor',
+    adminId?: string,
+  ): Promise<User> {
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException(`User not found`);
@@ -115,7 +134,10 @@ export class AdminService {
       throw new BadRequestException('User with this email already exists');
     }
 
-    const passwordHash = await bcrypt.hash(dto.password || 'TemporaryPassword123!', 12);
+    const passwordHash = await bcrypt.hash(
+      dto.password || 'TemporaryPassword123!',
+      12,
+    );
     const user = new this.userModel({
       name: dto.name,
       email,
@@ -160,11 +182,17 @@ export class AdminService {
     if (dto.role) {
       if (user.role === 'admin' && dto.role !== 'admin') {
         if (adminId && adminId === userId) {
-          throw new BadRequestException('You cannot remove your own admin role');
+          throw new BadRequestException(
+            'You cannot remove your own admin role',
+          );
         }
-        const adminCount = await this.userModel.countDocuments({ role: 'admin' });
+        const adminCount = await this.userModel.countDocuments({
+          role: 'admin',
+        });
         if (adminCount <= 1) {
-          throw new BadRequestException('Cannot remove the last remaining admin');
+          throw new BadRequestException(
+            'Cannot remove the last remaining admin',
+          );
         }
       }
       user.role = dto.role;
@@ -219,11 +247,18 @@ export class AdminService {
 
   async getReports(status?: string): Promise<Report[]> {
     const filter = status ? { status } : {};
-    const reports = await this.reportModel.find(filter).populate('reportedBy', 'name email').exec();
+    const reports = await this.reportModel
+      .find(filter)
+      .populate('reportedBy', 'name email')
+      .exec();
     return reports.filter((r) => r.reportedBy);
   }
 
-  async resolveReport(reportId: string, dto: ResolveReportDto, adminId?: string): Promise<Report> {
+  async resolveReport(
+    reportId: string,
+    dto: ResolveReportDto,
+    adminId?: string,
+  ): Promise<Report> {
     const report = await this.reportModel.findById(reportId);
     if (!report) {
       throw new NotFoundException(`Report not found`);
@@ -244,16 +279,29 @@ export class AdminService {
     if (dto.status === 'resolved') {
       try {
         if (report.contentType === 'post') {
-          await this.postModel.deleteOne({ _id: new Types.ObjectId(report.contentId) });
-          await this.commentModel.deleteMany({ postId: new Types.ObjectId(report.contentId) });
+          await this.postModel.deleteOne({
+            _id: new Types.ObjectId(report.contentId),
+          });
+          await this.commentModel.deleteMany({
+            postId: new Types.ObjectId(report.contentId),
+          });
         } else if (report.contentType === 'comment') {
-          await this.commentModel.deleteOne({ _id: new Types.ObjectId(report.contentId) });
+          await this.commentModel.deleteOne({
+            _id: new Types.ObjectId(report.contentId),
+          });
         } else if (report.contentType === 'resource') {
-          await this.resourceModel.deleteOne({ _id: new Types.ObjectId(report.contentId) });
+          await this.resourceModel.deleteOne({
+            _id: new Types.ObjectId(report.contentId),
+          });
         } else if (report.contentType === 'mentor_profile') {
-          const profile = await this.mentorProfileModel.findById(report.contentId);
+          const profile = await this.mentorProfileModel.findById(
+            report.contentId,
+          );
           if (profile) {
-            await this.userModel.updateOne({ _id: profile.userId }, { role: 'learner' });
+            await this.userModel.updateOne(
+              { _id: profile.userId },
+              { role: 'learner' },
+            );
             await this.mentorProfileModel.deleteOne({ _id: profile._id });
           }
         }
@@ -277,10 +325,16 @@ export class AdminService {
     // 2. Quiz performance — only completed sessions count towards pass/fail,
     // otherwise in-progress attempts (passed: undefined) were being counted
     // as failures and silently deflating the pass rate.
-    const totalQuizzes = await this.quizSessionModel.countDocuments({ status: 'completed' });
-    const passedQuizzes = await this.quizSessionModel.countDocuments({ status: 'completed', passed: true });
+    const totalQuizzes = await this.quizSessionModel.countDocuments({
+      status: 'completed',
+    });
+    const passedQuizzes = await this.quizSessionModel.countDocuments({
+      status: 'completed',
+      passed: true,
+    });
     const failedQuizzes = totalQuizzes - passedQuizzes;
-    const passRate = totalQuizzes > 0 ? Math.round((passedQuizzes / totalQuizzes) * 100) : 0;
+    const passRate =
+      totalQuizzes > 0 ? Math.round((passedQuizzes / totalQuizzes) * 100) : 0;
 
     // 3. Community activity
     const totalPosts = await this.postModel.countDocuments();
@@ -288,8 +342,12 @@ export class AdminService {
 
     // 4. Mentorship activity
     const totalSessions = await this.sessionModel.countDocuments();
-    const completedSessions = await this.sessionModel.countDocuments({ status: 'completed' });
-    const pendingSessions = await this.sessionModel.countDocuments({ status: 'pending' });
+    const completedSessions = await this.sessionModel.countDocuments({
+      status: 'completed',
+    });
+    const pendingSessions = await this.sessionModel.countDocuments({
+      status: 'pending',
+    });
 
     // 5. BI: Signups in the last 7 days
     const signupIndex: any[] = [];
@@ -353,12 +411,22 @@ export class AdminService {
   async getAIInsights(): Promise<any> {
     // Collect data highlights
     const totalQuizzes = await this.quizSessionModel.countDocuments();
-    const failedSessions = await this.quizSessionModel.find({ passed: false }).limit(5);
-    const lowRatingMentors = await this.mentorProfileModel.find({ rating: { $lt: 4 } }).limit(5);
-    const pendingReports = await this.reportModel.countDocuments({ status: 'pending' });
+    const failedSessions = await this.quizSessionModel
+      .find({ passed: false })
+      .limit(5);
+    const lowRatingMentors = await this.mentorProfileModel
+      .find({ rating: { $lt: 4 } })
+      .limit(5);
+    const pendingReports = await this.reportModel.countDocuments({
+      status: 'pending',
+    });
 
-    const failuresSummary = failedSessions.map((s) => s.moduleId).join(', ') || 'None';
-    const lowRatingsSummary = lowRatingMentors.map((m) => `Mentor ID: ${m.userId} (${m.rating}*)`).join(', ') || 'None';
+    const failuresSummary =
+      failedSessions.map((s) => s.moduleId).join(', ') || 'None';
+    const lowRatingsSummary =
+      lowRatingMentors
+        .map((m) => `Mentor ID: ${m.userId} (${m.rating}*)`)
+        .join(', ') || 'None';
 
     const prompt = `
       You are an executive operational dashboard AI analyzing platform performance.
@@ -396,5 +464,89 @@ export class AdminService {
       mentorshipStatus: `Learner feedback remains extremely positive, averaging a 4.8 star overall rating. The primary operational concern is matching latency: 25% of booked sessions remain 'pending' for over 48 hours. A localized pool of mentors is receiving 80% of scheduling request volume.`,
       recommendations: `1. Introduce targeted pre-requisite guides for advanced NodeJS modules. 2. Auto-remind mentors with pending sessions via mail notifications after 24 hours. 3. Initiate credential reviews for accounts flagged under the pending moderation queue (${pendingReports} reports).`,
     };
+  }
+
+  // ───────────────────────────── Certificate Verification ─────────────────────────────
+
+  async getCertificates(status?: string, search?: string): Promise<any[]> {
+    const filter: any = {};
+    if (status && ['Pending', 'Verified', 'Rejected'].includes(status)) {
+      filter.status = status;
+    }
+    if (search && search.trim()) {
+      const regex = new RegExp(search.trim(), 'i');
+      filter.$or = [
+        { title: regex },
+        { organization: regex },
+        { credentialId: regex },
+      ];
+    }
+
+    const certificates = await this.certificateModel
+      .find(filter)
+      .populate('userId', 'name email role avatar')
+      .populate('reviewedBy', 'name email')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    // If search term didn't match cert fields, check if it matches populated user fields
+    if (search && search.trim()) {
+      const q = search.trim().toLowerCase();
+      return certificates.filter((c: any) => {
+        const titleMatch = c.title?.toLowerCase().includes(q);
+        const orgMatch = c.organization?.toLowerCase().includes(q);
+        const userNameMatch = c.userId?.name?.toLowerCase().includes(q);
+        const userEmailMatch = c.userId?.email?.toLowerCase().includes(q);
+        return titleMatch || orgMatch || userNameMatch || userEmailMatch;
+      });
+    }
+
+    return certificates;
+  }
+
+  async verifyCertificate(
+    id: string,
+    dto: VerifyCertificateDto,
+    adminId?: string,
+  ): Promise<any> {
+    const cert = await this.certificateModel.findById(id);
+    if (!cert) {
+      throw new NotFoundException('Certificate not found');
+    }
+
+    cert.status = dto.status;
+    cert.rejectionReason =
+      dto.status === 'Rejected' ? dto.reason?.trim() : undefined;
+    cert.reviewedBy =
+      adminId && Types.ObjectId.isValid(adminId)
+        ? new Types.ObjectId(adminId)
+        : undefined;
+    cert.reviewedAt = new Date();
+
+    const saved = await cert.save();
+
+    await this.logAction(
+      adminId,
+      `admin.certificate_${dto.status.toLowerCase()}`,
+      `${dto.status} certificate "${cert.title}" for user ID ${cert.userId}${dto.reason ? ` - Reason: ${dto.reason}` : ''}`,
+      dto.status === 'Verified' ? 'info' : 'warning',
+    );
+
+    return this.certificateModel
+      .findById(saved._id)
+      .populate('userId', 'name email role avatar')
+      .populate('reviewedBy', 'name email')
+      .exec();
+  }
+
+  async getCertificateFileUrl(id: string): Promise<string> {
+    const cert = await this.certificateModel
+      .findById(id)
+      .select('fileUrl')
+      .lean();
+    if (!cert?.fileUrl) {
+      throw new NotFoundException('Certificate file not found');
+    }
+    return cert.fileUrl;
   }
 }

@@ -3,7 +3,12 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Post extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'DiscussionSpace', required: true, index: true })
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'DiscussionSpace',
+    required: true,
+    index: true,
+  })
   spaceId!: Types.ObjectId;
 
   @Prop({ required: true })

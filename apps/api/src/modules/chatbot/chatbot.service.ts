@@ -24,12 +24,16 @@ export class ChatbotService {
     if (apiKey) {
       this.llmProvider = new GeminiLLMProvider(apiKey);
     } else {
-      this.logger.warn('GEMINI_API_KEY is not set. Chatbot will run in simulation mock mode.');
+      this.logger.warn(
+        'GEMINI_API_KEY is not set. Chatbot will run in simulation mock mode.',
+      );
     }
   }
 
   async getSession(userId: string): Promise<ChatSession> {
-    let session = await this.chatSessionModel.findOne({ userId: new Types.ObjectId(userId) });
+    let session = await this.chatSessionModel.findOne({
+      userId: new Types.ObjectId(userId),
+    });
     if (!session) {
       session = new this.chatSessionModel({
         userId: new Types.ObjectId(userId),
@@ -41,10 +45,16 @@ export class ChatbotService {
   }
 
   async deleteSession(userId: string): Promise<void> {
-    await this.chatSessionModel.deleteOne({ userId: new Types.ObjectId(userId) });
+    await this.chatSessionModel.deleteOne({
+      userId: new Types.ObjectId(userId),
+    });
   }
 
-  async handleMessage(userId: string, userRole: string, messageText: string): Promise<string> {
+  async handleMessage(
+    userId: string,
+    userRole: string,
+    messageText: string,
+  ): Promise<string> {
     // 1. Retrieve or initialize chat session
     const session = await this.getSession(userId);
 
@@ -58,15 +68,24 @@ export class ChatbotService {
 
     // 3. Build context-aware prompts (target career, current topic, and admin tools execution)
     let contextStr = '';
-    
+
     // Check if asking about roadmap, steps, or learning
-    const askAboutRoadmap = /roadmap|study|learn|step|module|progress/i.test(messageText);
+    const askAboutRoadmap = /roadmap|study|learn|step|module|progress/i.test(
+      messageText,
+    );
     if (askAboutRoadmap) {
       try {
         const roadmap = await this.roadmapService.getActiveRoadmap(userId);
         if (roadmap) {
-          const activeModules = (roadmap.modules || []).filter((m: any) => m.status === 'in_progress' || m.status === 'failed');
-          const modSummary = activeModules.map((m: any) => `- ${m.title} (Status: ${m.status}, topics: ${Array.isArray(m.topics) ? m.topics.join(', ') : ''})`).join('\n');
+          const activeModules = (roadmap.modules || []).filter(
+            (m: any) => m.status === 'in_progress' || m.status === 'failed',
+          );
+          const modSummary = activeModules
+            .map(
+              (m: any) =>
+                `- ${m.title} (Status: ${m.status}, topics: ${Array.isArray(m.topics) ? m.topics.join(', ') : ''})`,
+            )
+            .join('\n');
           contextStr += `\n[User Learning Context]\nTarget Career: ${roadmap.targetRole || 'Not set'}\nActive Modules:\n${modSummary || 'None active'}\n`;
         }
       } catch (err) {
@@ -75,11 +94,14 @@ export class ChatbotService {
     }
 
     // Check if asking about system diagnostics, admin stats, audit logs, or user roles
-    const askAboutAdmin = /audit|log|analytics|stat|users count|system/i.test(messageText);
+    const askAboutAdmin = /audit|log|analytics|stat|users count|system/i.test(
+      messageText,
+    );
     if (askAboutAdmin) {
       if (userRole !== 'admin') {
         // Enforce role-based permissions: learners cannot see logs
-        const responseText = 'Access Denied: You do not have permissions to access administrative statistics or audit trails.';
+        const responseText =
+          'Access Denied: You do not have permissions to access administrative statistics or audit trails.';
         session.messages.push({
           role: 'model',
           content: responseText,
@@ -93,7 +115,13 @@ export class ChatbotService {
       try {
         if (/log/i.test(messageText)) {
           const logs = await this.adminService.getAuditLogs();
-          const logSummary = logs.slice(0, 5).map((l) => `- [${l.severity.toUpperCase()}] ${l.action}: ${l.details}`).join('\n');
+          const logSummary = logs
+            .slice(0, 5)
+            .map(
+              (l) =>
+                `- [${l.severity.toUpperCase()}] ${l.action}: ${l.details}`,
+            )
+            .join('\n');
           contextStr += `\n[Admin Context - Recent Audit Logs]\n${logSummary || 'No recent logs'}\n`;
         } else {
           const analytics = await this.adminService.getAnalytics();
@@ -130,7 +158,9 @@ export class ChatbotService {
       try {
         responseText = await this.llmProvider.chat(chatHistory);
       } catch (err: any) {
-        this.logger.debug(`Gemini API provider chat fallback (${err.message}). Using SmartRoadmap simulation AI response.`);
+        this.logger.debug(
+          `Gemini API provider chat fallback (${err.message}). Using SmartRoadmap simulation AI response.`,
+        );
         responseText = '';
       }
     }

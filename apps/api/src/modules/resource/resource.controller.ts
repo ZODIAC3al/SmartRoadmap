@@ -10,7 +10,10 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ResourceService } from './resource.service';
 import { CreateResourceDto } from './dto/resource.dto';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 
 @ApiTags('resource')
 @ApiBearerAuth()

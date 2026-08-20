@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
 import {
@@ -229,12 +230,26 @@ export default function AdminUsersPage() {
               {isRtl ? "تحكم في أدوار الأعضاء، وراقب محاولات الدخول غير الاعتيادية وسجلات الأمان." : "Modify database scopes, audit user role permissions, and view authentication trails."}
             </p>
           </div>
-          <a
-            href="/admin"
-            className="sr-button-secondary btn btn-xs sm:btn-sm"
-          >
-            {isRtl ? "لوحة التحليلات" : "Back to analytics"}
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/certificates"
+              className="sr-button-secondary btn btn-xs sm:btn-sm"
+            >
+              {isRtl ? "مراجعة الشهادات" : "Certificates"}
+            </Link>
+            <Link
+              href="/admin/content"
+              className="sr-button-secondary btn btn-xs sm:btn-sm"
+            >
+              {isRtl ? "إشراف المحتوى" : "Moderation"}
+            </Link>
+            <Link
+              href="/admin"
+              className="sr-button-secondary btn btn-xs sm:btn-sm"
+            >
+              {isRtl ? "لوحة التحليلات" : "Back to analytics"}
+            </Link>
+          </div>
         </div>
 
         {/* User Management and Search */}

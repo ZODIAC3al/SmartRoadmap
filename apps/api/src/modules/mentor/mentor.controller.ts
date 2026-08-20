@@ -9,8 +9,16 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { MentorService } from './mentor.service';
-import { CreateMentorProfileDto, BookSessionDto, UpdateSessionStatusDto, RateMentorDto } from './dto/mentor.dto';
-import { CurrentUser, type JwtUser } from '../../common/decorators/current-user.decorator';
+import {
+  CreateMentorProfileDto,
+  BookSessionDto,
+  UpdateSessionStatusDto,
+  RateMentorDto,
+} from './dto/mentor.dto';
+import {
+  CurrentUser,
+  type JwtUser,
+} from '../../common/decorators/current-user.decorator';
 
 @ApiTags('mentor')
 @ApiBearerAuth()
@@ -19,7 +27,10 @@ export class MentorController {
   constructor(private readonly mentorService: MentorService) {}
 
   @Post('profiles')
-  upsertProfile(@CurrentUser() user: JwtUser, @Body() dto: CreateMentorProfileDto) {
+  upsertProfile(
+    @CurrentUser() user: JwtUser,
+    @Body() dto: CreateMentorProfileDto,
+  ) {
     return this.mentorService.upsertProfile(dto, user.sub);
   }
 

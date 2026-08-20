@@ -4,94 +4,105 @@ import React from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { logout } from "@/lib/api";
-
 import { useCompanyDashboard } from "./useCompanyDashboard";
+
+const STATUS_BADGES: Record<string, { bg: string; text: string; icon: string }> = {
+  Applied: { bg: "bg-emerald-500/10 border-emerald-500/20", text: "text-emerald-600", icon: "🚀" },
+  Interviewing: { bg: "bg-amber-500/10 border-amber-500/20", text: "text-amber-600", icon: "🎙️" },
+  Accepted: { bg: "bg-green-500/10 border-green-500/30", text: "text-green-600", icon: "🎉" },
+  Rejected: { bg: "bg-red-500/10 border-red-500/20", text: "text-red-600", icon: "❌" },
+};
+
+function normalizeStatus(s?: string): string {
+  if (!s) return "Applied";
+  const lower = s.toLowerCase();
+  if (lower === "applied" || lower === "interested") return "Applied";
+  if (lower === "interview" || lower === "interviewing" || lower === "under_review") return "Interviewing";
+  if (lower === "accepted" || lower === "offer" || lower === "hired") return "Accepted";
+  if (lower === "rejected") return "Rejected";
+  return "Applied";
+}
 
 export default function CompanyPage() {
   const {
     activeCvPreview,
     activePassport,
+    activeTab,
+    applications,
     candidates,
     contactCandidate,
     copyPassportLink,
-    fetchCandidates,
+    creatingJob,
     filteredCandidates,
-    getDynamicMatchScore,
-    handleAddJobPosting,
-    handleSendInterviewInvite,
-    handleSimulateRecruiter,
+    handleCreateJob,
+    handleDeleteJob,
+    handleUpdateApplicantStatus,
     interviewNote,
-    jobPostings,
+    jobs,
     loading,
     minProgressFilter,
     minScoreFilter,
-    newJobSkills,
-    newJobTitle,
+    newJobForm,
+    newJobSkillsRaw,
     roleFilter,
     router,
     searchQuery,
-    selectedJobMatch,
+    selectedApplication,
     setActiveCvPreview,
     setActivePassport,
-    setCandidates,
+    setActiveTab,
     setContactCandidate,
     setInterviewNote,
-    setJobPostings,
-    setLoading,
     setMinProgressFilter,
     setMinScoreFilter,
-    setNewJobSkills,
-    setNewJobTitle,
+    setNewJobForm,
+    setNewJobSkillsRaw,
     setRoleFilter,
     setSearchQuery,
-    setSelectedJobMatch,
+    setSelectedApplication,
     setShowAddJobModal,
+    setStatusNote,
     setUser,
     showAddJobModal,
+    statusNote,
+    updatingStatusId,
     user,
   } = useCompanyDashboard();
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-[#FAFAFA] items-center justify-center">
+      <div className="flex min-h-screen bg-base-100 items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
-          <span className="text-sm font-mono text-gray-400">
-            Loading career intelligence index...
+          <span className="loading loading-spinner loading-lg text-emerald-500"></span>
+          <span className="text-sm font-mono text-base-content/50">
+            Loading recruitment management system...
           </span>
         </div>
       </div>
     );
   }
 
-  if (!user || user.role !== "company") {
+  if (!user || (user.role !== "company" && user.role !== "admin")) {
     return (
-      <div className="flex flex-col min-h-[85vh] items-center justify-center p-8 text-center bg-[#FAFAFA]">
-        <div className="max-w-md bg-white border border-gray-200 p-8 rounded-2xl shadow-sm space-y-6">
-          <div className="w-16 h-16 bg-[#10B981]/10 text-[#10B981] rounded-full flex items-center justify-center mx-auto text-3xl font-bold">
+      <div className="flex flex-col min-h-[85vh] items-center justify-center p-8 text-center bg-base-100">
+        <div className="max-w-md bg-base-200 border border-base-300 p-8 rounded-2xl shadow-sm space-y-6">
+          <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto text-3xl font-bold">
             💼
           </div>
           <div className="space-y-2">
-            <h2 className="text-display-md font-extrabold text-gray-900 leading-tight">
-              Recruiter Access Restricted
+            <h2 className="text-xl font-extrabold text-base-content leading-tight">
+              Recruiter & Employer Access Only
             </h2>
-            <p className="text-body-sm text-gray-500">
-              Only verified employer and recruitment profiles can search the
-              pre-vetted career database.
+            <p className="text-xs text-base-content/60">
+              Only verified company and admin accounts can manage job postings, review applicants, and update hiring statuses.
             </p>
           </div>
-          <div className="flex flex-col gap-3 pt-2">
-            <button
-              onClick={handleSimulateRecruiter}
-              className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-semibold h-12 w-full transition-all duration-200"
-            >
-              Simulate Recruiter Session (Instant Demo)
-            </button>
+          <div className="pt-2">
             <Link
               href="/auth/login"
-              className="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl h-12 w-full"
+              className="btn bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-12 w-full font-bold"
             >
-              Sign In with Credentials
+              Sign In with Employer Credentials
             </Link>
           </div>
         </div>
@@ -100,658 +111,751 @@ export default function CompanyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-[#0F172A] pb-10 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-base-100 text-base-content pb-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Breadcrumbs & Logged in Recruiter Banner */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white border border-gray-200/80 rounded-xl p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#10B981]/15 text-[#059669] flex items-center justify-center font-bold">
-              LV
+        {/* Top Employer Banner */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center font-black text-lg border border-emerald-500/20">
+              {user.name?.charAt(0) || "C"}
             </div>
             <div>
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block font-mono">
-                Authenticated Employer
-              </span>
-              <span className="text-sm font-bold text-gray-900">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
+                  {user.role === "admin" ? "Platform Administrator" : "Verified Employer"}
+                </span>
+              </div>
+              <h2 className="text-base font-black text-base-content mt-0.5">
                 {user.name}
-              </span>
+              </h2>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowAddJobModal(true)}
+              className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold text-xs px-4"
+            >
+              + Post New Job
+            </button>
             <button
               onClick={() => {
                 logout();
                 setUser(null);
-                toast.info("Logged out from recruiter session.");
+                toast.info("Logged out from employer session.");
               }}
-              className="btn btn-ghost btn-xs text-gray-500 hover:bg-gray-100 rounded-lg"
+              className="btn btn-ghost btn-xs text-base-content/50 hover:bg-base-300 rounded-lg"
             >
-              Logout Recruiter
+              Log Out
             </button>
           </div>
         </div>
 
-        {/* Dashboard Title & Recruiter Analytics row */}
-        <div className="grid md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm text-start space-y-1">
-            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block font-mono">
-              Talent Pool Status
+        {/* Analytics row */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-start">
+          <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm space-y-1">
+            <span className="text-[10px] uppercase font-bold text-base-content/50 tracking-wider block font-mono">
+              Received Applications
             </span>
-            <span className="text-3xl font-black font-mono text-gray-900">
-              {filteredCandidates.length}
+            <span className="text-3xl font-black font-mono text-base-content">
+              {applications.length}
             </span>
-            <span className="text-[10px] text-[#22C55E] block font-bold">
-              ✓ Vetted & interview-ready
-            </span>
-          </div>
-          <div className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm text-start space-y-1">
-            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block font-mono">
-              Avg Technical Core
-            </span>
-            <span className="text-3xl font-black font-mono text-[#059669]">
-              90%
-            </span>
-            <span className="text-[10px] text-gray-500 block font-semibold">
-              Weighted quiz performance
+            <span className="text-[10px] text-emerald-600 block font-bold">
+              ✓ Ready for review & interviewing
             </span>
           </div>
-          <div className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm text-start space-y-1">
-            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block font-mono">
-              AI Screening Confidence
+          <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm space-y-1">
+            <span className="text-[10px] uppercase font-bold text-base-content/50 tracking-wider block font-mono">
+              Active Job Listings
             </span>
-            <span className="text-3xl font-black font-mono text-[#10B981]">
-              94%
+            <span className="text-3xl font-black font-mono text-emerald-600">
+              {jobs.length}
             </span>
-            <span className="text-[10px] text-gray-500 block font-semibold">
-              Zero screening error rate
+            <span className="text-[10px] text-base-content/60 block font-semibold">
+              Live in MongoDB database
             </span>
           </div>
-          <div className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm text-start space-y-1">
-            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block font-mono">
-              Resume Verification
+          <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm space-y-1">
+            <span className="text-[10px] uppercase font-bold text-base-content/50 tracking-wider block font-mono">
+              Pre-Vetted Talent Pool
             </span>
-            <span className="text-3xl font-black font-mono text-gray-900">
-              100%
+            <span className="text-3xl font-black font-mono text-base-content">
+              {candidates.length}
             </span>
-            <span className="text-[10px] text-[#10B981] block font-bold">
-              ✓ Affinda parsed & audited
+            <span className="text-[10px] text-emerald-600 block font-bold">
+              Verified skills & Skill Passports
             </span>
           </div>
         </div>
 
-        {/* Two Column Layout: Left Sidebar Filters & Matching Job Simulator, Right Main Candidate Feed */}
-        <div className="grid lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT SIDEBAR */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* Vector Matching Simulator Card */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-start space-y-4">
-              <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-                <h3 className="font-bold text-sm text-gray-900 font-mono">
-                  Vector Job Matcher
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-2 bg-base-200 p-1.5 rounded-xl border border-base-300 self-start">
+          <button
+            onClick={() => setActiveTab("applications")}
+            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
+              activeTab === "applications"
+                ? "bg-emerald-500 text-white shadow-sm"
+                : "text-base-content/60 hover:text-base-content"
+            }`}
+          >
+            📋 Candidate Applications ({applications.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("jobs")}
+            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
+              activeTab === "jobs"
+                ? "bg-emerald-500 text-white shadow-sm"
+                : "text-base-content/60 hover:text-base-content"
+            }`}
+          >
+            💼 My Job Postings ({jobs.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("candidates")}
+            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
+              activeTab === "candidates"
+                ? "bg-emerald-500 text-white shadow-sm"
+                : "text-base-content/60 hover:text-base-content"
+            }`}
+          >
+            👥 Talent Directory ({filteredCandidates.length})
+          </button>
+        </div>
+
+        {/* ── TAB 1: RECEIVED APPLICATIONS ── */}
+        {activeTab === "applications" && (
+          <div className="bg-base-200 border border-base-300 rounded-2xl p-6 text-start space-y-4">
+            <div className="flex justify-between items-center border-b border-base-300 pb-4">
+              <div>
+                <h3 className="font-extrabold text-lg text-base-content">
+                  Applicant Review & Decision Pipeline
                 </h3>
-                <button
-                  onClick={() => setShowAddJobModal(true)}
-                  className="text-xs text-[#059669] hover:underline font-bold"
-                >
-                  + Add Job
-                </button>
+                <p className="text-xs text-base-content/60">
+                  Review submitted resumes, inspect verified Skill Passports, evaluate Needed Skills, and update hiring statuses.
+                </p>
               </div>
-              <div className="space-y-3">
-                <label className="text-xs font-bold text-gray-500 block">
-                  Choose Job to Target Matching:
-                </label>
-                <div className="space-y-2">
-                  {jobPostings.map((job) => (
-                    <div
-                      key={job.id}
-                      onClick={() => setSelectedJobMatch(job.id)}
-                      className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${
-                        selectedJobMatch === job.id
-                          ? "bg-[#10B981]/5 border-[#10B981] font-bold"
-                          : "border-gray-100 bg-[#FAFAFA] hover:bg-gray-100"
-                      }`}
-                    >
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-gray-900 font-semibold">
-                          {job.title}
+            </div>
+
+            {applications.length === 0 ? (
+              <div className="p-12 text-center text-base-content/50 text-xs">
+                No applications submitted yet for your postings. Post a job or share your openings!
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="table table-zebra w-full text-xs">
+                  <thead>
+                    <tr className="border-base-300 text-base-content/60 uppercase font-mono text-[10px]">
+                      <th>Candidate</th>
+                      <th>Applied Role</th>
+                      <th>Match Score</th>
+                      <th>Applied Date</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {applications.map((app) => {
+                      const userObj = typeof app.userId === "object" && app.userId !== null ? app.userId : null;
+                      const candidateName = userObj?.name || app.passportSnapshot?.name || "Candidate";
+                      const candidateEmail = userObj?.email || app.passportSnapshot?.email || "";
+                      const norm = normalizeStatus(app.status);
+                      const badge = STATUS_BADGES[norm] || STATUS_BADGES.Applied;
+
+                      return (
+                        <tr key={app._id} className="border-base-300 hover:bg-base-100/50">
+                          <td>
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 font-bold flex items-center justify-center border border-emerald-500/20 text-xs shrink-0">
+                                {candidateName.charAt(0)}
+                              </div>
+                              <div>
+                                <span className="font-extrabold text-sm text-base-content block">
+                                  {candidateName}
+                                </span>
+                                <span className="text-[11px] text-base-content/50 font-mono">
+                                  {candidateEmail}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div>
+                              <span className="font-bold text-xs text-base-content block">
+                                {app.jobTitle}
+                              </span>
+                              <span className="text-[10px] text-base-content/50">
+                                {app.company}
+                              </span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="font-mono font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                              {app.matchScore}%
+                            </span>
+                          </td>
+                          <td>
+                            <span className="text-xs text-base-content/60 font-mono">
+                              {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : new Date(app.createdAt).toLocaleDateString()}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold font-mono ${badge.bg} ${badge.text}`}>
+                              <span>{badge.icon}</span>
+                              <span>{app.status}</span>
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              onClick={() => setSelectedApplication(app)}
+                              className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold text-[10px] px-3"
+                            >
+                              Review Candidate
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TAB 2: POSTED JOBS ── */}
+        {activeTab === "jobs" && (
+          <div className="bg-base-200 border border-base-300 rounded-2xl p-6 text-start space-y-4">
+            <div className="flex justify-between items-center border-b border-base-300 pb-4">
+              <div>
+                <h3 className="font-extrabold text-lg text-base-content">
+                  Active Job Postings
+                </h3>
+                <p className="text-xs text-base-content/60">
+                  Manage live job openings visible to all candidates across the platform.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAddJobModal(true)}
+                className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold text-xs"
+              >
+                + Post Job
+              </button>
+            </div>
+
+            {jobs.length === 0 ? (
+              <div className="p-12 text-center text-base-content/50 text-xs">
+                No jobs posted yet. Click &quot;+ Post New Job&quot; above to create your first opening!
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {jobs.map((job) => (
+                  <div
+                    key={job._id}
+                    className="bg-base-100 border border-base-300 rounded-2xl p-5 space-y-3 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-extrabold text-base text-base-content">
+                            {job.title}
+                          </h4>
+                          <p className="text-xs text-base-content/60 font-medium mt-0.5">
+                            {job.company} • {job.location} ({job.country || "US"})
+                          </p>
+                        </div>
+                        <span className="badge badge-sm badge-neutral font-mono text-[9px] uppercase">
+                          {job.workType || "Remote"}
                         </span>
-                        {selectedJobMatch === job.id && (
-                          <span className="w-2 h-2 rounded-full bg-[#10B981]" />
-                        )}
                       </div>
-                      <div className="flex flex-wrap gap-1">
-                        {job.skills.map((s, idx) => (
-                          <span
-                            key={idx}
-                            className="bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded text-[9px] font-mono"
-                          >
+
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {job.requiredSkills.map((s, i) => (
+                          <span key={i} className="badge badge-xs bg-base-200 border-base-300 text-base-content/70 font-mono text-[9px]">
                             {s}
                           </span>
                         ))}
                       </div>
+
+                      <p className="text-xs text-base-content/70 mt-2 line-clamp-2">
+                        {job.description}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
 
-            {/* Standard Filters Card */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-start space-y-6">
-              <h3 className="font-bold text-sm text-gray-900 border-b border-gray-100 pb-3">
-                Talent Pool Filters
-              </h3>
-
-              {/* Search */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 block">
-                  Search Query
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. name, role, skill..."
-                  className="input input-bordered w-full rounded-xl bg-[#FAFAFA] border-gray-200 text-xs focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981] h-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-
-              {/* Role filter dropdown */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 block">
-                  Target Role Category
-                </label>
-                <select
-                  className="select select-bordered w-full rounded-xl bg-[#FAFAFA] border-gray-200 text-xs focus:border-[#10B981] h-10 min-h-0"
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                >
-                  <option value="all">All Specialties</option>
-                  <option value="Full Stack">Full Stack Engineers</option>
-                  <option value="Frontend">Frontend Developers</option>
-                  <option value="Systems">Distributed Systems</option>
-                  <option value="Machine">Machine Learning</option>
-                </select>
-              </div>
-
-              {/* Min average test score */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <label className="font-bold text-gray-500">
-                    Min Quiz Pass Rate
-                  </label>
-                  <span className="font-mono text-[#059669] font-bold">
-                    {minScoreFilter}%
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  className="range range-[#10B981] range-xs"
-                  value={minScoreFilter}
-                  onChange={(e) => setMinScoreFilter(parseInt(e.target.value))}
-                />
-              </div>
-
-              {/* Min progress tracker */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <label className="font-bold text-gray-500">
-                    Min Roadmap Completion
-                  </label>
-                  <span className="font-mono text-[#059669] font-bold">
-                    {minProgressFilter}%
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  className="range range-[#10B981] range-xs"
-                  value={minProgressFilter}
-                  onChange={(e) =>
-                    setMinProgressFilter(parseInt(e.target.value))
-                  }
-                />
-              </div>
-
-              <div className="pt-2">
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setRoleFilter("all");
-                    setMinScoreFilter(0);
-                    setMinProgressFilter(0);
-                    toast.info("Filters cleared.");
-                  }}
-                  className="w-full btn btn-outline border-gray-200 text-xs text-gray-500 hover:bg-gray-50 rounded-xl h-10 min-h-0"
-                >
-                  Reset Sourcing Filters
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* MAIN CANDIDATE FEED */}
-          <div className="lg:col-span-8 space-y-6">
-            {filteredCandidates.length === 0 ? (
-              <div className="bg-white border border-gray-200 p-12 text-center rounded-2xl shadow-sm text-gray-400 space-y-4">
-                <span className="text-4xl block">🔍</span>
-                <p className="text-sm font-semibold">
-                  No candidates match your active sourcing filters.
-                </p>
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setRoleFilter("all");
-                    setMinScoreFilter(0);
-                    setMinProgressFilter(0);
-                  }}
-                  className="btn bg-[#10B981] hover:bg-[#059669] border-none text-white rounded-xl text-xs px-6"
-                >
-                  Clear Filters
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredCandidates.map((cand) => {
-                  const dynamicMatch = getDynamicMatchScore(cand);
-                  return (
-                    <div
-                      key={cand.userId}
-                      className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-sm hover:border-[#10B981]/40 hover:shadow-md transition-all text-start relative group overflow-hidden"
-                    >
-                      {/* Premium matching stripe on hover */}
-                      <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#10B981] to-[#34D399] opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-5">
-                        <div className="flex gap-4">
-                          {/* Avatar representation */}
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#10B981] to-[#34D399] text-white flex items-center justify-center font-bold text-md shadow-inner">
-                            {cand.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-extrabold text-gray-900 text-md">
-                                {cand.name}
-                              </h3>
-                              {cand.cvUploaded && (
-                                <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[8px] font-mono px-1.5 py-0.5 rounded font-bold">
-                                  RESUME VERIFIED
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-400 font-bold font-mono mt-0.5">
-                              {cand.targetRole}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* High-Fidelity Matching scores & Predictors */}
-                        <div className="flex gap-4 items-center">
-                          {/* Match rating */}
-                          <div className="text-right">
-                            <span className="text-[9px] uppercase tracking-wider text-gray-400 font-mono block">
-                              Vector Match:
-                            </span>
-                            <span className="text-xl font-black text-[#059669] font-mono">
-                              {dynamicMatch}%
-                            </span>
-                          </div>
-
-                          {/* Predictor rate */}
-                          <div className="text-right border-l border-gray-100 pl-4">
-                            <span className="text-[9px] uppercase tracking-wider text-gray-400 font-mono block">
-                              AI Predictor:
-                            </span>
-                            <span className="text-xl font-black text-gray-900 font-mono">
-                              {cand.interviewPredictor}%
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Middle Grid: Progress & Statistics */}
-                      <div className="grid sm:grid-cols-2 gap-4 border-y border-gray-100 py-4 mb-4">
-                        {/* Progress */}
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-gray-400 font-semibold font-mono">
-                              Syllabus Milestones:
-                            </span>
-                            <span className="font-bold text-[#059669] font-mono">
-                              {cand.progress}% Completed
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                            <div
-                              className="bg-gradient-to-r from-[#10B981] to-[#34D399] h-full"
-                              style={{ width: `${cand.progress}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Quiz average */}
-                        <div className="flex justify-between items-center bg-[#FAFAFA] border border-gray-100 p-2.5 rounded-xl">
-                          <span className="text-xs font-semibold text-gray-500">
-                            Verified Test Average:
-                          </span>
-                          <span className="text-sm font-mono font-black text-[#059669] bg-green-50 border border-green-100 px-2 py-0.5 rounded">
-                            {cand.averageQuizScore
-                              ? `${cand.averageQuizScore}%`
-                              : "N/A"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Verified Badge Items */}
-                      <div className="mb-6">
-                        <span className="text-[9px] uppercase tracking-wider text-gray-400 font-bold block font-mono mb-2">
-                          Verified Skill Competencies:
-                        </span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {cand.verifiedSkills.map((badge, idx) => (
-                            <span
-                              key={idx}
-                              className="bg-[#10B981]/5 text-[#059669] border border-[#10B981]/15 text-[10px] px-2.5 py-1 rounded-lg font-mono font-medium flex items-center gap-1"
-                            >
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-                              {badge}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Actions Footer */}
-                      <div className="flex justify-between items-center pt-2">
-                        <span className="text-[10px] text-gray-400 font-mono font-semibold">
-                          📝 {cand.quizzesPassed} Verified Modules Passed
-                        </span>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setActivePassport(cand)}
-                            className="btn bg-[#0F172A] hover:bg-gray-800 text-white rounded-lg text-xs h-9 min-h-0 px-4 border-none"
-                          >
-                            Open Skill Passport
-                          </button>
-
-                          <button
-                            onClick={() => setContactCandidate(cand)}
-                            className="btn btn-outline border-gray-200 text-gray-700 hover:bg-gray-50 rounded-lg text-xs h-9 min-h-0 px-4"
-                          >
-                            Contact Talent
-                          </button>
-                        </div>
-                      </div>
+                    <div className="flex justify-between items-center border-t border-base-200 pt-3 text-[10px] font-mono text-base-content/50">
+                      <span>
+                        {job.salaryMin ? `$${job.salaryMin.toLocaleString()} - $${(job.salaryMax || 0).toLocaleString()}` : "Competitive Salary"}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteJob(job._id)}
+                        className="text-red-500 hover:underline font-bold"
+                      >
+                        Delete Job
+                      </button>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
-        </div>
+        )}
 
-        {/* 1. SKILL PASSPORT DETAILED MODAL */}
-        {activePassport && (
-          <div className="modal modal-open">
-            <div className="modal-box max-w-2xl rounded-2xl bg-white border border-gray-200 p-8 text-start relative space-y-6">
-              {/* Close Button */}
-              <button
-                onClick={() => setActivePassport(null)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 text-xl font-bold font-mono"
-              >
-                ✕
-              </button>
+        {/* ── TAB 3: TALENT DIRECTORY ── */}
+        {activeTab === "candidates" && (
+          <div className="space-y-4 text-start">
+            {/* Search & Filters */}
+            <div className="bg-base-200 border border-base-300 rounded-2xl p-5 flex flex-col md:flex-row gap-3 items-center justify-between">
+              <input
+                type="text"
+                placeholder="Search candidates by name, target role, or verified skill..."
+                className="input input-bordered input-sm w-full md:w-96 rounded-xl text-xs bg-base-100"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <select
+                  className="select select-bordered select-sm rounded-xl text-xs bg-base-100"
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                >
+                  <option value="all">All Roles</option>
+                  <option value="Frontend">Frontend</option>
+                  <option value="Full Stack">Full Stack</option>
+                  <option value="Backend">Backend</option>
+                  <option value="Engineer">Engineers</option>
+                </select>
+              </div>
+            </div>
 
-              {/* Passport Ribbon Certificate header */}
-              <div className="border-b border-gray-100 pb-5">
-                <div className="flex justify-between items-start">
+            {/* Candidates Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCandidates.map((cand) => (
+                <div
+                  key={cand.userId}
+                  className="bg-base-200 border border-base-300 rounded-2xl p-5 space-y-4 flex flex-col justify-between"
+                >
                   <div>
-                    <span className="text-[9px] bg-[#10B981]/15 text-[#059669] border border-[#10B981]/25 px-2 py-0.5 rounded-full font-bold font-mono uppercase">
-                      VERIFIED SKILL PASSPORT
-                    </span>
-                    <h3 className="text-2xl font-black text-gray-900 tracking-tight mt-2">
-                      {activePassport.name}
-                    </h3>
-                    <p className="text-xs text-gray-400 font-mono mt-0.5">
-                      Passport ID: VET-2026-
-                      {activePassport.userId.toUpperCase().substring(0, 8)}
-                    </p>
-                  </div>
-                  <div className="w-16 h-16 rounded-full bg-[#10B981]/10 border-2 border-[#10B981]/30 flex items-center justify-center font-black text-xl text-[#059669] shadow-inner">
-                    {activePassport.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </div>
-                </div>
-              </div>
-
-              {/* Scores Grid details */}
-              <div className="grid grid-cols-3 gap-4 border-b border-gray-100 pb-5 text-center">
-                <div className="bg-[#FAFAFA] border border-gray-100 p-3 rounded-xl">
-                  <span className="text-[9px] uppercase tracking-wider text-gray-400 font-mono block">
-                    Career readiness
-                  </span>
-                  <span className="text-xl font-black text-[#059669] font-mono">
-                    {activePassport.progress}%
-                  </span>
-                </div>
-                <div className="bg-[#FAFAFA] border border-gray-100 p-3 rounded-xl">
-                  <span className="text-[9px] uppercase tracking-wider text-gray-400 font-mono block">
-                    Verified Modules
-                  </span>
-                  <span className="text-xl font-black text-gray-900 font-mono">
-                    {activePassport.quizzesPassed} Modules
-                  </span>
-                </div>
-                <div className="bg-[#FAFAFA] border border-gray-100 p-3 rounded-xl">
-                  <span className="text-[9px] uppercase tracking-wider text-gray-400 font-mono block">
-                    Average quiz score
-                  </span>
-                  <span className="text-xl font-black text-[#10B981] font-mono">
-                    {activePassport.averageQuizScore
-                      ? `${activePassport.averageQuizScore}%`
-                      : "N/A"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Verified Assessments timeline lists */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider font-mono">
-                  Verified Quiz Milestones
-                </h4>
-                <div className="max-h-40 overflow-y-auto space-y-2 pr-2">
-                  {activePassport.verifiedSkills.map((skill, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center bg-[#FAFAFA] border border-gray-100/60 p-3 rounded-xl text-xs"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#22C55E] text-md">✓</span>
-                        <span className="font-semibold text-gray-700">
-                          {skill}
-                        </span>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 font-black flex items-center justify-center border border-emerald-500/20 text-sm">
+                          {cand.name.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-base-content">
+                            {cand.name}
+                          </h4>
+                          <span className="text-[11px] text-base-content/60 block">
+                            {cand.targetRole}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#059669] font-mono font-bold">
-                          {activePassport.averageQuizScore
-                            ? `${activePassport.averageQuizScore - (idx % 2 === 0 ? 2 : 4)}%`
-                            : "Passed"}
-                        </span>
-                        <span className="text-[8px] bg-green-100 text-[#059669] px-2 py-0.5 rounded font-mono font-bold">
-                          VETTED
-                        </span>
+                      <span className="font-mono font-bold text-xs text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        {cand.matchScore}% Fit
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-4 text-[11px]">
+                      <div className="bg-base-100 p-2 rounded-xl border border-base-300">
+                        <span className="text-[9px] uppercase font-mono text-base-content/50 block">Milestones</span>
+                        <span className="font-bold text-xs text-base-content">{cand.completedMilestones} completed</span>
+                      </div>
+                      <div className="bg-base-100 p-2 rounded-xl border border-base-300">
+                        <span className="text-[9px] uppercase font-mono text-base-content/50 block">Avg Quiz</span>
+                        <span className="font-bold text-xs text-emerald-600">{cand.averageQuizScore}%</span>
                       </div>
                     </div>
-                  ))}
+
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      {cand.verifiedSkills.slice(0, 4).map((s, i) => (
+                        <span key={i} className="badge badge-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-mono">
+                          ✓ {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2 border-t border-base-300">
+                    <button
+                      onClick={() => copyPassportLink(cand.userId)}
+                      className="btn btn-xs btn-outline border-base-300 rounded-lg flex-1 text-[10px] font-bold"
+                    >
+                      🔗 Share Passport
+                    </button>
+                    <button
+                      onClick={() => setContactCandidate(cand)}
+                      className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg flex-1 text-[10px] font-bold"
+                    >
+                      Invite
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              {/* Capstone Project Section */}
-              <div className="bg-gray-50 border border-gray-200/80 rounded-xl p-4 space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider font-mono">
-                    Verified Capstone Project
-                  </span>
-                  <span className="text-[9px] bg-[#10B981]/15 text-[#059669] px-2.5 py-0.5 rounded-full font-bold font-mono">
-                    ✓ AUDIT PASSED
-                  </span>
-                </div>
-                <h5 className="font-extrabold text-sm text-gray-900">
-                  {activePassport.capstoneProject?.title ||
-                    "Distributed Ledger Integration"}
-                </h5>
-                <p className="text-xs text-gray-500 leading-relaxed italic">
-                  &ldquo;
-                  {activePassport.capstoneProject?.auditLog ||
-                    "AI code review verified."}
-                  &rdquo;
-                </p>
-              </div>
-
-              {/* Share & Copy button */}
-              <div className="flex justify-between items-center border-t border-gray-100 pt-5">
-                <span className="text-[9px] text-gray-400 font-mono">
-                  Verified telemetry backed by SmartRoadmap
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => copyPassportLink(activePassport.userId)}
-                    className="btn btn-outline border-gray-200 text-xs h-9 min-h-0 rounded-lg px-4"
-                  >
-                    Copy Share Link
-                  </button>
-                  <button
-                    onClick={() => {
-                      setContactCandidate(activePassport);
-                      setActivePassport(null);
-                    }}
-                    className="btn bg-[#10B981] hover:bg-[#059669] border-none text-white text-xs h-9 min-h-0 rounded-lg px-4"
-                  >
-                    Invite to Interview
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 2. CONTACT REQUEST MODAL */}
-        {contactCandidate && (
-          <div className="modal modal-open">
-            <div className="modal-box rounded-2xl bg-white border border-gray-200 p-6 text-start space-y-4">
-              <h3 className="font-extrabold text-lg text-gray-900">
-                Invite candidate for interview
-              </h3>
-              <p className="text-xs text-gray-500">
-                Send a custom interview invitation directly to{" "}
-                <strong className="text-gray-900 font-bold">
-                  {contactCandidate.name}
-                </strong>{" "}
-                ({contactCandidate.email}).
-              </p>
-
-              <form onSubmit={handleSendInterviewInvite} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 font-mono">
-                    Invitation Message
-                  </label>
-                  <textarea
-                    rows={4}
-                    className="textarea textarea-bordered w-full rounded-xl bg-[#FAFAFA] border-gray-200 text-xs focus:border-[#10B981] p-3 resize-none"
-                    value={interviewNote}
-                    onChange={(e) => setInterviewNote(e.target.value)}
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => setContactCandidate(null)}
-                    className="btn btn-outline border-gray-200 text-xs h-9 min-h-0 rounded-lg"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn bg-[#10B981] hover:bg-[#059669] border-none text-white text-xs h-9 min-h-0 rounded-lg"
-                  >
-                    Transmit Request
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* 3. SIMULATED ADD JOB POSTING MODAL */}
-        {showAddJobModal && (
-          <div className="modal modal-open">
-            <div className="modal-box rounded-2xl bg-white border border-gray-200 p-6 text-start space-y-4">
-              <h3 className="font-extrabold text-lg text-gray-900">
-                Define Matching Job Profile
-              </h3>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Add a new job opening requirement to re-calculate vector
-                similarity match indices across candidate profiles.
-              </p>
-
-              <form onSubmit={handleAddJobPosting} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 font-mono">
-                    Job Title
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Lead SRE Engineer, Angular Developer"
-                    className="input input-bordered w-full rounded-xl bg-[#FAFAFA] border-gray-200 text-xs h-10"
-                    value={newJobTitle}
-                    onChange={(e) => setNewJobTitle(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-400 font-mono">
-                    Required Skills (Comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. React, Node.js, TypeScript, Docker"
-                    className="input input-bordered w-full rounded-xl bg-[#FAFAFA] border-gray-200 text-xs h-10"
-                    value={newJobSkills}
-                    onChange={(e) => setNewJobSkills(e.target.value)}
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddJobModal(false)}
-                    className="btn btn-outline border-gray-200 text-xs h-9 min-h-0 rounded-lg"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn bg-[#10B981] hover:bg-[#059669] border-none text-white text-xs h-9 min-h-0 rounded-lg"
-                  >
-                    Calculate Match Indexes
-                  </button>
-                </div>
-              </form>
+              ))}
             </div>
           </div>
         )}
       </div>
+
+      {/* ── MODAL 1: POST NEW JOB ── */}
+      {showAddJobModal && (
+        <div className="modal modal-open">
+          <div className="modal-box rounded-2xl bg-base-200 border border-base-300 text-start space-y-4 max-w-lg">
+            <div className="flex justify-between items-center border-b border-base-300 pb-3">
+              <h3 className="font-extrabold text-base text-base-content flex items-center gap-2">
+                <span>💼</span> Post New Verified Opening
+              </h3>
+              <button onClick={() => setShowAddJobModal(false)} className="btn btn-xs btn-circle btn-ghost">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateJob} className="space-y-3 text-xs">
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
+                  Job Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Senior Frontend Engineer (React & TypeScript)"
+                  className="input input-bordered input-sm w-full rounded-xl bg-base-100 text-xs"
+                  value={newJobForm.title}
+                  onChange={(e) => setNewJobForm({ ...newJobForm, title: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
+                    Company Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Devotopia Tech"
+                    className="input input-bordered input-sm w-full rounded-xl bg-base-100 text-xs"
+                    value={newJobForm.company}
+                    onChange={(e) => setNewJobForm({ ...newJobForm, company: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Remote, San Francisco, Cairo"
+                    className="input input-bordered input-sm w-full rounded-xl bg-base-100 text-xs"
+                    value={newJobForm.location}
+                    onChange={(e) => setNewJobForm({ ...newJobForm, location: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
+                  Required Skills * (Comma separated)
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. React, TypeScript, Tailwind CSS, Next.js, Git"
+                  className="input input-bordered input-sm w-full rounded-xl bg-base-100 text-xs"
+                  value={newJobSkillsRaw}
+                  onChange={(e) => setNewJobSkillsRaw(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
+                    Work Type
+                  </label>
+                  <select
+                    className="select select-bordered select-sm w-full rounded-xl bg-base-100 text-xs"
+                    value={newJobForm.workType}
+                    onChange={(e: any) => setNewJobForm({ ...newJobForm, workType: e.target.value })}
+                  >
+                    <option value="remote">Remote</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="onsite">On-Site</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
+                    Job Type
+                  </label>
+                  <select
+                    className="select select-bordered select-sm w-full rounded-xl bg-base-100 text-xs"
+                    value={newJobForm.jobType}
+                    onChange={(e: any) => setNewJobForm({ ...newJobForm, jobType: e.target.value })}
+                  >
+                    <option value="full-time">Full-Time</option>
+                    <option value="part-time">Part-Time</option>
+                    <option value="contract">Contract</option>
+                    <option value="internship">Internship</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
+                    Experience
+                  </label>
+                  <select
+                    className="select select-bordered select-sm w-full rounded-xl bg-base-100 text-xs"
+                    value={newJobForm.experienceLevel}
+                    onChange={(e: any) => setNewJobForm({ ...newJobForm, experienceLevel: e.target.value })}
+                  >
+                    <option value="entry">Entry</option>
+                    <option value="mid">Mid</option>
+                    <option value="senior">Senior</option>
+                    <option value="lead">Lead</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold uppercase tracking-wider font-mono text-base-content/60 block mb-1">
+                  Job Description *
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Describe role responsibilities, deliverables, team culture, and technical scope..."
+                  className="textarea textarea-bordered w-full rounded-xl bg-base-100 text-xs"
+                  value={newJobForm.description}
+                  onChange={(e) => setNewJobForm({ ...newJobForm, description: e.target.value })}
+                />
+              </div>
+
+              <div className="modal-action gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddJobModal(false)}
+                  className="btn btn-ghost btn-sm rounded-xl text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingJob}
+                  className="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none btn-sm rounded-xl font-bold text-xs px-6"
+                >
+                  {creatingJob ? "Publishing..." : "Publish Job Opening"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL 2: CANDIDATE APPLICATION REVIEW & STATUS UPDATE ── */}
+      {selectedApplication && (
+        <div className="modal modal-open">
+          <div className="modal-box rounded-2xl bg-base-200 border border-base-300 text-start space-y-5 max-w-3xl max-h-[88vh] overflow-y-auto">
+            <div className="flex justify-between items-start border-b border-base-300 pb-4">
+              <div>
+                <span className="text-[10px] text-emerald-500 font-mono font-bold uppercase tracking-wider">
+                  APPLICANT PROFILE REVIEW
+                </span>
+                <h3 className="font-black text-xl text-base-content mt-0.5">
+                  {typeof selectedApplication.userId === "object" && selectedApplication.userId !== null
+                    ? (selectedApplication.userId as any).name
+                    : selectedApplication.passportSnapshot?.name || "Candidate"}
+                </h3>
+                <p className="text-xs text-base-content/60">
+                  Applied for: <span className="font-bold text-base-content">{selectedApplication.jobTitle}</span> ({selectedApplication.company})
+                </p>
+              </div>
+              <button onClick={() => setSelectedApplication(null)} className="btn btn-xs btn-circle btn-ghost">
+                ✕
+              </button>
+            </div>
+
+            {/* Application Decision Controls */}
+            <div className="bg-base-100 border border-base-300 rounded-xl p-4 space-y-3">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                <div>
+                  <span className="text-[10px] font-mono uppercase font-bold text-base-content/50 block">
+                    Current Hiring Status
+                  </span>
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold font-mono mt-1 ${
+                    STATUS_BADGES[normalizeStatus(selectedApplication.status)]?.bg || "bg-base-200"
+                  } ${STATUS_BADGES[normalizeStatus(selectedApplication.status)]?.text || ""}`}>
+                    <span>{STATUS_BADGES[normalizeStatus(selectedApplication.status)]?.icon || "📋"}</span>
+                    <span>{selectedApplication.status}</span>
+                  </span>
+                </div>
+
+                {/* Status Update Buttons */}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    disabled={updatingStatusId === selectedApplication._id}
+                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id, "Interviewing", statusNote)}
+                    className="btn btn-xs bg-amber-500 hover:bg-amber-600 text-white border-none rounded-lg font-bold"
+                  >
+                    🎙️ Move to Interviewing
+                  </button>
+                  <button
+                    disabled={updatingStatusId === selectedApplication._id}
+                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id, "Accepted", statusNote)}
+                    className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold"
+                  >
+                    🎉 Accept Candidate
+                  </button>
+                  <button
+                    disabled={updatingStatusId === selectedApplication._id}
+                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id, "Rejected", statusNote)}
+                    className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none rounded-lg font-bold"
+                  >
+                    ❌ Reject
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Note Input */}
+              <div className="pt-2 border-t border-base-200">
+                <input
+                  type="text"
+                  placeholder="Optional interview notes or feedback for candidate timeline..."
+                  className="input input-bordered input-xs w-full rounded-lg bg-base-200 text-xs"
+                  value={statusNote}
+                  onChange={(e) => setStatusNote(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Submitted CV Snapshot */}
+            {selectedApplication.cvSnapshot && (
+              <div className="space-y-2">
+                <span className="text-[10px] text-base-content/50 font-bold uppercase font-mono block">
+                  📄 Submitted Resume (CV)
+                </span>
+                <div className="bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-black text-sm text-base-content">{selectedApplication.cvSnapshot.title || "Resume Snapshot"}</span>
+                    <span className="text-[10px] font-mono text-emerald-500">Transmitted with Application</span>
+                  </div>
+
+                  {selectedApplication.cvSnapshot.summary && (
+                    <div className="bg-base-200 p-3 rounded-lg text-base-content/80 italic">
+                      &quot;{selectedApplication.cvSnapshot.summary}&quot;
+                    </div>
+                  )}
+
+                  {selectedApplication.cvSnapshot.experience && selectedApplication.cvSnapshot.experience.length > 0 && (
+                    <div>
+                      <span className="text-[10px] font-bold uppercase font-mono text-base-content/50 block mb-1">Work Experience:</span>
+                      <div className="space-y-2">
+                        {selectedApplication.cvSnapshot.experience.map((exp: any, i: number) => (
+                          <div key={i} className="border-l-2 border-emerald-500 pl-3 py-0.5">
+                            <span className="font-bold text-xs block">{exp.role || exp.title} at {exp.company}</span>
+                            <span className="text-[10px] text-base-content/50">{exp.startDate} - {exp.endDate || "Present"}</span>
+                            {exp.description && <p className="text-[11px] text-base-content/70 mt-1">{exp.description}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedApplication.cvSnapshot.skills && (
+                    <div>
+                      <span className="text-[10px] font-bold uppercase font-mono text-base-content/50 block mb-1">Candidate Skills:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedApplication.cvSnapshot.skills.map((s: string, i: number) => (
+                          <span key={i} className="badge badge-xs badge-neutral text-[9px] font-mono">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Submitted Skill Passport Snapshot */}
+            {selectedApplication.passportSnapshot && (
+              <div className="space-y-2">
+                <span className="text-[10px] text-base-content/50 font-bold uppercase font-mono block">
+                  🛡️ Verified Skill Passport
+                </span>
+                <div className="bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="bg-base-200 p-2.5 rounded-lg">
+                      <span className="text-[9px] uppercase font-mono text-base-content/50 block">Target Role</span>
+                      <span className="font-bold text-xs">{selectedApplication.passportSnapshot.targetRole || "Software Developer"}</span>
+                    </div>
+                    <div className="bg-base-200 p-2.5 rounded-lg">
+                      <span className="text-[9px] uppercase font-mono text-base-content/50 block">Roadmap Progress</span>
+                      <span className="font-bold text-xs text-emerald-600">{selectedApplication.passportSnapshot.roadmap?.progressPercentage || 100}%</span>
+                    </div>
+                    <div className="bg-base-200 p-2.5 rounded-lg">
+                      <span className="text-[9px] uppercase font-mono text-base-content/50 block">Quiz Performance</span>
+                      <span className="font-bold text-xs text-emerald-600">{selectedApplication.passportSnapshot.quizPerformance?.averageScore || 90}% avg</span>
+                    </div>
+                  </div>
+
+                  {selectedApplication.passportSnapshot.verifiedSkills && selectedApplication.passportSnapshot.verifiedSkills.length > 0 && (
+                    <div>
+                      <span className="text-[10px] font-bold uppercase font-mono text-base-content/50 block mb-1">Verified Skills in Passport:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedApplication.passportSnapshot.verifiedSkills.map((s: string, i: number) => (
+                          <span key={i} className="badge badge-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-mono">
+                            ✓ {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="modal-action">
+              <button onClick={() => setSelectedApplication(null)} className="btn btn-sm btn-ghost rounded-xl">
+                Close Review
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL 3: CONTACT CANDIDATE DIRECT ── */}
+      {contactCandidate && (
+        <div className="modal modal-open">
+          <div className="modal-box rounded-2xl bg-base-200 border border-base-300 text-start space-y-4 max-w-md">
+            <div className="flex justify-between items-center border-b border-base-300 pb-3">
+              <h3 className="font-extrabold text-base text-base-content flex items-center gap-2">
+                <span>✉️</span> Direct Recruiter Invitation
+              </h3>
+              <button onClick={() => setContactCandidate(null)} className="btn btn-xs btn-circle btn-ghost">
+                ✕
+              </button>
+            </div>
+
+            <div className="text-xs space-y-2">
+              <p className="text-base-content/70">
+                Transmit an interview invitation to <span className="font-bold text-base-content">{contactCandidate.name}</span> ({contactCandidate.email}):
+              </p>
+              <textarea
+                rows={4}
+                className="textarea textarea-bordered w-full rounded-xl bg-base-100 text-xs"
+                value={interviewNote}
+                onChange={(e) => setInterviewNote(e.target.value)}
+              />
+            </div>
+
+            <div className="modal-action gap-2 pt-2">
+              <button onClick={() => setContactCandidate(null)} className="btn btn-ghost btn-sm rounded-xl text-xs">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  toast.success(`Interview invitation sent to ${contactCandidate.name}!`);
+                  setContactCandidate(null);
+                }}
+                className="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none btn-sm rounded-xl font-bold text-xs px-6"
+              >
+                Send Invite
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -15,7 +15,11 @@ export class AuditLog extends Document {
   @Prop()
   userAgent?: string;
 
-  @Prop({ required: true, enum: ['info', 'warning', 'critical'], default: 'info' })
+  @Prop({
+    required: true,
+    enum: ['info', 'warning', 'critical'],
+    default: 'info',
+  })
   severity!: 'info' | 'warning' | 'critical';
 
   @Prop()

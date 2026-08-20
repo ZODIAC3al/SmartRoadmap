@@ -36,10 +36,7 @@ export class UploadController {
       return { success: true, url };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new BadRequestException(
-        `Image upload pipeline failed: ${message}`,
-      );
+      throw new BadRequestException(`Image upload pipeline failed: ${message}`);
     }
   }
 }
-

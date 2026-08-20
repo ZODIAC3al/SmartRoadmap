@@ -52,12 +52,16 @@ export class EmbeddingService {
     if (this.geminiApiKey) {
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${this.geminiApiKey}`;
-        const response = await axios.post(url, {
-          model: 'models/text-embedding-004',
-          content: { parts: [{ text }] }
-        }, {
-          headers: { 'Content-Type': 'application/json' }
-        });
+        const response = await axios.post(
+          url,
+          {
+            model: 'models/text-embedding-004',
+            content: { parts: [{ text }] },
+          },
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
         const vector = response.data?.embedding?.values;
         if (Array.isArray(vector)) {
           const padded = [...vector];
@@ -96,11 +100,15 @@ export class EmbeddingService {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:batchEmbedContents?key=${this.geminiApiKey}`;
         const requests = texts.map((t) => ({
           model: 'models/text-embedding-004',
-          content: { parts: [{ text: t }] }
+          content: { parts: [{ text: t }] },
         }));
-        const response = await axios.post(url, { requests }, {
-          headers: { 'Content-Type': 'application/json' }
-        });
+        const response = await axios.post(
+          url,
+          { requests },
+          {
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
         const embeddings = response.data?.embeddings;
         if (Array.isArray(embeddings)) {
           return embeddings.map((e: any) => {

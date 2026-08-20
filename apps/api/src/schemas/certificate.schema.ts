@@ -39,6 +39,23 @@ export class Certificate extends Document {
   /** Cloudinary public id — used to delete the asset on removal. */
   @Prop()
   publicId?: string;
+
+  @Prop({
+    type: String,
+    enum: ['Pending', 'Verified', 'Rejected'],
+    default: 'Pending',
+    index: true,
+  })
+  status!: 'Pending' | 'Verified' | 'Rejected';
+
+  @Prop()
+  rejectionReason?: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  reviewedBy?: Types.ObjectId;
+
+  @Prop()
+  reviewedAt?: Date;
 }
 
 export const CertificateSchema = SchemaFactory.createForClass(Certificate);

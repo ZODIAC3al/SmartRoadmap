@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -33,13 +34,20 @@ export class HiringController {
   @UseGuards(RolesGuard)
   @Roles('company', 'admin')
   @Post('jobs')
-  createJob(@Body() dto: CreateJobDto) {
-    return this.hiringService.createJob(dto);
+  createJob(@CurrentUser() user: JwtUser, @Body() dto: CreateJobDto) {
+    return this.hiringService.createJob(user, dto);
   }
 
   @Get('jobs')
-  getJobs() {
-    return this.hiringService.getJobs();
+  getJobs(@Query() query: any) {
+    return this.hiringService.getJobs(query);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('company', 'admin')
+  @Get('jobs/my')
+  getMyJobs(@CurrentUser() user: JwtUser) {
+    return this.hiringService.getMyJobs(user.sub);
   }
 
   @Get('jobs/matches')
@@ -51,6 +59,18 @@ export class HiringController {
   matchForUser(@CurrentUser() user: JwtUser, @Param('userId') userId: string) {
     assertSelfOrAdmin(user, userId);
     return this.hiringService.matchJobsSemantic(userId);
+  }
+
+  @Get('jobs/:id')
+  getJobById(@Param('id') id: string) {
+    return this.hiringService.getJobById(id);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('company', 'admin')
+  @Delete('jobs/:id')
+  deleteJob(@CurrentUser() user: JwtUser, @Param('id') id: string) {
+    return this.hiringService.deleteJob(user, id);
   }
 
   @Post('jobs/reindex')
@@ -73,7 +93,7 @@ export class HiringController {
     };
   }
 
-  /** Turns missing skills into roadmap modules. */
+  /** Skill gap breakdown without mutating roadmap. */
   @Post('jobs/:jobId/close-gap')
   closeGap(@CurrentUser() user: JwtUser, @Param('jobId') jobId: string) {
     return this.hiringService.closeSkillGap(user.sub, jobId);
@@ -87,6 +107,17 @@ export class HiringController {
     return this.hiringService.getApplicationsForUser(user.sub);
   }
 
+  /** List all applications received for company or admin */
+  @UseGuards(RolesGuard)
+  @Roles('company', 'admin')
+  @Get('applications/company')
+  getCompanyApplications(
+    @CurrentUser() user: JwtUser,
+    @Query('jobId') jobId?: string,
+  ) {
+    return this.hiringService.getApplicationsForCompany(user, jobId);
+  }
+
   /** Get application status for a specific job */
   @Get('applications/job/:jobId')
   getApplicationByJob(
@@ -96,7 +127,13 @@ export class HiringController {
     return this.hiringService.getApplicationByJobId(user.sub, jobId);
   }
 
-  /** Create or update application (express interest / apply) */
+  /** Get specific application by ID with complete CV and Passport snapshots */
+  @Get('applications/:id')
+  getApplicationById(@CurrentUser() user: JwtUser, @Param('id') id: string) {
+    return this.hiringService.getApplicationById(user, id);
+  }
+
+  /** Create application with CV & Skill Passport snapshot (status: Applied) */
   @Post('applications')
   upsertApplication(
     @CurrentUser() user: JwtUser,
@@ -105,14 +142,23 @@ export class HiringController {
     return this.hiringService.upsertApplication(user.sub, dto);
   }
 
-  /** Update pipeline status (under_review / interview / offer / hired / rejected) */
+  /** Update pipeline status (Applied / Interviewing / Accepted / Rejected) with strict role/ownership checks */
   @Patch('applications/:id')
   updateApplicationStatus(
     @CurrentUser() user: JwtUser,
     @Param('id') id: string,
     @Body() dto: UpdateApplicationStatusDto,
   ) {
-    return this.hiringService.updateApplicationStatus(user.sub, id, dto);
+    return this.hiringService.updateApplicationStatus(user, id, dto);
+  }
+
+  @Patch('applications/:id/status')
+  updateApplicationStatusDirect(
+    @CurrentUser() user: JwtUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateApplicationStatusDto,
+  ) {
+    return this.hiringService.updateApplicationStatus(user, id, dto);
   }
 
   // ── Company / Admin ────────────────────────────────────────────────────────

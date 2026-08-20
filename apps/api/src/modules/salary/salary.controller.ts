@@ -43,7 +43,10 @@ export class SalaryController {
    * fetches fresh Adzuna data based on the updated profile.
    */
   @Patch('profile')
-  async updateProfile(@Body() dto: UpdateCareerProfileDto, @Request() req: any) {
+  async updateProfile(
+    @Body() dto: UpdateCareerProfileDto,
+    @Request() req: any,
+  ) {
     const userId = this.extractUserId(req);
     return this.salaryService.updateCareerProfile(userId, dto);
   }
@@ -63,10 +66,7 @@ export class SalaryController {
    *                 automatically from the authenticated user's stored profile.
    */
   @Get('insights')
-  async getInsights(
-    @Request() req: any,
-    @Query('country') country?: string,
-  ) {
+  async getInsights(@Request() req: any, @Query('country') country?: string) {
     const userId = this.extractUserId(req);
     return this.salaryService.getSalaryInsights(userId, country);
   }

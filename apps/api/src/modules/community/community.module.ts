@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CommunityController } from './community.controller';
 import { CommunityService } from './community.service';
-import { DiscussionSpace, DiscussionSpaceSchema } from '../../schemas/discussion-space.schema';
+import {
+  DiscussionSpace,
+  DiscussionSpaceSchema,
+} from '../../schemas/discussion-space.schema';
 import { Post, PostSchema } from '../../schemas/post.schema';
 import { Comment, CommentSchema } from '../../schemas/comment.schema';
 import { Report, ReportSchema } from '../../schemas/report.schema';

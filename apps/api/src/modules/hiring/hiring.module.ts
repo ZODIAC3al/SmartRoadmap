@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Job, JobSchema } from '../../schemas/job.schema';
-import { JobApplication, JobApplicationSchema } from '../../schemas/job-application.schema';
+import {
+  JobApplication,
+  JobApplicationSchema,
+} from '../../schemas/job-application.schema';
 import { User, UserSchema } from '../../schemas/user.schema';
 import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
 import {
@@ -9,6 +12,19 @@ import {
   QuizSessionSchema,
 } from '../../schemas/quiz-session.schema';
 import { Cv, CvSchema } from '../../schemas/cv.schema';
+import {
+  TrackCertification,
+  TrackCertificationSchema,
+} from '../../schemas/track-certification.schema';
+import {
+  Certificate,
+  CertificateSchema,
+} from '../../schemas/certificate.schema';
+import { Project, ProjectSchema } from '../../schemas/project.schema';
+import {
+  CompanyProfile,
+  CompanyProfileSchema,
+} from '../../schemas/company-profile.schema';
 import { HiringService } from './hiring.service';
 import { HiringController } from './hiring.controller';
 import { AIModule } from '../../ai/ai.module';
@@ -22,6 +38,10 @@ import { AIModule } from '../../ai/ai.module';
       { name: Roadmap.name, schema: RoadmapSchema },
       { name: QuizSession.name, schema: QuizSessionSchema },
       { name: Cv.name, schema: CvSchema },
+      { name: TrackCertification.name, schema: TrackCertificationSchema },
+      { name: Certificate.name, schema: CertificateSchema },
+      { name: Project.name, schema: ProjectSchema },
+      { name: CompanyProfile.name, schema: CompanyProfileSchema },
     ]),
     AIModule,
   ],
@@ -30,4 +50,3 @@ import { AIModule } from '../../ai/ai.module';
   exports: [HiringService],
 })
 export class HiringModule {}
-

@@ -26,4 +26,5 @@ export class MentorshipSession extends Document {
   feedback?: string; // Feedback & recommendations from the mentor
 }
 
-export const MentorshipSessionSchema = SchemaFactory.createForClass(MentorshipSession);
+export const MentorshipSessionSchema =
+  SchemaFactory.createForClass(MentorshipSession);

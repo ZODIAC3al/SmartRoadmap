@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch, storeSession } from "@/lib/api";
+import { apiFetch, extractErrorMessage, storeSession } from "@/lib/api";
 import { motion } from "framer-motion";
 import { useApp } from "@/components/AppContext";
 import {
@@ -106,13 +106,13 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.message || "Login failed");
+        throw new Error(extractErrorMessage(data, "Invalid email or password"));
       }
 
       storeSession(data);
-      router.push("/dashboard");
+      router.push(data.user?.role === "company" ? "/company" : "/dashboard");
     } catch (err: any) {
       setErrorMsg(err.message || "Invalid credentials");
     } finally {

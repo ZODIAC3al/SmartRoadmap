@@ -21,7 +21,11 @@ export class LearningResource extends Document {
   @Prop({ required: true })
   category!: string; // Programming language, Technical domain, etc.
 
-  @Prop({ required: true, enum: ['beginner', 'intermediate', 'advanced'], default: 'beginner' })
+  @Prop({
+    required: true,
+    enum: ['beginner', 'intermediate', 'advanced'],
+    default: 'beginner',
+  })
   difficulty!: 'beginner' | 'intermediate' | 'advanced';
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
@@ -40,4 +44,5 @@ export class LearningResource extends Document {
   tags!: string[];
 }
 
-export const LearningResourceSchema = SchemaFactory.createForClass(LearningResource);
+export const LearningResourceSchema =
+  SchemaFactory.createForClass(LearningResource);

@@ -1,20 +1,25 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { Client, Storage, ID } from 'node-appwrite';
-import { InputFile } from 'node-appwrite/file';
+
+const { InputFile } = require('node-appwrite/file');
 
 @Injectable()
 export class AppwriteService {
   private readonly logger = new Logger(AppwriteService.name);
   private readonly storage: Storage | null = null;
-  private readonly endpoint:  string;
+  private readonly endpoint: string;
   private readonly projectId: string;
-  private readonly bucketId:  string;
+  private readonly bucketId: string;
 
   constructor() {
-    this.endpoint  = process.env.APPWRITE_ENDPOINT        ?? '';
-    this.projectId = process.env.APPWRITE_PROJECT_ID      ?? '';
-    this.bucketId  = process.env.APPWRITE_AUDIO_BUCKET_ID ?? '';
-    const apiKey   = process.env.APPWRITE_API_KEY         ?? '';
+    this.endpoint = process.env.APPWRITE_ENDPOINT ?? '';
+    this.projectId = process.env.APPWRITE_PROJECT_ID ?? '';
+    this.bucketId = process.env.APPWRITE_AUDIO_BUCKET_ID ?? '';
+    const apiKey = process.env.APPWRITE_API_KEY ?? '';
 
     if (this.endpoint && this.projectId && apiKey) {
       const client = new Client()
@@ -26,8 +31,8 @@ export class AppwriteService {
     } else {
       this.logger.warn(
         'Appwrite credentials not configured — audio upload is disabled. ' +
-        'Set APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, APPWRITE_API_KEY, and ' +
-        'APPWRITE_AUDIO_BUCKET_ID in your .env to enable it.',
+          'Set APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, APPWRITE_API_KEY, and ' +
+          'APPWRITE_AUDIO_BUCKET_ID in your .env to enable it.',
       );
     }
   }

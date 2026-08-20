@@ -30,16 +30,20 @@ export class SalaryCacheService {
   }
 
   /** Compute a stable string fingerprint for the profile fields that drive salary. */
-  buildProfileHash(profile: {
-    currentRole?: string;
-    targetRole?: string;
-    experienceYears?: number;
-    location?: string;
-    skills?: string[];
-    educationLevel?: string;
-    certifications?: string[];
-    industry?: string;
-  }, countryCode: string = '', jobTitle: string = ''): string {
+  buildProfileHash(
+    profile: {
+      currentRole?: string;
+      targetRole?: string;
+      experienceYears?: number;
+      location?: string;
+      skills?: string[];
+      educationLevel?: string;
+      certifications?: string[];
+      industry?: string;
+    },
+    countryCode: string = '',
+    jobTitle: string = '',
+  ): string {
     return [
       jobTitle.toLowerCase().trim(),
       profile.currentRole ?? '',
@@ -66,7 +70,9 @@ export class SalaryCacheService {
     }
 
     if (entry.profileHash !== profileHash) {
-      this.logger.debug(`Profile changed for key ${cacheKey} — cache invalidated`);
+      this.logger.debug(
+        `Profile changed for key ${cacheKey} — cache invalidated`,
+      );
       this.store.delete(cacheKey);
       return null;
     }
@@ -77,8 +83,13 @@ export class SalaryCacheService {
 
   set<T>(cacheKey: string, profileHash: string, data: T): void {
     const anyData = data as any;
-    if (anyData?.dataStatus === 'NO_DATA' || anyData?.dataStatus === 'API_ERROR') {
-      this.logger.debug(`Skipping cache for status ${anyData?.dataStatus} (key: ${cacheKey})`);
+    if (
+      anyData?.dataStatus === 'NO_DATA' ||
+      anyData?.dataStatus === 'API_ERROR'
+    ) {
+      this.logger.debug(
+        `Skipping cache for status ${anyData?.dataStatus} (key: ${cacheKey})`,
+      );
       return;
     }
     this.store.set(cacheKey, {

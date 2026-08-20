@@ -1,4 +1,13 @@
-import { IsEnum, IsInt, IsOptional, IsString, Min, Max, Length, Matches } from 'class-validator';
+import {
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Min,
+  Max,
+  Length,
+  Matches,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export enum InterviewTypeDto {

@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ResourceController } from './resource.controller';
 import { ResourceService } from './resource.service';
-import { LearningResource, LearningResourceSchema } from '../../schemas/learning-resource.schema';
+import {
+  LearningResource,
+  LearningResourceSchema,
+} from '../../schemas/learning-resource.schema';
 import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
 import { Cv, CvSchema } from '../../schemas/cv.schema';
 

@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Job extends Document {
@@ -55,7 +55,14 @@ export class Job extends Document {
   /** Date the job was posted (for "Newest" sort) */
   @Prop({ default: () => new Date() })
   postedAt?: Date;
+
+  /** User ID who created/posted the job (Company or Admin) */
+  @Prop({ type: Types.ObjectId, ref: 'User', index: true })
+  createdBy?: Types.ObjectId;
+
+  /** Company profile ID or company user ID */
+  @Prop({ type: Types.ObjectId, ref: 'User', index: true })
+  companyId?: Types.ObjectId;
 }
 
 export const JobSchema = SchemaFactory.createForClass(Job);
-
