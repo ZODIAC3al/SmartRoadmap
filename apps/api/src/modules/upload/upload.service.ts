@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 export interface UploadFilePayload {
   mimetype?: string;
@@ -11,8 +12,12 @@ export interface UploadFilePayload {
 export class UploadService {
   private readonly logger = new Logger(UploadService.name);
   private readonly isCloudinaryConfigured: boolean;
+  private readonly isS3Configured: boolean;
+  private readonly s3Client?: S3Client;
+  private readonly s3BucketName: string;
 
   constructor() {
+    // Cloudinary setup
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
     const apiKey = process.env.CLOUDINARY_API_KEY;
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
@@ -30,8 +35,40 @@ export class UploadService {
     } else {
       this.isCloudinaryConfigured = false;
       this.logger.warn(
-        'Cloudinary environment keys missing (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET). ' +
-          'Defaulting to dynamic base64/local uploader fallback.',
+        'Cloudinary environment keys missing. Defaulting to dynamic base64/S3 fallback.',
+      );
+    }
+
+    // IDrive e2 / S3 setup
+    const s3Endpoint = process.env.S3_ENDPOINT;
+    const s3Region = process.env.S3_REGION || 'us-east-1';
+    const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID;
+    const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY;
+    this.s3BucketName = process.env.S3_BUCKET_NAME || 'smartroadmap-audio';
+
+    if (s3Endpoint && s3AccessKeyId && s3SecretAccessKey) {
+      try {
+        this.s3Client = new S3Client({
+          endpoint: s3Endpoint,
+          region: s3Region,
+          credentials: {
+            accessKeyId: s3AccessKeyId,
+            secretAccessKey: s3SecretAccessKey,
+          },
+          forcePathStyle: true,
+        });
+        this.isS3Configured = true;
+        this.logger.log(
+          `IDrive e2 S3 client successfully configured on endpoint ${s3Endpoint}`,
+        );
+      } catch (err: any) {
+        this.isS3Configured = false;
+        this.logger.error(`Failed to initialize S3 client: ${err.message}`);
+      }
+    } else {
+      this.isS3Configured = false;
+      this.logger.warn(
+        'IDrive S3 credentials missing (S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY).',
       );
     }
   }
@@ -73,14 +110,18 @@ export class UploadService {
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         this.logger.error(
-          `Cloudinary upload failed: ${message}. Falling back to base64 encoding.`,
+          `Cloudinary upload failed: ${message}. Falling back to S3/base64 encoding.`,
         );
-        return this.encodeAsBase64(file);
       }
-    } else {
-      // Fallback: zero-config base64 string uploader so the app continues working perfectly
-      return this.encodeAsBase64(file);
     }
+
+    // S3 upload if configured
+    if (this.isS3Configured) {
+      const s3Res = await this.uploadEvidencePdf(file, 'images');
+      return s3Res.url;
+    }
+
+    return this.encodeAsBase64(file);
   }
 
   private encodeAsBase64(file: UploadFilePayload): string {
@@ -90,15 +131,63 @@ export class UploadService {
   }
 
   /**
-   * Uploads a certificate file (PDF / JPG / JPEG / PNG).
-   * Returns the public URL plus the Cloudinary public id (used for deletion).
-   * Falls back to a base64 data URL when Cloudinary is not configured.
+   * Uploads PDF evidence / documents to IDrive e2 S3 bucket.
+   */
+  async uploadEvidencePdf(
+    file: UploadFilePayload,
+    folder = 'evidence',
+  ): Promise<{ url: string; key: string }> {
+    if (!file || !file.buffer) {
+      throw new Error('Invalid file upload payload: missing buffer data.');
+    }
+
+    if (this.isS3Configured && this.s3Client) {
+      try {
+        const originalName = file.originalname || 'document.pdf';
+        const sanitizeName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const key = `${folder}/${Date.now()}-${sanitizeName}`;
+        const contentType = file.mimetype || 'application/pdf';
+
+        await this.s3Client.send(
+          new PutObjectCommand({
+            Bucket: this.s3BucketName,
+            Key: key,
+            Body: file.buffer,
+            ContentType: contentType,
+          }),
+        );
+
+        const endpointUrl = (process.env.S3_ENDPOINT || '').replace(/\/$/, '');
+        const url = `${endpointUrl}/${this.s3BucketName}/${key}`;
+        this.logger.log(`PDF evidence uploaded successfully to IDrive S3: ${url}`);
+        return { url, key };
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        this.logger.error(
+          `IDrive S3 PDF upload failed: ${message}. Falling back to base64 encoding.`,
+        );
+      }
+    }
+
+    return { url: this.encodeAsBase64(file), key: '' };
+  }
+
+  /**
+   * Uploads a certificate file (PDF / JPG / JPEG / PNG) to IDrive S3 (or Cloudinary fallback).
    */
   async uploadCertificateFile(
     file: UploadFilePayload,
   ): Promise<{ url: string; publicId?: string }> {
     if (!file || !file.buffer) {
       throw new Error('Invalid file upload payload: missing buffer data.');
+    }
+
+    // Try IDrive e2 S3 first for PDF/evidence files
+    if (this.isS3Configured) {
+      const s3Result = await this.uploadEvidencePdf(file, 'certificates');
+      if (s3Result.url && !s3Result.url.startsWith('data:')) {
+        return { url: s3Result.url, publicId: s3Result.key };
+      }
     }
 
     if (this.isCloudinaryConfigured) {
@@ -137,7 +226,6 @@ export class UploadService {
         this.logger.error(
           `Cloudinary upload failed: ${message}. Falling back to base64.`,
         );
-        return { url: this.encodeAsBase64(file) };
       }
     }
 

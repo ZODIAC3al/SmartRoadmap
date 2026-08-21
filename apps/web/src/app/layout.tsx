@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./Navbar";
+import { StoreProvider } from "@/store/provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -78,19 +79,23 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body className="bg-base-100 text-base-content min-h-screen font-sans antialiased flex flex-col relative">
-        <AppContextProvider>
-          <AnimatedBackground />
-          <Navbar />
-          <main className="flex-grow pt-24 pb-16 md:pb-0">{children}</main>
-          <Footer />
-          <BottomNav />
-          <ToastContainer
-            position="bottom-right"
-            autoClose={3000}
-            theme="colored"
-          />
-          <ChatSidebar />
-        </AppContextProvider>
+        <StoreProvider>
+          <AppContextProvider>
+            <AnimatedBackground />
+            <Navbar />
+            <main className="flex-grow pt-24 pb-16 md:pb-0">{children}</main>
+            <Footer />
+            <BottomNav />
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              limit={3}
+              closeOnClick
+              draggable
+            />
+            <ChatSidebar />
+          </AppContextProvider>
+        </StoreProvider>
       </body>
     </html>
   );

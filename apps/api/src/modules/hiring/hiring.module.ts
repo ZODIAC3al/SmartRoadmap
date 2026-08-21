@@ -27,7 +27,9 @@ import {
 } from '../../schemas/company-profile.schema';
 import { HiringService } from './hiring.service';
 import { HiringController } from './hiring.controller';
-import { AIModule } from '../../ai/ai.module';
+import { SavedSearch, SavedSearchSchema } from '../../schemas/saved-search.schema';
+import { Subscription, SubscriptionSchema } from '../../schemas/subscription.schema';
+import { BillingModule } from '../billing/billing.module';
 
 @Module({
   imports: [
@@ -42,8 +44,10 @@ import { AIModule } from '../../ai/ai.module';
       { name: Certificate.name, schema: CertificateSchema },
       { name: Project.name, schema: ProjectSchema },
       { name: CompanyProfile.name, schema: CompanyProfileSchema },
+      { name: SavedSearch.name, schema: SavedSearchSchema },
+      { name: Subscription.name, schema: SubscriptionSchema },
     ]),
-    AIModule,
+    BillingModule,
   ],
   controllers: [HiringController],
   providers: [HiringService],

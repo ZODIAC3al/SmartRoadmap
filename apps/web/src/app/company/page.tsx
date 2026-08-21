@@ -68,6 +68,8 @@ export default function CompanyPage() {
     updatingStatusId,
     user,
   } = useCompanyDashboard();
+  const [talentPage, setTalentPage] = React.useState(1);
+  const [appPage, setAppPage] = React.useState(1);
 
   if (loading) {
     return (
@@ -239,85 +241,143 @@ export default function CompanyPage() {
               <div className="p-12 text-center text-base-content/50 text-xs">
                 No applications submitted yet for your postings. Post a job or share your openings!
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="table table-zebra w-full text-xs">
-                  <thead>
-                    <tr className="border-base-300 text-base-content/60 uppercase font-mono text-[10px]">
-                      <th>Candidate</th>
-                      <th>Applied Role</th>
-                      <th>Match Score</th>
-                      <th>Applied Date</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {applications.map((app) => {
-                      const userObj = typeof app.userId === "object" && app.userId !== null ? app.userId : null;
-                      const candidateName = userObj?.name || app.passportSnapshot?.name || "Candidate";
-                      const candidateEmail = userObj?.email || app.passportSnapshot?.email || "";
-                      const norm = normalizeStatus(app.status);
-                      const badge = STATUS_BADGES[norm] || STATUS_BADGES.Applied;
+            ) : (() => {
+              const APP_PAGE_SIZE = 6;
+              const sortedApps = [...applications].sort((a: any, b: any) => {
+                const ta = a.appliedAt || a.createdAt || 0;
+                const tb = b.appliedAt || b.createdAt || 0;
+                return new Date(tb).getTime() - new Date(ta).getTime();
+              });
+              const appTotalPages = Math.ceil(sortedApps.length / APP_PAGE_SIZE) || 1;
+              const appStart = (appPage - 1) * APP_PAGE_SIZE;
+              const pageApps = sortedApps.slice(appStart, appStart + APP_PAGE_SIZE);
 
-                      return (
-                        <tr key={app._id} className="border-base-300 hover:bg-base-100/50">
-                          <td>
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 font-bold flex items-center justify-center border border-emerald-500/20 text-xs shrink-0">
-                                {candidateName.charAt(0)}
-                              </div>
-                              <div>
-                                <span className="font-extrabold text-sm text-base-content block">
-                                  {candidateName}
-                                </span>
-                                <span className="text-[11px] text-base-content/50 font-mono">
-                                  {candidateEmail}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <div>
-                              <span className="font-bold text-xs text-base-content block">
-                                {app.jobTitle}
-                              </span>
-                              <span className="text-[10px] text-base-content/50">
-                                {app.company}
-                              </span>
-                            </div>
-                          </td>
-                          <td>
-                            <span className="font-mono font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                              {app.matchScore}%
-                            </span>
-                          </td>
-                          <td>
-                            <span className="text-xs text-base-content/60 font-mono">
-                              {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : new Date(app.createdAt).toLocaleDateString()}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold font-mono ${badge.bg} ${badge.text}`}>
-                              <span>{badge.icon}</span>
-                              <span>{app.status}</span>
-                            </span>
-                          </td>
-                          <td>
-                            <button
-                              onClick={() => setSelectedApplication(app)}
-                              className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold text-[10px] px-3"
-                            >
-                              Review Candidate
-                            </button>
-                          </td>
+              return (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center text-xs text-base-content/60 font-mono">
+                    <span>
+                      Showing {Math.min(appStart + 1, sortedApps.length)}-{Math.min(appStart + APP_PAGE_SIZE, sortedApps.length)} of {sortedApps.length} applications
+                    </span>
+                    <span>Newest first</span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="table table-zebra w-full text-xs">
+                      <thead>
+                        <tr className="border-base-300 text-base-content/60 uppercase font-mono text-[10px]">
+                          <th>Candidate</th>
+                          <th>Applied Role</th>
+                          <th>Match Score</th>
+                          <th>Applied Date</th>
+                          <th>Status</th>
+                          <th>Actions</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                      </thead>
+                      <tbody>
+                        {pageApps.map((app: any) => {
+                          const userObj = typeof app.userId === "object" && app.userId !== null ? app.userId : null;
+                          const candidateName = userObj?.name || app.candidateName || app.passportSnapshot?.name || "Candidate";
+                          const candidateEmail = userObj?.email || app.passportSnapshot?.email || "";
+                          const norm = normalizeStatus(app.status);
+                          const badge = STATUS_BADGES[norm] || STATUS_BADGES.Applied;
+
+                          return (
+                            <tr key={app._id || app.id} className="border-base-300 hover:bg-base-100/50">
+                              <td>
+                                <div className="flex items-center gap-2.5">
+                                  <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 font-bold flex items-center justify-center border border-emerald-500/20 text-xs shrink-0">
+                                    {candidateName.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <span className="font-extrabold text-sm text-base-content block">
+                                      {candidateName}
+                                    </span>
+                                    <span className="text-[11px] text-base-content/50 font-mono">
+                                      {candidateEmail}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <div>
+                                  <span className="font-bold text-xs text-base-content block">
+                                    {app.jobTitle}
+                                  </span>
+                                  <span className="text-[10px] text-base-content/50">
+                                    {app.company}
+                                  </span>
+                                </div>
+                              </td>
+                              <td>
+                                <span className="font-mono font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                                  {app.matchScore}%
+                                </span>
+                              </td>
+                              <td>
+                                <span className="text-xs text-base-content/60 font-mono">
+                                  {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : new Date(app.createdAt).toLocaleDateString()}
+                                </span>
+                              </td>
+                              <td>
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold font-mono ${badge.bg} ${badge.text}`}>
+                                  <span>{badge.icon}</span>
+                                  <span>{app.status}</span>
+                                </span>
+                              </td>
+                              <td>
+                                <button
+                                  onClick={() => setSelectedApplication(app)}
+                                  className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold text-[10px] px-3"
+                                >
+                                  Review Candidate
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {appTotalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 pt-3 border-t border-base-300">
+                      <button
+                        onClick={() => setAppPage((p) => Math.max(p - 1, 1))}
+                        disabled={appPage === 1}
+                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
+                      >
+                        Previous
+                      </button>
+
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: appTotalPages }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => setAppPage(page)}
+                            className={`w-7 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-all ${
+                              appPage === page
+                                ? 'bg-emerald-500 text-white shadow-xs'
+                                : 'bg-base-200 text-base-content/70 hover:bg-base-300'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => setAppPage((p) => Math.min(p + 1, appTotalPages))}
+                        disabled={appPage === appTotalPages}
+                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -347,9 +407,9 @@ export default function CompanyPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {jobs.map((job) => (
+                {jobs.map((job: any) => (
                   <div
-                    key={job._id}
+                    key={job._id || job.id}
                     className="bg-base-100 border border-base-300 rounded-2xl p-5 space-y-3 flex flex-col justify-between"
                   >
                     <div>
@@ -359,7 +419,7 @@ export default function CompanyPage() {
                             {job.title}
                           </h4>
                           <p className="text-xs text-base-content/60 font-medium mt-0.5">
-                            {job.company} • {job.location} ({job.country || "US"})
+                            {job.company || "Company"} • {job.location} ({job.country || "US"})
                           </p>
                         </div>
                         <span className="badge badge-sm badge-neutral font-mono text-[9px] uppercase">
@@ -368,7 +428,7 @@ export default function CompanyPage() {
                       </div>
 
                       <div className="flex flex-wrap gap-1.5 mt-3">
-                        {job.requiredSkills.map((s, i) => (
+                        {(job.requiredSkills || []).map((s: string, i: number) => (
                           <span key={i} className="badge badge-xs bg-base-200 border-base-300 text-base-content/70 font-mono text-[9px]">
                             {s}
                           </span>
@@ -376,7 +436,7 @@ export default function CompanyPage() {
                       </div>
 
                       <p className="text-xs text-base-content/70 mt-2 line-clamp-2">
-                        {job.description}
+                        {job.description || ""}
                       </p>
                     </div>
 
@@ -385,7 +445,7 @@ export default function CompanyPage() {
                         {job.salaryMin ? `$${job.salaryMin.toLocaleString()} - $${(job.salaryMax || 0).toLocaleString()}` : "Competitive Salary"}
                       </span>
                       <button
-                        onClick={() => handleDeleteJob(job._id)}
+                        onClick={() => handleDeleteJob(job._id || job.id)}
                         className="text-red-500 hover:underline font-bold"
                       >
                         Delete Job
@@ -408,13 +468,19 @@ export default function CompanyPage() {
                 placeholder="Search candidates by name, target role, or verified skill..."
                 className="input input-bordered input-sm w-full md:w-96 rounded-xl text-xs bg-base-100"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setTalentPage(1);
+                }}
               />
               <div className="flex items-center gap-2 w-full md:w-auto">
                 <select
                   className="select select-bordered select-sm rounded-xl text-xs bg-base-100"
                   value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
+                  onChange={(e) => {
+                    setRoleFilter(e.target.value);
+                    setTalentPage(1);
+                  }}
                 >
                   <option value="all">All Roles</option>
                   <option value="Frontend">Frontend</option>
@@ -425,70 +491,129 @@ export default function CompanyPage() {
               </div>
             </div>
 
-            {/* Candidates Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredCandidates.map((cand) => (
-                <div
-                  key={cand.userId}
-                  className="bg-base-200 border border-base-300 rounded-2xl p-5 space-y-4 flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 font-black flex items-center justify-center border border-emerald-500/20 text-sm">
-                          {cand.name.charAt(0)}
-                        </div>
+            {/* Candidates Grid Sorted from Top Scores First */}
+            {(() => {
+              const sortedCandidates = [...filteredCandidates].sort(
+                (a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0),
+              );
+              const PAGE_SIZE = 6;
+              const totalPages = Math.ceil(sortedCandidates.length / PAGE_SIZE) || 1;
+              const startIdx = (talentPage - 1) * PAGE_SIZE;
+              const pageCandidates = sortedCandidates.slice(startIdx, startIdx + PAGE_SIZE);
+
+              return (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center text-xs text-base-content/60 font-mono">
+                    <span>
+                      Showing {Math.min(startIdx + 1, sortedCandidates.length)}-
+                      {Math.min(startIdx + PAGE_SIZE, sortedCandidates.length)} of {sortedCandidates.length} top candidates
+                    </span>
+                    <span>Sorted by highest AI match fit</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {pageCandidates.map((cand: any) => (
+                      <div
+                        key={cand.userId}
+                        className="bg-base-200 border border-base-300 rounded-2xl p-5 space-y-4 flex flex-col justify-between hover:border-emerald-500/40 transition-colors"
+                      >
                         <div>
-                          <h4 className="font-extrabold text-sm text-base-content">
-                            {cand.name}
-                          </h4>
-                          <span className="text-[11px] text-base-content/60 block">
-                            {cand.targetRole}
-                          </span>
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 font-black flex items-center justify-center border border-emerald-500/20 text-sm">
+                                {cand.name.charAt(0)}
+                              </div>
+                              <div>
+                                <h4 className="font-extrabold text-sm text-base-content">
+                                  {cand.name}
+                                </h4>
+                                <span className="text-[11px] text-base-content/60 block">
+                                  {cand.targetRole}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="font-mono font-bold text-xs text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                              {cand.matchScore}% Fit
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 mt-4 text-[11px]">
+                            <div className="bg-base-100 p-2 rounded-xl border border-base-300">
+                              <span className="text-[9px] uppercase font-mono text-base-content/50 block">Milestones</span>
+                              <span className="font-bold text-xs text-base-content">{cand.completedMilestones} completed</span>
+                            </div>
+                            <div className="bg-base-100 p-2 rounded-xl border border-base-300">
+                              <span className="text-[9px] uppercase font-mono text-base-content/50 block">Avg Quiz</span>
+                              <span className="font-bold text-xs text-emerald-600">{cand.averageQuizScore}%</span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1 mt-3">
+                            {(cand.verifiedSkills || []).slice(0, 4).map((s: string, i: number) => (
+                              <span key={i} className="badge badge-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-mono">
+                                ✓ {s}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2 border-t border-base-300">
+                          <button
+                            onClick={() => copyPassportLink(cand.userId)}
+                            className="btn btn-xs btn-outline border-base-300 rounded-lg flex-1 text-[10px] font-bold"
+                          >
+                            🔗 Share Passport
+                          </button>
+                          <button
+                            onClick={() => setContactCandidate(cand)}
+                            className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg flex-1 text-[10px] font-bold"
+                          >
+                            Invite
+                          </button>
                         </div>
                       </div>
-                      <span className="font-mono font-bold text-xs text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                        {cand.matchScore}% Fit
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 mt-4 text-[11px]">
-                      <div className="bg-base-100 p-2 rounded-xl border border-base-300">
-                        <span className="text-[9px] uppercase font-mono text-base-content/50 block">Milestones</span>
-                        <span className="font-bold text-xs text-base-content">{cand.completedMilestones} completed</span>
-                      </div>
-                      <div className="bg-base-100 p-2 rounded-xl border border-base-300">
-                        <span className="text-[9px] uppercase font-mono text-base-content/50 block">Avg Quiz</span>
-                        <span className="font-bold text-xs text-emerald-600">{cand.averageQuizScore}%</span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      {cand.verifiedSkills.slice(0, 4).map((s, i) => (
-                        <span key={i} className="badge badge-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-mono">
-                          ✓ {s}
-                        </span>
-                      ))}
-                    </div>
+                    ))}
                   </div>
 
-                  <div className="flex gap-2 pt-2 border-t border-base-300">
-                    <button
-                      onClick={() => copyPassportLink(cand.userId)}
-                      className="btn btn-xs btn-outline border-base-300 rounded-lg flex-1 text-[10px] font-bold"
-                    >
-                      🔗 Share Passport
-                    </button>
-                    <button
-                      onClick={() => setContactCandidate(cand)}
-                      className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg flex-1 text-[10px] font-bold"
-                    >
-                      Invite
-                    </button>
-                  </div>
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 pt-4 border-t border-base-300">
+                      <button
+                        onClick={() => setTalentPage((p) => Math.max(p - 1, 1))}
+                        disabled={talentPage === 1}
+                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
+                      >
+                        Previous
+                      </button>
+
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => setTalentPage(page)}
+                            className={`w-7 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-all ${
+                              talentPage === page
+                                ? 'bg-emerald-500 text-white shadow-xs'
+                                : 'bg-base-200 text-base-content/70 hover:bg-base-300'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => setTalentPage((p) => Math.min(p + 1, totalPages))}
+                        disabled={talentPage === totalPages}
+                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </div>
         )}
       </div>
@@ -685,22 +810,22 @@ export default function CompanyPage() {
                 {/* Status Update Buttons */}
                 <div className="flex flex-wrap gap-2">
                   <button
-                    disabled={updatingStatusId === selectedApplication._id}
-                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id, "Interviewing", statusNote)}
+                    disabled={updatingStatusId === (selectedApplication._id || selectedApplication.id)}
+                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id || selectedApplication.id, "Interviewing", statusNote)}
                     className="btn btn-xs bg-amber-500 hover:bg-amber-600 text-white border-none rounded-lg font-bold"
                   >
                     🎙️ Move to Interviewing
                   </button>
                   <button
-                    disabled={updatingStatusId === selectedApplication._id}
-                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id, "Accepted", statusNote)}
+                    disabled={updatingStatusId === (selectedApplication._id || selectedApplication.id)}
+                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id || selectedApplication.id, "Accepted", statusNote)}
                     className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold"
                   >
                     🎉 Accept Candidate
                   </button>
                   <button
-                    disabled={updatingStatusId === selectedApplication._id}
-                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id, "Rejected", statusNote)}
+                    disabled={updatingStatusId === (selectedApplication._id || selectedApplication.id)}
+                    onClick={() => handleUpdateApplicantStatus(selectedApplication._id || selectedApplication.id, "Rejected", statusNote)}
                     className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none rounded-lg font-bold"
                   >
                     ❌ Reject
