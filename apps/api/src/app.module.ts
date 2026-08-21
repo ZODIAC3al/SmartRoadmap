@@ -33,6 +33,13 @@ import { MessagingModule } from './modules/messaging/messaging.module';
 import { EventsModule } from './modules/events/events.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 
+import { BillingModule } from './modules/billing/billing.module';
+import { CompanyModule } from './modules/company/company.module';
+import { PipelineModule } from './modules/pipeline/pipeline.module';
+import { MessagingModule } from './modules/messaging/messaging.module';
+import { EventsModule } from './modules/events/events.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+
 @Module({
   imports: [
     EventEmitterModule.forRoot(),

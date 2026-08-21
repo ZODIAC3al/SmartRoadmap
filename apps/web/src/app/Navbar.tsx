@@ -27,7 +27,6 @@ import {
   TrendingUp,
   Settings,
   LogOut,
-  Sparkles,
 } from "lucide-react";
 
 // Crisp SVG Icons representing OS Platforms for PWA download
@@ -278,54 +277,6 @@ export default function Navbar() {
 
   // Mobile nav links — role-scoped
   const navLinks = [
-    { href: "/roadmap", label: t("nav.roadmap"), show: !!user && user?.role !== "admin" },
-    { href: "/cv", label: t("nav.cv"), show: !!user && user?.role !== "admin" },
-    { href: "/portfolio/builder", label: "Portfolio", show: !!user && user?.role !== "admin" },
-    {
-      href: "/hiring",
-      label: t("nav.jobsMatch"),
-      show: !!user && user?.role === "learner",
-    },
-    {
-      href: "/company",
-      label: t("nav.talentBoard"),
-      show: !!user && user?.role === "company",
-    },
-    {
-      href: "/community",
-      label: locale === "en" ? "Community" : "المجتمع",
-      show: !!user && user?.role !== "admin",
-    },
-    {
-      href: "/mentors",
-      label: locale === "en" ? "Mentors" : "الموجهين",
-      show: !!user && user?.role !== "admin",
-    },
-    {
-      href: "/resources",
-      label: locale === "en" ? "Resources" : "المراجع",
-      show: !!user && user?.role !== "admin",
-    },
-    {
-      href: "/admin",
-      label: locale === "en" ? "Admin Panel" : "لوحة الإدارة",
-      show: !!user && user?.role === "admin",
-    },
-    {
-      href: "/admin/users",
-      label: locale === "en" ? "Users" : "المستخدمين",
-      show: !!user && user?.role === "admin",
-    },
-    {
-      href: "/admin/certificates",
-      label: locale === "en" ? "Certificates" : "الشهادات",
-      show: !!user && user?.role === "admin",
-    },
-    { href: "/pricing", label: t("nav.pricing"), show: true },
-    { href: "/contact", label: t("nav.contact"), show: true },
-    // Mock Interview link
-    { href: "/mock-interview", label: "Mock Interview", show: !!user && user?.role !== "admin" },
-
     // Learner-only
     { href: "/roadmap", label: t("nav.roadmap"), show: !!user && (isLearner || isAdmin) },
     { href: "/cv", label: t("nav.cv"), show: !!user && (isLearner || isAdmin) },
@@ -366,8 +317,8 @@ export default function Navbar() {
 
         {/* Desktop nav links — fully role-responsive */}
         <nav className="hidden lg:flex items-center gap-3 xl:gap-5 text-[11px] font-bold uppercase tracking-wider flex-1 justify-center">
-          {/* Primary core links / LEARNER nav */}
-          {(user?.role !== "admin" || isLearner || isAdmin) && (
+          {/* LEARNER nav */}
+          {(isLearner || isAdmin) && (
             <>
               <Link
                 href="/dashboard"
@@ -450,9 +401,8 @@ export default function Navbar() {
             </>
           )}
 
-          {/* Explore Dropdown */}
-          {user?.role !== "admin" && (
-            <div className="dropdown dropdown-hover dropdown-bottom dropdown-end">
+          {/* Explore Dropdown — adapts by role */}
+          <div className="dropdown dropdown-hover dropdown-bottom dropdown-end">
             <label
               tabIndex={0}
               className="flex items-center gap-1.5 cursor-pointer transition-colors text-base-content/70 hover:text-[#10B981] font-bold py-1 px-1.5 rounded-lg"
@@ -528,7 +478,6 @@ export default function Navbar() {
               </li>
             </ul>
           </div>
-          )}
         </nav>
 
         {/* Right side controls */}
@@ -720,22 +669,6 @@ export default function Navbar() {
                       <span>{t("nav.dashboard")}</span>
                     </Link>
                   </li>
-                )}
-                {user.role !== "admin" && (
-                  <>
-                    <li>
-                      <Link href="/roadmap" className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-emerald-500" />
-                        <span>{t("nav.roadmap")}</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="/cv" className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-blue-500" />
-                        <span>{t("nav.cv")}</span>
-                      </Link>
-                    </li>
-                  </>
                 )}
                 {(isLearner || isAdmin) && (
                   <li>
