@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -19,8 +20,11 @@ import { TrackCertification } from '../../schemas/track-certification.schema';
 import { Certificate } from '../../schemas/certificate.schema';
 import { Project } from '../../schemas/project.schema';
 import { CompanyProfile } from '../../schemas/company-profile.schema';
+import { SavedSearch } from '../../schemas/saved-search.schema';
+import { Subscription } from '../../schemas/subscription.schema';
 import { RAGService, JOBS_COLLECTION } from '../../ai/rag.service';
 import { EmbeddingService } from '../../ai/embedding.service';
+import { AiGatewayService } from '../../ai/gateway/ai-gateway.service';
 import type { JwtUser } from '../../common/decorators/current-user.decorator';
 import { AppCacheService } from '../../common/cache/app-cache.service';
 import {
@@ -50,10 +54,15 @@ export class HiringService implements OnModuleInit {
     @InjectModel(Project.name) private readonly projectModel: Model<Project>,
     @InjectModel(CompanyProfile.name)
     private readonly companyProfileModel: Model<CompanyProfile>,
+    @InjectModel(SavedSearch.name)
+    private readonly savedSearchModel: Model<SavedSearch>,
+    @InjectModel(Subscription.name)
+    private readonly subscriptionModel: Model<Subscription>,
     private readonly config: ConfigService,
     private readonly ragService: RAGService,
     private readonly embeddingService: EmbeddingService,
     private readonly cache: AppCacheService,
+    private readonly aiGateway: AiGatewayService,
   ) {}
 
   /**
@@ -959,5 +968,76 @@ export class HiringService implements OnModuleInit {
     }
 
     return candidates;
+  }
+
+  // ── Saved Searches & Analytics ─────────────────────────────────────────────
+
+  async createSavedSearch(user: JwtUser, dto: any): Promise<SavedSearch> {
+    const userObjId = new Types.ObjectId(user.sub);
+    const company = await this.companyProfileModel.findOne({ userId: userObjId });
+    const companyId = company ? company._id : userObjId;
+
+    return this.savedSearchModel.create({
+      companyId,
+      createdBy: userObjId,
+      name: dto.name || 'Saved Candidate Search',
+      filters: dto.filters || {},
+      alertsEnabled: dto.alertsEnabled ?? false,
+      lastRunAt: new Date(),
+    });
+  }
+
+  async getSavedSearches(user: JwtUser): Promise<SavedSearch[]> {
+    const userObjId = new Types.ObjectId(user.sub);
+    return this.savedSearchModel.find({ createdBy: userObjId }).sort({ createdAt: -1 });
+  }
+
+  async getSkillGapAnalytics(jobId: string): Promise<any> {
+    if (!Types.ObjectId.isValid(jobId)) {
+      throw new BadRequestException('Invalid Job ID');
+    }
+
+    const job = await this.jobModel.findById(jobId);
+    if (!job) throw new NotFoundException('Job not found');
+
+    const applications = await this.applicationModel.find({ jobId });
+    const skillsGapCount: Record<string, number> = {};
+
+    for (const app of applications) {
+      if (app.passportSnapshot?.skills) {
+        const candidateSkills = (app.passportSnapshot.skills as string[]).map((s) => s.toLowerCase());
+        for (const reqSkill of job.requiredSkills || []) {
+          if (!candidateSkills.includes(reqSkill.toLowerCase())) {
+            skillsGapCount[reqSkill] = (skillsGapCount[reqSkill] || 0) + 1;
+          }
+        }
+      }
+    }
+
+    const aiAnalysis = await this.aiGateway.run({
+      task: 'gap_analysis',
+      input: { requiredSkills: job.requiredSkills, skillsGapCount },
+    });
+
+    return {
+      jobId,
+      jobTitle: job.title,
+      totalApplicants: applications.length,
+      skillsGapCount,
+      aiSummary: aiAnalysis.result,
+    };
+  }
+
+  async evaluateCandidateWithAi(candidateSkills: string[], requiredSkills?: string[]): Promise<any> {
+    const reqs = requiredSkills && requiredSkills.length > 0
+      ? requiredSkills
+      : ['React', 'TypeScript', 'Node.js', 'NestJS', 'Docker'];
+
+    const aiResult = await this.aiGateway.run({
+      task: 'skill_match',
+      input: { candidateSkills, requiredSkills: reqs },
+    });
+
+    return aiResult;
   }
 }

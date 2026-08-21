@@ -903,6 +903,12 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (user?.role === "company") {
+      router.push("/company");
+    }
+  }, [user, router]);
+
   // ── Skeleton loading state ──────────────────────────────────────────────
   if (loading) {
     return (
@@ -954,12 +960,12 @@ export default function DashboardPage() {
     );
   }
 
-  if (user.role === "admin") {
+  if (user?.role === "admin") {
     router.push("/admin");
     return null;
   }
 
-  if (user.role === "company") {
+  if (user?.role === "company") {
     router.push("/company");
     return null;
   }

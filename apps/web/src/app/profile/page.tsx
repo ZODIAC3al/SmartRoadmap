@@ -319,7 +319,7 @@ function ProfileContent() {
 
   // Auto-activate tab from URL query param (e.g. /profile?tab=salary)
   useEffect(() => {
-    const tabParam = searchParams.get("tab");
+    const tabParam = searchParams?.get("tab");
     const validTabs = ["account", "salary", "recommendations", "security", "notifications", "interface", "additional"];
     if (tabParam && validTabs.includes(tabParam as any)) {
       setActiveTab(tabParam as any);

@@ -8,9 +8,9 @@ export class GroqProvider implements AiProvider {
   private readonly model: string;
 
   constructor(private readonly config: ConfigService) {
-    this.apiKey = this.config.get<string>('GROQ_API_KEY') || '';
+    this.apiKey = (this.config.get<string>('GROQ_API_KEY') || '').trim();
     this.model =
-      this.config.get<string>('GROQ_MODEL') || 'llama-3.3-70b-versatile';
+      (this.config.get<string>('GROQ_MODEL') || 'openai/gpt-oss-120b').trim();
   }
 
   async generateText(prompt: string, system?: string): Promise<string> {
@@ -18,31 +18,53 @@ export class GroqProvider implements AiProvider {
       throw new Error('GROQ_API_KEY is not configured');
     }
 
-    const url = 'https://api.groq.com/openai/v1/chat/completions';
-    const body = {
-      model: this.model,
-      messages: [
-        ...(system ? [{ role: 'system' as const, content: system }] : []),
-        { role: 'user' as const, content: prompt },
-      ],
-    };
+    const modelsToTry = Array.from(
+      new Set([
+        this.model,
+        'openai/gpt-oss-120b',
+        'qwen/qwen3.6-27b',
+        'groq/compound',
+        'openai/gpt-oss-20b',
+      ]),
+    );
+    let lastError: Error | null = null;
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
+    for (const m of modelsToTry) {
+      try {
+        const url = 'https://api.groq.com/openai/v1/chat/completions';
+        const body = {
+          model: m,
+          messages: [
+            ...(system ? [{ role: 'system' as const, content: system }] : []),
+            { role: 'user' as const, content: prompt },
+          ],
+        };
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Groq API error: ${res.statusText} - ${errorText}`);
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Groq API error (${m}): ${res.statusText} - ${errorText}`);
+        }
+
+        const data: any = await res.json();
+        return data.choices?.[0]?.message?.content?.trim() ?? '';
+      } catch (err: any) {
+        lastError = err;
+        this.logger.debug(
+          `Groq model ${m} unavailable (${err.message}). Trying next fallback...`,
+        );
+      }
     }
 
-    const data: any = await res.json();
-    return data.choices?.[0]?.message?.content?.trim() ?? '';
+    throw lastError || new Error('All Groq models failed');
   }
 
   async generateJSON<T>(
@@ -54,36 +76,58 @@ export class GroqProvider implements AiProvider {
       throw new Error('GROQ_API_KEY is not configured');
     }
 
-    const url = 'https://api.groq.com/openai/v1/chat/completions';
-    const body = {
-      model: this.model,
-      response_format: { type: 'json_object' },
-      messages: [
-        {
-          role: 'system',
-          content: `${system || ''}\nYou MUST return a JSON object matching this schema: ${schemaDescription}`,
-        },
-        { role: 'user', content: prompt },
-      ],
-    };
+    const modelsToTry = Array.from(
+      new Set([
+        this.model,
+        'openai/gpt-oss-120b',
+        'qwen/qwen3.6-27b',
+        'groq/compound',
+        'openai/gpt-oss-20b',
+      ]),
+    );
+    let lastError: Error | null = null;
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-    });
+    for (const m of modelsToTry) {
+      try {
+        const url = 'https://api.groq.com/openai/v1/chat/completions';
+        const body = {
+          model: m,
+          response_format: { type: 'json_object' },
+          messages: [
+            {
+              role: 'system',
+              content: `${system || ''}\nYou MUST return a JSON object matching this schema: ${schemaDescription}`,
+            },
+            { role: 'user', content: prompt },
+          ],
+        };
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`Groq API JSON error: ${res.statusText} - ${errorText}`);
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.apiKey}`,
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`Groq API JSON error (${m}): ${res.statusText} - ${errorText}`);
+        }
+
+        const data: any = await res.json();
+        const content = data.choices?.[0]?.message?.content ?? '{}';
+        return JSON.parse(content) as T;
+      } catch (err: any) {
+        lastError = err;
+        this.logger.debug(
+          `Groq JSON model ${m} unavailable (${err.message}). Trying next fallback...`,
+        );
+      }
     }
 
-    const data: any = await res.json();
-    const content = data.choices?.[0]?.message?.content ?? '{}';
-    return JSON.parse(content) as T;
+    throw lastError || new Error('All Groq JSON models failed');
   }
 
   async textToSpeech(text: string, voice?: string): Promise<Buffer> {

@@ -24,6 +24,7 @@ import {
   CreateJobDto,
   UpdateApplicationStatusDto,
 } from './dto/hiring.dto';
+import { PlanGuard, RequirePlan } from '../billing/plan-guard.guard';
 
 @ApiTags('hiring')
 @ApiBearerAuth()
@@ -170,4 +171,39 @@ export class HiringController {
   getCandidates() {
     return this.hiringService.getCandidates();
   }
+
+  @UseGuards(RolesGuard)
+  @Roles('company', 'admin')
+  @Post('candidates/evaluate-ai')
+  evaluateCandidateAi(
+    @Body() body: { candidateSkills: string[]; requiredSkills?: string[] },
+  ) {
+    return this.hiringService.evaluateCandidateWithAi(
+      body.candidateSkills || [],
+      body.requiredSkills,
+    );
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('company', 'admin')
+  @Post('saved-searches')
+  createSavedSearch(@CurrentUser() user: JwtUser, @Body() dto: any) {
+    return this.hiringService.createSavedSearch(user, dto);
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('company', 'admin')
+  @Get('saved-searches')
+  getSavedSearches(@CurrentUser() user: JwtUser) {
+    return this.hiringService.getSavedSearches(user);
+  }
+
+  @UseGuards(RolesGuard, PlanGuard)
+  @RequirePlan('scale')
+  @Roles('company', 'admin')
+  @Get('analytics/skill-gaps')
+  getSkillGapAnalytics(@Query('jobId') jobId: string) {
+    return this.hiringService.getSkillGapAnalytics(jobId);
+  }
 }
+

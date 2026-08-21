@@ -597,6 +597,10 @@ interface AppContextType {
   t: (key: string) => string;
 }
 
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { setTheme as setReduxTheme } from "@/store/slices/uiSlice";
+import { connectSocket } from "@/store/socket/socketMiddleware";
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppContextProvider({
@@ -604,16 +608,22 @@ export function AppContextProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [theme, setThemeState] = useState<Theme>("smartlight");
+  const dispatch = useAppDispatch();
+  const reduxTheme = useAppSelector((state) => state.ui.theme);
+  const [theme, setThemeState] = useState<Theme>(reduxTheme || "smartlight");
   const [locale, setLocaleState] = useState<Locale>("en");
 
-  // Load configuration on mount
+  // Load configuration on mount & connect socket
   useEffect(() => {
     const savedTheme = localStorage.getItem("smart_theme") as Theme;
     const savedLocale = localStorage.getItem("smart_locale") as Locale;
 
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined;
+    dispatch(connectSocket({ token }));
+
     if (savedTheme) {
       setThemeState(savedTheme);
+      dispatch(setReduxTheme(savedTheme));
       document.documentElement.setAttribute("data-theme", savedTheme);
     } else {
       document.documentElement.setAttribute("data-theme", "smartlight");
@@ -680,6 +690,7 @@ export function AppContextProvider({
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
+    dispatch(setReduxTheme(newTheme));
     localStorage.setItem("smart_theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
   };

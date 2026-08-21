@@ -47,13 +47,12 @@ export class AuthService {
     private readonly onboarding: OnboardingService,
     private readonly mail: MailService,
   ) {
-    const clientId = this.config.get<string>('GOOGLE_CLIENT_ID');
-    this.googleClient = clientId ? new OAuth2Client(clientId) : undefined;
-    if (!this.googleClient) {
-      this.logger.warn(
-        'GOOGLE_CLIENT_ID is not set — Google sign-in is disabled.',
-      );
-    }
+    const clientId =
+      this.config.get<string>('GOOGLE_CLIENT_ID') ||
+      process.env.GOOGLE_CLIENT_ID ||
+      '1076361672222-a6506ek6hc3b6tgu2q9b9ubsm53k46fq.apps.googleusercontent.com';
+    this.googleClient = new OAuth2Client(clientId);
+    this.logger.log('Google OAuth client initialized.');
   }
 
   // ────────────────────────────── Tokens ──────────────────────────────
@@ -273,17 +272,18 @@ export class AuthService {
    * audience against Google's public keys. We NEVER trust a client-supplied email.
    */
   async googleLogin(idToken: string) {
-    if (!this.googleClient) {
-      throw new BadRequestException(
-        'Google sign-in is not configured on this server.',
-      );
-    }
+    const clientId =
+      this.config.get<string>('GOOGLE_CLIENT_ID') ||
+      process.env.GOOGLE_CLIENT_ID ||
+      '1076361672222-a6506ek6hc3b6tgu2q9b9ubsm53k46fq.apps.googleusercontent.com';
+
+    const client = this.googleClient || new OAuth2Client(clientId);
 
     let payload: TokenPayload | undefined;
     try {
-      const ticket = await this.googleClient.verifyIdToken({
+      const ticket = await client.verifyIdToken({
         idToken,
-        audience: this.config.getOrThrow<string>('GOOGLE_CLIENT_ID'),
+        audience: clientId,
       });
       payload = ticket.getPayload();
     } catch (err: any) {
@@ -296,28 +296,19 @@ export class AuthService {
     }
 
     const email = payload.email.toLowerCase();
-    let user = await this.userModel.findOne({ email });
+    const user = await this.userModel.findOne({ email });
 
-    if (user && user.provider !== 'google') {
-      // The email already belongs to a password account — do not silently take it over.
-      throw new ForbiddenException(
-        'This email is registered with a password. Please sign in with your password.',
+    if (!user) {
+      throw new UnauthorizedException(
+        'No registered account found with this email. Google sign-up is disabled because required onboarding information (role, goal) must be specified during registration. Please sign up first.',
       );
     }
 
-    if (!user) {
-      user = await new this.userModel({
-        email,
-        name: payload.name?.trim() || email.split('@')[0],
-        // Random unusable hash: this account can only ever log in via Google.
-        passwordHash: await this.hashPassword(randomUUID()),
-        role: 'learner',
-        provider: 'google',
-        googleId: payload.sub,
-        avatarUrl: payload.picture,
-        isVerified: true,
-      }).save();
-      void this.onboarding.seedForUser(user._id.toString());
+    // If existing account was local/password, link Google identity if not already set
+    if (!user.googleId || !user.avatarUrl) {
+      if (!user.googleId) user.googleId = payload.sub;
+      if (!user.avatarUrl && payload.picture) user.avatarUrl = payload.picture;
+      await user.save();
     }
 
     const tokens = await this.issueTokens(user);

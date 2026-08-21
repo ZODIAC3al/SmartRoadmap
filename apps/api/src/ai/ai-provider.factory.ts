@@ -93,7 +93,7 @@ export class AiProviderFactory {
 
   getProvidersChain(): AiProvider[] {
     const chain: AiProvider[] = [];
-    const order = ['openai', 'gemini', 'groq', 'huggingface'];
+    const order = ['gemini', 'groq', 'openai', 'huggingface'];
     for (const name of order) {
       const p = this.providers.get(name);
       if (p && p.constructor.name !== 'MockProvider') {

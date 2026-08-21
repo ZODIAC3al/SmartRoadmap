@@ -75,7 +75,9 @@ const localDict = {
   }
 };
 
-const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_ID =
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+  "1076361672222-a6506ek6hc3b6tgu2q9b9ubsm53k46fq.apps.googleusercontent.com";
 
 export default function LoginPage() {
   const { locale, toggleLocale } = useApp();
@@ -92,6 +94,7 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement>(null);
+  const googleInitializedRef = useRef(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,6 +124,13 @@ export default function LoginPage() {
   };
 
   const handleGoogleCredential = async (credential: string) => {
+    if (!credential || typeof credential !== "string" || credential.length < 20) {
+      setErrorMsg(
+        "Invalid Google credential received. Please ensure your current origin (e.g. http://localhost:3001) is added to Authorized JavaScript Origins in Google Cloud Console."
+      );
+      return;
+    }
+
     setLoading(true);
     setErrorMsg("");
     try {
@@ -143,31 +153,50 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (!GOOGLE_CLIENT_ID || !googleButtonRef.current) return;
+    if (!GOOGLE_CLIENT_ID || !googleButtonRef.current || googleInitializedRef.current) return;
 
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.onload = () => {
+    const initGoogle = () => {
       const google = (window as any).google;
-      if (!google) return;
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: (response: { credential: string }) =>
-          handleGoogleCredential(response.credential),
-      });
-      google.accounts.id.renderButton(googleButtonRef.current, {
-        theme: "outline",
-        size: "large",
-        width: 320,
-        text: "continue_with",
-      });
-    };
-    document.body.appendChild(script);
+      if (!google || googleInitializedRef.current) return;
+      googleInitializedRef.current = true;
 
-    return () => {
-      script.remove();
+      try {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: (response: { credential: string }) =>
+            handleGoogleCredential(response.credential),
+        });
+
+        if (googleButtonRef.current) {
+          googleButtonRef.current.innerHTML = "";
+          google.accounts.id.renderButton(googleButtonRef.current, {
+            theme: "outline",
+            size: "large",
+            width: 320,
+            text: "continue_with",
+          });
+        }
+      } catch (err) {
+        console.warn("Google Sign-In initialization deferred:", err);
+      }
     };
+
+    if ((window as any).google) {
+      initGoogle();
+    } else {
+      const existingScript = document.querySelector(
+        'script[src="https://accounts.google.com/gsi/client"]'
+      );
+      if (!existingScript) {
+        const script = document.createElement("script");
+        script.src = "https://accounts.google.com/gsi/client";
+        script.async = true;
+        script.onload = initGoogle;
+        document.body.appendChild(script);
+      } else {
+        existingScript.addEventListener("load", initGoogle);
+      }
+    }
   }, []);
 
   return (
@@ -298,12 +327,17 @@ export default function LoginPage() {
 
           {/* Social logins */}
           <div className="flex items-center justify-center gap-4 pt-2">
-            <button className="btn btn-circle btn-outline border-base-300 text-blue-600 hover:bg-blue-50/50 flex items-center justify-center">
-              <svg className="w-5 h-5 text-[#1877F2]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-            </button>
-            <button className="btn btn-circle btn-outline border-base-300 text-red-500 hover:bg-red-50/50 flex items-center justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                const google = (window as any).google;
+                if (google?.accounts?.id) {
+                  google.accounts.id.prompt();
+                }
+              }}
+              className="btn btn-circle btn-outline border-base-300 text-red-500 hover:bg-red-50/50 flex items-center justify-center"
+              title="Sign in with Google"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>

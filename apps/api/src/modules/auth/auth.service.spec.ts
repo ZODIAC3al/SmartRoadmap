@@ -140,7 +140,7 @@ describe('AuthService', () => {
     ).rejects.toThrow();
   });
 
-  it('blocks google login on an email owned by a local (password) account', async () => {
+  it('allows Google login for existing accounts and links googleId', async () => {
     const svc: any = service;
     svc.googleClient = {
       verifyIdToken: async () => ({
@@ -148,17 +148,44 @@ describe('AuthService', () => {
           email: 'local@test.com',
           email_verified: true,
           sub: 'g1',
+          picture: 'https://avatar.url',
         }),
       }),
     };
+    svc.config.get = (k: string) => CONFIG[k] ?? 'client-id';
     svc.config.getOrThrow = (k: string) => CONFIG[k] ?? 'client-id';
+
+    const saveMock = jest.fn().mockResolvedValue(true);
     FakeUserModel.findOne.mockResolvedValueOnce({
+      _id: 'user123',
       provider: 'local',
       email: 'local@test.com',
+      role: 'learner',
+      save: saveMock,
     });
+
+    const res = await service.googleLogin('valid.google.token');
+    expect(res).toBeDefined();
+    expect(saveMock).toHaveBeenCalled();
+  });
+
+  it('rejects Google login for unregistered accounts', async () => {
+    const svc: any = service;
+    svc.googleClient = {
+      verifyIdToken: async () => ({
+        getPayload: () => ({
+          email: 'unregistered@test.com',
+          email_verified: true,
+          sub: 'g2',
+        }),
+      }),
+    };
+    svc.config.get = (k: string) => CONFIG[k] ?? 'client-id';
+    svc.config.getOrThrow = (k: string) => CONFIG[k] ?? 'client-id';
+    FakeUserModel.findOne.mockResolvedValueOnce(null);
 
     await expect(
       service.googleLogin('valid.google.token'),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 });
