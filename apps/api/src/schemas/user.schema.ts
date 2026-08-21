@@ -109,6 +109,25 @@ export class User extends Document {
 
   @Prop({ select: false })
   resetExpiresAt?: Date;
+
+  // ── Company approval (only populated when role === 'company') ──
+  @Prop({
+    type: String,
+    enum: ['pending', 'accepted', 'rejected', 'blocked'],
+    default: undefined, // only set for company accounts
+    index: true,
+    sparse: true,
+  })
+  companyStatus?: 'pending' | 'accepted' | 'rejected' | 'blocked';
+
+  @Prop()
+  companyRejectionReason?: string;
+
+  @Prop({ type: 'ObjectId', ref: 'User' })
+  companyReviewedBy?: string;
+
+  @Prop()
+  companyReviewedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -115,11 +115,11 @@ export default function AdminCertificatesPage() {
   }
 
   return (
-    <div className={`sr-console min-h-screen text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
-      <div className="sr-shell max-w-7xl mx-auto space-y-8">
+    <div className={`min-h-screen bg-base-100 text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
+      <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Navigation Admin Header Banner */}
-        <div className="sr-stage sr-signal flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 rounded-3xl p-6 sm:p-8 bg-base-200 border border-base-300 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-6 sm:p-8 shadow-sm">
           <div>
             <span className="text-xs uppercase font-extrabold text-[#7c3aed] tracking-wider block">
               {L("VERIFICATION GATEWAY", "بوابة التحقق والتوثيق")}

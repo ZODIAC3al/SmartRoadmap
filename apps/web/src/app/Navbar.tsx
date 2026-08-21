@@ -27,6 +27,7 @@ import {
   TrendingUp,
   Settings,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 
 // Crisp SVG Icons representing OS Platforms for PWA download
@@ -271,9 +272,9 @@ export default function Navbar() {
   const isLinkActive = (path: string) => pathname === path;
 
   const navLinks = [
-    { href: "/roadmap", label: t("nav.roadmap"), show: !!user },
-    { href: "/cv", label: t("nav.cv"), show: !!user },
-    { href: "/portfolio/builder", label: "Portfolio", show: !!user },
+    { href: "/roadmap", label: t("nav.roadmap"), show: !!user && user?.role !== "admin" },
+    { href: "/cv", label: t("nav.cv"), show: !!user && user?.role !== "admin" },
+    { href: "/portfolio/builder", label: "Portfolio", show: !!user && user?.role !== "admin" },
     {
       href: "/hiring",
       label: t("nav.jobsMatch"),
@@ -287,27 +288,37 @@ export default function Navbar() {
     {
       href: "/community",
       label: locale === "en" ? "Community" : "المجتمع",
-      show: !!user,
+      show: !!user && user?.role !== "admin",
     },
     {
       href: "/mentors",
       label: locale === "en" ? "Mentors" : "الموجهين",
-      show: !!user,
+      show: !!user && user?.role !== "admin",
     },
     {
       href: "/resources",
       label: locale === "en" ? "Resources" : "المراجع",
-      show: !!user,
+      show: !!user && user?.role !== "admin",
     },
     {
       href: "/admin",
-      label: locale === "en" ? "Admin" : "الإدارة",
+      label: locale === "en" ? "Admin Panel" : "لوحة الإدارة",
+      show: !!user && user?.role === "admin",
+    },
+    {
+      href: "/admin/users",
+      label: locale === "en" ? "Users" : "المستخدمين",
+      show: !!user && user?.role === "admin",
+    },
+    {
+      href: "/admin/certificates",
+      label: locale === "en" ? "Certificates" : "الشهادات",
       show: !!user && user?.role === "admin",
     },
     { href: "/pricing", label: t("nav.pricing"), show: true },
     { href: "/contact", label: t("nav.contact"), show: true },
     // Mock Interview link
-    { href: "/mock-interview", label: "Mock Interview", show: !!user },
+    { href: "/mock-interview", label: "Mock Interview", show: !!user && user?.role !== "admin" },
   ];
 
   return (
@@ -327,50 +338,91 @@ export default function Navbar() {
 
         {/* Desktop nav links */}
         <nav className="hidden lg:flex items-center gap-3 xl:gap-5 text-[11px] font-bold uppercase tracking-wider flex-1 justify-center">
-          {/* Primary core links */}
-          <Link
-            href="/dashboard"
-            className={`transition-colors hover:text-[#10B981] ${
-              isLinkActive("/dashboard")
-                ? "text-[#10B981] font-black"
-                : "text-base-content/70"
-            }`}
-          >
-            {locale === "en" ? "Dashboard" : "لوحة التحكم"}
-          </Link>
-          <Link
-            href="/roadmap"
-            className={`transition-colors hover:text-[#10B981] ${
-              isLinkActive("/roadmap")
-                ? "text-[#10B981] font-black"
-                : "text-base-content/70"
-            }`}
-          >
-            {t("nav.roadmap")}
-          </Link>
-          <Link
-            href="/cv"
-            className={`transition-colors hover:text-[#10B981] ${
-              isLinkActive("/cv")
-                ? "text-[#10B981] font-black"
-                : "text-base-content/70"
-            }`}
-          >
-            {t("nav.cv")}
-          </Link>
-          <Link
-            href="/community"
-            className={`transition-colors hover:text-[#10B981] ${
-              isLinkActive("/community")
-                ? "text-[#10B981] font-black"
-                : "text-base-content/70"
-            }`}
-          >
-            {locale === "en" ? "Community" : "المجتمع"}
-          </Link>
+          {/* Primary core links - Hidden for Admins */}
+          {user?.role !== "admin" && (
+            <>
+              <Link
+                href="/dashboard"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/dashboard")
+                    ? "text-[#10B981] font-black"
+                    : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Dashboard" : "لوحة التحكم"}
+              </Link>
+              <Link
+                href="/roadmap"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/roadmap")
+                    ? "text-[#10B981] font-black"
+                    : "text-base-content/70"
+                }`}
+              >
+                {t("nav.roadmap")}
+              </Link>
+              <Link
+                href="/cv"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/cv")
+                    ? "text-[#10B981] font-black"
+                    : "text-base-content/70"
+                }`}
+              >
+                {t("nav.cv")}
+              </Link>
+              <Link
+                href="/community"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/community")
+                    ? "text-[#10B981] font-black"
+                    : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Community" : "المجتمع"}
+              </Link>
+            </>
+          )}
+
+          {/* Admin core links */}
+          {user?.role === "admin" && (
+            <>
+              <Link
+                href="/admin"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/admin")
+                    ? "text-[#10B981] font-black"
+                    : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Admin Panel" : "لوحة الإدارة"}
+              </Link>
+              <Link
+                href="/admin/users"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/admin/users")
+                    ? "text-[#10B981] font-black"
+                    : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Users" : "المستخدمين"}
+              </Link>
+              <Link
+                href="/admin/certificates"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/admin/certificates")
+                    ? "text-[#10B981] font-black"
+                    : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Certificates" : "الشهادات"}
+              </Link>
+            </>
+          )}
 
           {/* Explore Dropdown with Professional Lucide Icons */}
-          <div className="dropdown dropdown-hover dropdown-bottom dropdown-end">
+          {user?.role !== "admin" && (
+            <div className="dropdown dropdown-hover dropdown-bottom dropdown-end">
             <label
               tabIndex={0}
               className="flex items-center gap-1.5 cursor-pointer transition-colors text-base-content/70 hover:text-[#10B981] font-bold py-1 px-1.5 rounded-lg"
@@ -402,12 +454,20 @@ export default function Navbar() {
                 </Link>
               </li>
               {user?.role === "learner" && (
-                <li>
-                  <Link href="/hiring" className={`flex items-center gap-2.5 ${isLinkActive("/hiring") ? "text-[#10B981] font-bold" : ""}`}>
-                    <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
-                    <span>{t("nav.jobsMatch")}</span>
-                  </Link>
-                </li>
+                <>
+                  <li>
+                    <Link href="/hiring" className={`flex items-center gap-2.5 ${isLinkActive("/hiring") ? "text-[#10B981] font-bold" : ""}`}>
+                      <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
+                      <span>{t("nav.jobsMatch")}</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/profile?tab=recommendations" className={`flex items-center gap-2.5 ${isLinkActive("/profile") && false ? "text-[#10B981] font-bold" : ""}`}>
+                      <Sparkles className="w-4 h-4 text-violet-500 shrink-0" />
+                      <span>{locale === "en" ? "Recommended" : "التوصيات الذكية"}</span>
+                    </Link>
+                  </li>
+                </>
               )}
               {user?.role === "company" && (
                 <li>
@@ -439,6 +499,7 @@ export default function Navbar() {
               </li>
             </ul>
           </div>
+          )}
         </nav>
 
         {/* Right side controls */}
@@ -630,18 +691,22 @@ export default function Navbar() {
                     </Link>
                   </li>
                 )}
-                <li>
-                  <Link href="/roadmap" className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-emerald-500" />
-                    <span>{t("nav.roadmap")}</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/cv" className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-500" />
-                    <span>{t("nav.cv")}</span>
-                  </Link>
-                </li>
+                {user.role !== "admin" && (
+                  <>
+                    <li>
+                      <Link href="/roadmap" className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-emerald-500" />
+                        <span>{t("nav.roadmap")}</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/cv" className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-blue-500" />
+                        <span>{t("nav.cv")}</span>
+                      </Link>
+                    </li>
+                  </>
+                )}
                 {user.role === "learner" && (
                   <li>
                     <Link href="/hiring" className="flex items-center gap-2">

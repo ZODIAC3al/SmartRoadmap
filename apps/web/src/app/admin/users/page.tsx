@@ -214,38 +214,38 @@ export default function AdminUsersPage() {
   const isRtl = locale === "ar";
 
   return (
-    <div className={`sr-console min-h-screen text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
-      <div className="sr-shell max-w-6xl mx-auto space-y-8">
+    <div className={`min-h-screen bg-base-100 text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
+      <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Navigation Admin Header Banner */}
-        <div className="sr-stage sr-signal flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 rounded-3xl p-6 sm:p-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
           <div>
-            <span className="sr-kicker">
+            <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
               {isRtl ? "بوابة الأمان والعمليات" : "PLATFORM OPERATIONS & SECURITY"}
             </span>
-            <h1 className="text-2xl font-black tracking-tight mt-1">
+            <h1 className="text-xl font-extrabold text-base-content mt-1">
               {isRtl ? "إدارة الأعضاء وسجلات الأمان" : "User Operations & Audit Trails"}
             </h1>
-            <p className="text-xs text-base-content/50 mt-0.5">
+            <p className="text-sm text-base-content/60 mt-0.5">
               {isRtl ? "تحكم في أدوار الأعضاء، وراقب محاولات الدخول غير الاعتيادية وسجلات الأمان." : "Modify database scopes, audit user role permissions, and view authentication trails."}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-3">
             <Link
               href="/admin/certificates"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
             >
               {isRtl ? "مراجعة الشهادات" : "Certificates"}
             </Link>
             <Link
               href="/admin/content"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
             >
               {isRtl ? "إشراف المحتوى" : "Moderation"}
             </Link>
             <Link
               href="/admin"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
             >
               {isRtl ? "لوحة التحليلات" : "Back to analytics"}
             </Link>
@@ -256,7 +256,7 @@ export default function AdminUsersPage() {
         <div className="grid md:grid-cols-3 gap-6">
           
           {/* Users List Column */}
-          <div className="sr-panel md:col-span-2 rounded-2xl p-5 space-y-4">
+          <div className="bg-base-200 border border-base-300 rounded-2xl shadow-sm p-5 space-y-4 md:col-span-2">
             <div className="flex justify-between items-center flex-wrap gap-3">
               <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
                 {isRtl ? "إدارة أدوار الأعضاء" : "Manage User Roles"}
@@ -352,7 +352,7 @@ export default function AdminUsersPage() {
           </div>
 
           {/* Severity Breakdown */}
-          <div className="sr-panel md:col-span-1 rounded-2xl p-5 space-y-4">
+          <div className="bg-base-200 border border-base-300 md:col-span-1 rounded-2xl shadow-sm p-5 space-y-4">
             <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
               {isRtl ? "تحليل مخاطر الأمان" : "Security Risk Index"}
             </h3>
@@ -374,8 +374,8 @@ export default function AdminUsersPage() {
 
         </div>
 
-        {/* Audit Log list */}
-        <div className="sr-panel rounded-2xl p-5 space-y-4">
+        {/* Audit Log / Security Events */}
+        <div className="bg-base-200 border border-base-300 rounded-2xl shadow-sm p-5 mt-8 space-y-4">
           <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
             {isRtl ? "سجل مراقبة العمليات الكامل" : "Audit Trail Index"}
           </h3>
@@ -430,7 +430,7 @@ export default function AdminUsersPage() {
       {isAddModalOpen && (
         <div className="modal modal-open">
           <div
-            className="sr-panel modal-box rounded-2xl shadow-xl"
+            className="bg-base-200 border border-base-300 modal-box rounded-2xl shadow-xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="admin-add-user-title"
@@ -508,7 +508,7 @@ export default function AdminUsersPage() {
       {isEditModalOpen && editingUser && (
         <div className="modal modal-open">
           <div
-            className="sr-panel modal-box rounded-2xl shadow-xl"
+            className="bg-base-200 border border-base-300 modal-box rounded-2xl shadow-xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="admin-edit-user-title"

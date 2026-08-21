@@ -142,7 +142,6 @@ export default function CommunityPage() {
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSpace) return;
-
     try {
       await apiJson(`/community/spaces/${selectedSpace._id}/posts`, {
         method: "POST",
@@ -178,14 +177,12 @@ export default function CommunityPage() {
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPost) return;
-
     try {
       await apiJson(`/community/posts/${selectedPost._id}/comments`, {
         method: "POST",
         body: JSON.stringify({ content: newCommentContent }),
       });
       setNewCommentContent("");
-      // Refresh comments
       const data = await apiJson<Comment[]>(`/community/posts/${selectedPost._id}/comments`);
       setComments(data);
       if (selectedSpace) fetchPosts(selectedSpace._id);
@@ -197,7 +194,6 @@ export default function CommunityPage() {
   const handleReport = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!flaggedContentId || !flaggedType) return;
-
     try {
       await apiJson(`/community/report`, {
         method: "POST",
@@ -228,19 +224,19 @@ export default function CommunityPage() {
   const currentUserId = getUserId(user);
 
   return (
-    <div className={`sr-console pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
-      <div className="sr-shell max-w-6xl mx-auto space-y-6">
-        
+    <div className={`min-h-screen text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
+      <div className="max-w-6xl mx-auto space-y-6 pt-4">
+
         {/* Header Block */}
-        <div className="sr-stage sr-signal flex flex-col md:flex-row justify-between items-start md:items-center gap-5 rounded-3xl p-6 sm:p-8">
-          <div>
-            <span className="sr-kicker">
-              {isRtl ? "مساحة عملية لتبادل الخبرات" : "PEOPLE. PRACTICE. PROGRESS."}
+        <div className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-5 shadow-xl relative overflow-hidden">
+          <div className="space-y-1 z-10">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-extrabold uppercase tracking-widest font-mono border border-emerald-500/20">
+              💬 {isRtl ? "مساحة عملية لتبادل الخبرات" : "PEOPLE · PRACTICE · PROGRESS"}
             </span>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-[-0.035em] mt-3 text-white">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-base-content mt-2">
               {isRtl ? "مساحة المجتمع" : "Community Exchange"}
             </h1>
-            <p className="text-sm text-slate-300/75 mt-2 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-base-content/60 max-w-2xl leading-relaxed">
               {isRtl
                 ? "ناقش مشاكل حقيقية، شارك ما تعلمته، وابنِ سمعتك من خلال مساهمات مفيدة يمكن للمجتمع تقييمها."
                 : "Ask better questions, share field notes, and build a visible reputation through useful contributions."}
@@ -248,19 +244,19 @@ export default function CommunityPage() {
           </div>
           <button
             onClick={() => setShowCreatePost(true)}
-            className="btn btn-sm sr-button rounded-xl font-bold px-5"
+            className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-2xl font-bold px-5 text-xs gap-2 shadow-lg shrink-0 z-10"
           >
-            {isRtl ? "موضوع جديد" : "Start a discussion"}
+            ✏️ {isRtl ? "موضوع جديد" : "Start a discussion"}
           </button>
         </div>
 
         {/* Dual Grid Layout */}
         <div className="grid md:grid-cols-4 gap-6">
-          
+
           {/* Left Column: Spaces directory */}
           <div className="md:col-span-1 space-y-4">
-            <div className="sr-panel rounded-2xl p-4">
-              <h3 className="font-extrabold text-[10px] uppercase tracking-[0.16em] font-mono text-cyan-200/60 mb-3">
+            <div className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-2xl p-4 shadow-lg">
+              <h3 className="font-extrabold text-[10px] uppercase tracking-widest font-mono text-base-content/50 mb-3">
                 {isRtl ? "غرف النقاش" : "Discussion Spaces"}
               </h3>
               <div className="space-y-1.5">
@@ -273,7 +269,7 @@ export default function CommunityPage() {
                       className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-bold transition-all text-start border ${
                         isActive
                           ? "bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]"
-                          : "bg-base-100 hover:bg-base-300 border-transparent text-base-content/70"
+                          : "bg-base-100 hover:bg-base-300 border-transparent text-base-content/70 hover:border-base-300"
                       }`}
                     >
                       <div className="truncate">
@@ -284,7 +280,7 @@ export default function CommunityPage() {
                       </div>
                       {space.recommended && (
                         <span
-                          className="sr-chip border-none px-2"
+                          className="text-[9px] font-bold font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-wide shrink-0"
                           title={isRtl ? "موصى به لمهاراتك" : "Recommended for your skills"}
                         >
                           MATCH
@@ -299,12 +295,12 @@ export default function CommunityPage() {
 
           {/* Right Column: Feed and comment split */}
           <div className="md:col-span-3 space-y-6">
-            
+
             {/* Create Post Dialog Overlay */}
             {showCreatePost && (
-              <div className="sr-panel rounded-2xl p-6 space-y-4 animate-in fade-in slide-in-from-top-4 duration-250">
+              <div className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-2xl p-6 space-y-4 shadow-xl animate-in fade-in slide-in-from-top-4 duration-250">
                 <div className="flex justify-between items-center border-b border-base-300 pb-3">
-                  <h3 className="font-extrabold text-sm">
+                  <h3 className="font-extrabold text-sm text-base-content">
                     {isRtl ? "إنشاء منشور في #" : "Publish a new post in #"} {selectedSpace?.name}
                   </h3>
                   <button
@@ -316,7 +312,9 @@ export default function CommunityPage() {
                 </div>
                 <form onSubmit={handleCreatePost} className="space-y-4 text-xs font-semibold">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "عنوان المنشور" : "Title"}</label>
+                    <label className="text-[10px] text-base-content/50 uppercase block font-mono tracking-wider">
+                      {isRtl ? "عنوان المنشور" : "Title"}
+                    </label>
                     <input
                       type="text"
                       required
@@ -327,7 +325,9 @@ export default function CommunityPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "المحتوى" : "Content (Markdown Supported)"}</label>
+                    <label className="text-[10px] text-base-content/50 uppercase block font-mono tracking-wider">
+                      {isRtl ? "المحتوى" : "Content (Markdown Supported)"}
+                    </label>
                     <textarea
                       required
                       rows={5}
@@ -339,7 +339,9 @@ export default function CommunityPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "العلامات (مفصولة بفاصلة)" : "Tags (comma separated)"}</label>
+                      <label className="text-[10px] text-base-content/50 uppercase block font-mono tracking-wider">
+                        {isRtl ? "العلامات (مفصولة بفاصلة)" : "Tags (comma separated)"}
+                      </label>
                       <input
                         type="text"
                         placeholder="react, typescript, beginners"
@@ -356,7 +358,7 @@ export default function CommunityPage() {
                         onChange={(e) => setNewPostIsArticle(e.target.checked)}
                         className="checkbox checkbox-primary"
                       />
-                      <label htmlFor="isArticle" className="text-xs select-none">
+                      <label htmlFor="isArticle" className="text-xs select-none text-base-content/70">
                         {isRtl ? "أنشئها كمقالة تعليمية" : "Publish as educational article"}
                       </label>
                     </div>
@@ -371,7 +373,7 @@ export default function CommunityPage() {
                     </button>
                     <button
                       type="submit"
-                    className="btn btn-sm sr-button rounded-xl"
+                      className="btn btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-bold"
                     >
                       {isRtl ? "نشر الموضوع" : "Publish Post"}
                     </button>
@@ -383,7 +385,7 @@ export default function CommunityPage() {
             {/* Posts Feed */}
             <div className="space-y-4">
               {posts.length === 0 ? (
-                <div className="sr-panel p-12 rounded-2xl text-center space-y-3">
+                <div className="bg-base-200/80 backdrop-blur-md border border-base-300 p-12 rounded-2xl text-center space-y-3 shadow-lg">
                   <span className="text-3xl">☕</span>
                   <h4 className="font-extrabold text-sm text-base-content">
                     {isRtl ? "لا توجد منشورات هنا بعد" : "No discussions started yet"}
@@ -396,7 +398,10 @@ export default function CommunityPage() {
                 </div>
               ) : (
                 posts.map((post) => (
-                  <div key={post._id} className="sr-card rounded-2xl p-5 space-y-4">
+                  <div
+                    key={post._id}
+                    className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-2xl p-5 space-y-4 shadow-lg hover:border-[#10B981]/30 transition-all"
+                  >
                     {/* Author block */}
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex items-center gap-3">
@@ -407,7 +412,7 @@ export default function CommunityPage() {
                             className="w-8 h-8 rounded-full object-cover border border-base-300"
                           />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs font-sans">
+                          <div className="w-8 h-8 rounded-full bg-[#10B981]/20 text-[#10B981] flex items-center justify-center font-bold text-xs font-sans border border-[#10B981]/30">
                             {(post.authorId?.name || "?").split(" ").map((n) => n[0]).join("")}
                           </div>
                         )}
@@ -449,10 +454,13 @@ export default function CommunityPage() {
                           📚 {isRtl ? "مقالة تعليمية" : "Educational Article"}
                         </span>
                       )}
-                      <h3 className="font-black text-sm text-base-content leading-tight hover:underline cursor-pointer" onClick={() => handleViewComments(post)}>
+                      <h3
+                        className="font-black text-sm text-base-content leading-tight hover:text-[#10B981] cursor-pointer transition-colors"
+                        onClick={() => handleViewComments(post)}
+                      >
                         {post.title}
                       </h3>
-                      <p className="text-xs text-base-content/85 whitespace-pre-line leading-relaxed">
+                      <p className="text-xs text-base-content/75 whitespace-pre-line leading-relaxed">
                         {post.content}
                       </p>
                     </div>
@@ -461,7 +469,10 @@ export default function CommunityPage() {
                     {post.tags && post.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {post.tags.map((t) => (
-                          <span key={t} className="text-[10px] font-bold text-base-content/50 font-mono bg-base-100 px-2 py-0.5 rounded-lg border border-base-300">
+                          <span
+                            key={t}
+                            className="text-[10px] font-bold text-base-content/50 font-mono bg-base-100 px-2 py-0.5 rounded-lg border border-base-300"
+                          >
                             #{t}
                           </span>
                         ))}
@@ -475,7 +486,11 @@ export default function CommunityPage() {
                         <button
                           onClick={() => handleVote(post._id, "up")}
                           aria-label={`Upvote ${post.title}`}
-                          className={`font-black px-1.5 ${currentUserId && post.upvotes?.includes(currentUserId) ? "text-green-500" : "hover:text-green-500"}`}
+                          className={`font-black px-1.5 transition-colors ${
+                            currentUserId && post.upvotes?.includes(currentUserId)
+                              ? "text-[#10B981]"
+                              : "hover:text-[#10B981]"
+                          }`}
                         >
                           ▲
                         </button>
@@ -485,16 +500,20 @@ export default function CommunityPage() {
                         <button
                           onClick={() => handleVote(post._id, "down")}
                           aria-label={`Downvote ${post.title}`}
-                          className={`font-black px-1.5 ${currentUserId && post.downvotes?.includes(currentUserId) ? "text-red-500" : "hover:text-red-500"}`}
+                          className={`font-black px-1.5 transition-colors ${
+                            currentUserId && post.downvotes?.includes(currentUserId)
+                              ? "text-red-500"
+                              : "hover:text-red-500"
+                          }`}
                         >
                           ▼
                         </button>
                       </div>
 
-                      {/* Comment triggers */}
+                      {/* Comment trigger */}
                       <button
                         onClick={() => handleViewComments(post)}
-                        className="btn btn-ghost btn-xs text-xs font-bold text-base-content/65 hover:text-primary rounded-xl flex items-center gap-1.5"
+                        className="btn btn-ghost btn-xs text-xs font-bold text-base-content/65 hover:text-[#10B981] rounded-xl flex items-center gap-1.5 transition-colors"
                       >
                         💬 {isRtl ? "التعليقات والمناقشة" : "Comments"}
                       </button>
@@ -506,10 +525,10 @@ export default function CommunityPage() {
 
             {/* Comments Drawer / Thread display */}
             {selectedPost && (
-              <div className="sr-panel rounded-2xl p-6 space-y-4 animate-in fade-in duration-200">
+              <div className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-2xl p-6 space-y-4 shadow-xl animate-in fade-in duration-200">
                 <div className="flex justify-between items-center border-b border-base-300 pb-3">
                   <div>
-                    <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider block">
+                    <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono block">
                       {isRtl ? "مخرجات المناقشة" : "DISCUSSION COMMENTS"}
                     </span>
                     <h3 className="font-extrabold text-sm text-base-content">
@@ -532,7 +551,10 @@ export default function CommunityPage() {
                     </p>
                   ) : (
                     comments.map((c) => (
-                      <div key={c._id} className="p-3 bg-base-100 border border-base-300 rounded-xl space-y-2">
+                      <div
+                        key={c._id}
+                        className="p-3 bg-base-100 border border-base-300 rounded-xl space-y-2 hover:border-[#10B981]/20 transition-colors"
+                      >
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
                             {c.authorId?.avatarUrl ? (
@@ -542,31 +564,29 @@ export default function CommunityPage() {
                                 className="w-6 h-6 rounded-full object-cover"
                               />
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[9px] font-sans">
+                              <div className="w-6 h-6 rounded-full bg-[#10B981]/20 text-[#10B981] flex items-center justify-center font-bold text-[9px] font-sans border border-[#10B981]/30">
                                 {(c.authorId?.name || "?").split(" ").map((n) => n[0]).join("")}
                               </div>
                             )}
-                            <div>
-                              <span className="font-extrabold text-[11px] text-base-content block leading-tight">
-                                {c.authorId?.name || (isRtl ? "مستخدم محذوف" : "Deleted user")}
-                                <span className="ml-1 badge bg-base-200 text-base-content/70 border-none text-[8px] px-1 font-mono uppercase">
-                                  {c.authorId?.role}
-                                </span>
+                            <span className="font-extrabold text-[11px] text-base-content block leading-tight">
+                              {c.authorId?.name || (isRtl ? "مستخدم محذوف" : "Deleted user")}
+                              <span className="ml-1 badge bg-base-200 text-base-content/70 border-none text-[8px] px-1 font-mono uppercase">
+                                {c.authorId?.role}
                               </span>
-                            </div>
+                            </span>
                           </div>
                           <button
                             onClick={() => {
                               setFlaggedContentId(c._id);
                               setFlaggedType("comment");
                             }}
-                            className="text-[10px] text-base-content/30 hover:text-red-500"
+                            className="text-[10px] text-base-content/30 hover:text-red-500 transition-colors"
                             aria-label={`Report comment by ${c.authorId?.name || "deleted user"}`}
                           >
                             ⚠️
                           </button>
                         </div>
-                        <p className="text-xs text-base-content/85 leading-normal pl-8">
+                        <p className="text-xs text-base-content/75 leading-normal pl-8">
                           {c.content}
                         </p>
                       </div>
@@ -586,7 +606,7 @@ export default function CommunityPage() {
                   />
                   <button
                     type="submit"
-                    className="btn sr-button rounded-xl px-4 text-xs font-bold"
+                    className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl px-4 text-xs font-bold"
                   >
                     {isRtl ? "إرسال" : "Reply"}
                   </button>
@@ -598,12 +618,12 @@ export default function CommunityPage() {
             {flaggedContentId && (
               <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                 <div
-                  className="sr-panel w-full max-w-sm p-6 rounded-2xl shadow-xl space-y-4"
+                  className="bg-base-200 border border-base-300 w-full max-w-sm p-6 rounded-2xl shadow-xl space-y-4"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="community-report-title"
                 >
-                  <h3 id="community-report-title" className="font-extrabold text-sm">
+                  <h3 id="community-report-title" className="font-extrabold text-sm text-base-content">
                     ⚠️ {isRtl ? "الإبلاغ عن محتوى غير لائق" : "Submit Moderation Flag"}
                   </h3>
                   <p className="text-xs text-base-content/50">
@@ -644,9 +664,7 @@ export default function CommunityPage() {
             )}
 
           </div>
-
         </div>
-
       </div>
     </div>
   );

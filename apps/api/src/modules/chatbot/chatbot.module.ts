@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ChatbotController } from './chatbot.controller';
 import { ChatbotService } from './chatbot.service';
+import { ScopeClassifierService } from './scope-classifier.service';
 import {
   ChatSession,
   ChatSessionSchema,
@@ -18,7 +19,7 @@ import { AdminModule } from '../admin/admin.module';
     AdminModule,
   ],
   controllers: [ChatbotController],
-  providers: [ChatbotService],
-  exports: [ChatbotService],
+  providers: [ChatbotService, ScopeClassifierService],
+  exports: [ChatbotService, ScopeClassifierService],
 })
 export class ChatbotModule {}

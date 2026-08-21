@@ -5,15 +5,17 @@ import { LLMProvider, ChatMessage } from './llm-provider.interface';
 export class GeminiLLMProvider implements LLMProvider {
   private readonly logger = new Logger(GeminiLLMProvider.name);
 
-  constructor(private readonly apiKey: string) {}
+  constructor(
+    private readonly apiKey: string,
+    private readonly modelName: string = process.env.GEMINI_MODEL || 'gemini-3.6-flash',
+  ) {}
 
   async chat(
     messages: ChatMessage[],
     options?: { isJson?: boolean },
   ): Promise<string> {
     try {
-      const modelName = 'gemini-2.5-flash';
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${this.apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.modelName}:generateContent?key=${this.apiKey}`;
       const headers = { 'Content-Type': 'application/json' };
 
       // 1. Separate system instructions

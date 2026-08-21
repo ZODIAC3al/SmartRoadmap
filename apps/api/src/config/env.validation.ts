@@ -52,8 +52,8 @@ export const envSchema = z
     OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
 
     GEMINI_API_KEY: z.string().optional(),
-    GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
-    GEMINI_TTS_MODEL: z.string().default('gemini-2.5-flash-preview-tts'),
+    GEMINI_MODEL: z.string().default('gemini-3.6-flash'),
+    GEMINI_TTS_MODEL: z.string().default('gemini-3.6-flash'),
 
     GROQ_API_KEY: z.string().optional(),
     GROQ_MODEL: z.string().default('llama-3.3-70b-versatile'),
