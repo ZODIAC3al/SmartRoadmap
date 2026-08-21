@@ -241,6 +241,21 @@
   }
 }
 
+/* Custom react-toastify theme overrides */
+.Toastify__toast {
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  border: 1px solid #E4E7EC;
+  box-shadow: 0 8px 24px rgba(24, 27, 35, 0.12);
+  color: #181B23;
+  background: #FFFFFF;
+}
+.Toastify__toast--success { border-left: 4px solid #0F9D6F; }
+.Toastify__toast--error    { border-left: 4px solid #DC2626; }
+.Toastify__toast--warning  { border-left: 4px solid #D97706; }
+.Toastify__toast--info     { border-left: 4px solid #4F46E5; }
+.Toastify__progress-bar    { background: #4F46E5; }
+
 /* Invisible scrollbar — scroll still works, bar is hidden */
 .no-scrollbar {
   scrollbar-width: none;          /* Firefox */

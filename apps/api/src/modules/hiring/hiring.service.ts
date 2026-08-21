@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -19,8 +20,11 @@ import { TrackCertification } from '../../schemas/track-certification.schema';
 import { Certificate } from '../../schemas/certificate.schema';
 import { Project } from '../../schemas/project.schema';
 import { CompanyProfile } from '../../schemas/company-profile.schema';
+import { SavedSearch } from '../../schemas/saved-search.schema';
+import { Subscription } from '../../schemas/subscription.schema';
 import { RAGService, JOBS_COLLECTION } from '../../ai/rag.service';
 import { EmbeddingService } from '../../ai/embedding.service';
+import { AiGatewayService } from '../../ai/gateway/ai-gateway.service';
 import type { JwtUser } from '../../common/decorators/current-user.decorator';
 import { AppCacheService } from '../../common/cache/app-cache.service';
 import {
@@ -50,10 +54,15 @@ export class HiringService implements OnModuleInit {
     @InjectModel(Project.name) private readonly projectModel: Model<Project>,
     @InjectModel(CompanyProfile.name)
     private readonly companyProfileModel: Model<CompanyProfile>,
+    @InjectModel(SavedSearch.name)
+    private readonly savedSearchModel: Model<SavedSearch>,
+    @InjectModel(Subscription.name)
+    private readonly subscriptionModel: Model<Subscription>,
     private readonly config: ConfigService,
     private readonly ragService: RAGService,
     private readonly embeddingService: EmbeddingService,
     private readonly cache: AppCacheService,
+    private readonly aiGateway: AiGatewayService,
   ) {}
 
   /**

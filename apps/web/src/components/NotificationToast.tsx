@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -39,7 +39,7 @@ export function NotificationToast({
           Now ↗
         </span>
       </div>
-      <p className="text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
+      <p className="text-xs text-base-content/70 leading-relaxed">
         {notification.body}
       </p>
     </div>

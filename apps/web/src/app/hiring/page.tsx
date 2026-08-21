@@ -6,13 +6,10 @@ import { useApp } from "@/components/AppContext";
 import { toast } from "react-toastify";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 import {
-  ScoredJob,
-  JobApplication,
-  ApplicationStatus,
-  fetchMatchedJobs,
-  fetchMyApplications,
-  upsertApplication,
-} from "@/lib/hiringApi";
+  useGetMatchedJobsQuery,
+  useGetMyApplicationsQuery,
+  useApplyJobMutation,
+} from "@/store/api/jobsApi";
 
 const PIPELINE_STAGES: { key: string; label: string; icon: string; color: string }[] = [
   { key: "Applied", label: "Applied", icon: "🚀", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
@@ -51,12 +48,11 @@ export default function HiringPage() {
   // Apply modal states
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [selectedCvId, setSelectedCvId] = useState<string>("");
-  const [applying, setApplying] = useState(false);
 
   // Application detail modal
-  const [viewingApp, setViewingApp] = useState<JobApplication | null>(null);
+  const [viewingApp, setViewingApp] = useState<any>(null);
 
-  // Filter & Search states (NO match score slider!)
+  // Filter & Search states
   const [searchQuery, setSearchQuery] = useState("");
   const [filterWorkType, setFilterWorkType] = useState<string>("all");
   const [filterJobType, setFilterJobType] = useState<string>("all");
@@ -71,18 +67,6 @@ export default function HiringPage() {
 
     async function loadCvs() {
       try {
-        setLoading(true);
-
-        // 1. Fetch all real matched jobs
-        const matched = await fetchMatchedJobs();
-        setJobs(matched);
-        if (matched[0]) setSelectedJob(matched[0]);
-
-        // 2. Fetch user applications
-        const apps = await fetchMyApplications();
-        setApplications(apps);
-
-        // 3. Fetch user CVs for applying dropdown
         const cvRes = await apiFetch("/cv/list");
         if (cvRes.ok) {
           const cvData = await cvRes.json();
@@ -97,8 +81,14 @@ export default function HiringPage() {
     loadCvs();
   }, []);
 
+  useEffect(() => {
+    if (jobs.length > 0 && !selectedJob) {
+      setSelectedJob(jobs[0]);
+    }
+  }, [jobs, selectedJob]);
+
   // Helper to check if user has already applied to a job
-  const getAppForJob = (jobId: string): JobApplication | undefined => {
+  const getAppForJob = (jobId: string): any | undefined => {
     return applications.find((a) => a.jobId === jobId);
   };
 
@@ -113,20 +103,12 @@ export default function HiringPage() {
     if (!selectedJob) return;
 
     try {
-      const selectedCv = userCvs.find((c) => (c._id || c.id) === selectedCvId);
-
-      const app = await upsertApplication({
-        jobId: selectedJob._id,
-        jobTitle: selectedJob.title,
-        company: selectedJob.company,
+      await applyJobMutation({
+        jobId: selectedJob._id || selectedJob.id,
         cvId: selectedCvId,
-        cvTitle: selectedCv?.title || "My AI Resume",
-        matchScore: selectedJob.matchScore,
-        status: "Applied",
-      });
+      }).unwrap();
 
-      setApplications((prev) => [...prev.filter((a) => a.jobId !== selectedJob._id), app]);
-      toast.success(`🎉 Application submitted successfully to ${selectedJob.company}! Status: Applied.`);
+      toast.success(`🎉 Application submitted successfully to ${selectedJob.company || selectedJob.companyName || 'Company'}! Status: Applied.`);
 
       if (selectedJob.externalUrl) {
         window.open(selectedJob.externalUrl, "_blank");
@@ -135,8 +117,6 @@ export default function HiringPage() {
       setApplyModalOpen(false);
     } catch (err: any) {
       toast.error(err.message || "Failed to submit application.");
-    } finally {
-      setApplying(false);
     }
   };
 
@@ -520,7 +500,7 @@ export default function HiringPage() {
                           Skills Still Needed for this Role:
                         </span>
                         <div className="flex flex-wrap gap-1.5">
-                          {(selectedJob.neededSkills || selectedJob.skillsGap || []).map((skill, idx) => (
+                          {(selectedJob.neededSkills || selectedJob.skillsGap || []).map((skill: string, idx: number) => (
                             <span
                               key={idx}
                               className="text-[10px] font-mono px-2.5 py-1 rounded-lg font-bold bg-red-500/10 text-red-500 border border-red-500/20"
@@ -543,7 +523,7 @@ export default function HiringPage() {
                           Skills You Have:
                         </span>
                         <div className="flex flex-wrap gap-1.5">
-                          {(selectedJob.matchingSkills || []).map((skill, idx) => (
+                          {(selectedJob.matchingSkills || []).map((skill: string, idx: number) => (
                             <span
                               key={idx}
                               className="text-[10px] font-mono px-2.5 py-1 rounded-lg font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
@@ -825,7 +805,7 @@ export default function HiringPage() {
                   Status History
                 </span>
                 <div className="bg-base-100 border border-base-300 rounded-xl p-3.5 space-y-2 text-xs">
-                  {viewingApp.statusHistory.map((h, idx) => (
+                  {viewingApp.statusHistory.map((h: any, idx: number) => (
                     <div key={idx} className="flex justify-between items-center text-xs border-b border-base-200 last:border-0 pb-1.5 last:pb-0">
                       <div>
                         <span className="font-bold text-base-content">{h.status}</span>

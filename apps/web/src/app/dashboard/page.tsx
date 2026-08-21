@@ -963,12 +963,12 @@ export default function DashboardPage() {
     );
   }
 
-  if (user.role === "admin") {
+  if (user?.role === "admin") {
     router.push("/admin");
     return null;
   }
 
-  if (user.role === "company") {
+  if (user?.role === "company") {
     router.push("/company");
     return null;
   }

@@ -48,11 +48,8 @@ export class Notification extends Document {
   @Prop({ default: false, index: true })
   isRead!: boolean;
 
-  @Prop({
-    default: 'general',
-    enum: ['general', 'roadmap_update', 'job_match', 'message'],
-  })
-  type!: 'general' | 'roadmap_update' | 'job_match' | 'message';
+  @Prop({ type: Object, default: {} })
+  meta?: Record<string, any>;
 
   @Prop({ type: Date })
   expiresAt?: Date;

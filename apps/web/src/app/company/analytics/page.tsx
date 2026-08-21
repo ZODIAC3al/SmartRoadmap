@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useMemo } from 'react';
 import { PlanGate } from '@/components/PlanGate';
@@ -40,7 +40,7 @@ const DEFAULT_BAR_DATA = [
 const DEFAULT_ROLE_DATA = [
   { name: 'Frontend Engineers', value: 42, color: '#F97316' },
   { name: 'Backend Architects', value: 38, color: '#8B5CF6' },
-  { name: 'AI & Data Specialists', value: 20, color: '#8E1616' },
+  { name: 'AI & Data Specialists', value: 20, color: '#10B981' },
 ];
 
 const LINE_DATA = [
@@ -103,8 +103,8 @@ export default function HiringAnalyticsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12 bg-base-100 rounded-3xl border border-base-300">
-        <Loader2 className="w-6 h-6 animate-spin text-[#8E1616]" />
-        <span className="ml-2 text-xs font-semibold text-stone-700 dark:text-stone-300 font-medium">Loading hiring analytics & interactive charts...</span>
+        <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+        <span className="ml-2 text-xs font-semibold text-base-content/70">Loading hiring analytics & interactive charts...</span>
       </div>
     );
   }
@@ -113,7 +113,7 @@ export default function HiringAnalyticsPage() {
     <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full text-base-content">
       <div>
         <h1 className="text-2xl font-bold font-heading">Hiring Analytics & Candidate Metrics</h1>
-        <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">
+        <p className="text-xs text-base-content/70 mt-1">
           Interactive graphs, monthly application trends, tech role breakdowns, and hiring funnel conversion metrics.
         </p>
       </div>
@@ -122,14 +122,14 @@ export default function HiringAnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
               <Users className="w-6 h-6" />
             </div>
             <div>
               <h3 className="text-2xl font-extrabold font-heading text-base-content font-mono">
                 {metrics.totalApplicants.toLocaleString()}
               </h3>
-              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium font-medium">Total Applicants</p>
+              <p className="text-xs text-base-content/60 font-medium">Total Applicants</p>
             </div>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function HiringAnalyticsPage() {
               <h3 className="text-2xl font-extrabold font-heading text-base-content font-mono">
                 {metrics.availableStaff.toLocaleString()}
               </h3>
-              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium font-medium">Verified Talent Pool</p>
+              <p className="text-xs text-base-content/60 font-medium">Verified Talent Pool</p>
             </div>
           </div>
         </div>
@@ -157,7 +157,7 @@ export default function HiringAnalyticsPage() {
               <h3 className="text-2xl font-extrabold font-heading text-base-content font-mono">
                 {metrics.avgMatchScore}%
               </h3>
-              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium font-medium">Avg Skill Match</p>
+              <p className="text-xs text-base-content/60 font-medium">Avg Skill Match</p>
             </div>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function HiringAnalyticsPage() {
               <h3 className="text-2xl font-extrabold font-heading text-base-content font-mono">
                 {metrics.activeJobs.toLocaleString()}
               </h3>
-              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium font-medium">Active Jobs</p>
+              <p className="text-xs text-base-content/60 font-medium">Active Jobs</p>
             </div>
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function HiringAnalyticsPage() {
             <h3 className="font-bold text-base font-heading text-base-content">
               Applied vs. Interviewed Candidate Trend
             </h3>
-            <button className="flex items-center gap-1.5 text-xs text-stone-700 dark:text-stone-300 font-medium font-semibold bg-base-200 px-3 py-1.5 rounded-xl border border-base-300">
+            <button className="flex items-center gap-1.5 text-xs text-base-content/70 font-semibold bg-base-200 px-3 py-1.5 rounded-xl border border-base-300">
               Monthly breakdown <ChevronDown className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -197,7 +197,7 @@ export default function HiringAnalyticsPage() {
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'currentColor' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: 'currentColor' }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ backgroundColor: 'var(--fallback-b1,oklch(var(--b1)))', borderColor: 'var(--fallback-b3,oklch(var(--b3)))', borderRadius: '12px', color: 'currentColor' }} />
-                  <Bar dataKey="applied" fill="#8E1616" radius={[4, 4, 0, 0]} barSize={12} />
+                  <Bar dataKey="applied" fill="#10B981" radius={[4, 4, 0, 0]} barSize={12} />
                   <Bar dataKey="interviewed" fill="#8B5CF6" radius={[4, 4, 0, 0]} barSize={12} />
                 </BarChart>
               </ResponsiveContainer>
@@ -216,7 +216,7 @@ export default function HiringAnalyticsPage() {
                       endAngle={-270}
                       dataKey="value"
                     >
-                      <Cell fill="#8E1616" />
+                      <Cell fill="#10B981" />
                       <Cell fill="#8B5CF6" />
                     </Pie>
                   </PieChart>
@@ -230,7 +230,7 @@ export default function HiringAnalyticsPage() {
 
               <div className="flex gap-4 mt-3 text-xs font-semibold">
                 <span className="flex items-center gap-1.5 text-base-content">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#8E1616]" /> Applied
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" /> Applied
                 </span>
                 <span className="flex items-center gap-1.5 text-base-content">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]" /> Interviewed
@@ -261,7 +261,7 @@ export default function HiringAnalyticsPage() {
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center text-stone-600 dark:text-stone-400 font-medium">
+            <div className="absolute inset-0 flex items-center justify-center text-base-content/40">
               <Users className="w-8 h-8" />
             </div>
           </div>
@@ -285,7 +285,7 @@ export default function HiringAnalyticsPage() {
             <div>
               <div className="flex justify-between text-xs mb-1 font-semibold">
                 <span>Applied → Screening</span>
-                <span className="font-bold font-mono text-[#8E1616]">{funnelStats.appliedToScreening}% ({funnelStats.screeningCount}/{funnelStats.total})</span>
+                <span className="font-bold font-mono text-emerald-500">{funnelStats.appliedToScreening}% ({funnelStats.screeningCount}/{funnelStats.total})</span>
               </div>
               <progress className="progress progress-emerald w-full h-2.5" value={funnelStats.appliedToScreening} max="100" />
             </div>
@@ -312,10 +312,10 @@ export default function HiringAnalyticsPage() {
             <h3 className="font-bold text-sm font-heading text-base-content">
               Engineering Divisions
             </h3>
-            <ChevronDown className="w-3.5 h-3.5 text-stone-600 dark:text-stone-400 font-medium" />
+            <ChevronDown className="w-3.5 h-3.5 text-base-content/40" />
           </div>
 
-          <div className="flex justify-between text-[11px] font-bold text-stone-700 dark:text-stone-300 font-medium uppercase border-b border-base-200 pb-2 mb-2 font-mono">
+          <div className="flex justify-between text-[11px] font-bold text-base-content/50 uppercase border-b border-base-200 pb-2 mb-2 font-mono">
             <span>DIVISION</span>
             <span>COUNT</span>
           </div>
@@ -324,7 +324,7 @@ export default function HiringAnalyticsPage() {
             {divisionStats.map((item: any) => (
               <div key={item.name} className="flex justify-between items-center">
                 <span className="flex items-center gap-2 font-medium text-base-content">
-                  <Activity className="w-4 h-4 text-[#8E1616]" /> {item.name}
+                  <Activity className="w-4 h-4 text-emerald-500" /> {item.name}
                 </span>
                 <span className="font-mono font-bold text-base-content">{item.count}</span>
               </div>

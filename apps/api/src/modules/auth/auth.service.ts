@@ -47,13 +47,12 @@ export class AuthService {
     private readonly onboarding: OnboardingService,
     private readonly mail: MailService,
   ) {
-    const clientId = this.config.get<string>('GOOGLE_CLIENT_ID');
-    this.googleClient = clientId ? new OAuth2Client(clientId) : undefined;
-    if (!this.googleClient) {
-      this.logger.warn(
-        'GOOGLE_CLIENT_ID is not set — Google sign-in is disabled.',
-      );
-    }
+    const clientId =
+      this.config.get<string>('GOOGLE_CLIENT_ID') ||
+      process.env.GOOGLE_CLIENT_ID ||
+      '1076361672222-a6506ek6hc3b6tgu2q9b9ubsm53k46fq.apps.googleusercontent.com';
+    this.googleClient = new OAuth2Client(clientId);
+    this.logger.log('Google OAuth client initialized.');
   }
 
   // ────────────────────────────── Tokens ──────────────────────────────
@@ -273,11 +272,12 @@ export class AuthService {
    * audience against Google's public keys. We NEVER trust a client-supplied email.
    */
   async googleLogin(idToken: string) {
-    if (!this.googleClient) {
-      throw new BadRequestException(
-        'Google sign-in is not configured on this server.',
-      );
-    }
+    const clientId =
+      this.config.get<string>('GOOGLE_CLIENT_ID') ||
+      process.env.GOOGLE_CLIENT_ID ||
+      '1076361672222-a6506ek6hc3b6tgu2q9b9ubsm53k46fq.apps.googleusercontent.com';
+
+    const client = this.googleClient || new OAuth2Client(clientId);
 
     let payload: TokenPayload | undefined;
     try {

@@ -9,11 +9,11 @@ export class GeminiProvider implements AiProvider {
   private readonly ttsModel: string;
 
   constructor(private readonly config: ConfigService) {
-    this.apiKey = this.config.get<string>('GEMINI_API_KEY') || '';
+    this.apiKey = (this.config.get<string>('GEMINI_API_KEY') || '').trim();
     this.model =
-      this.config.get<string>('GEMINI_MODEL') || 'gemini-3.6-flash';
+      (this.config.get<string>('GEMINI_MODEL') || 'gemini-2.5-flash').trim();
     this.ttsModel =
-      this.config.get<string>('GEMINI_TTS_MODEL') || 'gemini-3.6-flash';
+      (this.config.get<string>('GEMINI_TTS_MODEL') || 'gemini-2.5-flash').trim();
   }
 
   private getModelUrl(modelName: string): string {
@@ -34,12 +34,9 @@ export class GeminiProvider implements AiProvider {
     const modelsToTry = Array.from(
       new Set([
         this.model,
-        'gemini-3.6-flash',
-        'gemini-3.1-flash-lite',
-        'gemini-flash-latest',
-        'gemini-3.7-flash',
-        'gemini-3.5-flash',
-        'gemini-flash-lite-latest',
+        'gemini-2.5-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
       ]),
     );
     let lastError: Error | null = null;
@@ -97,12 +94,9 @@ export class GeminiProvider implements AiProvider {
     const modelsToTry = Array.from(
       new Set([
         this.model,
-        'gemini-3.6-flash',
-        'gemini-3.1-flash-lite',
-        'gemini-flash-latest',
-        'gemini-3.7-flash',
-        'gemini-3.5-flash',
-        'gemini-flash-lite-latest',
+        'gemini-2.5-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
       ]),
     );
     let lastError: Error | null = null;

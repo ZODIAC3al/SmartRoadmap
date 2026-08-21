@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 
@@ -50,11 +50,11 @@ export function ThreadList({
                     <span className="w-2 h-2 rounded-full bg-primary" />
                   )}
                 </div>
-                <span className="text-[10px] font-mono text-stone-700 dark:text-stone-300 font-medium">
+                <span className="text-[10px] font-mono text-base-content/50">
                   {t.time}
                 </span>
               </div>
-              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium line-clamp-1">{t.lastMessage}</p>
+              <p className="text-xs text-base-content/70 line-clamp-1">{t.lastMessage}</p>
             </button>
           );
         })}
