@@ -271,80 +271,35 @@ export default function Navbar() {
 
   const isLinkActive = (path: string) => pathname === path;
 
-  // Role-based nav links
+  // Role flags
   const isCompany = user?.role === "company";
   const isAdmin = user?.role === "admin";
   const isLearner = user?.role === "learner";
 
-  // Mobile nav links — role-scoped
+  // Mobile nav links — strictly role-scoped
   const navLinks = [
-    { href: "/roadmap", label: t("nav.roadmap"), show: !!user && user?.role !== "admin" },
-    { href: "/cv", label: t("nav.cv"), show: !!user && user?.role !== "admin" },
-    { href: "/portfolio/builder", label: "Portfolio", show: !!user && user?.role !== "admin" },
-    {
-      href: "/hiring",
-      label: t("nav.jobsMatch"),
-      show: !!user && user?.role === "learner",
-    },
-    {
-      href: "/company",
-      label: t("nav.talentBoard"),
-      show: !!user && user?.role === "company",
-    },
-    {
-      href: "/community",
-      label: locale === "en" ? "Community" : "المجتمع",
-      show: !!user && user?.role !== "admin",
-    },
-    {
-      href: "/mentors",
-      label: locale === "en" ? "Mentors" : "الموجهين",
-      show: !!user && user?.role !== "admin",
-    },
-    {
-      href: "/resources",
-      label: locale === "en" ? "Resources" : "المراجع",
-      show: !!user && user?.role !== "admin",
-    },
-    {
-      href: "/admin",
-      label: locale === "en" ? "Admin Panel" : "لوحة الإدارة",
-      show: !!user && user?.role === "admin",
-    },
-    {
-      href: "/admin/users",
-      label: locale === "en" ? "Users" : "المستخدمين",
-      show: !!user && user?.role === "admin",
-    },
-    {
-      href: "/admin/certificates",
-      label: locale === "en" ? "Certificates" : "الشهادات",
-      show: !!user && user?.role === "admin",
-    },
-    { href: "/pricing", label: t("nav.pricing"), show: true },
-    { href: "/contact", label: t("nav.contact"), show: true },
-    // Mock Interview link
-    { href: "/mock-interview", label: "Mock Interview", show: !!user && user?.role !== "admin" },
-
     // Learner-only
+    { href: "/dashboard", label: locale === "en" ? "Dashboard" : "لوحة التحكم", show: !!user && (isLearner || isAdmin) },
     { href: "/roadmap", label: t("nav.roadmap"), show: !!user && (isLearner || isAdmin) },
     { href: "/cv", label: t("nav.cv"), show: !!user && (isLearner || isAdmin) },
     { href: "/portfolio/builder", label: "Portfolio", show: !!user && (isLearner || isAdmin) },
-    { href: "/hiring", label: t("nav.jobsMatch"), show: !!user && (isLearner || isAdmin) },
+    { href: "/hiring", label: t("nav.jobsMatch"), show: !!user && isLearner },
     { href: "/community", label: locale === "en" ? "Community" : "المجتمع", show: !!user && (isLearner || isAdmin) },
     { href: "/mentors", label: locale === "en" ? "Mentors" : "الموجهين", show: !!user && (isLearner || isAdmin) },
     { href: "/resources", label: locale === "en" ? "Resources" : "المراجع", show: !!user && (isLearner || isAdmin) },
     { href: "/mock-interview", label: "Mock Interview", show: !!user && (isLearner || isAdmin) },
     // Company-only
-    { href: "/company", label: locale === "en" ? "Overview" : "نظرة عامة", show: !!user && (isCompany || isAdmin) },
-    { href: "/company/jobs", label: locale === "en" ? "Jobs & Pipeline" : "الوظائف", show: !!user && (isCompany || isAdmin) },
-    { href: "/company/talent", label: t("nav.talentBoard"), show: !!user && (isCompany || isAdmin) },
-    { href: "/company/messages", label: locale === "en" ? "Messages" : "الرسائل", show: !!user && (isCompany || isAdmin) },
-    { href: "/company/analytics", label: locale === "en" ? "Analytics" : "التحليلات", show: !!user && (isCompany || isAdmin) },
-    { href: "/company/profile", label: locale === "en" ? "Company Profile" : "ملف الشركة", show: !!user && (isCompany || isAdmin) },
+    { href: "/company", label: locale === "en" ? "Overview" : "نظرة عامة", show: !!user && isCompany },
+    { href: "/company/jobs", label: locale === "en" ? "Jobs & Pipeline" : "الوظائف", show: !!user && isCompany },
+    { href: "/company/talent", label: t("nav.talentBoard"), show: !!user && isCompany },
+    { href: "/company/messages", label: locale === "en" ? "Messages" : "الرسائل", show: !!user && isCompany },
+    { href: "/company/analytics", label: locale === "en" ? "Analytics" : "التحليلات", show: !!user && isCompany },
+    { href: "/company/profile", label: locale === "en" ? "Company Profile" : "ملف الشركة", show: !!user && isCompany },
     // Admin-only
-    { href: "/admin", label: locale === "en" ? "Admin" : "الإدارة", show: !!user && isAdmin },
-    // Always
+    { href: "/admin", label: locale === "en" ? "Admin Panel" : "لوحة الإدارة", show: !!user && isAdmin },
+    { href: "/admin/users", label: locale === "en" ? "Users" : "المستخدمين", show: !!user && isAdmin },
+    { href: "/admin/certificates", label: locale === "en" ? "Certificates" : "الشهادات", show: !!user && isAdmin },
+    // Always visible
     { href: "/pricing", label: t("nav.pricing"), show: true },
     { href: "/contact", label: t("nav.contact"), show: true },
   ];
@@ -736,6 +691,617 @@ export default function Navbar() {
                       </Link>
                     </li>
                   </>
+                )}
+                {(isLearner || isAdmin) && (
+                  <li>
+                    <Link href="/roadmap" className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-emerald-500" />
+                      <span>{t("nav.roadmap")}</span>
+                    </Link>
+                  </li>
+                )}
+                {(isLearner || isAdmin) && (
+                  <li>
+                    <Link href="/cv" className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-blue-500" />
+                      <span>{t("nav.cv")}</span>
+                    </Link>
+                  </li>
+                )}
+                {(isLearner || isAdmin) && (
+                  <li>
+                    <Link href="/hiring" className="flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-amber-500" />
+                      <span>{t("nav.jobsMatch")}</span>
+                    </Link>
+                  </li>
+                )}
+                {(isLearner || isAdmin) && (
+                  <li>
+                    <Link href="/profile?tab=salary" className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-purple-500" />
+                      <span>{locale === "en" ? "Salary Insights" : "تقديرات الرواتب"}</span>
+                    </Link>
+                  </li>
+                )}
+                {/* ── COMPANY user dropdown items ── */}
+                {(isCompany || isAdmin) && (
+                  <li>
+                    <Link href="/company" className="flex items-center gap-2">
+                      <LayoutDashboard className="w-4 h-4 text-emerald-500" />
+                      <span>{locale === "en" ? "Company Overview" : "نظرة عامة"}</span>
+                    </Link>
+                  </li>
+                )}
+                {(isCompany || isAdmin) && (
+                  <li>
+                    <Link href="/company/talent" className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-purple-500" />
+                      <span>{t("nav.talentBoard")}</span>
+                    </Link>
+                  </li>
+                )}
+                {(isCompany || isAdmin) && (
+                  <li>
+                    <Link href="/company/analytics" className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-cyan-500" />
+                      <span>{locale === "en" ? "Analytics" : "التحليلات"}</span>
+                    </Link>
+                  </li>
+                )}
+                {(isCompany || isAdmin) && (
+                  <li>
+                    <Link href="/company/profile" className="flex items-center gap-2">
+                      <Settings className="w-4 h-4 text-slate-500" />
+                      <span>{locale === "en" ? "Company Profile" : "ملف الشركة"}</span>
+                    </Link>
+                  </li>
+                )}
+                {/* Shared profile/settings */}
+                {(isLearner || isAdmin) && (
+                  <li>
+                    <Link href="/profile" className="flex items-center gap-2">
+                      <Settings className="w-4 h-4 text-slate-500" />
+                      <span>{locale === "en" ? "Settings" : "الإعدادات"}</span>
+                    </Link>
+                  </li>
+                )}
+                <li className="border-t border-base-300 pt-1 text-red-500 font-bold">
+                  <button onClick={handleLogout} className="flex items-center gap-2">
+                    <LogOut className="w-4 h-4 text-red-500" />
+                    <span>{t("nav.logout")}</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                className="hidden sm:inline text-xs font-bold text-base-content/75 hover:text-[#10B981] transition-colors"
+              >
+                {t("nav.login")}
+              </Link>
+              <Link
+                href="/auth/register"
+                className="btn btn-xs rounded-full bg-[#10B981] hover:bg-[#059669] text-white border-none px-3 sm:px-4 font-bold text-xs shadow-sm transition-all"
+              >
+                {t("nav.signup")}
+              </Link>
+            </>
+          )}
+
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="md:hidden btn btn-ghost btn-circle btn-xs text-base-content hover:bg-base-300"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? (
+              <CloseIcon className="w-4 h-4 text-current" />
+            ) : (
+              <Menu className="w-4 h-4 text-current" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile dropdown panel */}
+      {mobileOpen && (
+        <div className="md:hidden mt-2 max-w-5xl mx-auto bg-base-200 border border-base-300 rounded-2xl p-4 space-y-3 shadow-lg text-start">
+          {navLinks
+            .filter((l) => l.show)
+            .map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`block text-sm font-bold transition-all ${isLinkActive(link.href) ? "text-[#10B981]" : "text-base-content/75"}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          {!user && (
+            <Link
+              href="/auth/login"
+              className="block text-sm font-bold text-base-content/75 pt-2 border-t border-base-300"
+            >
+              {t("nav.login")}
+            </Link>
+          )}
+        </div>
+      )}
+      {/* PWA Download Info Modal Dialog */}
+      {showModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
+          <div className="card w-full max-w-sm bg-base-200 border border-base-300 text-base-content p-6 rounded-2xl shadow-2xl relative text-start animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-3 right-3 btn btn-circle btn-xs btn-ghost text-base-content/60"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 border-b border-base-300 pb-3">
+                <div className="w-9 h-9 bg-primary/10 text-primary rounded-xl flex items-center justify-center shrink-0">
+                  <DownloadAppIcon />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm leading-tight">
+                    {locale === "en"
+                      ? "Install Standalone App"
+                      : "تثبيت التطبيق المستقل"}
+                  </h3>
+                  <span className="text-[10px] text-base-content/40 font-bold uppercase font-mono mt-0.5 block">
+                    {os.toUpperCase()} OS DETECTED
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-xs leading-relaxed space-y-2.5 font-medium text-base-content/80">
+                {os === "windows" && (
+                  <p>
+                    {locale === "en"
+                      ? 'To install on Windows, click the installation icon in your browser address bar (right side), or open the settings menu (...) and click "Install SmartRoadmap".'
+                      : 'لتثبيت التطبيق على ويندوز، انقر فوق أيقونة التثبيت في شريط عنوان المتصفح (الجانب الأيمن)، أو افتح القائمة (...) وانقر فوق "تثبيت SmartRoadmap".'}
+                  </p>
+                )}
+                {os === "macos" && (
+                  <p>
+                    {locale === "en"
+                      ? 'To install on macOS, click the Share icon in the Safari toolbar, then select "Add to Dock". This will place a native application icon on your launchpad.'
+                      : 'لتثبيت التطبيق على ماك، انقر فوق أيقونة "مشاركة" في شريط أدوات Safari، ثم اختر "إضافة إلى Dock" لوضع أيقونة التطبيق في شريط التطبيقات الرئيسي.'}
+                  </p>
+                )}
+                {os === "linux" && (
+                  <p>
+                    {locale === "en"
+                      ? 'To install on Linux, click the install prompt in your Chromium/Chrome browser address bar, or select "Install SmartRoadmap" from the settings dropdown.'
+                      : 'لتثبيت التطبيق على لينكس، انقر فوق أيقونة التثبيت في شريط العنوان بمتصفح كروم، أو اختر "تثبيت SmartRoadmap" من قائمة الإعدادات.'}
+                  </p>
+                )}
+                {os === "ios" && (
+                  <p>
+                    {locale === "en"
+                      ? 'To install on iOS/Safari, tap the "Share" button at the bottom of Safari, scroll down the actions sheet, and select "Add to Home Screen".'
+                      : 'لتثبيت التطبيق على هواتف آيفون/آيباد، انقر على زر "مشاركة" أسفل متصفح Safari، ثم مرر لأسفل واختر "إضافة إلى الصفحة الرئيسية".'}
+                  </p>
+                )}
+                {os === "android" && (
+                  <p>
+                    {locale === "en"
+                      ? 'To install on Android, tap the three vertical dots menu at the top-right of Chrome, and select "Install App" or "Add to Home Screen".'
+                      : 'لتثبيت التطبيق على أندرويد، انقر على قائمة النقاط الثلاث الرأسية أعلى يمين متصفح Chrome، ثم اختر "تثبيت التطبيق" أو "إضافة للشاشة الرئيسية".'}
+                  </p>
+                )}
+                {os === "other" && (
+                  <p>
+                    {locale === "en"
+                      ? 'Open the settings menu of your mobile or desktop browser and select "Install App" or "Add to Home Screen" to install SmartRoadmap standalone.'
+                      : 'افتح قائمة إعدادات المتصفح على هاتفك أو حاسوبك واختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية" لتشغيل البرنامج كموقع مستقل.'}
+                  </p>
+                )}
+              </div>
+
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 text-[10px] leading-relaxed text-primary/95 flex gap-2 items-start font-semibold">
+                <span>💡</span>
+                <p>
+                  {locale === "en"
+                    ? "Running SmartRoadmap as a standalone app provides offline caching, secure session management, and cleaner desktop notifications."
+                    : "تشغيل البرنامج كتطبيق مستقل يتيح لك تصفحاً أسرع، وإدارة آمنة للجلسات، بالإضافة إلى تلقي إشعارات سطح المكتب بشكل منسق."}
+                </p>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="btn bg-primary hover:bg-[#059669] text-white btn-xs sm:btn-sm rounded-lg font-bold border-none px-5"
+                >
+                  {locale === "en" ? "Got it" : "حسناً، فهمت"}
+                </button>
+              </div>
+            </div>
+  return (
+    <header className="sticky top-4 z-50 px-4 w-full">
+      <div className="max-w-5xl mx-auto rounded-full bg-base-200/90 backdrop-blur-md text-base-content border border-base-300 shadow-lg px-3 sm:px-6 h-14 flex items-center justify-between gap-2 sm:gap-4 transition-all duration-200">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <img
+            src="/logo.svg"
+            alt="SmartRoadmap Logo"
+            className="w-8 h-8 sm:w-9 sm:h-9 hover:scale-105 transition-transform duration-200"
+          />
+          <span className="hidden sm:inline font-black tracking-tight text-sm text-base-content">
+            {t("nav.logo")}
+          </span>
+        </Link>
+
+        {/* Desktop nav links — fully role-responsive */}
+        <nav className="hidden lg:flex items-center gap-3 xl:gap-5 text-[11px] font-bold uppercase tracking-wider flex-1 justify-center">
+          {/* LEARNER nav */}
+          {(isLearner || isAdmin) && (
+            <>
+              <Link
+                href="/dashboard"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/dashboard") ? "text-[#10B981] font-black" : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Dashboard" : "لوحة التحكم"}
+              </Link>
+              <Link
+                href="/roadmap"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/roadmap") ? "text-[#10B981] font-black" : "text-base-content/70"
+                }`}
+              >
+                {t("nav.roadmap")}
+              </Link>
+              <Link
+                href="/cv"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/cv") ? "text-[#10B981] font-black" : "text-base-content/70"
+                }`}
+              >
+                {t("nav.cv")}
+              </Link>
+              <Link
+                href="/community"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/community") ? "text-[#10B981] font-black" : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Community" : "المجتمع"}
+              </Link>
+            </>
+          )}
+
+          {/* COMPANY nav */}
+          {(isCompany || isAdmin) && (
+            <>
+              <Link
+                href="/company"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/company") ? "text-[#10B981] font-black" : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Overview" : "نظرة عامة"}
+              </Link>
+              <Link
+                href="/company/jobs"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/company/jobs") ? "text-[#10B981] font-black" : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Jobs" : "الوظائف"}
+              </Link>
+              <Link
+                href="/company/talent"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/company/talent") ? "text-[#10B981] font-black" : "text-base-content/70"
+                }`}
+              >
+                {t("nav.talentBoard")}
+              </Link>
+              <Link
+                href="/company/messages"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/company/messages") ? "text-[#10B981] font-black" : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Messages" : "الرسائل"}
+              </Link>
+              <Link
+                href="/company/analytics"
+                className={`transition-colors hover:text-[#10B981] ${
+                  isLinkActive("/company/analytics") ? "text-[#10B981] font-black" : "text-base-content/70"
+                }`}
+              >
+                {locale === "en" ? "Analytics" : "التحليلات"}
+              </Link>
+            </>
+          )}
+
+          {/* Explore Dropdown — adapts by role */}
+          <div className="dropdown dropdown-hover dropdown-bottom dropdown-end">
+            <label
+              tabIndex={0}
+              className="flex items-center gap-1.5 cursor-pointer transition-colors text-base-content/70 hover:text-[#10B981] font-bold py-1 px-1.5 rounded-lg"
+            >
+              <Compass className="w-3.5 h-3.5 text-[#10B981]" />
+              <span>{locale === "en" ? "Explore" : "استكشف"}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-base-content/50" />
+            </label>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu p-2 shadow-2xl bg-base-200/95 backdrop-blur-md border border-base-300 rounded-2xl w-52 space-y-1 z-[200] text-start capitalize normal-case text-xs font-semibold"
+            >
+              {/* Learner-only explore items */}
+              {(isLearner || isAdmin) && (
+                <>
+                  <li>
+                    <Link href="/mentors" className={`flex items-center gap-2.5 ${isLinkActive("/mentors") ? "text-[#10B981] font-bold" : ""}`}>
+                      <GraduationCap className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <span>{locale === "en" ? "Mentors" : "الموجهين"}</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/resources" className={`flex items-center gap-2.5 ${isLinkActive("/resources") ? "text-[#10B981] font-bold" : ""}`}>
+                      <BookOpen className="w-4 h-4 text-blue-500 shrink-0" />
+                      <span>{locale === "en" ? "Resources" : "المراجع"}</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/mock-interview" className={`flex items-center gap-2.5 ${isLinkActive("/mock-interview") ? "text-[#10B981] font-bold" : ""}`}>
+                      <Mic className="w-4 h-4 text-indigo-500 shrink-0" />
+                      <span>{locale === "en" ? "Mock Interview" : "مقابلة تجريبية"}</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/hiring" className={`flex items-center gap-2.5 ${isLinkActive("/hiring") ? "text-[#10B981] font-bold" : ""}`}>
+                      <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
+                      <span>{t("nav.jobsMatch")}</span>
+                    </Link>
+                  </li>
+                </>
+              )}
+              {/* Company-only explore items */}
+              {(isCompany || isAdmin) && (
+                <>
+                  <li>
+                    <Link href="/company/profile" className={`flex items-center gap-2.5 ${isLinkActive("/company/profile") ? "text-[#10B981] font-bold" : ""}`}>
+                      <Building2 className="w-4 h-4 text-purple-500 shrink-0" />
+                      <span>{locale === "en" ? "Company Profile" : "ملف الشركة"}</span>
+                    </Link>
+                  </li>
+                </>
+              )}
+              {/* Admin */}
+              {isAdmin && (
+                <li>
+                  <Link href="/admin" className={`flex items-center gap-2.5 ${isLinkActive("/admin") ? "text-[#10B981] font-bold" : ""}`}>
+                    <ShieldCheck className="w-4 h-4 text-red-500 shrink-0" />
+                    <span>{locale === "en" ? "Admin Panel" : "لوحة الإدارة"}</span>
+                  </Link>
+                </li>
+              )}
+              <li className="border-t border-base-300 pt-1">
+                <Link href="/pricing" className={`flex items-center gap-2.5 ${isLinkActive("/pricing") ? "text-[#10B981] font-bold" : ""}`}>
+                  <Gem className="w-4 h-4 text-cyan-500 shrink-0" />
+                  <span>{t("nav.pricing")}</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className={`flex items-center gap-2.5 ${isLinkActive("/contact") ? "text-[#10B981] font-bold" : ""}`}>
+                  <Mail className="w-4 h-4 text-orange-500 shrink-0" />
+                  <span>{t("nav.contact")}</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        {/* Right side controls */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Language Selector Button */}
+          <button
+            onClick={toggleLocale}
+            className="btn btn-ghost btn-xs text-base-content/85 font-black tracking-wide hover:bg-base-300 px-2 rounded-lg"
+            title={locale === "en" ? "Switch to Arabic" : "تغيير للإنجليزية"}
+          >
+            {locale === "en" ? "AR" : "EN"}
+          </button>
+
+          {/* Theme Selector Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="btn btn-ghost btn-circle btn-xs text-base-content/85 hover:bg-base-300"
+            title={theme === "smartlight" ? "Dark Mode" : "Light Mode"}
+          >
+            {theme === "smartlight" ? (
+              <Moon className="w-4 h-4 text-current" />
+            ) : (
+              <Sun className="w-4 h-4 text-amber-400" />
+            )}
+          </button>
+
+          {/* Localized PWA App Installation Trigger */}
+          <button
+            onClick={handleInstallClick}
+            className="hidden xs:flex btn btn-ghost btn-circle btn-xs text-base-content/85 hover:bg-base-300 items-center justify-center relative group"
+            title={
+              locale === "en"
+                ? `Download Standalone App (${os.toUpperCase()})`
+                : `تحميل التطبيق المستقل (${os.toUpperCase()})`
+            }
+          >
+            {os === "windows" && <WindowsIcon />}
+            {os === "macos" && <AppleIcon />}
+            {os === "linux" && <LinuxIcon />}
+            {(os === "ios" || os === "android") && <MobileIcon />}
+            {os === "other" && <DownloadAppIcon />}
+
+            {isInstallable && (
+              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
+            )}
+          </button>
+
+          {/* Notifications Dropdown */}
+          {user && (
+            <div className="hidden xs:block dropdown dropdown-end">
+              <label
+                tabIndex={0}
+                className="btn btn-ghost btn-circle btn-xs text-base-content/85 hover:bg-base-300 flex items-center justify-center relative cursor-pointer"
+              >
+                <Bell className="w-4 h-4 text-current" />
+                {unreadNotificationsCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                )}
+              </label>
+
+              <div
+                tabIndex={0}
+                className="dropdown-content mt-3 z-[150] p-4 shadow-xl bg-base-200 text-base-content border border-base-300 rounded-2xl w-72 sm:w-96 space-y-3 font-sans"
+              >
+                <div className="flex justify-between items-center border-b border-base-300 pb-2">
+                  <h4 className="font-extrabold text-xs">
+                    {locale === "en" ? "Notifications" : "التنبيهات"}
+                  </h4>
+                  {unreadNotificationsCount > 0 && (
+                    <button
+                      onClick={handleMarkAllNotificationsRead}
+                      className="text-[10px] text-primary hover:underline font-bold"
+                    >
+                      {locale === "en" ? "Mark all read" : "تحديد الكل كمقروء"}
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {notifications.length === 0 ? (
+                    <p className="text-[10px] text-base-content/40 text-center py-6">
+                      {locale === "en"
+                        ? "No notifications yet."
+                        : "لا توجد تنبيهات حالياً."}
+                    </p>
+                  ) : (
+                    notifications.slice(0, 5).map((n) => (
+                      <div
+                        key={n._id}
+                        onClick={() =>
+                          handleMarkNotificationRead(n._id, n.link)
+                        }
+                        className={`p-2.5 rounded-xl cursor-pointer hover:bg-base-300 transition-colors text-left space-y-1 relative ${!n.read ? "bg-primary/5 border border-primary/15" : "border border-transparent"}`}
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="font-extrabold text-[11px] leading-tight">
+                            {locale === "en" ? n.titleEn : n.titleAr}
+                          </span>
+                          {!n.read && (
+                            <span className="w-1.5 h-1.5 bg-primary rounded-full shrink-0 mt-1"></span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-base-content/65 leading-normal">
+                          {locale === "en" ? n.contentEn : n.contentAr}
+                        </p>
+                        <span className="text-[8px] text-base-content/30 block font-mono">
+                          {new Date(n.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="border-t border-base-300 pt-2 text-center">
+                  <Link
+                    href="/notifications"
+                    className="text-[10px] text-primary hover:underline font-extrabold block"
+                  >
+                    {locale === "en"
+                      ? "See all notifications"
+                      : "عرض كافة التنبيهات"}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {user ? (
+            <div className="dropdown dropdown-end">
+              <label
+                tabIndex={0}
+                className="btn btn-xs rounded-full bg-base-100 border border-base-300 text-base-content hover:bg-base-300 font-bold px-2 sm:px-3 flex items-center gap-1 sm:gap-1.5 cursor-pointer normal-case shadow-sm transition-all"
+              >
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt="Avatar"
+                    className="w-5 h-5 rounded-full object-cover border border-base-300 shrink-0"
+                  />
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[9px] shrink-0 font-sans">
+                    {user.name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")}
+                  </div>
+                )}
+                <span className="hidden sm:block max-w-[100px] truncate text-[11px] font-mono">
+                  {user.email}
+                </span>
+                <ChevronDown className="w-3 h-3 text-base-content/50" />
+              </label>
+              <ul
+                tabIndex={0}
+                className="menu menu-sm dropdown-content mt-3 z-[100] p-3 shadow-lg bg-base-200 text-base-content border border-base-300 rounded-2xl w-60 space-y-1"
+              >
+                <li className="px-3 py-2 border-b border-base-300 mb-1 flex flex-row gap-2.5 items-center">
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full object-cover border border-base-300 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs shrink-0 font-sans">
+                      {user.name
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .join("")}
+                    </div>
+                  )}
+                  <div className="truncate flex-1">
+                    <div className="font-black text-xs truncate p-0 leading-none text-base-content">
+                      {user.name}
+                    </div>
+                    <div className="text-[9px] text-base-content/50 truncate p-0 font-mono mt-1">
+                      {user.email}
+                    </div>
+                  </div>
+                </li>
+              {/* ── LEARNER user dropdown items ── */}
+                {(isLearner || isAdmin) && (
+                  <li>
+                    <Link href="/dashboard" className="flex items-center gap-2">
+                      <LayoutDashboard className="w-4 h-4 text-indigo-500" />
+                      <span>{t("nav.dashboard")}</span>
+                    </Link>
+                  </li>
                 )}
                 {(isLearner || isAdmin) && (
                   <li>

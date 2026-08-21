@@ -6,6 +6,7 @@ import { RoadmapService } from '../roadmap/roadmap.service';
 import { AdminService } from '../admin/admin.service';
 import { GeminiLLMProvider } from '../../ai/gemini-llm.provider';
 import { ChatMessage } from '../../ai/llm-provider.interface';
+import { estimateTokens, trimHistoryToBudget } from '../../ai/token-budget';
 import { ConfigService } from '@nestjs/config';
 import { ScopeClassifierService } from './scope-classifier.service';
 import { RAGService } from '../../ai/rag.service';
@@ -27,6 +28,24 @@ export type ChatIntent =
       strategy: 'sentence_window' | 'auto_merging';
     }
   | { type: 'general' };
+
+/**
+ * Context budget for a chat turn.
+ *
+ * Trimming by message count (the previous `slice(-10)`) does not bound cost:
+ * ten one-line messages are almost free, while ten pasted stack traces are not.
+ * Budgeting by estimated tokens bounds the worst case instead of the average.
+ */
+const HISTORY_TOKEN_BUDGET = 1500;
+const PER_MESSAGE_TOKEN_CAP = 500;
+const CHAT_MAX_OUTPUT_TOKENS = 800;
+
+/**
+ * Cap on messages persisted per session. Without this the document grows for
+ * the life of the account, and every read pulls the whole transcript out of
+ * Mongo to use only the last few turns.
+ */
+const MAX_STORED_MESSAGES = 60;
 
 @Injectable()
 export class ChatbotService {
@@ -307,19 +326,37 @@ export class ChatbotService {
     - If explaining programming concepts or debugging, provide clear explanations with code examples.
     - Reply in the same language the user writes in (English or Arabic). Make responses engaging, professional, and clear.`;
 
+    // Budget the history by size rather than by turn count, so one long paste
+    // cannot silently multiply the cost of every subsequent turn.
+    const { kept, tokens, dropped } = trimHistoryToBudget(
+      session.messages.map((m) => ({ role: m.role, content: m.content })),
+      {
+        maxTokens: HISTORY_TOKEN_BUDGET,
+        maxPerMessageTokens: PER_MESSAGE_TOKEN_CAP,
+        minMessages: 1,
+      },
+    );
+
+    if (dropped > 0) {
+      this.logger.debug(
+        `Chat context trimmed: dropped ${dropped} older message(s), ` +
+          `sending ${kept.length} in ~${tokens} tokens ` +
+          `(+${estimateTokens(systemPrompt)} system)`,
+      );
+    }
+
     const chatHistory: ChatMessage[] = [
       { role: 'system', content: systemPrompt },
-      ...session.messages.slice(-10).map((m) => ({
-        role: m.role,
-        content: m.content,
-      })),
+      ...(kept as ChatMessage[]),
     ];
 
     let responseText = '';
 
     if (this.llmProvider) {
       try {
-        responseText = await this.llmProvider.chat(chatHistory);
+        responseText = await this.llmProvider.chat(chatHistory, {
+          maxOutputTokens: CHAT_MAX_OUTPUT_TOKENS,
+        });
       } catch (err: any) {
         this.logger.debug(
           `Gemini API provider chat fallback (${err.message}). Using SmartRoadmap simulation response.`,
@@ -387,6 +424,15 @@ export class ChatbotService {
       content: responseText,
       createdAt: new Date(),
     });
+
+    // Keep the transcript bounded. Older turns are already outside the context
+    // budget above, so retaining them costs storage and read bandwidth without
+    // ever reaching the model.
+    if (session.messages.length > MAX_STORED_MESSAGES) {
+      session.messages = session.messages.slice(-MAX_STORED_MESSAGES);
+      session.markModified('messages');
+    }
+
     await session.save();
 
     return responseText;
