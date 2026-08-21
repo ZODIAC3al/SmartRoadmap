@@ -10,8 +10,6 @@ export class Subscription extends Document {
     type: Types.ObjectId,
     ref: 'Company',
     required: true,
-    unique: true,
-    index: true,
   })
   companyId!: Types.ObjectId;
 

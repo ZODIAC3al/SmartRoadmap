@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import {
   apiJson,
   fetchMe,
@@ -39,7 +39,7 @@ function isUserRole(value: string): value is UserRole {
 }
 
 export default function AdminUsersPage() {
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -206,7 +206,7 @@ export default function AdminUsersPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
+        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
       </div>
     );
   }
@@ -258,7 +258,7 @@ export default function AdminUsersPage() {
           {/* Users List Column */}
           <div className="bg-base-200 border border-base-300 rounded-2xl shadow-sm p-5 space-y-4 md:col-span-2">
             <div className="flex justify-between items-center flex-wrap gap-3">
-              <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-stone-600 dark:text-stone-400 font-medium">
+              <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
                 {isRtl ? "إدارة أدوار الأعضاء" : "Manage User Roles"}
               </h3>
               <div className="flex items-center gap-2 flex-wrap">
@@ -284,7 +284,7 @@ export default function AdminUsersPage() {
                     onChange={(e) => setSearch(e.target.value)}
                     className="input input-bordered rounded-xl bg-base-100 text-xs w-32 sm:w-40 h-8"
                   />
-                  <button type="submit" className="btn btn-xs bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl h-8 px-2.5 font-bold">
+                  <button type="submit" className="btn btn-xs bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl h-8 px-2.5 font-bold">
                     {isRtl ? "بحث" : "Go"}
                   </button>
                 </form>
@@ -322,7 +322,7 @@ export default function AdminUsersPage() {
                         />
                       </td>
                       <td className="font-bold">{u.name}</td>
-                      <td className="font-mono text-[10px] text-stone-700 dark:text-stone-300 font-medium">{u.email}</td>
+                      <td className="font-mono text-[10px] text-base-content/65">{u.email}</td>
                       <td>
                         <span className="badge badge-sm badge-outline uppercase tracking-wider font-mono text-[9px] font-bold">
                           {u.role}
@@ -395,7 +395,7 @@ export default function AdminUsersPage() {
               <tbody>
                 {auditLogs.map((log) => (
                   <tr key={log._id} className="border-b border-base-300">
-                    <td className="font-mono text-[10px] text-stone-600 dark:text-stone-400 font-medium">
+                    <td className="font-mono text-[10px] text-base-content/45">
                       {new Date(log.createdAt).toLocaleString(locale === "en" ? "en-US" : "ar-EG", {
                         month: "short",
                         day: "2-digit",
@@ -414,7 +414,7 @@ export default function AdminUsersPage() {
                         {log.severity}
                       </span>
                     </td>
-                    <td className="font-mono text-[9px] text-stone-600 dark:text-stone-400 font-medium max-w-[150px] truncate" title={log.userAgent}>
+                    <td className="font-mono text-[9px] text-base-content/45 max-w-[150px] truncate" title={log.userAgent}>
                       {log.ip || "unknown"} • {log.userAgent || "client"}
                     </td>
                   </tr>
@@ -435,7 +435,7 @@ export default function AdminUsersPage() {
             aria-modal="true"
             aria-labelledby="admin-add-user-title"
           >
-            <h3 id="admin-add-user-title" className="font-bold text-lg mb-4 text-[#8E1616]">
+            <h3 id="admin-add-user-title" className="font-bold text-lg mb-4 text-[#10B981]">
               {isRtl ? "إضافة مستخدم جديد" : "Add New User"}
             </h3>
             <form onSubmit={handleCreateUserSubmit} className="space-y-4 text-xs">
@@ -494,7 +494,7 @@ export default function AdminUsersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-sm bg-[#8E1616] hover:bg-[#8E1616] text-white border-none text-xs rounded-xl font-bold px-6"
+                  className="btn btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none text-xs rounded-xl font-bold px-6"
                 >
                   {isRtl ? "إضافة" : "Add User"}
                 </button>
@@ -513,7 +513,7 @@ export default function AdminUsersPage() {
             aria-modal="true"
             aria-labelledby="admin-edit-user-title"
           >
-            <h3 id="admin-edit-user-title" className="font-bold text-lg mb-4 text-[#8E1616]">
+            <h3 id="admin-edit-user-title" className="font-bold text-lg mb-4 text-[#10B981]">
               {isRtl ? "تعديل تفاصيل العضو" : "Edit User Details"}
             </h3>
             <form onSubmit={handleEditUserSubmit} className="space-y-4 text-xs">
@@ -562,7 +562,7 @@ export default function AdminUsersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-sm bg-[#8E1616] hover:bg-[#8E1616] text-white border-none text-xs rounded-xl font-bold px-6"
+                  className="btn btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none text-xs rounded-xl font-bold px-6"
                 >
                   {isRtl ? "حفظ التغييرات" : "Save Changes"}
                 </button>

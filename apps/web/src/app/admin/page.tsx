@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import {
   apiJson,
   fetchMe,
@@ -68,7 +68,7 @@ interface CompanyRecord {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "companies" | "analytics">("overview");
@@ -187,7 +187,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex min-h-screen bg-base-100 items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
+        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
       </div>
     );
   }
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
             <h2 className="text-display-md font-extrabold text-base-content leading-tight">
               Admin Gate Restriction
             </h2>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+            <p className="text-xs text-base-content/50">
               Only master system operations and platform controllers are
               authorized to access the system metrics index.
             </p>
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
           <div className="flex flex-col gap-3 pt-2">
             <button
               onClick={handleSimulateAdmin}
-              className="btn bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl font-semibold h-12 w-full transition-all duration-200"
+              className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-semibold h-12 w-full transition-all duration-200"
             >
               Simulate Administrator Login (Demo)
             </button>
@@ -329,7 +329,7 @@ export default function AdminDashboard() {
             <span className="text-3xl font-black font-mono text-base-content block mt-1">
               {stats.totalUsers}
             </span>
-            <span className="text-[9px] text-stone-600 dark:text-stone-400 font-medium block font-mono">
+            <span className="text-[9px] text-base-content/40 block font-mono">
               {stats.totalLearners} {isRtl ? "طالب" : "Candidates"} • {stats.totalMentors} {isRtl ? "موجه" : "Mentors"}
             </span>
           </div>
@@ -338,10 +338,10 @@ export default function AdminDashboard() {
             <span className="text-[9px] uppercase font-bold text-base-content/40 tracking-wider block font-mono">
               {isRtl ? "نسبة اجتياز الاختبارات" : "Quiz Pass Rate"}
             </span>
-            <span className="text-3xl font-black font-mono text-[#8E1616] block mt-1">
+            <span className="text-3xl font-black font-mono text-[#059669] block mt-1">
               {stats.quizPassRate}
             </span>
-            <span className="text-[9px] text-stone-600 dark:text-stone-400 font-medium block font-mono">
+            <span className="text-[9px] text-base-content/40 block font-mono">
               {stats.quizzesPassed} {isRtl ? "ناجحة" : "Passed"} • {stats.quizzesFailed} {isRtl ? "فاشلة" : "Failed"}
             </span>
           </div>
@@ -350,10 +350,10 @@ export default function AdminDashboard() {
             <span className="text-[9px] uppercase font-bold text-base-content/40 tracking-wider block font-mono">
               {isRtl ? "نشاط المجتمع" : "Community Hub"}
             </span>
-            <span className="text-3xl font-black font-mono text-[#8E1616] block mt-1">
+            <span className="text-3xl font-black font-mono text-[#10B981] block mt-1">
               {stats.activePosts} Posts
             </span>
-            <span className="text-[9px] text-stone-600 dark:text-stone-400 font-medium block font-mono">
+            <span className="text-[9px] text-base-content/40 block font-mono">
               {stats.activeComments} {isRtl ? "تعليقات مجتمعية" : "Comments tracked"}
             </span>
           </div>
@@ -365,7 +365,7 @@ export default function AdminDashboard() {
             <span className="text-3xl font-black font-mono text-base-content block mt-1">
               {stats.totalSessions}
             </span>
-            <span className="text-[9px] text-stone-600 dark:text-stone-400 font-medium block font-mono">
+            <span className="text-[9px] text-base-content/40 block font-mono">
               {stats.completedSessions} {isRtl ? "مكتملة" : "Completed"} • {stats.pendingSessions} {isRtl ? "معلقة" : "Pending"}
             </span>
           </div>
@@ -404,23 +404,23 @@ export default function AdminDashboard() {
                 <span className="font-black text-indigo-500 block uppercase tracking-wider font-mono text-[9px]">
                   1. LEARNING BOTTLENECKS
                 </span>
-                <p className="text-stone-800 dark:text-stone-200 font-medium">{operationalInsights.bottlenecks}</p>
+                <p className="text-base-content/80">{operationalInsights.bottlenecks}</p>
               </div>
               <div className="space-y-1.5 p-4 bg-base-200 border border-base-300 rounded-xl">
                 <span className="font-black text-purple-500 block uppercase tracking-wider font-mono text-[9px]">
                   2. MENTORSHIP QUALITY
                 </span>
-                <p className="text-stone-800 dark:text-stone-200 font-medium">{operationalInsights.mentorshipStatus}</p>
+                <p className="text-base-content/80">{operationalInsights.mentorshipStatus}</p>
               </div>
               <div className="space-y-1.5 p-4 bg-base-200 border border-base-300 rounded-xl">
-                <span className="font-black text-[#8E1616] block uppercase tracking-wider font-mono text-[9px]">
+                <span className="font-black text-emerald-500 block uppercase tracking-wider font-mono text-[9px]">
                   3. RECOMMENDATIONS
                 </span>
-                <p className="text-stone-800 dark:text-stone-200 font-medium">{operationalInsights.recommendations}</p>
+                <p className="text-base-content/80">{operationalInsights.recommendations}</p>
               </div>
             </div>
           ) : (
-            <div className="text-center py-6 text-stone-600 dark:text-stone-400 font-medium text-xs">
+            <div className="text-center py-6 text-base-content/40 text-xs">
               {isRtl ? "أنشئ موجزاً مباشراً من بيانات التعلم والتوجيه والإشراف الحالية." : "Generate a live brief from current learning, mentor, and moderation signals."}
             </div>
           )}
@@ -430,7 +430,7 @@ export default function AdminDashboard() {
           <div>
             <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">REPORTING &amp; ANALYTICS</span>
             <h2 className="mt-2 text-xl font-black tracking-tight">Patterns you can act on</h2>
-            <p className="mt-1 text-xs text-stone-700 dark:text-stone-300 font-medium">A focused view of acquisition, learning quality, and platform throughput.</p>
+            <p className="mt-1 text-xs text-base-content/50">A focused view of acquisition, learning quality, and platform throughput.</p>
           </div>
           <span className="text-[9px] bg-indigo-500/10 text-indigo-500 px-2 py-0.5 rounded-full font-bold font-mono">7 DAY WINDOW</span>
         </div>
@@ -444,7 +444,7 @@ export default function AdminDashboard() {
               <h3 className="font-extrabold text-xs text-base-content uppercase tracking-wider font-mono">
                 {isRtl ? "تحليل تسجيلات العضوية اليومية" : "Daily Signup Analytics"}
               </h3>
-              <span className="text-[9px] bg-[#8E1616]/15 text-[#8E1616] px-2 py-0.5 rounded-full font-bold font-mono">
+              <span className="text-[9px] bg-[#10B981]/15 text-[#059669] px-2 py-0.5 rounded-full font-bold font-mono">
                 WEEKLY INDEX
               </span>
             </div>
@@ -482,11 +482,11 @@ export default function AdminDashboard() {
                   </defs>
                 </svg>
               ) : (
-                <div className="text-center py-12 text-stone-600 dark:text-stone-400 font-medium text-xs">{isRtl ? "لا توجد سجلات كافية." : "No signup metrics records."}</div>
+                <div className="text-center py-12 text-base-content/40 text-xs">{isRtl ? "لا توجد سجلات كافية." : "No signup metrics records."}</div>
               )}
 
               {/* Labels Row */}
-              <div className="flex justify-between text-[9px] font-mono text-stone-600 dark:text-stone-400 font-medium mt-4 px-2">
+              <div className="flex justify-between text-[9px] font-mono text-base-content/40 mt-4 px-2">
                 {signupData.map((d, i) => (
                   <span key={i}>
                     {d.day} ({d.count})
@@ -502,7 +502,7 @@ export default function AdminDashboard() {
               <h3 className="font-extrabold text-xs text-base-content uppercase tracking-wider font-mono">
                 {isRtl ? "نسبة نجاح الطلاب بالمهارات" : "Module Quiz Pass Rates"}
               </h3>
-              <span className="text-[9px] bg-[#8E1616]/15 text-[#8E1616] px-2 py-0.5 rounded-full font-bold font-mono">
+              <span className="text-[9px] bg-[#10B981]/15 text-[#059669] px-2 py-0.5 rounded-full font-bold font-mono">
                 BENCHMARK
               </span>
             </div>
@@ -512,9 +512,9 @@ export default function AdminDashboard() {
               {quizPassRates.length > 0 ? (
                 quizPassRates.map((quiz, idx) => (
                   <div key={idx} className="space-y-1">
-                    <div className="flex justify-between text-[10px] font-semibold text-stone-700 dark:text-stone-300 font-medium">
+                    <div className="flex justify-between text-[10px] font-semibold text-base-content/70">
                       <span>{quiz.topic}</span>
-                      <span className="font-mono text-[#8E1616] font-bold">
+                      <span className="font-mono text-[#059669] font-bold">
                         {quiz.rate}% Pass
                       </span>
                     </div>
@@ -527,7 +527,7 @@ export default function AdminDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-12 text-stone-600 dark:text-stone-400 font-medium text-xs">{isRtl ? "لا توجد سجلات." : "No metrics records."}</div>
+                <div className="text-center py-12 text-base-content/40 text-xs">{isRtl ? "لا توجد سجلات." : "No metrics records."}</div>
               )}
             </div>
           </div>

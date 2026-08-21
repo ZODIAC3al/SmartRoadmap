@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { fetchMe, getErrorMessage, logout, type SessionUser } from "@/lib/api";
 import {
   Certificate,
@@ -15,7 +15,7 @@ import {
 
 export default function AdminCertificatesPage() {
   const router = useRouter();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isRtl = locale === "ar";
   const L = useCallback((en: string, ar: string) => (locale === "ar" ? ar : en), [locale]);
 

@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { toast } from "react-toastify";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 
@@ -36,7 +36,7 @@ type User = {
 };
 
 export default function MessagesPage() {
-  const { locale, t } = useApp();
+  const { locale, t } = useAppUi();
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Data lists
@@ -245,12 +245,12 @@ export default function MessagesPage() {
       <div className="flex min-h-screen bg-base-100 items-center justify-center font-sans text-xs">
         <div className="text-center p-8 bg-base-200 border border-base-300 rounded-2xl max-w-sm">
           <h3 className="font-extrabold text-sm mb-2">Access Denied</h3>
-          <p className="text-stone-700 dark:text-stone-300 font-medium mb-4">
+          <p className="text-base-content/60 mb-4">
             Please log in to access your messaging inbox.
           </p>
           <Link
             href="/auth/login"
-            className="btn bg-primary hover:bg-[#8E1616] text-white border-none btn-sm rounded-lg"
+            className="btn bg-primary hover:bg-[#059669] text-white border-none btn-sm rounded-lg"
           >
             Log In
           </Link>
@@ -272,7 +272,7 @@ export default function MessagesPage() {
             </h1>
             <Link
               href="/dashboard"
-              className="btn btn-ghost hover:bg-base-300 btn-xs text-[10px] uppercase font-bold text-stone-700 dark:text-stone-300 font-medium"
+              className="btn btn-ghost hover:bg-base-300 btn-xs text-[10px] uppercase font-bold text-base-content/60"
             >
               {getLabel("backDashboard")}
             </Link>
@@ -313,7 +313,7 @@ export default function MessagesPage() {
                           avatarUrl: c.partnerAvatar,
                         })
                       }
-                      className={`flex gap-3 items-center p-3 rounded-xl cursor-pointer hover:bg-base-300 transition-colors border text-left ${isActive ? "bg-primary/10 border-primary/25 text-base-content" : "bg-base-100 border-base-300/40 text-stone-800 dark:text-stone-200 font-medium"}`}
+                      className={`flex gap-3 items-center p-3 rounded-xl cursor-pointer hover:bg-base-300 transition-colors border text-left ${isActive ? "bg-primary/10 border-primary/25 text-base-content" : "bg-base-100 border-base-300/40 text-base-content/85"}`}
                     >
                       {/* Avatar with status indicator */}
                       <div className="relative shrink-0">
@@ -339,14 +339,14 @@ export default function MessagesPage() {
                           <span className="font-extrabold text-[11px] truncate">
                             {c.partnerName}
                           </span>
-                          <span className="text-[8px] text-stone-600 dark:text-stone-400 font-medium font-mono">
+                          <span className="text-[8px] text-base-content/40 font-mono">
                             {new Date(c.lastMessageTime).toLocaleTimeString(
                               [],
                               { hour: "2-digit", minute: "2-digit" },
                             )}
                           </span>
                         </div>
-                        <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium truncate leading-normal">
+                        <p className="text-[10px] text-base-content/50 truncate leading-normal">
                           {c.lastMessage}
                         </p>
                       </div>
@@ -365,7 +365,7 @@ export default function MessagesPage() {
                 {searchQuery.trim().length > 0 &&
                   searchResultsNewUsers.length > 0 && (
                     <div className="space-y-1.5 pt-2">
-                      <h3 className="text-[9px] uppercase tracking-wider text-stone-600 dark:text-stone-400 font-medium font-extrabold px-1">
+                      <h3 className="text-[9px] uppercase tracking-wider text-base-content/40 font-extrabold px-1">
                         {getLabel("newResults")}
                       </h3>
                       {searchResultsNewUsers.map((u) => (
@@ -381,7 +381,7 @@ export default function MessagesPage() {
                             <p className="font-bold text-[10px] truncate leading-tight text-base-content">
                               {u.name}
                             </p>
-                            <span className="text-[8px] text-stone-600 dark:text-stone-400 font-medium font-mono">
+                            <span className="text-[8px] text-base-content/40 font-mono">
                               {u.email}
                             </span>
                           </div>
@@ -393,7 +393,7 @@ export default function MessagesPage() {
                 {/* Empty State */}
                 {filteredConversations.length === 0 &&
                   searchResultsNewUsers.length === 0 && (
-                    <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium text-center py-10 font-bold">
+                    <p className="text-[10px] text-base-content/40 text-center py-10 font-bold">
                       {getLabel("emptyChats")}
                     </p>
                   )}
@@ -436,7 +436,7 @@ export default function MessagesPage() {
                         </span>
                       )}
                     </div>
-                    <span className="text-[8px] text-stone-600 dark:text-stone-400 font-medium font-mono block leading-none mt-0.5">
+                    <span className="text-[8px] text-base-content/40 font-mono block leading-none mt-0.5">
                       {activePartner.email}
                     </span>
                   </div>
@@ -444,7 +444,7 @@ export default function MessagesPage() {
 
                 {/* Recruiter / Candidate matching badge details */}
                 <div className="hidden sm:block">
-                  <span className="text-[8.5px] uppercase font-mono font-bold text-stone-600 dark:text-stone-400 font-medium">
+                  <span className="text-[8.5px] uppercase font-mono font-bold text-base-content/40">
                     Role: {activePartner.role}
                   </span>
                 </div>
@@ -459,7 +459,7 @@ export default function MessagesPage() {
                 ) : (
                   <>
                     {messages.length === 0 ? (
-                      <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium text-center py-20 font-bold">
+                      <p className="text-[10px] text-base-content/40 text-center py-20 font-bold">
                         {getLabel("noMessages")}
                       </p>
                     ) : (
@@ -475,7 +475,7 @@ export default function MessagesPage() {
                             >
                               {m.content}
                             </div>
-                            <span className="text-[8px] text-stone-500 dark:text-stone-400 font-medium font-mono mt-1 px-1">
+                            <span className="text-[8px] text-base-content/30 font-mono mt-1 px-1">
                               {new Date(m.createdAt).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",
@@ -505,7 +505,7 @@ export default function MessagesPage() {
                 <button
                   type="submit"
                   disabled={!messageText.trim()}
-                  className="btn bg-primary hover:bg-[#8E1616] disabled:bg-base-300 disabled:text-stone-500 dark:text-stone-400 font-medium text-white border-none rounded-lg h-10 w-10 min-w-0 p-0 flex items-center justify-center shadow-md transition-all"
+                  className="btn bg-primary hover:bg-[#059669] disabled:bg-base-300 disabled:text-base-content/25 text-white border-none rounded-lg h-10 w-10 min-w-0 p-0 flex items-center justify-center shadow-md transition-all"
                   title={getLabel("send")}
                 >
                   <svg
@@ -533,7 +533,7 @@ export default function MessagesPage() {
               <h2 className="text-sm font-black text-base-content uppercase tracking-wider">
                 {getLabel("inbox")}
               </h2>
-              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium max-w-sm mt-1.5">
+              <p className="text-xs text-base-content/50 max-w-sm mt-1.5">
                 {getLabel("emptyThread")}
               </p>
             </div>

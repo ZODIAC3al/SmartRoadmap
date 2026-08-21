@@ -4,6 +4,7 @@ export interface UiState {
   isSidebarOpen: boolean;
   activeModal: string | null;
   theme: 'smartlight' | 'smartdark';
+  locale: 'en' | 'ar';
   selectedRoleTab: 'learner' | 'company';
   isConnected: boolean;
 }
@@ -12,6 +13,7 @@ const initialState: UiState = {
   isSidebarOpen: true,
   activeModal: null,
   theme: 'smartlight',
+  locale: 'en',
   selectedRoleTab: 'learner',
   isConnected: false,
 };
@@ -29,6 +31,12 @@ export const uiSlice = createSlice({
     setTheme: (state, action: PayloadAction<'smartlight' | 'smartdark'>) => {
       state.theme = action.payload;
     },
+    setLocale: (state, action: PayloadAction<'en' | 'ar'>) => {
+      state.locale = action.payload;
+    },
+    toggleLocale: (state) => {
+      state.locale = state.locale === 'en' ? 'ar' : 'en';
+    },
     setSelectedRoleTab: (state, action: PayloadAction<'learner' | 'company'>) => {
       state.selectedRoleTab = action.payload;
     },
@@ -38,5 +46,5 @@ export const uiSlice = createSlice({
   },
 });
 
-export const { toggleSidebar, setActiveModal, setTheme, setSelectedRoleTab, setConnected } = uiSlice.actions;
+export const { toggleSidebar, setActiveModal, setTheme, setLocale, toggleLocale, setSelectedRoleTab, setConnected } = uiSlice.actions;
 export const uiReducer = uiSlice.reducer;
