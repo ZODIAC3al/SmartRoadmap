@@ -615,7 +615,9 @@ function ProfileContent() {
     active?: boolean;
     onClick?: () => void;
   };
-  const sidebarLinks: SidebarLink[] = [
+  const isAdmin = role === "admin";
+
+  const allSidebarLinks: SidebarLink[] = [
     {
       label: t("profile.sidebar.home"),
       href: "/dashboard",
@@ -648,6 +650,11 @@ function ProfileContent() {
       onClick: () => setActiveTab("account"),
     },
   ];
+
+  // Admins only see the Settings entry in the sidebar
+  const sidebarLinks = isAdmin
+    ? allSidebarLinks.filter((l) => l.label === t("profile.sidebar.settings"))
+    : allSidebarLinks;
 
   return (
     <div className="bg-base-100 text-base-content min-h-screen pb-12 px-4 sm:px-6 lg:px-8 text-start select-none">
@@ -783,8 +790,10 @@ function ProfileContent() {
             <div className="flex border-b border-base-300 overflow-x-auto pb-px gap-6 text-xs font-semibold scrollbar-none">
               {[
                 { id: "account", label: t("profile.tabs.account") },
-                { id: "recommendations", label: locale === "en" ? "Recommended Content" : "التوصيات المحتوى" },
-                { id: "salary", label: t("profile.tabs.salary") },
+                ...(!isAdmin ? [
+                  { id: "recommendations", label: locale === "en" ? "Recommended Content" : "التوصيات المحتوى" },
+                  { id: "salary", label: t("profile.tabs.salary") },
+                ] : []),
                 { id: "security", label: t("profile.tabs.security") },
                 { id: "notifications", label: t("profile.tabs.notifications") },
                 { id: "interface", label: t("profile.tabs.interface") },
@@ -810,22 +819,24 @@ function ProfileContent() {
               {activeTab === 'account' && (
                 <form onSubmit={handleSaveProfile} className="bg-base-200 border border-base-300 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
                   
-                  {/* Profile Import CTA Card */}
-                  <div className="bg-[#7c3aed]/10 border border-[#7c3aed]/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="text-start">
-                      <h4 className="font-extrabold text-xs text-[#7c3aed]">
-                        {locale === 'en' ? 'Quick Profile Import & Certificate Upload' : 'استيراد سريع للملف الشخصي ورفع الشهادات'}
-                      </h4>
-                      <p className="text-[10px] text-base-content/70 mt-1 leading-relaxed">
-                        {locale === 'en'
-                          ? 'Populate your profile instantly from GitHub, LinkedIn, or manage your certificates.'
-                          : 'املأ ملفك المهني فوراً من GitHub أو LinkedIn أو أدر شهاداتك المهنية.'}
-                      </p>
+                  {/* Profile Import CTA Card — hidden for admin */}
+                  {!isAdmin && (
+                    <div className="bg-[#7c3aed]/10 border border-[#7c3aed]/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="text-start">
+                        <h4 className="font-extrabold text-xs text-[#7c3aed]">
+                          {locale === 'en' ? 'Quick Profile Import & Certificate Upload' : 'استيراد سريع للملف الشخصي ورفع الشهادات'}
+                        </h4>
+                        <p className="text-[10px] text-base-content/70 mt-1 leading-relaxed">
+                          {locale === 'en'
+                            ? 'Populate your profile instantly from GitHub, LinkedIn, or manage your certificates.'
+                            : 'املأ ملفك المهني فوراً من GitHub أو LinkedIn أو أدر شهاداتك المهنية.'}
+                        </p>
+                      </div>
+                      <Link href="/profile/import" className="btn bg-[#7c3aed] hover:bg-[#6d28d9] border-none text-white btn-xs h-8 rounded-xl font-bold whitespace-nowrap px-4 flex items-center justify-center">
+                        {locale === 'en' ? 'Get Started' : 'ابدأ الآن'}
+                      </Link>
                     </div>
-                    <Link href="/profile/import" className="btn bg-[#7c3aed] hover:bg-[#6d28d9] border-none text-white btn-xs h-8 rounded-xl font-bold whitespace-nowrap px-4 flex items-center justify-center">
-                      {locale === 'en' ? 'Get Started' : 'ابدأ الآن'}
-                    </Link>
-                  </div>
+                  )}
 
                   {/* Profile Picture Upload row */}
                   <div className="space-y-3 text-start">

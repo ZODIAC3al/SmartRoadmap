@@ -28,6 +28,9 @@ export interface SessionUser {
   username?: string;
   phone?: string;
   bio?: string;
+  /** Only present for company accounts — sourced from the server JWT, never the client */
+  companyStatus?: "pending" | "accepted" | "rejected" | "blocked";
+  companyRejectionReason?: string;
 }
 
 export type IdentifiedSessionUser =

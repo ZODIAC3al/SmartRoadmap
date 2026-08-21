@@ -116,7 +116,7 @@ export default function LoginPage() {
       }
 
       storeSession(data);
-      router.push(data.user?.role === "company" ? "/company" : "/dashboard");
+      router.push(data.user?.role === "admin" ? "/admin" : data.user?.role === "company" ? "/company" : "/dashboard");
     } catch (err: any) {
       setErrorMsg(err.message || "Invalid credentials");
     } finally {
@@ -145,7 +145,7 @@ export default function LoginPage() {
         throw new Error(data.message || "Google authentication failed");
 
       storeSession(data);
-      router.push(data.user?.role === "company" ? "/company" : "/dashboard");
+      router.push(data.user?.role === "admin" ? "/admin" : data.user?.role === "company" ? "/company" : "/dashboard");
     } catch (err: any) {
       setErrorMsg(err.message || "Google authentication failed");
     } finally {

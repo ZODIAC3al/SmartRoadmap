@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { logout } from "@/lib/api";
 import { useCompanyDashboard } from "./useCompanyDashboard";
+import CompanyPendingScreen from "@/components/CompanyPendingScreen";
 
 const STATUS_BADGES: Record<string, { bg: string; text: string; icon: string }> = {
   Applied: { bg: "bg-emerald-500/10 border-emerald-500/20", text: "text-emerald-600", icon: "🚀" },
@@ -109,6 +110,22 @@ export default function CompanyPage() {
           </div>
         </div>
       </div>
+    );
+  }
+
+  // ── Company Approval Check ──
+  // If the user is a company but not yet accepted, render the pending screen.
+  // Admins bypass this check.
+  if (
+    user.role === "company" &&
+    (!user.companyStatus || user.companyStatus !== "accepted")
+  ) {
+    return (
+      <CompanyPendingScreen
+        status={user.companyStatus === "rejected" ? "rejected" : "pending"}
+        rejectionReason={user.companyRejectionReason}
+        companyName={user.name}
+      />
     );
   }
 

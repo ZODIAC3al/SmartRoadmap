@@ -27,6 +27,8 @@ import {
   Certificate,
   CertificateSchema,
 } from '../../schemas/certificate.schema';
+import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
+import { Topic, TopicSchema } from '../../schemas/topic.schema';
 import { AIModule } from '../../ai/ai.module';
 
 @Module({
@@ -42,6 +44,8 @@ import { AIModule } from '../../ai/ai.module';
       { name: MentorProfile.name, schema: MentorProfileSchema },
       { name: MentorshipSession.name, schema: MentorshipSessionSchema },
       { name: Certificate.name, schema: CertificateSchema },
+      { name: Roadmap.name, schema: RoadmapSchema },
+      { name: Topic.name, schema: TopicSchema },
     ]),
     AIModule,
   ],

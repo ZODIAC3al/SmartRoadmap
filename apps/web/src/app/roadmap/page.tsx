@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
-import { apiFetch, getCachedUser, hasSession, API_BASE } from "@/lib/api";
+import { apiFetch, apiJson, getCachedUser, hasSession, API_BASE } from "@/lib/api";
 import InterviewAssistant from "@/components/InterviewAssistant";
 import VoiceTutorModal from "@/components/VoiceTutorModal";
 import LearningJourneyVisual from "@/components/illustrations/LearningJourneyVisual";
@@ -37,6 +37,7 @@ import {
   RotateCw,
   Zap,
   Music,
+  Tv,
   Cpu,
   Calendar,
   Layers,
@@ -234,6 +235,41 @@ export default function RoadmapPage() {
   // Tracks the in-flight play() promise so we can safely pause after it resolves
   const playPromiseRef = useRef<Promise<void> | null>(null);
   const isMountedRef = useRef(true);
+
+  // YouTube educational videos state
+  const [youtubeVideos, setYoutubeVideos] = useState<any[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<any | null>(null);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+
+  // Automatically find top 5 relevant YouTube educational videos when lecture/module is selected
+  useEffect(() => {
+    if (!selectedModule?.title) {
+      setYoutubeVideos([]);
+      return;
+    }
+
+    let isSubscribed = true;
+    setLoadingVideos(true);
+
+    apiJson<any[]>(`/resources/youtube-videos?topic=${encodeURIComponent(selectedModule.title)}`)
+      .then((videos) => {
+        if (isSubscribed) {
+          setYoutubeVideos(Array.isArray(videos) ? videos.slice(0, 5) : []);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load YouTube educational videos", err);
+        if (isSubscribed) setYoutubeVideos([]);
+      })
+      .finally(() => {
+        if (isSubscribed) setLoadingVideos(false);
+      });
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [selectedModule?.id, selectedModule?.title]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -1772,6 +1808,72 @@ export default function RoadmapPage() {
                 )}
               </div>
 
+              {/* Educational YouTube Video Tutorials Section (Top 5 for selected lecture) */}
+              <div className="space-y-2.5 pt-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-widest text-base-content/40 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Tv className="w-3.5 h-3.5 text-red-500" />
+                    <span>{isAr ? "فيديوهات تعليمية (YouTube) 📺" : "YouTube Video Lessons 📺"}</span>
+                  </span>
+                  <span className="badge badge-xs badge-error text-white font-black text-[9px]">TOP 5</span>
+                </h4>
+
+                {loadingVideos ? (
+                  <div className="bg-base-200 border border-base-300 p-4 rounded-2xl flex items-center justify-center gap-2.5">
+                    <span className="loading loading-spinner loading-xs text-red-500" />
+                    <span className="text-xs font-bold text-base-content/60">
+                      {isAr ? "جاري البحث عن أفضل الفيديوهات..." : "Finding top 5 YouTube videos..."}
+                    </span>
+                  </div>
+                ) : youtubeVideos.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                      {youtubeVideos.map((video) => (
+                        <div
+                          key={video.id}
+                          onClick={() => {
+                            setSelectedVideo(video);
+                            setShowVideoModal(true);
+                          }}
+                          className="group bg-base-200 hover:bg-base-300/80 border border-base-300 rounded-xl p-2 flex items-center gap-3 transition-all cursor-pointer select-none"
+                        >
+                          <div className="relative w-20 h-12 shrink-0 rounded-lg overflow-hidden bg-slate-900 shadow-sm border border-base-300">
+                            <img
+                              src={video.thumbnailUrl}
+                              alt={video.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            />
+                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/10 transition-colors">
+                              <div className="w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center shadow-md">
+                                <Play className="w-3 h-3 fill-white translate-x-0.5" />
+                              </div>
+                            </div>
+                            {video.duration && (
+                              <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[8px] font-black px-1 rounded">
+                                {video.duration}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <h5 className="text-[11px] font-extrabold text-base-content line-clamp-1 group-hover:text-red-500 transition-colors">
+                              {video.title}
+                            </h5>
+                            <div className="flex items-center gap-2 mt-0.5 text-[9px] font-bold text-base-content/50">
+                              <span className="truncate text-red-600/90 font-black">{video.channelTitle}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-base-200 border border-base-300 p-3 rounded-xl text-center text-xs text-base-content/50 font-semibold">
+                    {isAr ? "لا توجد فيديوهات متاحة حالياً" : "No video tutorials found"}
+                  </div>
+                )}
+              </div>
+
               {/* Talk to Voice Tutor Trigger */}
               <div className="pt-2">
                 <button
@@ -1808,6 +1910,62 @@ export default function RoadmapPage() {
         onEnded={() => setIsPlaying(false)}
         style={{ display: 'none' }}
       />
+
+      {/* Interactive YouTube Video Player Modal */}
+      <AnimatePresence>
+        {showVideoModal && selectedVideo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-base-100 border border-base-300 rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl space-y-0 relative z-50"
+            >
+              <div className="p-4 border-b border-base-300 flex items-center justify-between bg-base-200/50">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                    <Tv className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-extrabold text-base-content truncate">{selectedVideo.title}</h3>
+                    <p className="text-[10px] font-bold text-base-content/50">{selectedVideo.channelTitle}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowVideoModal(false)}
+                  className="btn btn-circle btn-ghost btn-xs text-base-content/60 hover:text-base-content"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="relative aspect-video w-full bg-slate-950">
+                <iframe
+                  src={`${selectedVideo.embedUrl}?autoplay=1`}
+                  title={selectedVideo.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full border-none"
+                />
+              </div>
+
+              <div className="p-4 bg-base-100 flex items-center justify-between gap-3">
+                <span className="text-xs font-bold text-base-content/60 truncate">
+                  {isAr ? "الموضوع: " : "Lecture Topic: "} <strong className="text-base-content">{selectedModule?.title}</strong>
+                </span>
+                <a
+                  href={selectedVideo.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-xs btn-outline border-red-600 text-red-600 hover:bg-red-600 hover:text-white rounded-lg gap-1 font-extrabold shrink-0"
+                >
+                  <span>{isAr ? "مشاهدة في يوتيوب ↗" : "Watch on YouTube ↗"}</span>
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* AssemblyAI Voice Agent Modal overlay */}
       {selectedModule && (

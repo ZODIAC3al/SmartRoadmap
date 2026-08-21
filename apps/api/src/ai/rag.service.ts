@@ -126,12 +126,131 @@ export class RAGService implements OnModuleInit {
     }));
   }
 
+  /**
+   * Sentence Window Retrieval:
+   * Retrieves specific focused leaf chunks along with surrounding sentence context
+   * (windowBefore + targetChunk + windowAfter) for precise definitions, code snippets,
+   * and targeted remedial explanations.
+   */
+  async sentenceWindowSearch(
+    collection: string,
+    query: string,
+    limit = 5,
+  ): Promise<any[]> {
+    const hits = this.client
+      ? await this.search(collection, query, limit)
+      : this.mockResources(query, limit);
+
+    return hits.map((hit) => {
+      const coreText = hit.text || hit.title || hit.content || '';
+      const windowBefore = hit.windowBefore ? hit.windowBefore + ' ' : '';
+      const windowAfter = hit.windowAfter ? ' ' + hit.windowAfter : '';
+      return {
+        ...hit,
+        retrievalStrategy: 'sentence_window',
+        contextWindow: `${windowBefore}${coreText}${windowAfter}`.trim(),
+      };
+    });
+  }
+
+  /**
+   * Auto-Merging Retrieval:
+   * Groups child hit chunks by parent document / section ID. If child hits meet
+   * density threshold, auto-merges them into full hierarchical section content.
+   */
+  async autoMergingSearch(
+    collection: string,
+    query: string,
+    limit = 5,
+  ): Promise<any[]> {
+    const hits = this.client
+      ? await this.search(collection, query, limit * 2)
+      : this.mockResources(query, limit);
+
+    // Group hits by parentId or title
+    const parentGroups = new Map<string, any[]>();
+    for (const hit of hits) {
+      const parentId = hit.parentId || hit.company || hit.title || 'default';
+      if (!parentGroups.has(parentId)) {
+        parentGroups.set(parentId, []);
+      }
+      parentGroups.get(parentId)!.push(hit);
+    }
+
+    const mergedResults: any[] = [];
+    for (const [parentId, childHits] of parentGroups.entries()) {
+      if (childHits.length >= 2) {
+        // Auto-merge child hits into full document view
+        const mergedTitle = childHits[0].title || childHits[0].parentTitle || parentId;
+        const mergedContent = childHits
+          .map((c) => c.contextWindow || c.text || c.content || c.description || c.title)
+          .join('\n\n');
+
+        mergedResults.push({
+          ...childHits[0],
+          isMerged: true,
+          retrievalStrategy: 'auto_merging',
+          title: mergedTitle,
+          content: mergedContent,
+          matchScore: Math.max(...childHits.map((c) => c.matchScore || 85)),
+        });
+      } else {
+        mergedResults.push({
+          ...childHits[0],
+          isMerged: false,
+          retrievalStrategy: 'auto_merging',
+        });
+      }
+    }
+
+    return mergedResults.slice(0, limit);
+  }
+
+  /** Unified RAG Context Retrieval */
+  async retrieveContext(options: {
+    domain: 'resources' | 'jobs';
+    query: string;
+    strategy?: 'sentence_window' | 'auto_merging';
+    limit?: number;
+  }): Promise<{ hits: any[]; formattedContext: string }> {
+    const collection =
+      options.domain === 'jobs' ? JOBS_COLLECTION : RESOURCES_COLLECTION;
+    const strategy = options.strategy || 'sentence_window';
+    const limit = options.limit || 5;
+
+    let hits: any[];
+    if (strategy === 'auto_merging') {
+      hits = await this.autoMergingSearch(collection, options.query, limit);
+    } else {
+      hits = await this.sentenceWindowSearch(collection, options.query, limit);
+    }
+
+    const formattedContext = this.formatRetrievedContext(hits, strategy);
+    return { hits, formattedContext };
+  }
+
+  /** Grounded prompt formatter for LLM prompt builder */
+  formatRetrievedContext(
+    hits: any[],
+    strategy: 'sentence_window' | 'auto_merging',
+  ): string {
+    if (!hits || hits.length === 0) return '';
+
+    const lines = hits.map((hit, idx) => {
+      const source = hit.title || hit.company || `Doc #${idx + 1}`;
+      const body =
+        hit.contextWindow || hit.content || hit.description || hit.text || JSON.stringify(hit);
+      return `[Knowledge Source ${idx + 1}: ${source} (${strategy})]\n${body}`;
+    });
+
+    return `\n[Retrieved Grounded Knowledge Context (${strategy})]\n${lines.join('\n\n')}\n`;
+  }
+
   async retrieveResources(topic: string, limit = 5): Promise<any[]> {
     if (!this.client) return this.mockResources(topic, limit);
 
     try {
       const hits = await this.search(RESOURCES_COLLECTION, topic, limit);
-      // Empty index is a valid state — fall back to curated mocks, not to a retry.
       return hits.length ? hits : this.mockResources(topic, limit);
     } catch (error: any) {
       this.logger.error(`Qdrant resource search failed: ${error.message}`);
@@ -181,3 +300,4 @@ export class RAGService implements OnModuleInit {
     }
   }
 }
+

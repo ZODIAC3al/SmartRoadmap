@@ -19,6 +19,12 @@ interface Stats {
   totalCompanies: number;
   totalMentors: number;
   totalAdmins: number;
+  pendingCompanies: number;
+  acceptedCompanies: number;
+  rejectedCompanies: number;
+  pendingCertificates: number;
+  acceptedCertificates: number;
+  rejectedCertificates: number;
   quizzesPassed: number;
   quizzesFailed: number;
   quizPassRate: string;
@@ -51,11 +57,21 @@ interface AnalyticsResponse {
   quizPassRates: QuizRate[];
 }
 
+interface CompanyRecord {
+  _id: string;
+  name: string;
+  email: string;
+  companyStatus: "pending" | "accepted" | "rejected" | "blocked";
+  companyRejectionReason?: string;
+  createdAt: string;
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const { locale } = useApp();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"overview" | "companies" | "analytics">("overview");
 
   // Live Statistics
   const [stats, setStats] = useState<Stats>({
@@ -64,6 +80,12 @@ export default function AdminDashboard() {
     totalCompanies: 0,
     totalMentors: 0,
     totalAdmins: 0,
+    pendingCompanies: 0,
+    acceptedCompanies: 0,
+    rejectedCompanies: 0,
+    pendingCertificates: 0,
+    acceptedCertificates: 0,
+    rejectedCertificates: 0,
     quizzesPassed: 0,
     quizzesFailed: 0,
     quizPassRate: "0%",
@@ -81,6 +103,13 @@ export default function AdminDashboard() {
   const [operationalInsights, setOperationalInsights] = useState<OperationalInsights | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
 
+  // Companies management
+  const [companies, setCompanies] = useState<CompanyRecord[]>([]);
+  const [companiesFilter, setCompaniesFilter] = useState<"all" | "pending" | "accepted" | "rejected" | "blocked">("all");
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
+  const [rejectingCompanyId, setRejectingCompanyId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
   const fetchAnalyticsData = useCallback(async () => {
     try {
       const data = await apiJson<AnalyticsResponse>("/admin/analytics");
@@ -92,6 +121,19 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  const fetchCompanies = useCallback(async (filterStatus = companiesFilter) => {
+    setLoadingCompanies(true);
+    try {
+      const statusParam = filterStatus !== "all" ? `?status=${filterStatus}` : "";
+      const data = await apiJson<CompanyRecord[]>(`/admin/companies${statusParam}`);
+      setCompanies(data);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to load companies."));
+    } finally {
+      setLoadingCompanies(false);
+    }
+  }, [companiesFilter]);
+
   useEffect(() => {
     void (async () => {
       const me = await fetchMe();
@@ -101,9 +143,29 @@ export default function AdminDashboard() {
       }
       setUser(me);
       await fetchAnalyticsData();
+      if (activeTab === "companies") {
+        await fetchCompanies();
+      }
       setLoading(false);
     })();
-  }, [fetchAnalyticsData]);
+  }, [fetchAnalyticsData, fetchCompanies, activeTab]);
+
+  const handleCompanyAction = async (id: string, action: "accept" | "reject" | "block") => {
+    try {
+      const body = action === "reject" || action === "block" ? { reason: rejectReason } : undefined;
+      await apiJson(`/admin/companies/${id}/${action}`, {
+        method: "PATCH",
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      toast.success(`Company account ${action}ed successfully`);
+      setRejectingCompanyId(null);
+      setRejectReason("");
+      await fetchCompanies(companiesFilter);
+      await fetchAnalyticsData(); // Refresh overview numbers
+    } catch (error) {
+      toast.error(getErrorMessage(error, `Failed to ${action} company`));
+    }
+  };
 
   const fetchOperationalInsights = async () => {
     setLoadingInsights(true);
@@ -182,42 +244,36 @@ export default function AdminDashboard() {
     : "M 0 130 Z";
 
   return (
-    <div className={`sr-console min-h-screen text-base-content pb-10 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
-      <div className="sr-shell max-w-6xl mx-auto space-y-8">
+    <div className={`min-h-screen bg-base-100 text-base-content pb-12 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
+      <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Navigation Admin Header Banner */}
-        <div className="sr-stage sr-signal flex flex-col md:flex-row justify-between items-start md:items-center gap-5 rounded-3xl p-6 sm:p-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
           <div>
-            <span className="sr-kicker">
-              {isRtl ? "لوحة التحكم التشغيلية الكبرى" : "OPERATIONAL COMMAND CONSOLE"}
+            <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
+              {isRtl ? "مدير النظام" : "PLATFORM ADMINISTRATOR"}
             </span>
-            <h1 className="text-2xl font-black tracking-tight mt-1">
-              Operations Console
+            <h1 className="text-xl font-extrabold text-base-content mt-1">
+              Admin Dashboard
             </h1>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-0.5">
+            <p className="text-sm text-base-content/60 mt-0.5">
               {isRtl
                 ? "إدارة حسابات المستخدمين، والإشراف على المجتمع، ومراجعة الأداء والإشارات التشغيلية."
                 : "Manage access, review community health, audit actions, and turn live platform signals into decisions."}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex items-center gap-3">
             <Link
               href="/admin/users"
-              className="sr-button btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
             >
-              {isRtl ? "إدارة الأعضاء وسجلات الأمان" : "Manage users"}
+              {isRtl ? "المستخدمين" : "Users"}
             </Link>
             <Link
               href="/admin/certificates"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
             >
-              {isRtl ? "مراجعة وتوثيق الشهادات" : "Verify certificates"}
-            </Link>
-            <Link
-              href="/admin/content"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
-            >
-              {isRtl ? "إشراف ومراقبة المحتوى" : "Moderation queue"}
+              {isRtl ? "الشهادات" : "Certificates"}
             </Link>
             <button
               onClick={() => {
@@ -226,17 +282,48 @@ export default function AdminDashboard() {
                 toast.info("Logged out from admin panel.");
                 router.push("/");
               }}
-              className="btn btn-xs sm:btn-sm btn-ghost text-red-500 rounded-xl hover:bg-red-50"
+              className="btn btn-ghost btn-sm text-red-500 hover:bg-red-50 rounded-xl"
             >
               {isRtl ? "تسجيل الخروج" : "Logout Admin"}
             </button>
           </div>
         </div>
 
-        {/* Analytics counts grid */}
+        {/* --- TABS BANDS --- */}
+        <div className="flex border-b border-base-300">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+              activeTab === "overview"
+                ? "border-[#10B981] text-[#10B981]"
+                : "border-transparent text-base-content/60 hover:text-base-content"
+            }`}
+          >
+            Platform Overview
+          </button>
+          <button
+            onClick={() => setActiveTab("companies")}
+            className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+              activeTab === "companies"
+                ? "border-[#10B981] text-[#10B981]"
+                : "border-transparent text-base-content/60 hover:text-base-content"
+            }`}
+          >
+            Company Approvals
+            {stats.pendingCompanies > 0 && (
+              <span className="ml-2 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                {stats.pendingCompanies}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {activeTab === "overview" && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Analytics counts grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="sr-card p-5 rounded-2xl">
-            <span className="text-[9px] uppercase font-bold text-stone-600 dark:text-stone-400 font-medium tracking-wider block font-mono">
+          <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm">
+            <span className="text-[9px] uppercase font-bold text-base-content/40 tracking-wider block font-mono">
               {isRtl ? "إجمالي المستخدمين" : "Total Users"}
             </span>
             <span className="text-3xl font-black font-mono text-base-content block mt-1">
@@ -247,8 +334,8 @@ export default function AdminDashboard() {
             </span>
           </div>
 
-          <div className="sr-card p-5 rounded-2xl">
-            <span className="text-[9px] uppercase font-bold text-stone-600 dark:text-stone-400 font-medium tracking-wider block font-mono">
+          <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm">
+            <span className="text-[9px] uppercase font-bold text-base-content/40 tracking-wider block font-mono">
               {isRtl ? "نسبة اجتياز الاختبارات" : "Quiz Pass Rate"}
             </span>
             <span className="text-3xl font-black font-mono text-[#8E1616] block mt-1">
@@ -259,8 +346,8 @@ export default function AdminDashboard() {
             </span>
           </div>
 
-          <div className="sr-card p-5 rounded-2xl">
-            <span className="text-[9px] uppercase font-bold text-stone-600 dark:text-stone-400 font-medium tracking-wider block font-mono">
+          <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm">
+            <span className="text-[9px] uppercase font-bold text-base-content/40 tracking-wider block font-mono">
               {isRtl ? "نشاط المجتمع" : "Community Hub"}
             </span>
             <span className="text-3xl font-black font-mono text-[#8E1616] block mt-1">
@@ -271,8 +358,8 @@ export default function AdminDashboard() {
             </span>
           </div>
 
-          <div className="sr-card p-5 rounded-2xl">
-            <span className="text-[9px] uppercase font-bold text-stone-600 dark:text-stone-400 font-medium tracking-wider block font-mono">
+          <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm">
+            <span className="text-[9px] uppercase font-bold text-base-content/40 tracking-wider block font-mono">
               {isRtl ? "جلسات التوجيه" : "Mentorship Sessions"}
             </span>
             <span className="text-3xl font-black font-mono text-base-content block mt-1">
@@ -285,10 +372,10 @@ export default function AdminDashboard() {
         </div>
 
         {/* Operational brief */}
-        <div className="sr-panel rounded-2xl p-6 space-y-4">
+        <div className="bg-base-200 border border-base-300 shadow-sm rounded-2xl p-6 space-y-4">
           <div className="flex justify-between items-center border-b border-indigo-500/10 pb-3">
             <div className="flex items-center gap-2">
-              <span className="sr-chip">LIVE BRIEF</span>
+              <span className="text-[9px] bg-indigo-500/10 text-indigo-500 px-2 py-0.5 rounded-full font-bold font-mono">LIVE BRIEF</span>
               <div>
                 <h3 className="font-extrabold text-sm text-base-content">
                   {isRtl ? "إشارات الأداء والعقبات التشغيلية" : "Operational Signals & Bottlenecks"}
@@ -301,7 +388,7 @@ export default function AdminDashboard() {
             <button
               onClick={fetchOperationalInsights}
               disabled={loadingInsights}
-              className="sr-button btn btn-xs px-3"
+              className="btn btn-sm bg-indigo-500 hover:bg-indigo-600 text-white border-none rounded-xl font-bold px-3"
             >
               {loadingInsights ? (
                 <span className="loading loading-spinner loading-xs"></span>
@@ -341,18 +428,18 @@ export default function AdminDashboard() {
 
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <span className="sr-kicker">REPORTING &amp; ANALYTICS</span>
+            <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">REPORTING &amp; ANALYTICS</span>
             <h2 className="mt-2 text-xl font-black tracking-tight">Patterns you can act on</h2>
             <p className="mt-1 text-xs text-stone-700 dark:text-stone-300 font-medium">A focused view of acquisition, learning quality, and platform throughput.</p>
           </div>
-          <span className="sr-chip">7 DAY WINDOW</span>
+          <span className="text-[9px] bg-indigo-500/10 text-indigo-500 px-2 py-0.5 rounded-full font-bold font-mono">7 DAY WINDOW</span>
         </div>
 
         {/* Charts Split Area */}
         <div className="grid md:grid-cols-2 gap-6">
           
           {/* Chart 1: Daily Signup Area Chart */}
-          <div className="sr-panel rounded-2xl p-6 space-y-4">
+          <div className="bg-base-200 border border-base-300 shadow-sm rounded-2xl p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-base-300 pb-3">
               <h3 className="font-extrabold text-xs text-base-content uppercase tracking-wider font-mono">
                 {isRtl ? "تحليل تسجيلات العضوية اليومية" : "Daily Signup Analytics"}
@@ -410,7 +497,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Chart 2: Quiz Completion rates bar chart */}
-          <div className="sr-panel rounded-2xl p-6 space-y-4">
+          <div className="bg-base-200 border border-base-300 shadow-sm rounded-2xl p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-base-300 pb-3">
               <h3 className="font-extrabold text-xs text-base-content uppercase tracking-wider font-mono">
                 {isRtl ? "نسبة نجاح الطلاب بالمهارات" : "Module Quiz Pass Rates"}
@@ -446,6 +533,158 @@ export default function AdminDashboard() {
           </div>
 
         </div>
+      </div>
+    )}
+
+        {activeTab === "companies" && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-black tracking-tight">Company Registrations</h2>
+                <p className="text-sm text-base-content/60">Review and approve employer accounts.</p>
+              </div>
+              <div className="flex gap-2 bg-base-200 p-1 rounded-lg">
+                {(["all", "pending", "accepted", "rejected", "blocked"] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => {
+                      setCompaniesFilter(filter);
+                      void fetchCompanies(filter);
+                    }}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                      companiesFilter === filter
+                        ? "bg-base-100 shadow-sm text-base-content"
+                        : "text-base-content/60 hover:text-base-content"
+                    }`}
+                  >
+                    {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-base-200 border border-base-300 rounded-2xl overflow-hidden">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-base-300/50 text-base-content/70">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Company</th>
+                    <th className="px-6 py-4 font-semibold">Registered</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
+                    <th className="px-6 py-4 font-semibold text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-base-300">
+                  {loadingCompanies ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-base-content/50">
+                        <span className="loading loading-spinner text-[#10B981]"></span>
+                      </td>
+                    </tr>
+                  ) : companies.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-base-content/50">
+                        No company accounts found.
+                      </td>
+                    </tr>
+                  ) : (
+                    companies.map((company) => (
+                      <tr key={company._id} className="hover:bg-base-300/30 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-bold">{company.name}</div>
+                          <div className="text-xs text-base-content/60">{company.email}</div>
+                        </td>
+                        <td className="px-6 py-4 text-xs text-base-content/70">
+                          {new Date(company.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              company.companyStatus === "accepted"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : company.companyStatus === "rejected"
+                                ? "bg-red-100 text-red-700"
+                                : company.companyStatus === "blocked"
+                                ? "bg-slate-200 text-slate-700"
+                                : "bg-amber-100 text-amber-700"
+                            }`}
+                          >
+                            {company.companyStatus === "pending" && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            )}
+                            {company.companyStatus}
+                          </span>
+                          {company.companyRejectionReason && (
+                            <div className="text-[10px] text-red-500 mt-1 max-w-[200px] truncate" title={company.companyRejectionReason}>
+                              {company.companyRejectionReason}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          {(company.companyStatus === "pending" || company.companyStatus === "accepted" || company.companyStatus === "rejected") && (
+                            <div className="flex justify-end gap-2">
+                              {rejectingCompanyId === company._id ? (
+                                <div className="flex flex-col gap-2 min-w-[200px]">
+                                  <input
+                                    type="text"
+                                    placeholder="Reason for rejection..."
+                                    className="input input-xs input-bordered w-full"
+                                    value={rejectReason}
+                                    onChange={(e) => setRejectReason(e.target.value)}
+                                  />
+                                  <div className="flex gap-1 justify-end">
+                                    <button
+                                      onClick={() => {
+                                        setRejectingCompanyId(null);
+                                        setRejectReason("");
+                                      }}
+                                      className="btn btn-xs btn-ghost text-base-content/60"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={() => handleCompanyAction(company._id, "reject")}
+                                      disabled={!rejectReason.trim()}
+                                      className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none"
+                                    >
+                                      Confirm Reject
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => setRejectingCompanyId(company._id)}
+                                    className="btn btn-xs btn-ghost text-red-500 hover:bg-red-50"
+                                  >
+                                    Reject
+                                  </button>
+                                  <button
+                                    onClick={() => handleCompanyAction(company._id, "accept")}
+                                    className="btn btn-xs bg-[#10B981] hover:bg-[#059669] text-white border-none"
+                                  >
+                                    Accept
+                                  </button>
+                                  {company.companyStatus !== "pending" && (
+                                    <button
+                                      onClick={() => handleCompanyAction(company._id, "block")}
+                                      className="btn btn-xs bg-slate-700 hover:bg-slate-800 text-white border-none"
+                                    >
+                                      Block
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
