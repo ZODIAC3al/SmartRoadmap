@@ -251,7 +251,7 @@ export class MessagingService {
       // Dispatch Notification to Recipient
       await this.notificationsService.create({
         userId: recipientId,
-        type: 'message_received',
+        type: 'message',
         title: `New message from ${senderUser.name || 'User'}`,
         body: dto.body.substring(0, 80),
         linkTo:

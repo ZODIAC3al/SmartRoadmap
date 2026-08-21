@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch } from "@/lib/api";
 
 export default function Footer() {
-  const { t, locale } = useApp();
+  const { t, locale } = useAppUi();
   const pathname = usePathname();
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);

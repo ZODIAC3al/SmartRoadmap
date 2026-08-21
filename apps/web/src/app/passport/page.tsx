@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { getCachedUser } from "@/lib/api";
 
 type VettedSkill = {
@@ -20,7 +20,7 @@ type VerifiedProject = {
 };
 
 export default function SkillPassportPage() {
-  const { t, locale } = useApp();
+  const { t, locale } = useAppUi();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

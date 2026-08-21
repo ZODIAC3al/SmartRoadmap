@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiJson, fetchMe, getErrorMessage } from "@/lib/api";
 import { toast } from "react-toastify";
 
@@ -14,7 +14,7 @@ interface Message {
 
 export default function ChatSidebar() {
   const pathname = usePathname();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isRtl = locale === "ar";
 
   const [isOpen, setIsOpen] = useState(false);

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, extractErrorMessage, storeSession } from "@/lib/api";
 import { motion } from "framer-motion";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import {
   Mail,
   Lock,
@@ -80,7 +80,7 @@ const GOOGLE_CLIENT_ID =
   "1076361672222-a6506ek6hc3b6tgu2q9b9ubsm53k46fq.apps.googleusercontent.com";
 
 export default function LoginPage() {
-  const { locale, toggleLocale } = useApp();
+  const { locale, toggleLocale } = useAppUi();
   const tLocal = (key: keyof typeof localDict) => {
     const loc = locale as "en" | "ar";
     return localDict[key][loc] || localDict[key]["en"];

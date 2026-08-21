@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -200,7 +200,7 @@ const CaretDownIcon = () => (
 );
 
 function ProfileContent() {
-  const { theme, setTheme, locale, setLocale, t } = useApp();
+  const { theme, setTheme, locale, setLocale, t } = useAppUi();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

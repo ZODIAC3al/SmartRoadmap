@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import {
   apiJson,
   fetchMe,
@@ -39,7 +39,7 @@ function isUserRole(value: string): value is UserRole {
 }
 
 export default function AdminUsersPage() {
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 

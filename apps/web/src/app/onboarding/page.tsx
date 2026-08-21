@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Stepper from "@/components/Stepper";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser } from "@/lib/api";
 
 const PRESET_ROLES = [
@@ -47,7 +47,7 @@ const PRESET_SKILLS = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { t, locale } = useApp();
+  const { t, locale } = useAppUi();
   const [step, setStep] = useState(1);
   const [targetRole, setTargetRole] = useState("");
   const [isCustomRole, setIsCustomRole] = useState(false);

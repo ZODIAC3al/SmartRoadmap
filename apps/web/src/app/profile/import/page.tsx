@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useApp } from '@/components/AppContext';
+import { useAppUi } from '@/store/hooks/useAppUi';
 import { toast } from 'react-toastify';
 import {
   Certificate,
@@ -98,7 +98,7 @@ interface RepoRow extends GitHubRepo {
 }
 
 export default function ProfileImportPage() {
-  const { locale, t } = useApp();
+  const { locale, t } = useAppUi();
   const L = useCallback((en: string, ar: string) => (locale === 'ar' ? ar : en), [locale]);
 
   const [loading, setLoading] = useState(true);

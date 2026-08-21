@@ -30,7 +30,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 import {
   Lock,
@@ -310,7 +310,7 @@ function DevotopiaShieldBadge({
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isAr = locale === "ar";
   const tr = (key: DictKey, vars?: Record<string, string>) => {
     let str = dict[key][isAr ? "ar" : "en"];

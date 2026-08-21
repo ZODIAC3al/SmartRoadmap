@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import {
   apiFetch,
   cacheUser,
@@ -15,7 +15,7 @@ import { pricingDict } from "./pricing.data";
  * component stays presentational (and this logic becomes unit-testable).
  */
 export function usePricing() {
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Role Audience State ('learner' | 'company')

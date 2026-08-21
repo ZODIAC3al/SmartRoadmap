@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, extractErrorMessage, storeSession } from "@/lib/api";
 import { motion } from "framer-motion";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import {
   GraduationCap,
   Briefcase,
@@ -110,7 +110,7 @@ const localDict = {
 };
 
 export default function RegisterPage() {
-  const { locale, toggleLocale } = useApp();
+  const { locale, toggleLocale } = useAppUi();
   const tLocal = (key: keyof typeof localDict) => {
     const loc = locale as "en" | "ar";
     return localDict[key][loc] || localDict[key]["en"];

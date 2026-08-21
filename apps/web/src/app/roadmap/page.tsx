@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, apiJson, getCachedUser, hasSession, API_BASE } from "@/lib/api";
 import InterviewAssistant from "@/components/InterviewAssistant";
 import VoiceTutorModal from "@/components/VoiceTutorModal";
@@ -206,7 +206,7 @@ const FolderSearchIllustration = ({ title }: { title: string }) => (
 
 export default function RoadmapPage() {
   const router = useRouter();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isAr = locale === "ar";
   const tr = (key: DictKey) => dict[key][isAr ? "ar" : "en"];
 

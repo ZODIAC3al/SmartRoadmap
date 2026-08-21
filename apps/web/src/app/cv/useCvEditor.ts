@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser, getUserId } from "@/lib/api";
 import type { CVData } from "./types";
 
@@ -13,7 +13,7 @@ import type { CVData } from "./types";
  * presentation, and this logic is unit-testable on its own.
  */
 export function useCvEditor() {
-  const { t, locale } = useApp();
+  const { t, locale } = useAppUi();
   const [userId, setUserId] = useState("654321098765432109876543"); // Default fallback test ID
   const [activeTab, setActiveTab] = useState<
     "fillin" | "guidance" | "analysis" | "matching"

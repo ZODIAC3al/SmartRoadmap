@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { toast } from "react-toastify";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 
@@ -36,7 +36,7 @@ type User = {
 };
 
 export default function MessagesPage() {
-  const { locale, t } = useApp();
+  const { locale, t } = useAppUi();
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Data lists

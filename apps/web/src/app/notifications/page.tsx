@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { toast } from "react-toastify";
 import { apiFetch, hasSession } from "@/lib/api";
 
@@ -37,7 +37,7 @@ const dict = {
 type DictKey = keyof typeof dict;
 
 export default function NotificationsPage() {
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isAr = locale === "ar";
   const tr = (key: DictKey) => dict[key][isAr ? "ar" : "en"];
   const prefersReducedMotion = useReducedMotion();

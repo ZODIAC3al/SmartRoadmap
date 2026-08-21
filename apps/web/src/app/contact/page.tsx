@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch } from "@/lib/api";
 
 const INTEREST_OPTIONS = (t: (k: string) => string) => [
@@ -13,7 +13,7 @@ const INTEREST_OPTIONS = (t: (k: string) => string) => [
 ];
 
 export default function ContactPage() {
-  const { t, locale } = useApp();
+  const { t, locale } = useAppUi();
 
   const [form, setForm] = useState({
     name: "",

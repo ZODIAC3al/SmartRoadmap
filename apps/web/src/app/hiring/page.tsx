@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { toast } from "react-toastify";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 import {
@@ -29,7 +29,7 @@ function normalizeStatusKey(s?: string): string {
 }
 
 export default function HiringPage() {
-  const { t } = useApp();
+  const { t } = useAppUi();
   const [activeTab, setActiveTab] = useState<"jobs" | "applications">("jobs");
 
   // RTK Query data fetching

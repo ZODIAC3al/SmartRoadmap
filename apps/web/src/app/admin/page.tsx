@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import {
   apiJson,
   fetchMe,
@@ -68,7 +68,7 @@ interface CompanyRecord {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "companies" | "analytics">("overview");

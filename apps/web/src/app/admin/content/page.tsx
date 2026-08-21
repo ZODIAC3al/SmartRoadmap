@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiJson, fetchMe, getErrorMessage } from "@/lib/api";
 
 interface Report {
@@ -27,7 +27,7 @@ function isResolutionStatus(value: string): value is ResolutionStatus {
 }
 
 export default function AdminContentPage() {
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const [loading, setLoading] = useState(true);
 
   // States

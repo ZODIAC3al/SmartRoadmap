@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from "recharts";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser } from "@/lib/api";
 
 type QuestionPayload = {
@@ -64,7 +64,7 @@ type DictKey = keyof typeof dict;
 
 export default function QuizPage({ params }: { params: { moduleId: string } }) {
   const { moduleId } = params;
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isAr = locale === "ar";
   const tr = (key: DictKey, vars?: Record<string, string>) => {
     let s = dict[key][isAr ? "ar" : "en"];
