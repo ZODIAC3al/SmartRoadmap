@@ -8,7 +8,8 @@ import { apiFetch } from "@/lib/api";
 
 function ResetPasswordForm() {
   const router = useRouter();
-  const token = useSearchParams().get("token") ?? "";
+  const searchParams = useSearchParams();
+  const token = searchParams?.get("token") ?? "";
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");

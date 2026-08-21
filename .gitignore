@@ -4,7 +4,10 @@ node_modules/
 apps/web/node_modules/
 apps/api/node_modules/
 packages/shared/node_modules/
-
+# Environment variables
+.env
+.env.*
+!.env.example
 # Next.js build and cache
 .next/
 apps/web/.next/

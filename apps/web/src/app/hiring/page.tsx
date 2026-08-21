@@ -6,13 +6,10 @@ import { useApp } from "@/components/AppContext";
 import { toast } from "react-toastify";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 import {
-  ScoredJob,
-  JobApplication,
-  ApplicationStatus,
-  fetchMatchedJobs,
-  fetchMyApplications,
-  upsertApplication,
-} from "@/lib/hiringApi";
+  useGetMatchedJobsQuery,
+  useGetMyApplicationsQuery,
+  useApplyJobMutation,
+} from "@/store/api/jobsApi";
 
 const PIPELINE_STAGES: { key: string; label: string; icon: string; color: string }[] = [
   { key: "Applied", label: "Applied", icon: "🚀", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
@@ -35,23 +32,27 @@ export default function HiringPage() {
   const { t } = useApp();
   const [activeTab, setActiveTab] = useState<"jobs" | "applications">("jobs");
 
-  // Data states
-  const [jobs, setJobs] = useState<ScoredJob[]>([]);
-  const [applications, setApplications] = useState<JobApplication[]>([]);
+  // RTK Query data fetching
+  const { data: matchedJobsData, isLoading: jobsLoading } = useGetMatchedJobsQuery();
+  const { data: myAppsData, isLoading: appsLoading } = useGetMyApplicationsQuery();
+  const [applyJobMutation, { isLoading: applying }] = useApplyJobMutation();
+
+  const jobs: any[] = matchedJobsData || [];
+  const applications: any[] = myAppsData || [];
+  const loading = jobsLoading || appsLoading;
+
   const [userCvs, setUserCvs] = useState<any[]>([]);
-  const [selectedJob, setSelectedJob] = useState<ScoredJob | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
 
   // Apply modal states
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [selectedCvId, setSelectedCvId] = useState<string>("");
-  const [applying, setApplying] = useState(false);
 
   // Application detail modal
-  const [viewingApp, setViewingApp] = useState<JobApplication | null>(null);
+  const [viewingApp, setViewingApp] = useState<any>(null);
 
-  // Filter & Search states (NO match score slider!)
+  // Filter & Search states
   const [searchQuery, setSearchQuery] = useState("");
   const [filterWorkType, setFilterWorkType] = useState<string>("all");
   const [filterJobType, setFilterJobType] = useState<string>("all");
@@ -59,32 +60,13 @@ export default function HiringPage() {
   const [filterMinSalary, setFilterMinSalary] = useState<number>(0);
   const [sortBy, setSortBy] = useState<"match" | "newest" | "salary">("match");
 
-  // Fetch initial data
+  // Fetch initial CV list and cached user
   useEffect(() => {
     const storedUser = getCachedUser();
-    const storedToken = hasSession();
+    if (storedUser) setUser(storedUser);
 
-    if (!storedUser || !storedToken) {
-      setLoading(false);
-      return;
-    }
-
-    setUser(storedUser);
-
-    async function loadData() {
+    async function loadCvs() {
       try {
-        setLoading(true);
-
-        // 1. Fetch all real matched jobs
-        const matched = await fetchMatchedJobs();
-        setJobs(matched);
-        if (matched[0]) setSelectedJob(matched[0]);
-
-        // 2. Fetch user applications
-        const apps = await fetchMyApplications();
-        setApplications(apps);
-
-        // 3. Fetch user CVs for applying dropdown
         const cvRes = await apiFetch("/cv/list");
         if (cvRes.ok) {
           const cvData = await cvRes.json();
@@ -92,23 +74,26 @@ export default function HiringPage() {
           setUserCvs(list);
           if (list[0]) setSelectedCvId(list[0]._id || list[0].id);
         }
-      } catch (err: any) {
-        console.error("Failed loading hiring data:", err);
-      } finally {
-        setLoading(false);
+      } catch {
+        // Fallback
       }
     }
-
-    loadData();
+    loadCvs();
   }, []);
 
+  useEffect(() => {
+    if (jobs.length > 0 && !selectedJob) {
+      setSelectedJob(jobs[0]);
+    }
+  }, [jobs, selectedJob]);
+
   // Helper to check if user has already applied to a job
-  const getAppForJob = (jobId: string): JobApplication | undefined => {
+  const getAppForJob = (jobId: string): any | undefined => {
     return applications.find((a) => a.jobId === jobId);
   };
 
   // Handle Apply button click
-  const openApplyModal = (job: ScoredJob) => {
+  const openApplyModal = (job: any) => {
     setSelectedJob(job);
     setApplyModalOpen(true);
   };
@@ -117,22 +102,13 @@ export default function HiringPage() {
   const handleConfirmApply = async () => {
     if (!selectedJob) return;
 
-    setApplying(true);
     try {
-      const selectedCv = userCvs.find((c) => (c._id || c.id) === selectedCvId);
-
-      const app = await upsertApplication({
-        jobId: selectedJob._id,
-        jobTitle: selectedJob.title,
-        company: selectedJob.company,
+      await applyJobMutation({
+        jobId: selectedJob._id || selectedJob.id,
         cvId: selectedCvId,
-        cvTitle: selectedCv?.title || "My AI Resume",
-        matchScore: selectedJob.matchScore,
-        status: "Applied",
-      });
+      }).unwrap();
 
-      setApplications((prev) => [...prev.filter((a) => a.jobId !== selectedJob._id), app]);
-      toast.success(`🎉 Application submitted successfully to ${selectedJob.company}! Status: Applied.`);
+      toast.success(`🎉 Application submitted successfully to ${selectedJob.company || selectedJob.companyName || 'Company'}! Status: Applied.`);
 
       if (selectedJob.externalUrl) {
         window.open(selectedJob.externalUrl, "_blank");
@@ -141,8 +117,6 @@ export default function HiringPage() {
       setApplyModalOpen(false);
     } catch (err: any) {
       toast.error(err.message || "Failed to submit application.");
-    } finally {
-      setApplying(false);
     }
   };
 
@@ -183,7 +157,7 @@ export default function HiringPage() {
         const q = searchQuery.toLowerCase();
         const titleMatch = j.title.toLowerCase().includes(q);
         const compMatch = j.company.toLowerCase().includes(q);
-        const skillMatch = (j.requiredSkills || []).some((s) => s.toLowerCase().includes(q));
+        const skillMatch = (j.requiredSkills || []).some((s: string) => s.toLowerCase().includes(q));
         if (!titleMatch && !compMatch && !skillMatch) return false;
       }
       if (filterWorkType !== "all") {
@@ -431,7 +405,7 @@ export default function HiringPage() {
 
                       {/* Required skills tags */}
                       <div className="flex flex-wrap gap-1.5">
-                        {job.requiredSkills.slice(0, 4).map((skill, idx) => (
+                        {job.requiredSkills.slice(0, 4).map((skill: string, idx: number) => (
                           <span
                             key={idx}
                             className="bg-base-100 border border-base-300 text-base-content/70 text-[9px] font-mono font-medium px-2 py-0.5 rounded-md"
@@ -516,7 +490,7 @@ export default function HiringPage() {
                           Skills Still Needed for this Role:
                         </span>
                         <div className="flex flex-wrap gap-1.5">
-                          {(selectedJob.neededSkills || selectedJob.skillsGap || []).map((skill, idx) => (
+                          {(selectedJob.neededSkills || selectedJob.skillsGap || []).map((skill: string, idx: number) => (
                             <span
                               key={idx}
                               className="text-[10px] font-mono px-2.5 py-1 rounded-lg font-bold bg-red-500/10 text-red-500 border border-red-500/20"
@@ -539,7 +513,7 @@ export default function HiringPage() {
                           Skills You Have:
                         </span>
                         <div className="flex flex-wrap gap-1.5">
-                          {(selectedJob.matchingSkills || []).map((skill, idx) => (
+                          {(selectedJob.matchingSkills || []).map((skill: string, idx: number) => (
                             <span
                               key={idx}
                               className="text-[10px] font-mono px-2.5 py-1 rounded-lg font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
@@ -821,7 +795,7 @@ export default function HiringPage() {
                   Status History
                 </span>
                 <div className="bg-base-100 border border-base-300 rounded-xl p-3.5 space-y-2 text-xs">
-                  {viewingApp.statusHistory.map((h, idx) => (
+                  {viewingApp.statusHistory.map((h: any, idx: number) => (
                     <div key={idx} className="flex justify-between items-center text-xs border-b border-base-200 last:border-0 pb-1.5 last:pb-0">
                       <div>
                         <span className="font-bold text-base-content">{h.status}</span>
