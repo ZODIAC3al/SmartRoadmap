@@ -30,6 +30,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Ignore non-http(s) schemes (e.g. chrome-extension://, file://, etc.)
+  if (!url.protocol.startsWith('http')) return;
+
+  // Always bypass: API calls, Next.js HMR, and webpack chunk requests
+  if (
+    url.pathname.startsWith('/api') ||
+    url.pathname.startsWith('/_next') ||
+    url.port === '3000' ||
+    url.searchParams.has('_rsc')
+  ) {
+    return; // Let the browser handle normally
+  }
+
   // Disable caching on localhost/development to prevent stale chunks
   if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
     return;

@@ -28,6 +28,18 @@ export const envSchema = z
 
     GOOGLE_CLIENT_ID: z.string().optional(),
 
+    // Profile import (GitHub / LinkedIn OAuth). Optional — features degrade gracefully.
+    GITHUB_CLIENT_ID: z.string().optional(),
+    GITHUB_CLIENT_SECRET: z.string().optional(),
+    LINKEDIN_CLIENT_ID: z.string().optional(),
+    LINKEDIN_CLIENT_SECRET: z.string().optional(),
+
+    // Public base URL of the API (used for OAuth redirect URIs).
+    API_URL: z.string().default('http://localhost:3000'),
+
+    // Key used to encrypt OAuth tokens at rest (falls back to JWT_SECRET).
+    TOKEN_ENCRYPTION_SECRET: z.string().optional(),
+
     // Explicit mock mode (integrations run offline). Blocked in production.
     MOCK_MODE: z
       .enum(['true', 'false'])
@@ -65,6 +77,9 @@ export const envSchema = z
 
     QDRANT_URL: z.string().optional(),
     QDRANT_API_KEY: z.string().optional(),
+
+    // AssemblyAI — Voice Agent feature (optional; app starts without it)
+    ASSEMBLYAI_API_KEY: z.string().optional(),
 
     PAYPAL_CLIENT_ID: z.string().optional(),
     PAYPAL_CLIENT_SECRET: z.string().optional(),

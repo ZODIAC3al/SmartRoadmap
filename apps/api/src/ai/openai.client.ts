@@ -11,23 +11,26 @@ import OpenAI from 'openai';
  */
 export function createOpenAIClient(config: ConfigService, logger: Logger) {
   const explicitMock = config.get<boolean>('MOCK_MODE') === true;
-  // Use Gemini API Key instead of OpenAI
-  const apiKey = config.get<string>('GEMINI_API_KEY');
+  const apiKey =
+    config.get<string>('OPENAI_API_KEY') ||
+    config.get<string>('GEMINI_API_KEY');
   const usable =
     !!apiKey && !apiKey.startsWith('sk-...') && !apiKey.includes('placeholder');
 
   const isMockMode = explicitMock || !usable;
   if (isMockMode) {
-    logger.warn('Running in MOCK mode — AI responses are simulated. Provide GEMINI_API_KEY to enable AI.');
+    logger.warn(
+      'Running in MOCK mode — AI responses are simulated. Provide GEMINI_API_KEY to enable AI.',
+    );
     return { isMockMode: true as const, client: null };
   }
 
   // Use Gemini OpenAI-compatible endpoint
-  return { 
-    isMockMode: false as const, 
-    client: new OpenAI({ 
+  return {
+    isMockMode: false as const,
+    client: new OpenAI({
       apiKey,
-      baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/'
-    }) 
+      baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+    }),
   };
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "react-toastify";
 import { useApp } from "@/components/AppContext";
 import { apiJson, fetchMe, getErrorMessage } from "@/lib/api";
@@ -106,12 +107,26 @@ export default function AdminContentPage() {
               {isRtl ? "مراجعة المشاريع والمقالات والمصادر التقنية المبلغ عنها وإزالتها لحفظ أمن المنصة." : "Audit flags filed against community posts, comment threads, resources, or mentor profiles."}
             </p>
           </div>
-          <a
-            href="/admin"
-            className="sr-button-secondary btn btn-xs sm:btn-sm"
-          >
-            {isRtl ? "لوحة التحليلات" : "Back to analytics"}
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/certificates"
+              className="sr-button-secondary btn btn-xs sm:btn-sm"
+            >
+              {isRtl ? "مراجعة الشهادات" : "Certificates"}
+            </Link>
+            <Link
+              href="/admin/users"
+              className="sr-button-secondary btn btn-xs sm:btn-sm"
+            >
+              {isRtl ? "إدارة الأعضاء" : "Manage users"}
+            </Link>
+            <Link
+              href="/admin"
+              className="sr-button-secondary btn btn-xs sm:btn-sm"
+            >
+              {isRtl ? "لوحة التحليلات" : "Back to analytics"}
+            </Link>
+          </div>
         </div>
 
         {/* Reports queue list */}

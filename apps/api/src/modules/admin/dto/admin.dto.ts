@@ -1,4 +1,10 @@
-import { IsEnum, IsString, MinLength, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class ResolveReportDto {
   @IsEnum(['resolved', 'dismissed'])
@@ -8,4 +14,14 @@ export class ResolveReportDto {
   @MinLength(3)
   @MaxLength(500)
   resolution!: string;
+}
+
+export class VerifyCertificateDto {
+  @IsEnum(['Verified', 'Rejected'])
+  status!: 'Verified' | 'Rejected';
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  reason?: string;
 }

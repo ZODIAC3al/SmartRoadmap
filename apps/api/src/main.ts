@@ -14,19 +14,44 @@ async function bootstrap() {
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
     }),
   );
   app.use(cookieParser()); // reads the httpOnly refresh cookie
 
   // CORS is now an explicit allow-list. `origin: '*'` + `credentials: true`
   // is not even a legal combination in the browser spec.
-  const origins = (process.env.FRONTEND_URL ?? 'http://localhost:3001')
+  const configuredOrigins = (
+    process.env.FRONTEND_URL ?? 'http://localhost:3001'
+  )
     .split(',')
     .map((o) => o.trim())
     .filter(Boolean);
 
+  const origins = Array.from(
+    new Set([
+      ...configuredOrigins,
+      'http://localhost:3001',
+      'http://127.0.0.1:3001',
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+    ]),
+  );
+
   app.enableCors({
-    origin: origins,
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin || origins.includes(origin)) {
+        callback(null, true);
+      } else if (process.env.NODE_ENV !== 'production') {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   });

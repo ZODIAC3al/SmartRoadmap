@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { DiscussionSpace } from '../../schemas/discussion-space.schema';
@@ -7,7 +12,12 @@ import { Comment } from '../../schemas/comment.schema';
 import { Report } from '../../schemas/report.schema';
 import { Roadmap } from '../../schemas/roadmap.schema';
 import { Cv } from '../../schemas/cv.schema';
-import { CreateSpaceDto, CreatePostDto, CreateCommentDto, CreateReportDto } from './dto/community.dto';
+import {
+  CreateSpaceDto,
+  CreatePostDto,
+  CreateCommentDto,
+  CreateReportDto,
+} from './dto/community.dto';
 
 @Injectable()
 export class CommunityService {
@@ -30,11 +40,16 @@ export class CommunityService {
 
   // ───────────────────────────── Spaces ─────────────────────────────
 
-  async createSpace(dto: CreateSpaceDto, userId: string): Promise<DiscussionSpace> {
+  async createSpace(
+    dto: CreateSpaceDto,
+    userId: string,
+  ): Promise<DiscussionSpace> {
     this.logger.log(`Creating discussion space: ${dto.name}`);
     const exists = await this.spaceModel.findOne({ name: dto.name });
     if (exists) {
-      throw new BadRequestException(`Space with name "${dto.name}" already exists`);
+      throw new BadRequestException(
+        `Space with name "${dto.name}" already exists`,
+      );
     }
 
     const space = new this.spaceModel({
@@ -45,24 +60,50 @@ export class CommunityService {
   }
 
   async findAllSpaces(userId?: string): Promise<any[]> {
-    let spaces = await this.spaceModel.find().populate('createdBy', 'name email').exec();
+    let spaces = await this.spaceModel
+      .find()
+      .populate('createdBy', 'name email')
+      .exec();
     if (spaces.length === 0) {
       const creatorId = new Types.ObjectId();
       const defaults = [
-        { name: 'general', description: 'General discussions and news', category: 'General', skills: [] },
-        { name: 'javascript', description: 'JavaScript programming language discussion', category: 'Programming', skills: ['javascript'] },
-        { name: 'react', description: 'React frontend framework discussions', category: 'Frontend', skills: ['react', 'nextjs'] },
-        { name: 'nodejs', description: 'Node.js backend environment discussion', category: 'Backend', skills: ['nodejs', 'express'] },
+        {
+          name: 'general',
+          description: 'General discussions and news',
+          category: 'General',
+          skills: [],
+        },
+        {
+          name: 'javascript',
+          description: 'JavaScript programming language discussion',
+          category: 'Programming',
+          skills: ['javascript'],
+        },
+        {
+          name: 'react',
+          description: 'React frontend framework discussions',
+          category: 'Frontend',
+          skills: ['react', 'nextjs'],
+        },
+        {
+          name: 'nodejs',
+          description: 'Node.js backend environment discussion',
+          category: 'Backend',
+          skills: ['nodejs', 'express'],
+        },
       ];
       for (const d of defaults) {
         await new this.spaceModel({ ...d, createdBy: creatorId }).save();
       }
-      spaces = await this.spaceModel.find().populate('createdBy', 'name email').exec();
+      spaces = await this.spaceModel
+        .find()
+        .populate('createdBy', 'name email')
+        .exec();
     }
     if (!userId) return spaces;
 
     // 1. Smart Recommendations: recommendation weight based on matching user skills
-    let userSkills: string[] = [];
+    const userSkills: string[] = [];
     const activeRoadmap = await this.roadmapModel.findOne({
       userId: new Types.ObjectId(userId),
       status: 'active',
@@ -76,45 +117,61 @@ export class CommunityService {
       });
     }
 
-    const cv = await this.cvModel.findOne({ userId: new Types.ObjectId(userId) });
+    const cv = await this.cvModel.findOne({
+      userId: new Types.ObjectId(userId),
+    });
     if (cv && cv.skills) {
       userSkills.push(...cv.skills);
     }
 
-    const cleanSkills = userSkills.map((s) => s.toLowerCase().trim()).filter(Boolean);
+    const cleanSkills = userSkills
+      .map((s) => s.toLowerCase().trim())
+      .filter(Boolean);
 
-    return spaces.map((space) => {
-      const spaceObj = space.toObject();
-      let matchCount = 0;
+    return spaces
+      .map((space) => {
+        const spaceObj = space.toObject();
+        let matchCount = 0;
 
-      // Count matches between space skills/name and userSkills
-      if (space.name) {
-        const nameLower = space.name.toLowerCase();
-        if (cleanSkills.some((s) => nameLower.includes(s) || s.includes(nameLower))) {
-          matchCount += 3; // high weight on name match
-        }
-      }
-
-      if (space.skills) {
-        space.skills.forEach((skill) => {
-          const sLower = skill.toLowerCase();
-          if (cleanSkills.some((s) => sLower.includes(s) || s.includes(sLower))) {
-            matchCount += 1;
+        // Count matches between space skills/name and userSkills
+        if (space.name) {
+          const nameLower = space.name.toLowerCase();
+          if (
+            cleanSkills.some(
+              (s) => nameLower.includes(s) || s.includes(nameLower),
+            )
+          ) {
+            matchCount += 3; // high weight on name match
           }
-        });
-      }
+        }
 
-      return {
-        ...spaceObj,
-        recommended: matchCount > 0,
-        matchScore: matchCount,
-      };
-    }).sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+        if (space.skills) {
+          space.skills.forEach((skill) => {
+            const sLower = skill.toLowerCase();
+            if (
+              cleanSkills.some((s) => sLower.includes(s) || s.includes(sLower))
+            ) {
+              matchCount += 1;
+            }
+          });
+        }
+
+        return {
+          ...spaceObj,
+          recommended: matchCount > 0,
+          matchScore: matchCount,
+        };
+      })
+      .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
   }
 
   // ───────────────────────────── Posts ─────────────────────────────
 
-  async createPost(spaceId: string, dto: CreatePostDto, userId: string): Promise<Post> {
+  async createPost(
+    spaceId: string,
+    dto: CreatePostDto,
+    userId: string,
+  ): Promise<Post> {
     const space = await this.spaceModel.findById(spaceId);
     if (!space) {
       throw new NotFoundException(`Discussion space not found`);
@@ -141,14 +198,20 @@ export class CommunityService {
   }
 
   async findPostById(id: string): Promise<Post> {
-    const post = await this.postModel.findById(id).populate('authorId', 'name email avatarUrl role');
+    const post = await this.postModel
+      .findById(id)
+      .populate('authorId', 'name email avatarUrl role');
     if (!post) {
       throw new NotFoundException(`Post not found`);
     }
     return post;
   }
 
-  async votePost(id: string, userId: string, direction: 'up' | 'down'): Promise<Post> {
+  async votePost(
+    id: string,
+    userId: string,
+    direction: 'up' | 'down',
+  ): Promise<Post> {
     const post = await this.postModel.findById(id);
     if (!post) {
       throw new NotFoundException(`Post not found`);
@@ -174,7 +237,11 @@ export class CommunityService {
 
   // ───────────────────────────── Comments ─────────────────────────────
 
-  async createComment(postId: string, dto: CreateCommentDto, userId: string): Promise<Comment> {
+  async createComment(
+    postId: string,
+    dto: CreateCommentDto,
+    userId: string,
+  ): Promise<Comment> {
     const post = await this.postModel.findById(postId);
     if (!post) {
       throw new NotFoundException(`Post not found`);
@@ -202,7 +269,9 @@ export class CommunityService {
   // ───────────────────────────── Moderation Reports ─────────────────────────────
 
   async createReport(dto: CreateReportDto, userId: string): Promise<Report> {
-    this.logger.log(`Content reported by ${userId}: [${dto.contentType}] ${dto.contentId}`);
+    this.logger.log(
+      `Content reported by ${userId}: [${dto.contentType}] ${dto.contentId}`,
+    );
     const report = new this.reportModel({
       ...dto,
       reportedBy: new Types.ObjectId(userId),

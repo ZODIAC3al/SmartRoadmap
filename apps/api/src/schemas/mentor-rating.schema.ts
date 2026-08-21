@@ -9,7 +9,8 @@ export class RatingAspects {
   @Prop({ required: true, min: 1, max: 5 })
   helpfulness!: number;
 
-  @Prop({ // Technical expertise
+  @Prop({
+    // Technical expertise
     required: true,
     min: 1,
     max: 5,
@@ -30,7 +31,12 @@ export class MentorRating extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   learnerId!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'MentorshipSession', required: true, unique: true })
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'MentorshipSession',
+    required: true,
+    unique: true,
+  })
   sessionId!: Types.ObjectId;
 
   @Prop({ required: true, min: 1, max: 5 })

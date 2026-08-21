@@ -23,6 +23,8 @@ import { UploadModule } from './modules/upload/upload.module';
 import { InterviewModule } from './modules/interview/interview.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { MessageModule } from './modules/message/message.module';
+import { ProfileImportModule } from './modules/profile-import/profile-import.module';
+import { PortfolioModule } from './modules/portfolio/portfolio.module';
 import { SalaryModule } from './modules/salary/salary.module';
 import { RecommendationModule } from './modules/recommendation/recommendation.module';
 import { ProgressModule } from './modules/progress/progress.module';
@@ -45,6 +47,13 @@ import { MentorModule } from './modules/mentor/mentor.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
 import { SearchModule } from './modules/search/search.module';
+
+import { BillingModule } from './modules/billing/billing.module';
+import { CompanyModule } from './modules/company/company.module';
+import { PipelineModule } from './modules/pipeline/pipeline.module';
+import { MessagingModule } from './modules/messaging/messaging.module';
+import { EventsModule } from './modules/events/events.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -78,16 +87,22 @@ import { SearchModule } from './modules/search/search.module';
 
     MailModule,
     AuthModule,
+    BillingModule,
+    CompanyModule,
+    PipelineModule,
+    MessagingModule,
     AIModule,
     PaymentModule,
     RoadmapModule,
     AssessmentModule,
     CvModule,
+    PortfolioModule,
     HiringModule,
     UploadModule,
     InterviewModule,
     NotificationModule,
     MessageModule,
+    ProfileImportModule,
     SalaryModule,
     RecommendationModule,
     ProgressModule,

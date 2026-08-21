@@ -110,7 +110,10 @@ describe('SalaryService Pipeline Tests', () => {
           },
         },
         { provide: LLMService, useValue: mockLLMService },
-        { provide: getModelToken(LearnerProfile.name), useValue: mockProfileModel },
+        {
+          provide: getModelToken(LearnerProfile.name),
+          useValue: mockProfileModel,
+        },
         { provide: getModelToken(Job.name), useValue: mockJobModel },
       ],
     }).compile();

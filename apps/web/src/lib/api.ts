@@ -139,12 +139,53 @@ function setOfflineCache(path: string, value: string): void {
   }
 }
 
+// ── Client-side In-flight Deduplication and Memory Cache ──────────────────
+const inFlightRequests = new Map<string, Promise<Response>>();
+const memCache = new Map<string, { body: string; headers: [string, string][]; status: number; statusText: string; expiresAt: number }>();
+const DEFAULT_GET_TTL_MS = 8000; // 8 seconds memory cache for rapid re-renders
+
+export function invalidateClientApiCache(pattern?: string | RegExp): void {
+  if (!pattern) {
+    memCache.clear();
+    return;
+  }
+  for (const key of memCache.keys()) {
+    if (typeof pattern === "string" ? key.includes(pattern) : pattern.test(key)) {
+      memCache.delete(key);
+    }
+  }
+}
+
 export async function apiFetch(
   path: string,
-  init: RequestInit = {},
+  init: RequestInit & { bypassCache?: boolean; ttlMs?: number } = {},
 ): Promise<Response> {
   const method = (init.method || "GET").toUpperCase();
   const isGet = method === "GET";
+
+  // When a mutating request happens, invalidate relevant cached GET requests
+  if (!isGet) {
+    invalidateClientApiCache();
+  }
+
+  // Check In-Memory Cache for fast GET responses
+  if (isGet && !init.bypassCache) {
+    const cached = memCache.get(path);
+    if (cached && Date.now() < cached.expiresAt) {
+      return new Response(cached.body, {
+        status: cached.status,
+        statusText: cached.statusText,
+        headers: new Headers(cached.headers),
+      });
+    }
+  }
+
+  // In-flight request deduplication for concurrent GETs
+  if (isGet && !init.bypassCache && inFlightRequests.has(path)) {
+    const inFlight = inFlightRequests.get(path)!;
+    const res = await inFlight;
+    return res.clone();
+  }
 
   // Check offline state before dispatching
   if (typeof window !== "undefined" && !navigator.onLine && isGet) {
@@ -183,58 +224,96 @@ export async function apiFetch(
     await refreshSession();
   }
 
-  let response: Response;
-  try {
-    response = await send(accessToken);
-  } catch (err) {
-    // Catch network disconnect / CORS failures and serve from cache if available
-    if (isGet) {
-      const cached = getOfflineCache(path);
-      if (cached) {
-        return new Response(cached, {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-    }
-    throw err;
-  }
-
-  if (response.status === 401 && !isAuthCall) {
-    const fresh = await refreshSession();
-    if (fresh) {
-      try {
-        response = await send(fresh);
-      } catch (err) {
-        if (isGet) {
-          const cached = getOfflineCache(path);
-          if (cached) {
-            return new Response(cached, {
-              status: 200,
-              headers: { "Content-Type": "application/json" },
-            });
-          }
-        }
-        throw err;
-      }
-    } else {
-      clearSession();
-    }
-  }
-
-  // Cache successful GET responses
-  if (response.ok && isGet) {
+  const executeFetch = async (): Promise<Response> => {
+    let response: Response;
     try {
-      const clone = response.clone();
-      clone.text().then((txt) => {
-        setOfflineCache(path, txt);
-      });
-    } catch (e) {
-      console.warn("Offline caching response clone error", e);
+      response = await send(accessToken);
+    } catch (err) {
+      if (isGet) {
+        const cached = getOfflineCache(path);
+        if (cached) {
+          return new Response(cached, {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+      }
+      throw err;
     }
+
+    if (response.status === 401 && !isAuthCall) {
+      const fresh = await refreshSession();
+      if (fresh) {
+        try {
+          response = await send(fresh);
+        } catch (err) {
+          if (isGet) {
+            const cached = getOfflineCache(path);
+            if (cached) {
+              return new Response(cached, {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+          }
+          throw err;
+        }
+      } else {
+        clearSession();
+      }
+    }
+
+    // Cache successful GET responses in memory & offline storage
+    if (response.ok && isGet) {
+      try {
+        const clone = response.clone();
+        const text = await clone.text();
+        const headersArr: [string, string][] = [];
+        response.headers.forEach((v, k) => headersArr.push([k, v]));
+
+        memCache.set(path, {
+          body: text,
+          headers: headersArr,
+          status: response.status,
+          statusText: response.statusText,
+          expiresAt: Date.now() + (init.ttlMs ?? DEFAULT_GET_TTL_MS),
+        });
+
+        setOfflineCache(path, text);
+      } catch (e) {
+        // Ignore cache storage errors
+      }
+    }
+
+    return response;
+  };
+
+  if (isGet && !init.bypassCache) {
+    const promise = executeFetch().finally(() => {
+      inFlightRequests.delete(path);
+    });
+    inFlightRequests.set(path, promise);
+    const res = await promise;
+    return res.clone();
   }
 
-  return response;
+  return executeFetch();
+}
+
+export function extractErrorMessage(data: unknown, fallback: string): string {
+  if (typeof data === "object" && data !== null) {
+    const obj = data as Record<string, unknown>;
+    if (typeof obj.message === "string" && obj.message.trim()) {
+      return obj.message;
+    }
+    if (Array.isArray(obj.message) && obj.message.length > 0) {
+      return obj.message.map((m) => String(m)).join(". ");
+    }
+    if (typeof obj.error === "string" && obj.error.trim()) {
+      return obj.error;
+    }
+  }
+  return fallback;
 }
 
 /** Convenience wrapper that parses JSON and throws on error responses. */
@@ -245,13 +324,7 @@ export async function apiJson<T>(
   const res = await apiFetch(path, init);
   const data: unknown = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const message =
-      typeof data === "object" &&
-      data !== null &&
-      "message" in data &&
-      typeof data.message === "string"
-        ? data.message
-        : `Request failed (${res.status})`;
+    const message = extractErrorMessage(data, `Request failed (${res.status})`);
     throw new Error(message);
   }
   return data as T;
@@ -275,5 +348,11 @@ export function getUserId(user: Pick<SessionUser, "id" | "_id"> | null): string 
 
 /** Safely extracts a user-facing message without weakening catch variables. */
 export function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+  return extractErrorMessage(error, fallback);
 }

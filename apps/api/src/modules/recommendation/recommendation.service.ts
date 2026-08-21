@@ -56,7 +56,8 @@ export class RecommendationService {
         .exec();
 
       if (existing.length > 0) {
-        const aiInsight = existing[0]?.aiInsight || 'Tailored based on your latest activity.';
+        const aiInsight =
+          existing[0]?.aiInsight || 'Tailored based on your latest activity.';
         return {
           summary: `Showing ${existing.length} recommendations matched to your learning path.`,
           aiInsight,
@@ -71,15 +72,22 @@ export class RecommendationService {
   /**
    * Synthesizes user signals across 5 domains: profile, roadmaps, quizzes, interviews, and jobs.
    */
-  async generateFreshRecommendations(userId: string): Promise<RecommendationResponse> {
+  async generateFreshRecommendations(
+    userId: string,
+  ): Promise<RecommendationResponse> {
     const uId = new Types.ObjectId(userId);
     this.logger.log(`Generating fresh AI recommendations for user ${userId}`);
 
     // 1. Gather learner signals
     const profile = await this.profileModel.findOne({ userId: uId }).exec();
-    const roadmaps = await this.roadmapModel.find({ userId: uId, status: 'active' }).exec();
+    const roadmaps = await this.roadmapModel
+      .find({ userId: uId, status: 'active' })
+      .exec();
     const quizzes = await this.quizModel.find({ userId: uId }).limit(20).exec();
-    const interviews = await this.interviewModel.find({ userId }).limit(10).exec();
+    const interviews = await this.interviewModel
+      .find({ userId })
+      .limit(10)
+      .exec();
 
     // Signal extraction
     const targetRole = profile?.targetRole || 'Full Stack Developer';
@@ -161,7 +169,9 @@ Generate 2 courses, 2 projects, 2 articles, 2 certifications, and 2 jobs. Ensure
           generatedItems = parsed.recommendations;
         }
       } catch (err: any) {
-        this.logger.warn(`Failed to parse Gemini recommendation output: ${err.message}`);
+        this.logger.warn(
+          `Failed to parse Gemini recommendation output: ${err.message}`,
+        );
       }
     }
 
@@ -186,7 +196,9 @@ Generate 2 courses, 2 projects, 2 articles, 2 certifications, and 2 jobs. Ensure
     });
 
     // 4. Overwrite previous active recommendations for this user
-    await this.recModel.deleteMany({ userId: uId, status: RecommendationStatus.Active }).exec();
+    await this.recModel
+      .deleteMany({ userId: uId, status: RecommendationStatus.Active })
+      .exec();
 
     const docsToInsert = generatedItems.map((item) => ({
       userId: uId,

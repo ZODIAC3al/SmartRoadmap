@@ -5,8 +5,14 @@ import { AIModule } from '../../ai/ai.module';
 import { InterviewEngine } from './interview-engine';
 import { InterviewService } from './interview.service';
 import { InterviewController } from './interview.controller';
-import { InterviewSession, InterviewSessionSchema } from '../../schemas/interview-session.schema';
-import { InterviewReport, InterviewReportSchema } from '../../schemas/interview-report.schema';
+import {
+  InterviewSession,
+  InterviewSessionSchema,
+} from '../../schemas/interview-session.schema';
+import {
+  InterviewReport,
+  InterviewReportSchema,
+} from '../../schemas/interview-report.schema';
 
 @Module({
   imports: [

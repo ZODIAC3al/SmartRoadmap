@@ -19,4 +19,5 @@ export class DiscussionSpace extends Document {
   createdBy!: Types.ObjectId;
 }
 
-export const DiscussionSpaceSchema = SchemaFactory.createForClass(DiscussionSpace);
+export const DiscussionSpaceSchema =
+  SchemaFactory.createForClass(DiscussionSpace);

@@ -2,9 +2,18 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MentorController } from './mentor.controller';
 import { MentorService } from './mentor.service';
-import { MentorProfile, MentorProfileSchema } from '../../schemas/mentor-profile.schema';
-import { MentorshipSession, MentorshipSessionSchema } from '../../schemas/mentorship-session.schema';
-import { MentorRating, MentorRatingSchema } from '../../schemas/mentor-rating.schema';
+import {
+  MentorProfile,
+  MentorProfileSchema,
+} from '../../schemas/mentor-profile.schema';
+import {
+  MentorshipSession,
+  MentorshipSessionSchema,
+} from '../../schemas/mentorship-session.schema';
+import {
+  MentorRating,
+  MentorRatingSchema,
+} from '../../schemas/mentor-rating.schema';
 import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
 import { Cv, CvSchema } from '../../schemas/cv.schema';
 import { User, UserSchema } from '../../schemas/user.schema';

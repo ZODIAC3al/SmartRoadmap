@@ -5,216 +5,125 @@ import Link from "next/link";
 import { useApp } from "@/components/AppContext";
 import { toast } from "react-toastify";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
+import {
+  useGetMatchedJobsQuery,
+  useGetMyApplicationsQuery,
+  useApplyJobMutation,
+} from "@/store/api/jobsApi";
 
-type ScoredJob = {
-  _id: string;
-  title: string;
-  company: string;
-  location: string;
-  country: string;
-  requiredSkills: string[];
-  salaryMin?: number;
-  salaryMax?: number;
-  remote: boolean;
-  description: string;
-  matchScore: number;
-  skillsGap: string[];
-  relativeTime: string;
-  budget: string;
-  overallSpent: string;
-  clientRating: string;
-  aiExplanation: string;
-};
+const PIPELINE_STAGES: { key: string; label: string; icon: string; color: string }[] = [
+  { key: "Applied", label: "Applied", icon: "🚀", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
+  { key: "Interviewing", label: "Interviewing", icon: "🎙️", color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
+  { key: "Accepted", label: "Accepted", icon: "🎉", color: "bg-green-500/10 text-green-600 border-green-500/30" },
+  { key: "Rejected", label: "Rejected", icon: "❌", color: "bg-red-500/10 text-red-500 border-red-500/20" },
+];
+
+function normalizeStatusKey(s?: string): string {
+  if (!s) return "Applied";
+  const lower = s.toLowerCase();
+  if (lower === "applied" || lower === "interested") return "Applied";
+  if (lower === "interview" || lower === "interviewing" || lower === "under_review") return "Interviewing";
+  if (lower === "accepted" || lower === "offer" || lower === "hired") return "Accepted";
+  if (lower === "rejected") return "Rejected";
+  return "Applied";
+}
 
 export default function HiringPage() {
-  const { t, locale } = useApp();
-  const [jobs, setJobs] = useState<ScoredJob[]>([]);
-  const [selectedJob, setSelectedJob] = useState<ScoredJob | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { t } = useApp();
+  const [activeTab, setActiveTab] = useState<"jobs" | "applications">("jobs");
+
+  // RTK Query data fetching
+  const { data: matchedJobsData, isLoading: jobsLoading } = useGetMatchedJobsQuery();
+  const { data: myAppsData, isLoading: appsLoading } = useGetMyApplicationsQuery();
+  const [applyJobMutation, { isLoading: applying }] = useApplyJobMutation();
+
+  const jobs: any[] = matchedJobsData || [];
+  const applications: any[] = myAppsData || [];
+  const loading = jobsLoading || appsLoading;
+
+  const [userCvs, setUserCvs] = useState<any[]>([]);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
-  const [successApplyJob, setSuccessApplyJob] = useState<string | null>(null);
-  const [addingSkills, setAddingSkills] = useState<string[]>([]);
-  const [removedJobIds, setRemovedJobIds] = useState<string[]>([]);
 
-  // Filter criteria states
-  const [filterRemote, setFilterRemote] = useState(false);
-  const [filterMatchScore, setFilterMatchScore] = useState(80);
+  // Apply modal states
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [selectedCvId, setSelectedCvId] = useState<string>("");
+
+  // Application detail modal
+  const [viewingApp, setViewingApp] = useState<any>(null);
+
+  // Filter & Search states
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterWorkType, setFilterWorkType] = useState<string>("all");
+  const [filterJobType, setFilterJobType] = useState<string>("all");
+  const [filterExperience, setFilterExperience] = useState<string>("all");
+  const [filterMinSalary, setFilterMinSalary] = useState<number>(0);
+  const [sortBy, setSortBy] = useState<"match" | "newest" | "salary">("match");
 
+  // Fetch initial CV list and cached user
   useEffect(() => {
     const storedUser = getCachedUser();
-    const storedToken = hasSession();
+    if (storedUser) setUser(storedUser);
 
-    if (!storedUser || !storedToken) {
-      setLoading(false);
-      return;
-    }
-
-    const parsedUser = storedUser;
-    setUser(parsedUser);
-
-    async function fetchMatches() {
+    async function loadCvs() {
       try {
-        const activeUserId = parsedUser.id || parsedUser._id;
-        const res = await apiFetch("/hiring/jobs/matches");
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-
-        // Enrich data with mockup properties and AI Match Explanations
-        const enriched = data.map((job: any, index: number) => ({
-          ...job,
-          relativeTime:
-            index === 0
-              ? "8 hours ago"
-              : index === 1
-                ? "2 hours ago"
-                : "7 hours ago",
-          budget: job.salaryMin
-            ? `$${job.salaryMin}${job.salaryMax ? ` - $${job.salaryMax}` : ""}`
-            : index === 0
-              ? "$125,000 - $140,000"
-              : index === 1
-                ? "$95,000 - $110,000"
-                : "$115,000 - $130,000",
-          overallSpent: index === 0 ? "$50k" : "N/A",
-          clientRating: index === 0 ? "5★" : "N/A",
-          aiExplanation:
-            index === 0
-              ? "Exceptional match! Your verified React (92%) and TypeScript (95%) scores exceed the candidate baseline. Closing CI/CD gaps will achieve 100% compatibility."
-              : "Strong compatibility. The team requires React prototyping skills which you possess. The docker gap is easily covered in module 4.",
-        }));
-
-        setJobs(enriched);
-        if (enriched[0]) setSelectedJob(enriched[0]);
-      } catch (e) {
-        // Fallback mockup jobs aligned with Stripe/Linear styling
-        const fallbackJobs: ScoredJob[] = [
-          {
-            _id: "mock-1",
-            title: "Senior Frontend Engineer (Design Systems)",
-            company: "Stripe, Inc.",
-            location: "Remote",
-            country: "United States",
-            requiredSkills: [
-              "React Framework Architecture",
-              "TypeScript Strict Mode Interfaces",
-              "Tailwind Design System Tokens",
-              "CI/CD Pipelines",
-            ],
-            remote: true,
-            description:
-              "We are looking for an experienced frontend designer to expand our payment interface component libraries, set visual token boundaries, and write tests.",
-            matchScore: 97,
-            skillsGap: ["CI/CD Pipelines"],
-            relativeTime: "8 hours ago",
-            budget: "$120,000 - $145,000",
-            overallSpent: "$1.2M",
-            clientRating: "5.0★",
-            aiExplanation:
-              "Exceptional match! Your verified React (92%) and TypeScript (95%) scores exceed the candidate baseline. Closing CI/CD gaps will achieve 100% compatibility.",
-          },
-          {
-            _id: "mock-2",
-            title: "React Prototyping Engineer",
-            company: "Vercel, Inc.",
-            location: "Remote",
-            country: "United States",
-            requiredSkills: [
-              "React Framework Architecture",
-              "Next.js App Router Prefetching",
-              "Docker Basics",
-            ],
-            remote: true,
-            description:
-              "Seeking a developer focused on rendering pipeline optimization and edge-computing templates. Docker configuration experience is nice to have.",
-            matchScore: 92,
-            skillsGap: ["Docker Basics"],
-            relativeTime: "2 hours ago",
-            budget: "$110,000 - $135,000",
-            overallSpent: "$800k",
-            clientRating: "4.9★",
-            aiExplanation:
-              "Strong compatibility. The team requires React prototyping skills which you possess. The docker gap is easily covered in module 4.",
-          },
-          {
-            _id: "mock-3",
-            title: "Next.js Product Developer",
-            company: "Linear App SAS",
-            location: "Hybrid",
-            country: "France",
-            requiredSkills: [
-              "React Framework Architecture",
-              "TypeScript Strict Mode Interfaces",
-            ],
-            remote: false,
-            description:
-              "Join our client interface team to build fast keyboard-driven features. Focus on design tokens alignment and clean, type-safe API consumption.",
-            matchScore: 89,
-            skillsGap: [],
-            relativeTime: "7 hours ago",
-            budget: "€95,000 - €110,000",
-            overallSpent: "$300k",
-            clientRating: "4.8★",
-            aiExplanation:
-              "Excellent alignment. You have complete 100% skill compatibility with all requirements posted for this role. Zero skill gaps detected!",
-          },
-        ];
-        setJobs(fallbackJobs);
-        setSelectedJob(fallbackJobs[0] || null);
-      } finally {
-        setLoading(false);
+        const cvRes = await apiFetch("/cv/list");
+        if (cvRes.ok) {
+          const cvData = await cvRes.json();
+          const list = cvData.data || cvData || [];
+          setUserCvs(list);
+          if (list[0]) setSelectedCvId(list[0]._id || list[0].id);
+        }
+      } catch {
+        // Fallback
       }
     }
-    fetchMatches();
+    loadCvs();
   }, []);
 
-  const handleApply = (company: string, jobTitle: string) => {
-    toast.success(
-      `Application sent successfully to ${jobTitle} at ${company}!`,
-    );
-    setSuccessApplyJob(`${jobTitle} at ${company}`);
+  useEffect(() => {
+    if (jobs.length > 0 && !selectedJob) {
+      setSelectedJob(jobs[0]);
+    }
+  }, [jobs, selectedJob]);
+
+  // Helper to check if user has already applied to a job
+  const getAppForJob = (jobId: string): any | undefined => {
+    return applications.find((a) => a.jobId === jobId);
   };
 
-  const handleAddSkills = async (jobId: string, _skills: string[]) => {
-    setAddingSkills((prev) => [...prev, jobId]);
+  // Handle Apply button click
+  const openApplyModal = (job: any) => {
+    setSelectedJob(job);
+    setApplyModalOpen(true);
+  };
+
+  // Submit Application
+  const handleConfirmApply = async () => {
+    if (!selectedJob) return;
+
     try {
-      // Real gap analysis: the server recomputes the gap against the user's
-      // verified skills and writes the missing ones into the active roadmap.
-      // (This used to be a setTimeout that just repainted the UI.)
-      const res = await apiFetch(`/hiring/jobs/${jobId}/close-gap`, {
-        method: "POST",
-      });
-      const data = await res.json();
-      if (!res.ok)
-        throw new Error(data.message ?? "Could not update your roadmap.");
+      await applyJobMutation({
+        jobId: selectedJob._id || selectedJob.id,
+        cvId: selectedCvId,
+      }).unwrap();
 
-      setJobs((prevJobs) =>
-        prevJobs.map((job) => {
-          if (job._id === jobId) {
-            const updated = { ...job, skillsGap: [] };
-            if (selectedJob?._id === jobId) setSelectedJob(updated);
-            return updated;
-          }
-          return job;
-        }),
-      );
+      toast.success(`🎉 Application submitted successfully to ${selectedJob.company || selectedJob.companyName || 'Company'}! Status: Applied.`);
 
-      toast.success(
-        data.added?.length
-          ? `Added ${data.added.length} module(s) to your roadmap: ${data.added.join(", ")}`
-          : data.message,
-      );
-    } catch (e: any) {
-      toast.error(e.message ?? "Something went wrong.");
-    } finally {
-      setAddingSkills((prev) => prev.filter((id) => id !== jobId));
+      if (selectedJob.externalUrl) {
+        window.open(selectedJob.externalUrl, "_blank");
+      }
+
+      setApplyModalOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to submit application.");
     }
   };
 
   if (loading) {
     return (
       <div className="flex min-h-screen bg-base-100 items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-emerald-500"></span>
       </div>
     );
   }
@@ -222,16 +131,18 @@ export default function HiringPage() {
   if (!user) {
     return (
       <div className="flex flex-col min-h-[80vh] items-center justify-center p-8 text-center bg-base-100">
+        <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center text-3xl mb-4">
+          💼
+        </div>
         <h2 className="text-2xl font-black text-base-content tracking-tight">
-          Access Restricted
+          Hiring Match Portal
         </h2>
-        <p className="text-sm text-base-content/50 max-w-sm mb-6">
-          You must log in with a Learner Profile to view compatible job
-          opportunities.
+        <p className="text-sm text-base-content/60 max-w-sm mb-6 mt-1">
+          Please log in to explore verified jobs, view Needed Skills, and apply with your Skill Passport.
         </p>
         <Link
           href="/auth/login"
-          className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl"
+          className="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold px-6"
         >
           Sign In to Portal
         </Link>
@@ -239,262 +150,735 @@ export default function HiringPage() {
     );
   }
 
-  // Filter jobs
+  // Filter & Sort Jobs (ALL jobs shown, no match score slider requirement!)
   const filteredJobs = jobs
-    .filter((j) => !removedJobIds.includes(j._id))
-    .filter((j) => !filterRemote || j.remote)
-    .filter((j) => j.matchScore >= filterMatchScore)
-    .filter(
-      (j) =>
-        searchQuery === "" ||
-        j.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        j.company.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    .filter((j) => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const titleMatch = j.title.toLowerCase().includes(q);
+        const compMatch = j.company.toLowerCase().includes(q);
+        const skillMatch = (j.requiredSkills || []).some((s: string) => s.toLowerCase().includes(q));
+        if (!titleMatch && !compMatch && !skillMatch) return false;
+      }
+      if (filterWorkType !== "all") {
+        if (filterWorkType === "remote" && !j.remote && j.workType !== "remote") return false;
+        if (filterWorkType === "hybrid" && j.workType !== "hybrid") return false;
+        if (filterWorkType === "onsite" && j.workType !== "onsite") return false;
+      }
+      if (filterJobType !== "all" && j.jobType && j.jobType !== filterJobType) return false;
+      if (filterExperience !== "all" && j.experienceLevel && j.experienceLevel !== filterExperience) return false;
+      if (filterMinSalary > 0 && (j.salaryMax || j.salaryMin || 0) < filterMinSalary) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "match") return b.matchScore - a.matchScore;
+      if (sortBy === "salary") return (b.salaryMax || b.salaryMin || 0) - (a.salaryMax || a.salaryMin || 0);
+      if (sortBy === "newest") {
+        const dateA = a.postedAt ? new Date(a.postedAt).getTime() : 0;
+        const dateB = b.postedAt ? new Date(b.postedAt).getTime() : 0;
+        return dateB - dateA;
+      }
+      return 0;
+    });
 
   return (
-    <div className="min-h-screen bg-base-100 text-base-content pb-8 px-4 sm:px-8">
+    <div className="min-h-screen bg-base-100 text-base-content pb-12 px-4 sm:px-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Title Banner */}
-        <div className="text-start border-b border-base-300 pb-6">
-          <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono">
-            vector match ranking
-          </span>
-          <h1 className="text-3xl font-black tracking-tight text-base-content mt-1">
-            Hiring Match Pipeline
-          </h1>
-          <p className="text-xs text-base-content/50 mt-1">
-            Jobs recommended based on semantic matching with your Skill Passport
-            credentials.
-          </p>
+        {/* Header Navigation */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-base-300 pb-5 gap-4">
+          <div>
+            <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
+              Real-Time Verified Hiring
+            </span>
+            <h1 className="text-3xl font-black tracking-tight text-base-content mt-1">
+              Matched Jobs & Applications
+            </h1>
+            <p className="text-xs text-base-content/60 mt-1">
+              Explore open positions, review Needed Skills, and apply with your verified Skill Passport and CV.
+            </p>
+          </div>
+
+          {/* Tab Controls */}
+          <div className="flex items-center gap-2 bg-base-200 p-1.5 rounded-xl border border-base-300 self-start sm:self-auto">
+            <button
+              onClick={() => setActiveTab("jobs")}
+              className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
+                activeTab === "jobs"
+                  ? "bg-emerald-500 text-white shadow-sm"
+                  : "text-base-content/60 hover:text-base-content"
+              }`}
+            >
+              🎯 Available Jobs ({jobs.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("applications")}
+              className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
+                activeTab === "applications"
+                  ? "bg-emerald-500 text-white shadow-sm"
+                  : "text-base-content/60 hover:text-base-content"
+              }`}
+            >
+              📋 My Applications ({applications.length})
+            </button>
+          </div>
         </div>
 
-        {/* THREE COLUMN LAYOUT */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* COLUMN 1: LEFT FILTERS (lg:col-span-3) */}
-          <aside className="lg:col-span-3 bg-base-200 border border-base-300 rounded-2xl p-5 text-start space-y-6">
-            <div className="flex justify-between items-center border-b border-base-300 pb-3">
-              <span className="text-xs font-bold uppercase tracking-wider font-mono text-base-content/40">
-                Search Filters
-              </span>
-              <button
-                onClick={() => {
-                  setFilterRemote(false);
-                  setFilterMatchScore(80);
-                  setSearchQuery("");
-                }}
-                className="text-xs text-red-500 hover:underline"
-              >
-                Reset
-              </button>
-            </div>
+        {/* TAB 1: MATCHED JOBS */}
+        {activeTab === "jobs" && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* COLUMN 1: FILTERS (lg:col-span-3) - NO match score slider! */}
+            <aside className="lg:col-span-3 bg-base-200 border border-base-300 rounded-2xl p-5 text-start space-y-5">
+              <div className="flex justify-between items-center border-b border-base-300 pb-3">
+                <span className="text-xs font-bold uppercase tracking-wider font-mono text-base-content/50">
+                  Search & Filters
+                </span>
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilterWorkType("all");
+                    setFilterJobType("all");
+                    setFilterExperience("all");
+                    setFilterMinSalary(0);
+                    setSortBy("match");
+                  }}
+                  className="text-xs text-red-500 hover:underline font-semibold"
+                >
+                  Reset
+                </button>
+              </div>
 
-            {/* Keyword Search */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-base-content/40 uppercase tracking-wider block font-mono">
-                Job Title / Keyword
-              </label>
-              <input
-                type="text"
-                placeholder="Search jobs..."
-                className="input input-bordered input-sm w-full rounded-lg text-xs"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            {/* Remote Checkbox */}
-            <div className="space-y-2">
-              <label className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-base-content/70 select-none">
+              {/* Keyword Search */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider block font-mono">
+                  Keyword / Title / Skill
+                </label>
                 <input
-                  type="checkbox"
-                  className="checkbox checkbox-xs checkbox-primary rounded-md"
-                  checked={filterRemote}
-                  onChange={(e) => setFilterRemote(e.target.checked)}
+                  type="text"
+                  placeholder="React, Node.js, Python, Remote..."
+                  className="input input-bordered input-sm w-full rounded-xl text-xs bg-base-100"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <span>Remote Only</span>
-              </label>
-            </div>
+              </div>
 
-            {/* Match Score Threshold Slider */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-[10px] font-bold text-base-content/40 uppercase font-mono">
-                <span>Min Match Threshold</span>
-                <span className="text-[#059669] font-black">
-                  {filterMatchScore}%
+              {/* Sort By */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider block font-mono">
+                  Sort Jobs By
+                </label>
+                <select
+                  className="select select-bordered select-sm w-full rounded-xl text-xs bg-base-100"
+                  value={sortBy}
+                  onChange={(e: any) => setSortBy(e.target.value)}
+                >
+                  <option value="match">🔥 Best Match Compatibility</option>
+                  <option value="newest">🕒 Newest Posted</option>
+                  <option value="salary">💰 Highest Salary</option>
+                </select>
+              </div>
+
+              {/* Work Type */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider block font-mono">
+                  Work Environment
+                </label>
+                <select
+                  className="select select-bordered select-sm w-full rounded-xl text-xs bg-base-100"
+                  value={filterWorkType}
+                  onChange={(e) => setFilterWorkType(e.target.value)}
+                >
+                  <option value="all">All Environments</option>
+                  <option value="remote">🌐 Remote Only</option>
+                  <option value="hybrid">🏢 Hybrid</option>
+                  <option value="onsite">📍 On-Site</option>
+                </select>
+              </div>
+
+              {/* Job Type */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider block font-mono">
+                  Employment Type
+                </label>
+                <select
+                  className="select select-bordered select-sm w-full rounded-xl text-xs bg-base-100"
+                  value={filterJobType}
+                  onChange={(e) => setFilterJobType(e.target.value)}
+                >
+                  <option value="all">All Job Types</option>
+                  <option value="full-time">Full-Time</option>
+                  <option value="part-time">Part-Time</option>
+                  <option value="contract">Contract</option>
+                  <option value="freelance">Freelance</option>
+                  <option value="internship">Internship</option>
+                </select>
+              </div>
+
+              {/* Experience Level */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-base-content/50 uppercase tracking-wider block font-mono">
+                  Experience Level
+                </label>
+                <select
+                  className="select select-bordered select-sm w-full rounded-xl text-xs bg-base-100"
+                  value={filterExperience}
+                  onChange={(e) => setFilterExperience(e.target.value)}
+                >
+                  <option value="all">All Experience Levels</option>
+                  <option value="entry">Entry Level</option>
+                  <option value="mid">Mid Level</option>
+                  <option value="senior">Senior Level</option>
+                  <option value="lead">Lead / Architect</option>
+                </select>
+              </div>
+
+              {/* Verified Application Badge */}
+              <div className="border border-emerald-500/20 bg-emerald-500/5 p-4 rounded-xl space-y-2 text-xs">
+                <span className="font-bold text-emerald-500 block flex items-center gap-1.5">
+                  <span>🛡️</span> Verified Skill Passport Included
+                </span>
+                <p className="text-[10px] text-base-content/70 leading-relaxed">
+                  Every application automatically attaches your verified Skill Passport snapshot, completed roadmap milestones, and chosen CV.
+                </p>
+              </div>
+            </aside>
+
+            {/* COLUMN 2: JOB LIST (lg:col-span-5) */}
+            <section className="lg:col-span-5 space-y-3.5 text-start">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-base-content/50 font-mono">
+                  Jobs Available ({filteredJobs.length})
+                </span>
+                <span className="text-[10px] text-base-content/40 font-mono">
+                  Sorted by {sortBy}
                 </span>
               </div>
-              <input
-                type="range"
-                min="50"
-                max="95"
-                step="5"
-                className="range range-xs range-primary"
-                value={filterMatchScore}
-                onChange={(e) => setFilterMatchScore(Number(e.target.value))}
-              />
-            </div>
 
-            {/* Vetted badge info banner */}
-            <div className="border border-green-200 bg-green-50/50 p-4 rounded-xl space-y-2 text-xs">
-              <span className="font-bold text-[#059669] block">
-                Vetted Candidate Profile
-              </span>
-              <p className="text-[10px] text-base-content/60 leading-relaxed">
-                Hiring managers see your verified testing badges automatically
-                upon submission. This cuts standard CV vetting time down
-                entirely.
-              </p>
-            </div>
-          </aside>
+              {filteredJobs.length === 0 ? (
+                <div className="border border-base-300 rounded-2xl bg-base-200 p-8 text-center text-base-content/50 text-xs">
+                  No jobs found matching your filters. Try clearing your search filters above.
+                </div>
+              ) : (
+                filteredJobs.map((job) => {
+                  const isActive = selectedJob?._id === job._id;
+                  const userApp = getAppForJob(job._id);
+                  const isApplied = !!userApp;
 
-          {/* COLUMN 2: CENTER JOB FEED (lg:col-span-5) */}
-          <section className="lg:col-span-5 space-y-4 text-start">
-            <span className="text-xs font-bold uppercase tracking-wider text-base-content/40 font-mono block mb-2">
-              Available matches ({filteredJobs.length})
-            </span>
-
-            {filteredJobs.length === 0 ? (
-              <div className="border border-base-300 rounded-2xl bg-base-200 p-8 text-center text-base-content/40 text-xs">
-                No matching opportunities found. Try adjusting filters.
-              </div>
-            ) : (
-              filteredJobs.map((job) => {
-                const isActive = selectedJob?._id === job._id;
-                return (
-                  <div
-                    key={job._id}
-                    onClick={() => setSelectedJob(job)}
-                    className={`border rounded-xl p-5 cursor-pointer bg-base-200 transition-all duration-200 flex flex-col justify-between gap-4 ${isActive ? "border-[#10B981] ring-2 ring-[#10B981]/15" : "border-base-300 hover:border-primary/50"}`}
-                  >
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <h3 className="font-extrabold text-xs text-base-content leading-tight pr-4">
-                          {job.title}
-                        </h3>
-                        <p className="text-[10px] text-base-content/40 font-semibold mt-1">
-                          {job.company} • {job.location}
-                        </p>
+                  return (
+                    <div
+                      key={job._id}
+                      onClick={() => setSelectedJob(job)}
+                      className={`border rounded-2xl p-5 cursor-pointer bg-base-200 transition-all duration-200 flex flex-col justify-between gap-4 ${
+                        isActive
+                          ? "border-emerald-500 ring-2 ring-emerald-500/15 shadow-sm"
+                          : "border-base-300 hover:border-emerald-500/50"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-extrabold text-sm text-base-content leading-tight">
+                              {job.title}
+                            </h3>
+                            {isApplied && (
+                              <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[9px] font-bold font-mono px-2 py-0.5 rounded-full">
+                                ✓ {userApp.status}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-base-content/60 font-semibold mt-1">
+                            {job.company} • {job.location} {job.country ? `(${job.country})` : ""}
+                          </p>
+                        </div>
+                        <span
+                          className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center font-mono font-black text-xs shrink-0 border ${
+                            job.matchScore >= 80
+                              ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                              : job.matchScore >= 50
+                              ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                              : "bg-base-300 text-base-content/60 border-base-300"
+                          }`}
+                        >
+                          <span className="text-[13px]">{job.matchScore}%</span>
+                          <span className="text-[8px] font-normal uppercase opacity-70">Match</span>
+                        </span>
                       </div>
-                      <span className="w-11 h-11 rounded-lg bg-[#10B981]/10 text-[#059669] flex items-center justify-center font-mono font-black text-xs shrink-0 animate-pulse">
-                        {job.matchScore}%
+
+                      {/* Required skills tags */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {job.requiredSkills.slice(0, 4).map((skill: string, idx: number) => (
+                          <span
+                            key={idx}
+                            className="bg-base-100 border border-base-300 text-base-content/70 text-[9px] font-mono font-medium px-2 py-0.5 rounded-md"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                        {job.requiredSkills.length > 4 && (
+                          <span className="text-[9px] font-mono text-base-content/40 px-1 py-0.5">
+                            +{job.requiredSkills.length - 4} more
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Footer Details */}
+                      <div className="flex justify-between items-center text-[10px] text-base-content/50 border-t border-base-300 pt-3 font-mono">
+                        <div className="flex items-center gap-3">
+                          <span className="capitalize font-semibold text-base-content/80">
+                            🏷️ {job.workType || (job.remote ? "Remote" : "On-Site")}
+                          </span>
+                          {job.salaryMin ? (
+                            <span className="font-bold text-emerald-600">
+                              💰 ${job.salaryMin.toLocaleString()}{job.salaryMax ? ` - $${job.salaryMax.toLocaleString()}` : ""}
+                            </span>
+                          ) : null}
+                        </div>
+                        <span>
+                          {job.postedAt ? new Date(job.postedAt).toLocaleDateString() : "Recently"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </section>
+
+            {/* COLUMN 3: SELECTED JOB DETAILS & NEEDED SKILLS (lg:col-span-4) */}
+            <aside className="lg:col-span-4 lg:sticky lg:top-24 text-start">
+              {selectedJob ? (
+                <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm space-y-6">
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] text-emerald-500 font-mono font-bold uppercase tracking-wider">
+                        JOB DETAILS & FIT
+                      </span>
+                      <span className="text-[10px] font-mono bg-base-100 border border-base-300 px-2 py-0.5 rounded font-bold">
+                        {selectedJob.matchScore}% Match
                       </span>
                     </div>
+                    <h3 className="text-lg font-black text-base-content mt-1">
+                      {selectedJob.title}
+                    </h3>
+                    <p className="text-xs text-base-content/60 font-semibold mt-0.5">
+                      {selectedJob.company} • {selectedJob.location} {selectedJob.country ? `(${selectedJob.country})` : ""}
+                    </p>
+                  </div>
 
-                    <div className="flex justify-between items-center text-[10px] text-base-content/50 border-t border-base-300 pt-3">
-                      <span>
-                        Salary:{" "}
-                        <span className="font-bold text-base-content">
-                          {job.budget}
+                  {/* Why You Match Explanation */}
+                  <div className="bg-base-100 border border-base-300 rounded-xl p-4 space-y-2">
+                    <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono block">
+                      Compatibility Analysis
+                    </span>
+                    <p className="text-xs text-base-content/80 leading-relaxed font-medium">
+                      {selectedJob.matchScore >= 80
+                        ? `Exceptional alignment! Your verified Skill Passport and CV demonstrate strong qualification for ${selectedJob.title} at ${selectedJob.company}.`
+                        : selectedJob.matchScore >= 50
+                        ? `Solid foundation. You have verified skills for this position. Check the Needed Skills section below.`
+                        : `Developing fit. Review the Needed Skills section below to understand role prerequisites.`}
+                    </p>
+                  </div>
+
+                  {/* ── NEW SECTION: NEEDED SKILLS (Independent, No Roadmap Mutation) ── */}
+                  <div className="space-y-3 border-t border-base-300 pt-4">
+                    <h4 className="text-xs font-black text-base-content uppercase tracking-wider font-mono flex items-center gap-1.5">
+                      <span>🎯</span> Needed Skills
+                    </h4>
+
+                    {/* Needed Skills (Missing) */}
+                    {(selectedJob.neededSkills || selectedJob.skillsGap || []).length > 0 ? (
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] text-red-500 font-bold uppercase tracking-wider font-mono block">
+                          Skills Still Needed for this Role:
                         </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(selectedJob.neededSkills || selectedJob.skillsGap || []).map((skill: string, idx: number) => (
+                            <span
+                              key={idx}
+                              className="text-[10px] font-mono px-2.5 py-1 rounded-lg font-bold bg-red-500/10 text-red-500 border border-red-500/20"
+                            >
+                              ❌ {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-emerald-600 bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20 font-medium">
+                        ✓ You meet all required skills for this job!
+                      </div>
+                    )}
+
+                    {/* Matching Skills (Possessed) */}
+                    {(selectedJob.matchingSkills || []).length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider font-mono block">
+                          Skills You Have:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(selectedJob.matchingSkills || []).map((skill: string, idx: number) => (
+                            <span
+                              key={idx}
+                              className="text-[10px] font-mono px-2.5 py-1 rounded-lg font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                            >
+                              ✓ {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Job Description */}
+                  <div className="space-y-1.5 border-t border-base-300 pt-4">
+                    <span className="text-[10px] text-base-content/50 font-bold uppercase tracking-wider font-mono block">
+                      Job Description
+                    </span>
+                    <p className="text-xs text-base-content/70 leading-relaxed max-h-36 overflow-y-auto pr-1">
+                      {selectedJob.description}
+                    </p>
+                  </div>
+
+                  {/* Action CTAs */}
+                  <div className="space-y-2 pt-2">
+                    {getAppForJob(selectedJob._id) ? (
+                      <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl p-3 text-center text-xs font-bold flex items-center justify-center gap-2">
+                        <span>🚀</span> Applied (Status: {getAppForJob(selectedJob._id)?.status})
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => openApplyModal(selectedJob)}
+                        className="btn w-full bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold text-xs h-11"
+                      >
+                        Apply with Skill Passport & CV
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-base-300 rounded-2xl bg-base-200 p-6 text-center text-base-content/40 text-xs">
+                  Select a job card to view details and Needed Skills.
+                </div>
+              )}
+            </aside>
+          </div>
+        )}
+
+        {/* TAB 2: MY APPLICATIONS (APPLICATION DASHBOARD) */}
+        {activeTab === "applications" && (
+          <div className="space-y-6 text-start">
+            {/* Pipeline Stage Summary Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {PIPELINE_STAGES.map((stage) => {
+                const count = applications.filter((a) => normalizeStatusKey(a.status) === stage.key).length;
+                return (
+                  <div
+                    key={stage.key}
+                    className={`border rounded-2xl p-4 flex flex-col justify-between ${stage.color}`}
+                  >
+                    <span className="text-2xl">{stage.icon}</span>
+                    <div className="mt-3">
+                      <span className="text-2xl font-black block leading-none">{count}</span>
+                      <span className="text-[11px] font-bold uppercase tracking-wider font-mono opacity-80 block mt-1">
+                        {stage.label}
                       </span>
-                      <span>{job.relativeTime}</span>
                     </div>
                   </div>
                 );
-              })
-            )}
-          </section>
+              })}
+            </div>
 
-          {/* COLUMN 3: RIGHT MATCH ANALYSIS (lg:col-span-4) */}
-          <aside className="lg:col-span-4 lg:sticky lg:top-24 text-start">
-            {selectedJob ? (
-              <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm space-y-6">
+            {/* Applications List */}
+            <div className="bg-base-200 border border-base-300 rounded-2xl p-6 space-y-4">
+              <div className="flex justify-between items-center border-b border-base-300 pb-4">
                 <div>
-                  <span className="text-[10px] text-base-content/40 font-mono font-bold uppercase tracking-wider">
-                    AI MATCH ANALYSIS
-                  </span>
-                  <h3 className="text-md font-black text-base-content mt-1">
-                    {selectedJob.title}
+                  <h3 className="font-extrabold text-lg text-base-content">
+                    Application Dashboard
                   </h3>
-                  <p className="text-[10px] text-base-content/40 font-semibold mt-0.5">
-                    {selectedJob.company} • {selectedJob.location}
+                  <p className="text-xs text-base-content/60">
+                    Real-time status of your job applications. Updates made by employers or admins appear here automatically.
                   </p>
                 </div>
-
-                {/* AI Explanation block */}
-                <div className="bg-base-100 border border-base-300 rounded-xl p-4 space-y-2">
-                  <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono block">
-                    Why You Match
-                  </span>
-                  <p className="text-xs text-base-content/75 leading-relaxed font-medium">
-                    {selectedJob.aiExplanation}
-                  </p>
-                </div>
-
-                {/* Gaps detected & CTA */}
-                <div className="space-y-3.5">
-                  <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider font-mono block">
-                    Required Skills & Gaps
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedJob.requiredSkills.map((skill, idx) => {
-                      const isGap = selectedJob.skillsGap.includes(skill);
-                      return (
-                        <span
-                          key={idx}
-                          className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold ${isGap ? "bg-red-50 text-red-600 border border-red-100" : "bg-green-50 text-[#059669] border border-green-200"}`}
-                        >
-                          {isGap ? "❌" : "✓"} {skill}
-                        </span>
-                      );
-                    })}
-                  </div>
-
-                  {selectedJob.skillsGap.length > 0 && (
-                    <button
-                      onClick={() =>
-                        handleAddSkills(selectedJob._id, selectedJob.skillsGap)
-                      }
-                      disabled={addingSkills.includes(selectedJob._id)}
-                      className="btn btn-outline border-red-200 hover:bg-red-50 text-red-600 btn-xs rounded font-bold w-full"
-                    >
-                      {addingSkills.includes(selectedJob._id)
-                        ? "Injecting..."
-                        : "⚡ Inject missing skills into Roadmap"}
-                    </button>
-                  )}
-                </div>
-
-                {/* Apply Trigger */}
-                <button
-                  onClick={() =>
-                    handleApply(selectedJob.company, selectedJob.title)
-                  }
-                  className="btn btn-block bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-bold text-xs h-11"
-                >
-                  Apply with Skill Passport
-                </button>
               </div>
-            ) : (
-              <div className="border border-base-300 rounded-2xl bg-base-200 p-6 text-center text-base-content/40 text-xs">
-                Select a job card to view match breakdown.
-              </div>
-            )}
-          </aside>
-        </div>
+
+              {applications.length === 0 ? (
+                <div className="p-8 text-center text-base-content/50 text-xs">
+                  No applications tracked yet. Go to <button onClick={() => setActiveTab("jobs")} className="text-emerald-500 font-bold underline">Available Jobs</button> to apply!
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="table table-zebra w-full text-xs">
+                    <thead>
+                      <tr className="border-base-300 text-base-content/60 uppercase font-mono text-[10px]">
+                        <th>Company & Role</th>
+                        <th>Match %</th>
+                        <th>Submitted CV</th>
+                        <th>Application Date</th>
+                        <th>Current Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {applications.map((app) => {
+                        const normalizedKey = normalizeStatusKey(app.status);
+                        const stage = PIPELINE_STAGES.find((s) => s.key === normalizedKey) || PIPELINE_STAGES[0];
+
+                        return (
+                          <tr key={app._id} className="border-base-300 hover:bg-base-100/50">
+                            <td>
+                              <div>
+                                <span className="font-extrabold text-sm text-base-content block">
+                                  {app.jobTitle}
+                                </span>
+                                <span className="text-xs text-base-content/60 font-medium">
+                                  {app.company}
+                                </span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className="font-mono font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                                {app.matchScore}%
+                              </span>
+                            </td>
+                            <td>
+                              <span className="text-xs text-base-content/70">
+                                📄 {app.cvTitle || "Verified Resume"}
+                              </span>
+                            </td>
+                            <td>
+                              <span className="text-xs text-base-content/60 font-mono">
+                                {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : new Date(app.createdAt).toLocaleDateString()}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold font-mono ${stage.color}`}>
+                                <span>{stage.icon}</span>
+                                <span>{app.status}</span>
+                              </span>
+                            </td>
+                            <td>
+                              <button
+                                onClick={() => setViewingApp(app)}
+                                className="btn btn-xs btn-outline border-base-300 rounded-lg text-[10px] font-bold"
+                              >
+                                View Details
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Success Modal */}
-      {successApplyJob && (
+      {/* APPLY CONFIRMATION MODAL */}
+      {applyModalOpen && selectedJob && (
         <div className="modal modal-open">
-          <div className="modal-box rounded-2xl bg-base-200 border border-base-300 text-center space-y-4">
-            <div className="w-16 h-16 bg-green-50 border border-green-200 text-[#059669] rounded-full flex items-center justify-center mx-auto text-3xl">
-              🚀
+          <div className="modal-box rounded-2xl bg-base-200 border border-base-300 text-start space-y-5 max-w-md">
+            <div className="flex justify-between items-center border-b border-base-300 pb-3">
+              <h3 className="font-extrabold text-base text-base-content flex items-center gap-2">
+                <span>🚀</span> Apply to {selectedJob.company}
+              </h3>
+              <button onClick={() => setApplyModalOpen(false)} className="btn btn-xs btn-circle btn-ghost">
+                ✕
+              </button>
             </div>
-            <h3 className="font-extrabold text-lg text-base-content">
-              Application Submitted!
-            </h3>
-            <p className="text-xs text-base-content/50 leading-relaxed">
-              Your profile, parsed CV details, and verified quiz scores have
-              been transmitted successfully. Recruiter teams will review your
-              credentials directly.
-            </p>
-            <div className="modal-action justify-center">
+
+            <div className="space-y-3">
+              <div>
+                <span className="text-xs text-base-content/50 font-mono block">Role</span>
+                <span className="font-extrabold text-sm text-base-content">{selectedJob.title}</span>
+              </div>
+
+              {/* CV Selection */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-base-content/70 block">
+                  Select Application Resume (CV):
+                </label>
+                {userCvs.length > 0 ? (
+                  <select
+                    className="select select-bordered select-sm w-full rounded-xl text-xs bg-base-100"
+                    value={selectedCvId}
+                    onChange={(e) => setSelectedCvId(e.target.value)}
+                  >
+                    {userCvs.map((cv) => (
+                      <option key={cv._id || cv.id} value={cv._id || cv.id}>
+                        📄 {cv.title || "My AI Resume"} (Last updated: {new Date(cv.updatedAt || Date.now()).toLocaleDateString()})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="text-xs text-amber-500 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
+                    No saved CV found. Your profile data will be automatically compiled into a verified resume snapshot upon submission.
+                  </div>
+                )}
+              </div>
+
+              {/* Transmitted Bundles Check */}
+              <div className="bg-base-100 border border-base-300 p-3.5 rounded-xl space-y-2 text-xs">
+                <span className="font-bold text-emerald-500 block text-[11px] uppercase tracking-wider font-mono">
+                  Transmitted Credentials Bundle
+                </span>
+                <ul className="space-y-1 text-base-content/70 text-[11px]">
+                  <li className="flex items-center gap-1.5">✓ Verified Skill Passport Credentials</li>
+                  <li className="flex items-center gap-1.5">✓ Completed Roadmap Milestones & Quiz Stats</li>
+                  <li className="flex items-center gap-1.5">✓ Verified Resume ({selectedCvId ? "Selected CV" : "Auto-Compiled"})</li>
+                  <li className="flex items-center gap-1.5">✓ Initial Status: Applied</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="modal-action gap-2 pt-2">
               <button
-                onClick={() => setSuccessApplyJob(null)}
-                className="btn bg-[#10B981] hover:bg-[#059669] border-none text-white btn-sm rounded-lg px-8"
+                onClick={() => setApplyModalOpen(false)}
+                className="btn btn-ghost btn-sm rounded-xl text-xs"
               >
-                Confirm
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmApply}
+                disabled={applying}
+                className="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none btn-sm rounded-xl font-bold text-xs px-6"
+              >
+                {applying ? "Submitting..." : "Confirm & Submit Application"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* APPLICATION DETAILS MODAL */}
+      {viewingApp && (
+        <div className="modal modal-open">
+          <div className="modal-box rounded-2xl bg-base-200 border border-base-300 text-start space-y-5 max-w-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex justify-between items-start border-b border-base-300 pb-4">
+              <div>
+                <span className="text-[10px] text-emerald-500 font-mono font-bold uppercase tracking-wider">
+                  APPLICATION RECORD
+                </span>
+                <h3 className="font-black text-lg text-base-content mt-0.5">
+                  {viewingApp.jobTitle}
+                </h3>
+                <p className="text-xs text-base-content/60">
+                  {viewingApp.company} • Submitted on {viewingApp.appliedAt ? new Date(viewingApp.appliedAt).toLocaleDateString() : new Date(viewingApp.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <button onClick={() => setViewingApp(null)} className="btn btn-xs btn-circle btn-ghost">
+                ✕
+              </button>
+            </div>
+
+            {/* Current Status Banner */}
+            <div className="bg-base-100 border border-base-300 rounded-xl p-4 flex justify-between items-center">
+              <div>
+                <span className="text-[10px] text-base-content/50 font-bold uppercase font-mono block">
+                  Current Pipeline Status
+                </span>
+                <span className="font-extrabold text-base text-base-content">
+                  {viewingApp.status}
+                </span>
+              </div>
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold font-mono ${
+                PIPELINE_STAGES.find((s) => s.key === normalizeStatusKey(viewingApp.status))?.color || "bg-base-300"
+              }`}>
+                <span>{PIPELINE_STAGES.find((s) => s.key === normalizeStatusKey(viewingApp.status))?.icon || "📋"}</span>
+                <span>{viewingApp.status}</span>
+              </span>
+            </div>
+
+            {/* Status History Timeline */}
+            {viewingApp.statusHistory && viewingApp.statusHistory.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[10px] text-base-content/50 font-bold uppercase font-mono block">
+                  Status History
+                </span>
+                <div className="bg-base-100 border border-base-300 rounded-xl p-3.5 space-y-2 text-xs">
+                  {viewingApp.statusHistory.map((h: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-center text-xs border-b border-base-200 last:border-0 pb-1.5 last:pb-0">
+                      <div>
+                        <span className="font-bold text-base-content">{h.status}</span>
+                        {h.notes && <p className="text-[10px] text-base-content/60">{h.notes}</p>}
+                      </div>
+                      <span className="text-[10px] text-base-content/40 font-mono">
+                        {new Date(h.changedAt).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Submitted CV Snapshot */}
+            {viewingApp.cvSnapshot && (
+              <div className="space-y-2">
+                <span className="text-[10px] text-base-content/50 font-bold uppercase font-mono block">
+                  Submitted Resume Snapshot
+                </span>
+                <div className="bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-sm text-base-content">{viewingApp.cvSnapshot.title || "Resume"}</span>
+                    <span className="text-[10px] font-mono text-emerald-500">Verified at Application</span>
+                  </div>
+                  {viewingApp.cvSnapshot.summary && (
+                    <p className="text-xs text-base-content/70 italic bg-base-200 p-2.5 rounded-lg">
+                      &quot;{viewingApp.cvSnapshot.summary}&quot;
+                    </p>
+                  )}
+                  {viewingApp.cvSnapshot.skills && (
+                    <div>
+                      <span className="text-[10px] font-bold text-base-content/50 uppercase font-mono block mb-1">Skills Included:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {viewingApp.cvSnapshot.skills.map((s: string, i: number) => (
+                          <span key={i} className="badge badge-xs badge-neutral text-[9px] font-mono">{s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Submitted Skill Passport Snapshot */}
+            {viewingApp.passportSnapshot && (
+              <div className="space-y-2">
+                <span className="text-[10px] text-base-content/50 font-bold uppercase font-mono block">
+                  Transmitted Skill Passport Snapshot
+                </span>
+                <div className="bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="bg-base-200 p-2.5 rounded-lg">
+                      <span className="text-[9px] uppercase font-mono text-base-content/50 block">Target Role</span>
+                      <span className="font-bold text-xs">{viewingApp.passportSnapshot.targetRole || "Software Developer"}</span>
+                    </div>
+                    <div className="bg-base-200 p-2.5 rounded-lg">
+                      <span className="text-[9px] uppercase font-mono text-base-content/50 block">Milestones Verified</span>
+                      <span className="font-bold text-xs">{viewingApp.passportSnapshot.roadmap?.completedMilestones || 0} completed</span>
+                    </div>
+                    <div className="bg-base-200 p-2.5 rounded-lg">
+                      <span className="text-[9px] uppercase font-mono text-base-content/50 block">Avg Quiz Score</span>
+                      <span className="font-bold text-xs text-emerald-500">{viewingApp.passportSnapshot.quizPerformance?.averageScore || "100"}%</span>
+                    </div>
+                  </div>
+
+                  {viewingApp.passportSnapshot.verifiedSkills && viewingApp.passportSnapshot.verifiedSkills.length > 0 && (
+                    <div>
+                      <span className="text-[10px] font-bold text-base-content/50 uppercase font-mono block mb-1">Verified Skills in Passport:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {viewingApp.passportSnapshot.verifiedSkills.map((s: string, i: number) => (
+                          <span key={i} className="badge badge-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-mono">✓ {s}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="modal-action">
+              <button onClick={() => setViewingApp(null)} className="btn btn-sm btn-ghost rounded-xl">
+                Close
               </button>
             </div>
           </div>

@@ -18,6 +18,9 @@ export function usePricing() {
   const { locale } = useApp();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
+  // Role Audience State ('learner' | 'company')
+  const [audience, setAudience] = useState<"learner" | "company">("learner");
+
   // Checkout variables
   const [user, setUser] = useState<any>(null);
   const [selectedPlan, setSelectedPlan] = useState<"pro" | "scale" | null>(
@@ -37,12 +40,15 @@ export function usePricing() {
     const storedUser = getCachedUser();
     if (storedUser) {
       setUser(storedUser);
+      if (storedUser.role === "company") {
+        setAudience("company");
+      } else if (storedUser.role === "learner") {
+        setAudience("learner");
+      }
     }
   }, []);
 
   const handleSimulateLogin = (role: "learner" | "company") => {
-    // The fake client-side session ('demo-token') is gone: a role can only ever
-    // come from a JWT the server issued, and the API re-checks it on every call.
     toast.info("Please sign in with an authorized account.");
     window.location.href = "/auth/login";
   };
@@ -69,8 +75,6 @@ export function usePricing() {
       selectedPlan === "pro" ? "pro_learner" : "company_tier";
 
     try {
-      // The plan (and therefore the price) is resolved server-side; the client
-      // no longer sends a userId or an amount.
       const response = await apiFetch("/payment/orders", {
         method: "POST",
         body: JSON.stringify({ plan: backendPlanName }),
@@ -86,7 +90,6 @@ export function usePricing() {
       )?.href;
 
       if (order.mock) {
-        // Backend is explicitly in dev mock mode.
         setShowSimulatedModal(true);
       } else if (approveHref) {
         toast.info("Redirecting to PayPal Checkout...");
@@ -95,8 +98,6 @@ export function usePricing() {
         throw new Error("PayPal did not return an approval link.");
       }
     } catch (e: any) {
-      // No more client-side fake order: a failed payment must fail, not silently
-      // hand out a subscription.
       toast.error(
         e.message ||
           "Payment is currently unavailable. Please try again later.",
@@ -117,9 +118,7 @@ export function usePricing() {
       });
 
       if (!response.ok) throw new Error("Capture failed");
-      const result = await response.json();
 
-      // Upgrade local user token settings if needed
       const upgradedUser = {
         ...user,
         role: selectedPlan === "pro" ? "learner" : "company",
@@ -132,7 +131,6 @@ export function usePricing() {
       );
       handleCancelUpgrade();
     } catch (e) {
-      // Local fallback simulation
       const upgradedUser = {
         ...user,
         role: selectedPlan === "pro" ? "learner" : "company",
@@ -185,6 +183,8 @@ export function usePricing() {
   };
 
   return {
+    audience,
+    setAudience,
     captureSimulatedPayment,
     handleCancelUpgrade,
     handleInitiateUpgrade,

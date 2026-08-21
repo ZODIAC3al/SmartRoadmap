@@ -8,7 +8,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadService } from './upload.service';
+import { UploadService, UploadFilePayload } from './upload.service';
 
 @Controller('upload')
 export class UploadController {
@@ -34,10 +34,43 @@ export class UploadController {
     try {
       const url = await this.uploadService.uploadImage(file);
       return { success: true, url };
-    } catch (error: any) {
-      throw new BadRequestException(
-        `Image upload pipeline failed: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BadRequestException(`Image upload pipeline failed: ${message}`);
+    }
+  }
+
+  @Post('pdf')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadPdf(@UploadedFile() file: any) {
+    if (!file) {
+      throw new BadRequestException('No PDF file provided in upload request.');
+    }
+
+    try {
+      const result = await this.uploadService.uploadEvidencePdf(file, 'evidence');
+      return { success: true, url: result.url, key: result.key };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BadRequestException(`PDF upload pipeline failed: ${message}`);
+    }
+  }
+
+  @Post('evidence')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadEvidence(@UploadedFile() file: any) {
+    if (!file) {
+      throw new BadRequestException('No evidence file provided in upload request.');
+    }
+
+    try {
+      const result = await this.uploadService.uploadEvidencePdf(file, 'evidence');
+      return { success: true, url: result.url, key: result.key };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new BadRequestException(`Evidence upload pipeline failed: ${message}`);
     }
   }
 }

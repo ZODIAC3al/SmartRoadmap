@@ -12,6 +12,7 @@ export default function Footer() {
   const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
 
   if (
+    !pathname ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/onboarding") ||
     pathname === "/cv" ||

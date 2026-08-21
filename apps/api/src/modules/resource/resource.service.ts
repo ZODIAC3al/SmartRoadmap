@@ -19,8 +19,13 @@ export class ResourceService {
     private readonly cvModel: Model<Cv>,
   ) {}
 
-  async create(dto: CreateResourceDto, userId: string): Promise<LearningResource> {
-    this.logger.log(`User ${userId} submitting learning resource: ${dto.title}`);
+  async create(
+    dto: CreateResourceDto,
+    userId: string,
+  ): Promise<LearningResource> {
+    this.logger.log(
+      `User ${userId} submitting learning resource: ${dto.title}`,
+    );
     const resource = new this.resourceModel({
       ...dto,
       submittedBy: new Types.ObjectId(userId),
@@ -30,7 +35,11 @@ export class ResourceService {
     return resource.save();
   }
 
-  async vote(resourceId: string, userId: string, direction: 'up' | 'down'): Promise<LearningResource> {
+  async vote(
+    resourceId: string,
+    userId: string,
+    direction: 'up' | 'down',
+  ): Promise<LearningResource> {
     const resource = await this.resourceModel.findById(resourceId);
     if (!resource) {
       throw new NotFoundException(`Resource not found with ID: ${resourceId}`);
@@ -91,7 +100,7 @@ export class ResourceService {
 
   async getRecommendations(userId: string): Promise<LearningResource[]> {
     // 1. Get active roadmap topics
-    let keywords: string[] = [];
+    const keywords: string[] = [];
 
     const activeRoadmap = await this.roadmapModel.findOne({
       userId: new Types.ObjectId(userId),
@@ -108,7 +117,9 @@ export class ResourceService {
 
     // 2. If roadmap keywords empty, fetch from CV skills
     if (keywords.length === 0) {
-      const cv = await this.cvModel.findOne({ userId: new Types.ObjectId(userId) });
+      const cv = await this.cvModel.findOne({
+        userId: new Types.ObjectId(userId),
+      });
       if (cv && cv.skills) {
         keywords.push(...cv.skills);
       }

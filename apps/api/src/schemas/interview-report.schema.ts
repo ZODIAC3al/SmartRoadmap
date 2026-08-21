@@ -5,7 +5,12 @@ export type InterviewReportDocument = InterviewReport & Document;
 
 @Schema({ timestamps: true })
 export class InterviewReport {
-  @Prop({ type: Types.ObjectId, ref: 'InterviewSession', required: true, index: true })
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'InterviewSession',
+    required: true,
+    index: true,
+  })
   sessionId!: Types.ObjectId;
 
   @Prop({ type: String, required: true, index: true })
@@ -46,4 +51,5 @@ export class InterviewReport {
   roadmapUpdates: any[] = [];
 }
 
-export const InterviewReportSchema = SchemaFactory.createForClass(InterviewReport);
+export const InterviewReportSchema =
+  SchemaFactory.createForClass(InterviewReport);

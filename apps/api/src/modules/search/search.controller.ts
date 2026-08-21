@@ -9,10 +9,7 @@ export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 
   @Get()
-  async search(
-    @Query('q') query: string,
-    @Query('limit') limit?: string,
-  ) {
+  async search(@Query('q') query: string, @Query('limit') limit?: string) {
     const parsedLimit = limit ? parseInt(limit, 10) : 5;
     const results = await this.searchService.hybridSearch(query, parsedLimit);
     return { results };

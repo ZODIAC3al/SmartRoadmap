@@ -208,6 +208,12 @@ export default function AdminDashboard() {
               {isRtl ? "إدارة الأعضاء وسجلات الأمان" : "Manage users"}
             </Link>
             <Link
+              href="/admin/certificates"
+              className="sr-button-secondary btn btn-xs sm:btn-sm"
+            >
+              {isRtl ? "مراجعة وتوثيق الشهادات" : "Verify certificates"}
+            </Link>
+            <Link
               href="/admin/content"
               className="sr-button-secondary btn btn-xs sm:btn-sm"
             >

@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { MentorProfile } from '../../schemas/mentor-profile.schema';
@@ -7,7 +13,12 @@ import { MentorRating } from '../../schemas/mentor-rating.schema';
 import { Roadmap } from '../../schemas/roadmap.schema';
 import { Cv } from '../../schemas/cv.schema';
 import { User } from '../../schemas/user.schema';
-import { CreateMentorProfileDto, BookSessionDto, UpdateSessionStatusDto, RateMentorDto } from './dto/mentor.dto';
+import {
+  CreateMentorProfileDto,
+  BookSessionDto,
+  UpdateSessionStatusDto,
+  RateMentorDto,
+} from './dto/mentor.dto';
 import { LLMService } from '../../ai/llm.service';
 
 @Injectable()
@@ -32,13 +43,18 @@ export class MentorService {
 
   // ───────────────────────────── Profiles ─────────────────────────────
 
-  async upsertProfile(dto: CreateMentorProfileDto, userId: string): Promise<MentorProfile> {
+  async upsertProfile(
+    dto: CreateMentorProfileDto,
+    userId: string,
+  ): Promise<MentorProfile> {
     this.logger.log(`Upserting mentor profile for user ${userId}`);
 
     // Update user role to 'mentor' if not already
     await this.userModel.findByIdAndUpdate(userId, { role: 'mentor' });
 
-    let profile = await this.profileModel.findOne({ userId: new Types.ObjectId(userId) });
+    let profile = await this.profileModel.findOne({
+      userId: new Types.ObjectId(userId),
+    });
     if (profile) {
       Object.assign(profile, dto);
     } else {
@@ -83,7 +99,7 @@ export class MentorService {
   async recommendMentors(userId: string): Promise<any[]> {
     // 1. Gather learner skills & goals
     let learnerTarget = '';
-    let learnerSkills: string[] = [];
+    const learnerSkills: string[] = [];
 
     const activeRoadmap = await this.roadmapModel.findOne({
       userId: new Types.ObjectId(userId),
@@ -97,7 +113,9 @@ export class MentorService {
       });
     }
 
-    const cv = await this.cvModel.findOne({ userId: new Types.ObjectId(userId) });
+    const cv = await this.cvModel.findOne({
+      userId: new Types.ObjectId(userId),
+    });
     if (cv && cv.skills) {
       learnerSkills.push(...cv.skills);
     }
@@ -146,7 +164,9 @@ export class MentorService {
           // Map LLM recommendations back to the mentor profiles
           return parsed.recommendations
             .map((rec: any) => {
-              const mentor = mentors.find((m) => m.userId._id.toString() === rec.mentorId);
+              const mentor = mentors.find(
+                (m) => m.userId._id.toString() === rec.mentorId,
+              );
               if (!mentor) return null;
               return {
                 ...mentor.toObject(),
@@ -159,7 +179,9 @@ export class MentorService {
         }
       }
     } catch (e) {
-      this.logger.error(`LLM mentor recommendation failed, falling back to query index: ${e}`);
+      this.logger.error(
+        `LLM mentor recommendation failed, falling back to query index: ${e}`,
+      );
     }
 
     // 3. Fallback database keywords matching
@@ -168,12 +190,22 @@ export class MentorService {
       .map((mentor) => {
         let matchCount = 0;
         mentor.expertise.forEach((exp: string) => {
-          if (cleanSkills.some((s) => exp.toLowerCase().includes(s) || s.includes(exp.toLowerCase()))) {
+          if (
+            cleanSkills.some(
+              (s) =>
+                exp.toLowerCase().includes(s) || s.includes(exp.toLowerCase()),
+            )
+          ) {
             matchCount += 1;
           }
         });
 
-        if (learnerTarget && mentor.expertise.some((exp: string) => exp.toLowerCase().includes(learnerTarget.toLowerCase()))) {
+        if (
+          learnerTarget &&
+          mentor.expertise.some((exp: string) =>
+            exp.toLowerCase().includes(learnerTarget.toLowerCase()),
+          )
+        ) {
           matchCount += 5;
         }
 
@@ -189,8 +221,13 @@ export class MentorService {
 
   // ───────────────────────────── Sessions ─────────────────────────────
 
-  async bookSession(dto: BookSessionDto, learnerId: string): Promise<MentorshipSession> {
-    const mentor = await this.profileModel.findOne({ userId: new Types.ObjectId(dto.mentorId) });
+  async bookSession(
+    dto: BookSessionDto,
+    learnerId: string,
+  ): Promise<MentorshipSession> {
+    const mentor = await this.profileModel.findOne({
+      userId: new Types.ObjectId(dto.mentorId),
+    });
     if (!mentor) {
       throw new NotFoundException(`Mentor profile not found`);
     }
@@ -209,7 +246,9 @@ export class MentorService {
     });
 
     if (!isAvailable) {
-      throw new BadRequestException('Selected time slot does not match mentor availability schedule.');
+      throw new BadRequestException(
+        'Selected time slot does not match mentor availability schedule.',
+      );
     }
 
     // Check conflict
@@ -219,7 +258,9 @@ export class MentorService {
       status: { $in: ['pending', 'accepted'] },
     });
     if (conflict) {
-      throw new ConflictException('Mentor has another confirmed or pending session at this slot.');
+      throw new ConflictException(
+        'Mentor has another confirmed or pending session at this slot.',
+      );
     }
 
     const session = new this.sessionModel({
@@ -232,7 +273,10 @@ export class MentorService {
     return session.save();
   }
 
-  async findSessions(userId: string, role: string): Promise<MentorshipSession[]> {
+  async findSessions(
+    userId: string,
+    role: string,
+  ): Promise<MentorshipSession[]> {
     const query: any = {};
     if (role === 'mentor') {
       query.mentorId = new Types.ObjectId(userId);
@@ -248,7 +292,11 @@ export class MentorService {
       .exec();
   }
 
-  async updateSessionStatus(id: string, dto: UpdateSessionStatusDto, userId: string): Promise<MentorshipSession> {
+  async updateSessionStatus(
+    id: string,
+    dto: UpdateSessionStatusDto,
+    userId: string,
+  ): Promise<MentorshipSession> {
     const session = await this.sessionModel.findById(id);
     if (!session) {
       throw new NotFoundException(`Session not found`);
@@ -263,13 +311,23 @@ export class MentorService {
 
     // Implement status lifecycle constraints
     if (dto.status === 'accepted' || dto.status === 'rejected') {
-      if (!isMentor) throw new BadRequestException('Only mentors can accept/reject bookings');
-      if (session.status !== 'pending') throw new BadRequestException('Can only accept/reject pending sessions');
+      if (!isMentor)
+        throw new BadRequestException(
+          'Only mentors can accept/reject bookings',
+        );
+      if (session.status !== 'pending')
+        throw new BadRequestException(
+          'Can only accept/reject pending sessions',
+        );
     }
 
     if (dto.status === 'completed') {
-      if (!isMentor) throw new BadRequestException('Only mentors can mark sessions as completed');
-      if (session.status !== 'accepted') throw new BadRequestException('Can only complete accepted sessions');
+      if (!isMentor)
+        throw new BadRequestException(
+          'Only mentors can mark sessions as completed',
+        );
+      if (session.status !== 'accepted')
+        throw new BadRequestException('Can only complete accepted sessions');
       session.feedback = dto.feedback;
     }
 
@@ -285,24 +343,33 @@ export class MentorService {
 
   // ───────────────────────────── Ratings ─────────────────────────────
 
-  async rateMentor(sessionId: string, dto: RateMentorDto, learnerId: string): Promise<MentorRating> {
+  async rateMentor(
+    sessionId: string,
+    dto: RateMentorDto,
+    learnerId: string,
+  ): Promise<MentorRating> {
     const session = await this.sessionModel.findById(sessionId);
     if (!session) {
       throw new NotFoundException(`Mentorship session not found`);
     }
     if (session.learnerId.toString() !== learnerId) {
-      throw new BadRequestException('Only the booking learner can review this session');
+      throw new BadRequestException(
+        'Only the booking learner can review this session',
+      );
     }
     if (session.status !== 'completed') {
       throw new BadRequestException('Can only rate completed sessions');
     }
 
-    const existingRating = await this.ratingModel.findOne({ sessionId: new Types.ObjectId(sessionId) });
+    const existingRating = await this.ratingModel.findOne({
+      sessionId: new Types.ObjectId(sessionId),
+    });
     if (existingRating) {
       throw new BadRequestException('This session has already been rated');
     }
 
-    const overallRating = (dto.quality + dto.helpfulness + dto.expertise + dto.communication) / 4;
+    const overallRating =
+      (dto.quality + dto.helpfulness + dto.expertise + dto.communication) / 4;
 
     const rating = new this.ratingModel({
       review: dto.review,
@@ -321,7 +388,9 @@ export class MentorService {
     await rating.save();
 
     // Recalculate average rating for mentor
-    const allRatings = await this.ratingModel.find({ mentorId: session.mentorId });
+    const allRatings = await this.ratingModel.find({
+      mentorId: session.mentorId,
+    });
     const count = allRatings.length;
     const avg = allRatings.reduce((sum, r) => sum + r.rating, 0) / count;
 

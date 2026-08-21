@@ -2,7 +2,9 @@ import {
   ArrayMaxSize,
   IsArray,
   IsBoolean,
+  IsEnum,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   Max,
@@ -56,4 +58,81 @@ export class CreateJobDto {
   @MinLength(20)
   @MaxLength(5000)
   description!: string;
+}
+
+export type ApplicationStatus =
+  | 'Applied'
+  | 'Interviewing'
+  | 'Accepted'
+  | 'Rejected'
+  | 'interested'
+  | 'applied'
+  | 'under_review'
+  | 'interview'
+  | 'rejected'
+  | 'offer'
+  | 'hired';
+
+export const APPLICATION_STATUSES: ApplicationStatus[] = [
+  'Applied',
+  'Interviewing',
+  'Accepted',
+  'Rejected',
+  'interested',
+  'applied',
+  'under_review',
+  'interview',
+  'rejected',
+  'offer',
+  'hired',
+];
+
+export class CreateApplicationDto {
+  @IsString()
+  jobId!: string;
+
+  @IsOptional()
+  @IsString()
+  jobTitle?: string;
+
+  @IsOptional()
+  @IsString()
+  company?: string;
+
+  @IsOptional()
+  @IsString()
+  cvId?: string;
+
+  @IsOptional()
+  @IsString()
+  cvTitle?: string;
+
+  @IsOptional()
+  @IsNumber()
+  matchScore?: number;
+
+  @IsOptional()
+  @IsEnum(APPLICATION_STATUSES)
+  status?: ApplicationStatus;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  notes?: string;
+
+  @IsOptional()
+  cvSnapshot?: Record<string, any>;
+
+  @IsOptional()
+  passportSnapshot?: Record<string, any>;
+}
+
+export class UpdateApplicationStatusDto {
+  @IsEnum(APPLICATION_STATUSES)
+  status!: ApplicationStatus;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  notes?: string;
 }

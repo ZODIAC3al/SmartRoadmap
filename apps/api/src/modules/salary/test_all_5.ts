@@ -21,8 +21,17 @@ async function runAll5Debug() {
       SalaryCacheService,
       AdzunaService,
       { provide: LLMService, useValue: { complete: async () => null } },
-      { provide: getModelToken(LearnerProfile.name), useValue: { findOne: () => ({ exec: async () => null }), create: async () => ({}) } },
-      { provide: getModelToken(Job.name), useValue: { find: () => ({ exec: async () => [] }) } },
+      {
+        provide: getModelToken(LearnerProfile.name),
+        useValue: {
+          findOne: () => ({ exec: async () => null }),
+          create: async () => ({}),
+        },
+      },
+      {
+        provide: getModelToken(Job.name),
+        useValue: { find: () => ({ exec: async () => [] }) },
+      },
     ],
   }).compile();
 
@@ -41,8 +50,12 @@ async function runAll5Debug() {
 
   for (const c of cases) {
     console.log(`==================================================`);
-    console.log(`[TEST REQUEST] Country: ${c.label} (${c.country.toUpperCase()}) | Job: "${c.title}"`);
-    console.log(`User Profile Location: Alexandria, Egypt (ignored by market query)`);
+    console.log(
+      `[TEST REQUEST] Country: ${c.label} (${c.country.toUpperCase()}) | Job: "${c.title}"`,
+    );
+    console.log(
+      `User Profile Location: Alexandria, Egypt (ignored by market query)`,
+    );
 
     const finalResult = await service.predictSalaryRange({
       jobTitle: c.title,

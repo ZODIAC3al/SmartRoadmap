@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { m, AnimatePresence, useReducedMotion } from "framer-motion";
+import { m, motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import CountdownRing from "@/components/CountdownRing";
+import { useApp } from "@/components/AppContext";
+import { apiFetch, getCachedUser } from "@/lib/api";
 import { useApp } from "@/components/AppContext";
 import { apiFetch, getCachedUser } from "@/lib/api";
 
@@ -123,30 +126,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
     initQuiz();
   }, [moduleId]);
 
-  useEffect(() => {
-    if (session && !answerSubmitted && !isFinished) {
-      setTimer(30);
-      if (timerRef.current) clearInterval(timerRef.current);
-      timerRef.current = setInterval(() => {
-        setTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            autoSubmitTimeout();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, answerSubmitted, isFinished]);
-
-  const autoSubmitTimeout = () => handleSubmitAnswer("Times Up (No Answer)");
-
-  const handleSubmitAnswer = async (answerText: string) => {
+  const handleSubmitAnswer = useCallback(async (answerText: string) => {
     if (answerSubmitted || !session) return;
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -177,7 +157,35 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
       alert("Network error submitting answer.");
       setAnswerSubmitted(false);
     }
-  };
+  }, [answerSubmitted, session, timer]);
+
+  // Submit response when countdown runs out
+  const autoSubmitTimeout = useCallback(() => {
+    handleSubmitAnswer('Times Up (No Answer)');
+  }, [handleSubmitAnswer]);
+
+  // Handle countdown clock ticking
+  useEffect(() => {
+    if (session && !answerSubmitted && !isFinished) {
+      setTimer(30);
+      if (timerRef.current) clearInterval(timerRef.current);
+      
+      timerRef.current = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current!);
+            autoSubmitTimeout();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [session, answerSubmitted, isFinished, autoSubmitTimeout]);
 
   const handleNextQuestion = () => {
     if (!session || !session.nextQuestionPayload) return;
