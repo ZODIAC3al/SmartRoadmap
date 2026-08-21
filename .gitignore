@@ -34,3 +34,7 @@ lerna-debug.log*
 # System files
 .DS_Store
 Thumbs.db
+
+# Local runtime data (MongoDB dbpath, logs, scratch PDFs) — never commit
+tmp/
+output/run-check/

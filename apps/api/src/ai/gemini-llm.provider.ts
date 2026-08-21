@@ -7,9 +7,17 @@ export class GeminiLLMProvider implements LLMProvider {
 
   constructor(private readonly apiKey: string) {}
 
+  /**
+   * Ceiling on generated tokens. Output is billed at a higher rate than input
+   * on every provider, and without a cap the model is free to fill its entire
+   * response window — an unbounded cost for an answer nobody reads to the end.
+   * Callers that genuinely need a long answer can raise it per call.
+   */
+  private static readonly DEFAULT_MAX_OUTPUT_TOKENS = 1024;
+
   async chat(
     messages: ChatMessage[],
-    options?: { isJson?: boolean },
+    options?: { isJson?: boolean; maxOutputTokens?: number; temperature?: number },
   ): Promise<string> {
     try {
       const modelName = 'gemini-2.5-flash';
@@ -37,13 +45,25 @@ export class GeminiLLMProvider implements LLMProvider {
         };
       }
 
-      if (options?.isJson) {
-        body.generationConfig = {
-          responseMimeType: 'application/json',
-        };
-      }
+      // Always send a generationConfig — an uncapped request is an uncapped bill.
+      body.generationConfig = {
+        maxOutputTokens:
+          options?.maxOutputTokens ?? GeminiLLMProvider.DEFAULT_MAX_OUTPUT_TOKENS,
+        ...(options?.temperature !== undefined
+          ? { temperature: options.temperature }
+          : {}),
+        ...(options?.isJson ? { responseMimeType: 'application/json' } : {}),
+      };
 
       const response = await axios.post(url, body, { headers });
+
+      const usage = response.data?.usageMetadata;
+      if (usage) {
+        this.logger.debug(
+          `Gemini tokens — prompt ${usage.promptTokenCount}, ` +
+            `output ${usage.candidatesTokenCount}, total ${usage.totalTokenCount}`,
+        );
+      }
 
       const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!text) {
