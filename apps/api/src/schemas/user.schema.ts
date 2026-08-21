@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type AuthProvider = 'local' | 'google';
 
@@ -43,6 +43,9 @@ export class User extends Document {
 
   @Prop()
   phone?: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'Company', index: true })
+  companyId?: Types.ObjectId;
 
   @Prop()
   bio?: string;

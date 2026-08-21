@@ -128,7 +128,7 @@ const TABS: Tab[] = [
 export default function BottomNav() {
   const pathname = usePathname();
 
-  if (pathname.startsWith("/auth")) return null;
+  if (!pathname || pathname.startsWith("/auth")) return null;
 
   const activeIndex = TABS.findIndex(
     (t) => pathname === t.href || pathname.startsWith(t.href + "/"),

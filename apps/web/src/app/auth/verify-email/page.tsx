@@ -6,7 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 
 function VerifyEmail() {
-  const token = useSearchParams().get("token") ?? "";
+  const searchParams = useSearchParams();
+  const token = searchParams?.get("token") ?? "";
   const [state, setState] = useState<"pending" | "ok" | "error">("pending");
   const [message, setMessage] = useState("");
 
