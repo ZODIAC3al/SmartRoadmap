@@ -46,26 +46,15 @@ export class NotificationService {
     titleAr: string,
     contentEn: string,
     contentAr: string,
-    type:
-      | 'general'
-      | 'roadmap_update'
-      | 'job_match'
-      | 'message'
-      | 'streak_reminder'
-      | 'calendar_reminder'
-      | 'achievement'
-      | 'quiz_result'
-      | 'system' = 'general',
+    type: any = 'general',
     link?: string,
   ): Promise<Notification> {
     const created = new this.notificationModel({
-      recipient: new Types.ObjectId(recipientId),
-      titleEn,
-      titleAr,
-      contentEn,
-      contentAr,
-      type,
-      link,
+      userId: new Types.ObjectId(recipientId),
+      title: titleEn,
+      body: contentEn,
+      type: type === 'general' ? 'admin_broadcast' : type,
+      linkTo: link || '/dashboard',
     });
     const saved = await created.save();
 
@@ -85,12 +74,10 @@ export class NotificationService {
     if (subscriptions.length === 0) return;
 
     const payload = JSON.stringify({
-      title: notification.titleEn,
-      body: notification.contentEn,
-      titleAr: notification.titleAr,
-      contentAr: notification.contentAr,
+      title: notification.title,
+      body: notification.body,
       data: {
-        url: notification.link || '/dashboard',
+        url: notification.linkTo || '/dashboard',
         type: notification.type,
       },
     });

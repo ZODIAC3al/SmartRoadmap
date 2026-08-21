@@ -48,6 +48,13 @@ import { AdminModule } from './modules/admin/admin.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
 import { SearchModule } from './modules/search/search.module';
 
+import { BillingModule } from './modules/billing/billing.module';
+import { CompanyModule } from './modules/company/company.module';
+import { PipelineModule } from './modules/pipeline/pipeline.module';
+import { MessagingModule } from './modules/messaging/messaging.module';
+import { EventsModule } from './modules/events/events.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
@@ -80,6 +87,10 @@ import { SearchModule } from './modules/search/search.module';
 
     MailModule,
     AuthModule,
+    BillingModule,
+    CompanyModule,
+    PipelineModule,
+    MessagingModule,
     AIModule,
     PaymentModule,
     RoadmapModule,

@@ -9,7 +9,7 @@ export const pricingDict = {
     ar: "افتح مزايا التشخيص المهني بالذكاء الاصطناعي، شارات المهارات المعتمدة، ومطابقة التوظيف.",
   },
 
-  // Tiers
+  // Learner Tiers
   "free.title": { en: "Starter Free", ar: "الباقة المجانية" },
   "free.desc": {
     en: "Construct your first career roadmap.",
@@ -46,7 +46,68 @@ export const pricingDict = {
   "ent.period": { en: "", ar: "" },
   "ent.cta": { en: "Contact Enterprise", ar: "اتصل بنا للمؤسسات" },
 
-  // Features list
+  // Company Tiers
+  "company_starter.title": { en: "Company Free", ar: "باقة الشركات المجانية" },
+  "company_starter.desc": {
+    en: "Post 1 job & search basic candidates.",
+    ar: "انشر وظيفة واحدة وتصفح المواهب.",
+  },
+  "company_starter.price": { en: "$0", ar: "٠ دولار" },
+  "company_starter.period": { en: "/ month", ar: " / شهرياً" },
+  "company_starter.cta": { en: "Active Plan", ar: "الباقة النشطة" },
+
+  "company_growth.title": { en: "Company Growth", ar: "نمو الشركات Growth" },
+  "company_growth.desc": {
+    en: "5 jobs, candidate messages, AI match scores.",
+    ar: "٥ وظائف، رسائل مباشرة للمرشحين، نقاط المطابقة بالذكاء الاصطناعي.",
+  },
+  "company_growth.price": { en: "$49.99", ar: "٤٩.٩٩ دولار" },
+  "company_growth.period": { en: "/ month", ar: " / شهرياً" },
+  "company_growth.cta": { en: "Upgrade to Growth", ar: "الترقية إلى Growth" },
+
+  "company_scale.title": { en: "Company Scale", ar: "توسع الشركات Scale" },
+  "company_scale.desc": {
+    en: "Unlimited job posts, skill gap analytics, verified badge.",
+    ar: "وظائف غير محدودة، تحليلات الفجوات المهارية، وشارة شريك معتمد.",
+  },
+  "company_scale.price": { en: "$199.99", ar: "١٩٩.٩٩ دولار" },
+  "company_scale.period": { en: "/ month", ar: " / شهرياً" },
+  "company_scale.cta": { en: "Upgrade to Scale", ar: "الترقية إلى Scale" },
+
+  "company_ent.title": { en: "Company Enterprise", ar: "مؤسسات التوظيف الكبرى" },
+  "company_ent.desc": {
+    en: "ATS integrations & dedicated recruiter manager.",
+    ar: "تكاملات ATS مخصصة ومدير توظيف مخصص.",
+  },
+  "company_ent.price": { en: "Custom", ar: "مخصص" },
+  "company_ent.period": { en: "", ar: "" },
+  "company_ent.cta": { en: "Contact Sales", ar: "التواصل مع المبيعات" },
+
+  // Company Features
+  "company_starter.f1": { en: "1 Active Job Posting", ar: "وظيفة نشطة واحدة" },
+  "company_starter.f2": { en: "1 Recruiter Seat", ar: "حساب توظيف واحد" },
+  "company_starter.f3": { en: "Basic Candidate Directory", ar: "دليل المرشحين الأساسي" },
+  "company_starter.f4": { en: "Basic Applicant Tracking", ar: "متابعة المتقدمين الأساسية" },
+  "company_starter.f5": { en: "Email Support", ar: "الدعم عبر البريد" },
+
+  "company_growth.f1": { en: "5 Active Job Postings", ar: "٥ وظائف نشطة" },
+  "company_growth.f2": { en: "3 Recruiter Seats", ar: "٣ حسابات توظيف" },
+  "company_growth.f3": { en: "Unlocked AI Match Scores", ar: "درجات المطابقة بالذكاء الاصطناعي" },
+  "company_growth.f4": { en: "50 Candidate Messages/mo", ar: "٥٠ رسالة للمرشحين شهرياً" },
+  "company_growth.f5": { en: "Verified Evidence Filter", ar: "فلتر الشهادات والأدلة المعتمدة" },
+
+  "company_scale.f1": { en: "Unlimited Active Job Postings", ar: "وظائف نشطة غير محدودة" },
+  "company_scale.f2": { en: "10 Recruiter Seats", ar: "١٠ حسابات توظيف" },
+  "company_scale.f3": { en: "Unlimited Candidate Messaging", ar: "رسائل غير محدودة للمرشحين" },
+  "company_scale.f4": { en: "Aggregate Skill Gap Analytics", ar: "تحليلات فجوات المهارات التجميعية" },
+  "company_scale.f5": { en: "Verified Partner Badge", ar: "شارة شريك توظيف معتمد" },
+
+  "company_ent.f1": { en: "Custom ATS Integrations", ar: "تكاملات أنظمة ATS مخصصة" },
+  "company_ent.f2": { en: "Dedicated Account Manager", ar: "مدير حساب مخصص" },
+  "company_ent.f3": { en: "Custom Question Banks", ar: "بنوك أسئلة تقييم مخصصة" },
+  "company_ent.f4": { en: "Proctored Skill Exams", ar: "اختبارات مهارات مراقبة" },
+
+  // Learner Features list
   "free.f1": {
     en: "1 AI Roadmap generation",
     ar: "خارطة طريق واحدة بالذكاء الاصطناعي",
