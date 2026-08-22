@@ -2,11 +2,11 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useGetJobsQuery } from '@/store/api/jobsApi';
+import { useGetMyJobsQuery } from '@/store/api/jobsApi';
 import { Loader2 } from 'lucide-react';
 
 export default function JobsListPage() {
-  const { data: jobsData, isLoading } = useGetJobsQuery();
+  const { data: jobsData, isLoading } = useGetMyJobsQuery();
 
   const jobsList = React.useMemo(() => {
     if (!jobsData) return [];
@@ -40,7 +40,7 @@ export default function JobsListPage() {
             Manage jobs, review candidates, and trigger candidate boosts dynamically.
           </p>
         </div>
-        <Link href="/company/jobs?action=new" className="btn btn-sm btn-primary shadow-xs rounded-xl font-bold">
+        <Link href="/company?action=new" className="btn btn-sm btn-primary shadow-xs rounded-xl font-bold">
           + Post Job
         </Link>
       </div>
@@ -51,7 +51,7 @@ export default function JobsListPage() {
           <p className="text-xs text-base-content/60 max-w-sm">
             Create your first job posting to start receiving verified candidate applications.
           </p>
-          <Link href="/company/jobs?action=new" className="btn btn-sm btn-primary rounded-xl font-bold mt-2">
+          <Link href="/company?action=new" className="btn btn-sm btn-primary rounded-xl font-bold mt-2">
             Create First Job Posting
           </Link>
         </div>

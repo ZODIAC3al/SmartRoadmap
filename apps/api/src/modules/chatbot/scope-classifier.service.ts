@@ -46,7 +46,7 @@ export class ScopeClassifierService {
       return {
         allowed: false,
         reason:
-          'I am Study Buddy, your SmartRoadmap AI assistant! I can only assist with your learning roadmap, programming topics, platform courses, project briefs, and career guidance related to your skills.',
+          'I can only help with SmartRoadmap-related questions, such as jobs, companies, resources, courses, applications, and career recommendations.',
         topicCategory: 'out_of_scope',
       };
     }
@@ -104,7 +104,7 @@ export class ScopeClassifierService {
     return {
       allowed: false,
       reason:
-        'Please ask a question related to your SmartRoadmap learning path, programming concepts, or career skills.',
+        'I can only help with SmartRoadmap-related questions, such as jobs, companies, resources, courses, applications, and career recommendations.',
       topicCategory: 'out_of_scope',
     };
   }

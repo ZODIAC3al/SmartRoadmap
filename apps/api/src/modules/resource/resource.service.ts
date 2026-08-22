@@ -7,6 +7,7 @@ import { LearningResource } from '../../schemas/learning-resource.schema';
 import { CreateResourceDto } from './dto/resource.dto';
 import { Roadmap } from '../../schemas/roadmap.schema';
 import { Cv } from '../../schemas/cv.schema';
+import { RAGService, RESOURCES_COLLECTION } from '../../ai/rag.service';
 
 export interface YouTubeVideoItem {
   id: string;
@@ -30,6 +31,7 @@ export class ResourceService {
     @InjectModel(Cv.name)
     private readonly cvModel: Model<Cv>,
     private readonly config: ConfigService,
+    private readonly ragService: RAGService,
   ) {}
 
   async create(
@@ -45,7 +47,34 @@ export class ResourceService {
       upvotes: [userId], // Author upvotes by default
       score: 1,
     });
-    return resource.save();
+    const saved = await resource.save();
+    await this.indexResource(saved);
+    return saved;
+  }
+
+  async indexResource(resource: LearningResource): Promise<void> {
+    try {
+      await this.ragService.upsert(RESOURCES_COLLECTION, [
+        {
+          id: resource._id.toString(),
+          text: `${resource.title}. ${resource.description || ''} Category: ${resource.category}. Difficulty: ${resource.difficulty}. Tags: ${(resource.tags || []).join(', ')}`,
+          payload: {
+            resourceId: resource._id.toString(),
+            title: resource.title,
+            description: resource.description,
+            url: resource.url,
+            type: resource.type,
+            category: resource.category,
+            difficulty: resource.difficulty,
+            tags: resource.tags,
+          },
+        },
+      ]);
+    } catch (err: any) {
+      this.logger.error(
+        `Failed to index resource ${resource._id} dynamically: ${err.message}`,
+      );
+    }
   }
 
   async vote(
