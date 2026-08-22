@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import type { PortfolioData } from '@/lib/portfolio';
 
 interface Props {
@@ -97,7 +97,7 @@ export const ModernPortfolio: React.FC<Props> = ({ portfolio }) => {
           <h2 className="text-sm font-extrabold uppercase tracking-widest text-indigo-400 font-mono">
             Work History
           </h2>
-          <div className="space-y-4 border-l-2 border-indigo-600 pl-6">
+          <div className="space-y-4 border-l-2 border-[#8E1616] pl-6">
             {experience.map((exp, i) => (
               <div key={i} className="space-y-1 relative">
                 <div className="absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full bg-indigo-500 border-2 border-slate-900" />

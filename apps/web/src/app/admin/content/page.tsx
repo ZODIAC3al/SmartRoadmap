@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -83,7 +83,7 @@ export default function AdminContentPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
@@ -103,7 +103,7 @@ export default function AdminContentPage() {
             <h1 className="text-2xl font-black tracking-tight mt-1">
               {isRtl ? "مركز بلاغات وإشراف المحتوى" : "Reports & Decisions"}
             </h1>
-            <p className="text-xs text-base-content/50 mt-0.5">
+            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-0.5">
               {isRtl ? "مراجعة المشاريع والمقالات والمصادر التقنية المبلغ عنها وإزالتها لحفظ أمن المنصة." : "Audit flags filed against community posts, comment threads, resources, or mentor profiles."}
             </p>
           </div>
@@ -134,13 +134,13 @@ export default function AdminContentPage() {
           
           {/* Moderation table list */}
           <div className="sr-panel md:col-span-2 rounded-2xl p-5 space-y-4">
-            <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
+            <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-stone-600 dark:text-stone-400 font-medium">
               {isRtl ? "قائمة البلاغات المعلقة" : "Report Queue Index"}
             </h3>
 
             <div className="overflow-x-auto">
               {reports.length === 0 ? (
-                <p className="text-xs text-base-content/40 text-center py-6">
+                <p className="text-xs text-stone-600 dark:text-stone-400 font-medium text-center py-6">
                   {isRtl ? "منصتك نظيفة بالكامل! لا توجد بلاغات معلقة حالياً." : "Platform clean! No pending reports queue."}
                 </p>
               ) : (
@@ -171,7 +171,7 @@ export default function AdminContentPage() {
                         <td>
                           <span className={`badge border-none font-bold text-[8px] uppercase px-1.5 py-0.5 rounded font-mono ${
                             rep.status === "pending" ? "bg-yellow-500/10 text-yellow-500" :
-                            rep.status === "resolved" ? "bg-green-500/10 text-green-500" : "bg-neutral-content/10 text-neutral-content/40"
+                            rep.status === "resolved" ? "bg-green-500/10 text-green-500" : "bg-neutral-content/10 text-stone-600 dark:text-stone-400 font-medium"
                           }`}>
                             {rep.status}
                           </span>
@@ -199,7 +199,7 @@ export default function AdminContentPage() {
             {selectedReport ? (
               <div className="sr-panel rounded-2xl p-5 space-y-4 animate-in fade-in duration-200">
                 <div className="flex justify-between items-center border-b border-base-300 pb-2">
-                  <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
+                  <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-stone-600 dark:text-stone-400 font-medium">
                     {isRtl ? "معالجة بلاغ" : "Report Handler Action"}
                   </h3>
                   <button onClick={() => setSelectedReport(null)} className="text-[11px] font-bold hover:underline">
@@ -207,24 +207,24 @@ export default function AdminContentPage() {
                   </button>
                 </div>
 
-                <div className="space-y-2 text-xs leading-relaxed text-base-content/85">
+                <div className="space-y-2 text-xs leading-relaxed text-stone-800 dark:text-stone-200 font-medium">
                   <div>
-                    <span className="font-bold text-[10px] text-base-content/40 block font-mono">VIOLATING CONTENT TYPE</span>
+                    <span className="font-bold text-[10px] text-stone-600 dark:text-stone-400 font-medium block font-mono">VIOLATING CONTENT TYPE</span>
                     <span className="font-extrabold text-base-content">{selectedReport.contentType.toUpperCase()}</span>
                   </div>
                   <div>
-                    <span className="font-bold text-[10px] text-base-content/40 block font-mono">CONTENT KEY ID</span>
+                    <span className="font-bold text-[10px] text-stone-600 dark:text-stone-400 font-medium block font-mono">CONTENT KEY ID</span>
                     <span className="font-mono text-[10px] text-base-content block bg-base-100 p-1.5 rounded-lg truncate">{selectedReport.contentId}</span>
                   </div>
                   <div>
-                    <span className="font-bold text-[10px] text-base-content/40 block font-mono">VIOLATION DETAILS</span>
+                    <span className="font-bold text-[10px] text-stone-600 dark:text-stone-400 font-medium block font-mono">VIOLATION DETAILS</span>
                     <p className="p-2.5 bg-base-100 border border-base-300 rounded-xl">{selectedReport.reason}</p>
                   </div>
                 </div>
 
                 <form onSubmit={handleResolveSubmit} className="space-y-4 text-xs font-semibold">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "الإجراء المتخذ" : "Decision Outcome"}</label>
+                    <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "الإجراء المتخذ" : "Decision Outcome"}</label>
                     <select
                       value={resolutionStatus}
                       onChange={(e) => {
@@ -239,7 +239,7 @@ export default function AdminContentPage() {
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "السبب / القرار" : "Resolution Summary"}</label>
+                    <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "السبب / القرار" : "Resolution Summary"}</label>
                     <textarea
                       required
                       rows={3}
@@ -258,7 +258,7 @@ export default function AdminContentPage() {
                 </form>
               </div>
             ) : (
-              <div className="sr-panel p-8 rounded-2xl text-center space-y-2 text-base-content/40">
+              <div className="sr-panel p-8 rounded-2xl text-center space-y-2 text-stone-600 dark:text-stone-400 font-medium">
                 <span className="text-2xl">🛡️</span>
                 <h4 className="font-extrabold text-xs uppercase tracking-wider font-mono">Moderation Detail Box</h4>
                 <p className="text-[10px] leading-relaxed max-w-[200px] mx-auto">

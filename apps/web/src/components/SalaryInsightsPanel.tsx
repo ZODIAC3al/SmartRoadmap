@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 
@@ -106,7 +106,7 @@ const STATUS_CFG: Record<SalaryDataStatus, {
     body: "Fewer than 10 salary-bearing listings were found. The range shown is indicative, not statistically reliable.",
   },
   NO_DATA: {
-    badge: "— No Data", badgeCls: "bg-base-content/10 text-base-content/50 border-base-content/20",
+    badge: "— No Data", badgeCls: "bg-base-content/10 text-stone-700 dark:text-stone-300 font-medium border-base-content/20",
     icon: "—", showSalary: false,
     title: "No salary data available for this market",
     body: "Neither Adzuna nor our AI provider returned usable salary data for this role and country combination. This may be because the role title is very specific or the market has low listing volume. Try a broader job title or a different country.",
@@ -153,21 +153,21 @@ function SalaryRangeBar({ min, avg, max, currency, metricLabel, period }: {
       </div>
       <div className="grid grid-cols-3 text-center">
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-wider text-base-content/40 font-mono">Min</p>
+          <p className="text-[9px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 font-medium font-mono">Min</p>
           <p className="text-sm font-black text-base-content tabular-nums mt-0.5">{fmt(min, currency)}</p>
-          <p className="text-[9px] text-base-content/30 font-mono">{periodLabel}</p>
+          <p className="text-[9px] text-stone-500 dark:text-stone-400 font-medium font-mono">{periodLabel}</p>
         </div>
         <div>
           <p className="text-[9px] font-bold uppercase tracking-wider text-[#7c3aed]/70 font-mono">
             {metricLabel.charAt(0).toUpperCase() + metricLabel.slice(1)}
           </p>
           <p className="text-lg font-black text-[#7c3aed] tabular-nums mt-0.5">{fmt(avg, currency)}</p>
-          <p className="text-[9px] text-base-content/30 font-mono">{periodLabel}</p>
+          <p className="text-[9px] text-stone-500 dark:text-stone-400 font-medium font-mono">{periodLabel}</p>
         </div>
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-wider text-base-content/40 font-mono">Max</p>
+          <p className="text-[9px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 font-medium font-mono">Max</p>
           <p className="text-sm font-black text-success tabular-nums mt-0.5">{fmt(max, currency)}</p>
-          <p className="text-[9px] text-base-content/30 font-mono">{periodLabel}</p>
+          <p className="text-[9px] text-stone-500 dark:text-stone-400 font-medium font-mono">{periodLabel}</p>
         </div>
       </div>
     </div>
@@ -183,10 +183,10 @@ function ConfidenceBar({ score, jobsAnalyzed }: { score: number; jobsAnalyzed: n
         <div className="flex-1 h-1.5 bg-base-300 rounded-full overflow-hidden">
           <div className={`h-full rounded-full transition-all duration-700 ${color}`} style={{ width: `${score}%` }} />
         </div>
-        <span className="text-[10px] font-bold text-base-content/60 font-mono w-16 text-right">{score}% · {label}</span>
+        <span className="text-[10px] font-bold text-stone-700 dark:text-stone-300 font-medium font-mono w-16 text-right">{score}% · {label}</span>
       </div>
       {jobsAnalyzed > 0 && (
-        <p className="text-[10px] text-base-content/40 font-mono">
+        <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium font-mono">
           Based on {jobsAnalyzed} salary-bearing listings
         </p>
       )}
@@ -205,11 +205,11 @@ function SalaryBarChart({ trends, currency }: { trends: SalaryGrowthPoint[]; cur
         const isCurrent = t.year === currentYear;
         return (
           <div key={t.year} className="flex flex-col items-center flex-1 gap-1">
-            <span className="text-[9px] text-base-content/50 font-mono leading-none">{shortLabel(t.averageSalary)}</span>
+            <span className="text-[9px] text-stone-700 dark:text-stone-300 font-medium font-mono leading-none">{shortLabel(t.averageSalary)}</span>
             <div className="w-full flex flex-col justify-end" style={{ height: 80 }}>
               <div className={`w-full rounded-t-lg transition-all duration-700 ${isCurrent ? "bg-[#7c3aed]" : "bg-[#7c3aed]/35"}`} style={{ height: h }} />
             </div>
-            <span className={`text-[9px] font-bold font-mono ${isCurrent ? "text-[#7c3aed]" : "text-base-content/50"}`}>{t.year}</span>
+            <span className={`text-[9px] font-bold font-mono ${isCurrent ? "text-[#7c3aed]" : "text-stone-700 dark:text-stone-300 font-medium"}`}>{t.year}</span>
           </div>
         );
       })}
@@ -222,7 +222,7 @@ function CountrySelector({ selected, onChange, disabled }: {
 }) {
   return (
     <div className="bg-base-200 border border-base-300 rounded-2xl px-5 py-4 shadow-sm">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-3">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 font-medium font-mono mb-3">
         Select Country / Market
       </p>
       <div className="flex flex-wrap gap-2">
@@ -234,7 +234,7 @@ function CountrySelector({ selected, onChange, disabled }: {
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold
                 transition-all border select-none
                 ${active ? "bg-[#7c3aed] text-white border-[#7c3aed] shadow-sm"
-                         : "bg-base-100 text-base-content/70 border-base-300 hover:border-[#7c3aed]/50 hover:text-[#7c3aed]"}
+                         : "bg-base-100 text-stone-700 dark:text-stone-300 font-medium border-base-300 hover:border-[#7c3aed]/50 hover:text-[#7c3aed]"}
                 ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
             >
               <span className="text-sm leading-none">{opt.flag}</span>
@@ -257,9 +257,9 @@ function DataStatusCard({ status, sourceLabel, onRefresh }: {
   return (
     <div className={`rounded-2xl px-5 py-4 border shadow-sm ${isError ? "bg-error/5 border-error/20" : "bg-warning/5 border-warning/20"}`}>
       <p className={`text-xs font-bold mb-1 ${isError ? "text-error" : "text-warning"}`}>{cfg.title}</p>
-      <p className="text-xs text-base-content/70 leading-relaxed">{cfg.body}</p>
+      <p className="text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed">{cfg.body}</p>
       <div className="flex items-center justify-between mt-3">
-        <span className="text-[10px] text-base-content/40 font-mono">{sourceLabel}</span>
+        <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium font-mono">{sourceLabel}</span>
         <button onClick={onRefresh}
           className="btn btn-xs btn-ghost border border-base-300 rounded-xl text-[10px] font-bold gap-1.5 hover:text-[#7c3aed]">
           <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -299,7 +299,7 @@ function EmptyState({ onRefresh }: { onRefresh: () => void }) {
       </div>
       <div>
         <p className="text-sm font-bold text-base-content">No salary data yet</p>
-        <p className="text-xs text-base-content/50 mt-1 max-w-xs">
+        <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1 max-w-xs">
           Select a country above, then make sure your career profile has a current role and skills saved.
         </p>
       </div>
@@ -362,28 +362,28 @@ export default function SalaryInsightsPanel({
             <div className="bg-base-200 border border-base-300 rounded-2xl px-5 py-4 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex flex-col gap-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/40 font-mono">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-600 dark:text-stone-400 font-medium font-mono">
                     Salary comparison for
                   </p>
                   <p className="text-base font-black text-base-content leading-tight">{jobTitle}</p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     {countryOpt && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-base-content/70">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-stone-700 dark:text-stone-300 font-medium">
                         <span className="text-sm">{countryOpt.flag}</span>{countryOpt.label}
                       </span>
                     )}
-                    <span className="text-base-content/30 text-[10px]">·</span>
-                    <span className="text-[10px] font-bold font-mono text-base-content/50">{displayCurrency}</span>
-                    <span className="text-base-content/30 text-[10px]">·</span>
+                    <span className="text-stone-500 dark:text-stone-400 font-medium text-[10px]">·</span>
+                    <span className="text-[10px] font-bold font-mono text-stone-700 dark:text-stone-300 font-medium">{displayCurrency}</span>
+                    <span className="text-stone-500 dark:text-stone-400 font-medium text-[10px]">·</span>
                     <StatusBadge status={dataStatus} />
                     {cachedLabel && (
-                      <span className="text-[10px] text-base-content/30 font-mono">· {cachedLabel}</span>
+                      <span className="text-[10px] text-stone-500 dark:text-stone-400 font-medium font-mono">· {cachedLabel}</span>
                     )}
                   </div>
                 </div>
                 <button onClick={onRefresh}
                   className="btn btn-xs btn-ghost border border-base-300 rounded-xl text-[10px] font-bold
-                    text-base-content/60 hover:text-[#7c3aed] hover:border-[#7c3aed]/40 gap-1.5 self-start sm:self-center">
+                    text-stone-700 dark:text-stone-300 font-medium hover:text-[#7c3aed] hover:border-[#7c3aed]/40 gap-1.5 self-start sm:self-center">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round"
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -399,7 +399,7 @@ export default function SalaryInsightsPanel({
             {/* ── Salary range — only when we have real numbers ─────────── */}
             {showSalary && (
               <div className="bg-base-200 border border-base-300 rounded-2xl px-5 py-5 shadow-sm space-y-4">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 font-medium font-mono">
                   Salary Range · {periodLabel} · {displayCurrency}
                   {dataStatus === "INSUFFICIENT_DATA" && (
                     <span className="ml-2 text-warning normal-case font-normal">· limited sample</span>
@@ -417,10 +417,10 @@ export default function SalaryInsightsPanel({
             {/* ── Data confidence ───────────────────────────────────────── */}
             <div className="bg-base-200 border border-base-300 rounded-2xl px-5 py-4 shadow-sm">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 font-medium font-mono">
                   Data Confidence
                 </p>
-                <span className="text-[10px] text-base-content/40 font-mono">{sourceLabel}</span>
+                <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium font-mono">{sourceLabel}</span>
               </div>
               <ConfidenceBar score={confidenceScore} jobsAnalyzed={jobsAnalyzed} />
             </div>
@@ -434,7 +434,7 @@ export default function SalaryInsightsPanel({
                     <span className="ml-2 normal-case font-normal text-[#7c3aed]/50">· AI estimate, not verified market data</span>
                   )}
                 </p>
-                <p className="text-xs text-base-content/80 leading-relaxed">{salaryRecommendation}</p>
+                <p className="text-xs text-stone-800 dark:text-stone-200 font-medium leading-relaxed">{salaryRecommendation}</p>
               </div>
             )}
 
@@ -443,14 +443,14 @@ export default function SalaryInsightsPanel({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {marketDemand && (
                   <div className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 font-medium font-mono mb-3">
                       Market Demand
                     </p>
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${demandCls}`}>
                         {marketDemand}
                       </span>
-                      <span className="text-xs text-base-content/60">
+                      <span className="text-xs text-stone-700 dark:text-stone-300 font-medium">
                         {marketDemand === "High"  ? "Strong hiring activity — good leverage to negotiate."
                         : marketDemand === "Low"  ? "Softer market — focus on differentiating skills."
                         : "Stable demand in this market."}
@@ -460,7 +460,7 @@ export default function SalaryInsightsPanel({
                 )}
                 {trendingSkills.length > 0 && (
                   <div className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 font-medium font-mono mb-3">
                       Trending Skills
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -477,10 +477,10 @@ export default function SalaryInsightsPanel({
             {salaryGrowthTrends.length > 0 && (
               <div className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 font-medium font-mono">
                     Salary Growth Trend
                   </p>
-                  <span className="text-[10px] text-base-content/30 font-mono">
+                  <span className="text-[10px] text-stone-500 dark:text-stone-400 font-medium font-mono">
                     {salaryGrowthTrends[0]?.year}–{salaryGrowthTrends[salaryGrowthTrends.length - 1]?.year} · {displayCurrency}
                   </span>
                 </div>
@@ -491,7 +491,7 @@ export default function SalaryInsightsPanel({
             {/* ── Skill gap ─────────────────────────────────────────────── */}
             {skillGapAnalysis && (skillGapAnalysis.missingSkills.length > 0 || skillGapAnalysis.recommendations.length > 0) && (
               <div className="bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-base-content/50 font-mono mb-4">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-stone-700 dark:text-stone-300 font-medium font-mono mb-4">
                   Skill Gap & Recommendations
                 </p>
                 <div className="space-y-4">
@@ -508,7 +508,7 @@ export default function SalaryInsightsPanel({
                   {skillGapAnalysis.recommendations.map((rec, i) => (
                     <div key={i} className="flex items-start gap-2.5 p-3 bg-[#7c3aed]/5 border border-[#7c3aed]/15 rounded-xl">
                       <span className="text-[#7c3aed] text-sm mt-0.5 flex-shrink-0">✦</span>
-                      <p className="text-xs text-base-content/80 leading-relaxed">{rec}</p>
+                      <p className="text-xs text-stone-800 dark:text-stone-200 font-medium leading-relaxed">{rec}</p>
                     </div>
                   ))}
                 </div>
@@ -516,7 +516,7 @@ export default function SalaryInsightsPanel({
             )}
 
             {/* ── Footer ───────────────────────────────────────────────── */}
-            <p className="text-[10px] text-base-content/25 text-center font-mono pb-1">
+            <p className="text-[10px] text-stone-500 dark:text-stone-400 font-medium text-center font-mono pb-1">
               {sourceLabel}
               {cachedLabel ? ` · ${cachedLabel}` : ""}
             </p>

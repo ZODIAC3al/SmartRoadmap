@@ -13,6 +13,7 @@ import {
   hasSession,
   type SessionUser,
 } from "@/lib/api";
+import CommunityCollabVisual from "@/components/illustrations/CommunityCollabVisual";
 
 interface Space {
   _id: string;
@@ -219,7 +220,7 @@ export default function CommunityPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
@@ -231,27 +232,32 @@ export default function CommunityPage() {
     <div className={`sr-console pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
       <div className="sr-shell max-w-6xl mx-auto space-y-6">
         
-        {/* Header Block */}
-        <div className="sr-stage sr-signal flex flex-col md:flex-row justify-between items-start md:items-center gap-5 rounded-3xl p-6 sm:p-8">
-          <div>
+        {/* Header Block with Collaboration Visual */}
+        <div className="sr-stage sr-signal flex flex-col lg:flex-row justify-between items-center gap-6 rounded-3xl p-6 sm:p-8">
+          <div className="space-y-2">
             <span className="sr-kicker">
               {isRtl ? "مساحة عملية لتبادل الخبرات" : "PEOPLE. PRACTICE. PROGRESS."}
             </span>
             <h1 className="text-3xl sm:text-4xl font-black tracking-[-0.035em] mt-3 text-white">
               {isRtl ? "مساحة المجتمع" : "Community Exchange"}
             </h1>
-            <p className="text-sm text-slate-300/75 mt-2 max-w-2xl leading-relaxed">
+            <p className="text-sm text-slate-300/75 mt-2 max-w-xl leading-relaxed">
               {isRtl
                 ? "ناقش مشاكل حقيقية، شارك ما تعلمته، وابنِ سمعتك من خلال مساهمات مفيدة يمكن للمجتمع تقييمها."
-                : "Ask better questions, share field notes, and build a visible reputation through useful contributions."}
+                : "Ask better questions, share field notes, and build a visible reputation through peer code reviews and recruiter interactions."}
             </p>
+            <div className="pt-2">
+              <button
+                onClick={() => setShowCreatePost(true)}
+                className="btn btn-sm sr-button rounded-xl font-bold px-5"
+              >
+                {isRtl ? "موضوع جديد" : "+ Start a discussion"}
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => setShowCreatePost(true)}
-            className="btn btn-sm sr-button rounded-xl font-bold px-5"
-          >
-            {isRtl ? "موضوع جديد" : "Start a discussion"}
-          </button>
+          <div className="shrink-0">
+            <CommunityCollabVisual />
+          </div>
         </div>
 
         {/* Dual Grid Layout */}
@@ -272,13 +278,13 @@ export default function CommunityPage() {
                       onClick={() => handleSpaceSelect(space)}
                       className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-bold transition-all text-start border ${
                         isActive
-                          ? "bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]"
-                          : "bg-base-100 hover:bg-base-300 border-transparent text-base-content/70"
+                          ? "bg-[#8E1616]/10 border-[#8E1616]/30 text-[#8E1616]"
+                          : "bg-base-100 hover:bg-base-300 border-transparent text-stone-700 dark:text-stone-300 font-medium"
                       }`}
                     >
                       <div className="truncate">
                         <span># {space.name}</span>
-                        <span className="block text-[9px] text-base-content/40 font-normal mt-0.5 truncate">
+                        <span className="block text-[9px] text-stone-600 dark:text-stone-400 font-medium font-normal mt-0.5 truncate">
                           {space.category}
                         </span>
                       </div>
@@ -316,7 +322,7 @@ export default function CommunityPage() {
                 </div>
                 <form onSubmit={handleCreatePost} className="space-y-4 text-xs font-semibold">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "عنوان المنشور" : "Title"}</label>
+                    <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "عنوان المنشور" : "Title"}</label>
                     <input
                       type="text"
                       required
@@ -327,7 +333,7 @@ export default function CommunityPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "المحتوى" : "Content (Markdown Supported)"}</label>
+                    <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "المحتوى" : "Content (Markdown Supported)"}</label>
                     <textarea
                       required
                       rows={5}
@@ -339,7 +345,7 @@ export default function CommunityPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "العلامات (مفصولة بفاصلة)" : "Tags (comma separated)"}</label>
+                      <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "العلامات (مفصولة بفاصلة)" : "Tags (comma separated)"}</label>
                       <input
                         type="text"
                         placeholder="react, typescript, beginners"
@@ -388,7 +394,7 @@ export default function CommunityPage() {
                   <h4 className="font-extrabold text-sm text-base-content">
                     {isRtl ? "لا توجد منشورات هنا بعد" : "No discussions started yet"}
                   </h4>
-                  <p className="text-xs text-base-content/50 max-w-sm mx-auto">
+                  <p className="text-xs text-stone-700 dark:text-stone-300 font-medium max-w-sm mx-auto">
                     {isRtl
                       ? "كن أول من يبدأ النقاش وينشر سؤالاً أو مقالاً في هذه الغرفة!"
                       : "Be the first to share a question, article, or resource in this topic!"}
@@ -418,7 +424,7 @@ export default function CommunityPage() {
                               {post.authorId?.role}
                             </span>
                           </div>
-                          <span className="text-[9px] text-base-content/40 block font-mono">
+                          <span className="text-[9px] text-stone-600 dark:text-stone-400 font-medium block font-mono">
                             {new Date(post.createdAt).toLocaleDateString(locale === "en" ? "en-US" : "ar-EG", {
                               month: "short",
                               day: "numeric",
@@ -435,7 +441,7 @@ export default function CommunityPage() {
                           setFlaggedContentId(post._id);
                           setFlaggedType("post");
                         }}
-                        className="btn btn-ghost btn-circle btn-xs text-base-content/40 hover:text-red-500"
+                        className="btn btn-ghost btn-circle btn-xs text-stone-600 dark:text-stone-400 font-medium hover:text-red-500"
                         title={isRtl ? "إبلاغ عن محتوى غير لائق" : "Flag content"}
                       >
                         ⚠️
@@ -445,14 +451,14 @@ export default function CommunityPage() {
                     {/* Post content */}
                     <div className="space-y-1.5">
                       {post.isArticle && (
-                        <span className="badge bg-[#10B981]/15 text-[#059669] text-[9px] font-bold border-none py-1">
+                        <span className="badge bg-[#8E1616]/15 text-[#8E1616] text-[9px] font-bold border-none py-1">
                           📚 {isRtl ? "مقالة تعليمية" : "Educational Article"}
                         </span>
                       )}
                       <h3 className="font-black text-sm text-base-content leading-tight hover:underline cursor-pointer" onClick={() => handleViewComments(post)}>
                         {post.title}
                       </h3>
-                      <p className="text-xs text-base-content/85 whitespace-pre-line leading-relaxed">
+                      <p className="text-xs text-stone-800 dark:text-stone-200 font-medium whitespace-pre-line leading-relaxed">
                         {post.content}
                       </p>
                     </div>
@@ -461,7 +467,7 @@ export default function CommunityPage() {
                     {post.tags && post.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
                         {post.tags.map((t) => (
-                          <span key={t} className="text-[10px] font-bold text-base-content/50 font-mono bg-base-100 px-2 py-0.5 rounded-lg border border-base-300">
+                          <span key={t} className="text-[10px] font-bold text-stone-700 dark:text-stone-300 font-medium font-mono bg-base-100 px-2 py-0.5 rounded-lg border border-base-300">
                             #{t}
                           </span>
                         ))}
@@ -475,7 +481,7 @@ export default function CommunityPage() {
                         <button
                           onClick={() => handleVote(post._id, "up")}
                           aria-label={`Upvote ${post.title}`}
-                          className={`font-black px-1.5 ${currentUserId && post.upvotes?.includes(currentUserId) ? "text-green-500" : "hover:text-green-500"}`}
+                          className={`font-black px-1.5 ${currentUserId && post.upvotes?.includes(currentUserId) ? "text-[#8E1616]" : "hover:text-[#8E1616]"}`}
                         >
                           ▲
                         </button>
@@ -494,7 +500,7 @@ export default function CommunityPage() {
                       {/* Comment triggers */}
                       <button
                         onClick={() => handleViewComments(post)}
-                        className="btn btn-ghost btn-xs text-xs font-bold text-base-content/65 hover:text-primary rounded-xl flex items-center gap-1.5"
+                        className="btn btn-ghost btn-xs text-xs font-bold text-stone-700 dark:text-stone-300 font-medium hover:text-primary rounded-xl flex items-center gap-1.5"
                       >
                         💬 {isRtl ? "التعليقات والمناقشة" : "Comments"}
                       </button>
@@ -509,7 +515,7 @@ export default function CommunityPage() {
               <div className="sr-panel rounded-2xl p-6 space-y-4 animate-in fade-in duration-200">
                 <div className="flex justify-between items-center border-b border-base-300 pb-3">
                   <div>
-                    <span className="text-[10px] text-base-content/40 font-bold uppercase tracking-wider block">
+                    <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium font-bold uppercase tracking-wider block">
                       {isRtl ? "مخرجات المناقشة" : "DISCUSSION COMMENTS"}
                     </span>
                     <h3 className="font-extrabold text-sm text-base-content">
@@ -527,7 +533,7 @@ export default function CommunityPage() {
                 {/* Comment list */}
                 <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
                   {comments.length === 0 ? (
-                    <p className="text-[10px] text-base-content/40 text-center py-6">
+                    <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium text-center py-6">
                       {isRtl ? "لا توجد تعليقات بعد. ابدأ المناقشة!" : "No replies yet. Start the conversation!"}
                     </p>
                   ) : (
@@ -549,7 +555,7 @@ export default function CommunityPage() {
                             <div>
                               <span className="font-extrabold text-[11px] text-base-content block leading-tight">
                                 {c.authorId?.name || (isRtl ? "مستخدم محذوف" : "Deleted user")}
-                                <span className="ml-1 badge bg-base-200 text-base-content/70 border-none text-[8px] px-1 font-mono uppercase">
+                                <span className="ml-1 badge bg-base-200 text-stone-700 dark:text-stone-300 font-medium border-none text-[8px] px-1 font-mono uppercase">
                                   {c.authorId?.role}
                                 </span>
                               </span>
@@ -560,13 +566,13 @@ export default function CommunityPage() {
                               setFlaggedContentId(c._id);
                               setFlaggedType("comment");
                             }}
-                            className="text-[10px] text-base-content/30 hover:text-red-500"
+                            className="text-[10px] text-stone-500 dark:text-stone-400 font-medium hover:text-red-500"
                             aria-label={`Report comment by ${c.authorId?.name || "deleted user"}`}
                           >
                             ⚠️
                           </button>
                         </div>
-                        <p className="text-xs text-base-content/85 leading-normal pl-8">
+                        <p className="text-xs text-stone-800 dark:text-stone-200 font-medium leading-normal pl-8">
                           {c.content}
                         </p>
                       </div>
@@ -606,7 +612,7 @@ export default function CommunityPage() {
                   <h3 id="community-report-title" className="font-extrabold text-sm">
                     ⚠️ {isRtl ? "الإبلاغ عن محتوى غير لائق" : "Submit Moderation Flag"}
                   </h3>
-                  <p className="text-xs text-base-content/50">
+                  <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
                     {isRtl
                       ? "يرجى توضيح سبب الإبلاغ عن هذا المحتوى للمشرفين."
                       : "Explain why this content violates community guidelines."}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-base-100 flex flex-col items-center justify-center p-4 selection:bg-[#10B981] selection:text-white relative overflow-hidden">
+    <div className="min-h-screen bg-base-100 flex flex-col items-center justify-center p-4 selection:bg-[#8E1616] selection:text-white relative overflow-hidden">
       {/* Subtle grid background pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-[0.03] pointer-events-none" />
 
@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
           <h2 className="text-2xl font-black tracking-tight text-base-content leading-none">
             Reset Password
           </h2>
-          <p className="text-xs text-base-content/50">
+          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
             Enter your email coordinates to receive a reset token.
           </p>
         </div>
@@ -73,14 +73,14 @@ export default function ForgotPasswordPage() {
         {!isSuccess ? (
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div className="form-control space-y-1">
-              <label className="text-[10px] font-bold uppercase text-base-content/50 font-mono">
+              <label className="text-[10px] font-bold uppercase text-stone-700 dark:text-stone-300 font-medium font-mono">
                 Email Address
               </label>
               <input
                 type="email"
                 required
                 placeholder="recruiter@lattice.com"
-                className="input input-bordered w-full rounded-xl bg-base-100 text-xs h-10 border-base-300 focus:border-[#10B981] focus:ring-1 focus:ring-[#10B981]"
+                className="input input-bordered w-full rounded-xl bg-base-100 text-xs h-10 border-base-300 focus:border-[#8E1616] focus:ring-1 focus:ring-[#8E1616]"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -89,7 +89,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl h-11 text-xs font-semibold flex items-center justify-center gap-2"
+              className="w-full btn bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl h-11 text-xs font-semibold flex items-center justify-center gap-2"
             >
               {isSubmitting && (
                 <span className="loading loading-spinner loading-xs" />
@@ -98,14 +98,14 @@ export default function ForgotPasswordPage() {
             </button>
           </form>
         ) : (
-          <div className="bg-[#10B981]/5 border border-[#10B981]/25 p-4 rounded-xl space-y-3 text-center">
-            <div className="w-12 h-12 bg-[#10B981]/15 text-[#059669] rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+          <div className="bg-[#8E1616]/5 border border-[#8E1616]/25 p-4 rounded-xl space-y-3 text-center">
+            <div className="w-12 h-12 bg-[#8E1616]/15 text-[#8E1616] rounded-full flex items-center justify-center mx-auto text-xl font-bold">
               ✓
             </div>
-            <h3 className="font-extrabold text-sm text-[#059669]">
+            <h3 className="font-extrabold text-sm text-[#8E1616]">
               Reset Link Dispatched
             </h3>
-            <p className="text-[11px] text-base-content/60 leading-relaxed">
+            <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
               We simulated sending a reset email to{" "}
               <strong className="text-base-content font-bold">{email}</strong>.
               Check your spam or local logs!
