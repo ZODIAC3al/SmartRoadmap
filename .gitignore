@@ -8,6 +8,7 @@ packages/shared/node_modules/
 .env
 .env.*
 !.env.example
+
 # Next.js build and cache
 .next/
 apps/web/.next/
