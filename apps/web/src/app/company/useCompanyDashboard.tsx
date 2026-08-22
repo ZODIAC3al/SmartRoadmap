@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import {
   apiFetch,
@@ -11,7 +11,7 @@ import {
   logout,
 } from "@/lib/api";
 import {
-  useGetJobsQuery,
+  useGetMyJobsQuery,
   useCreateJobMutation,
   useDeleteJobMutation,
 } from "@/store/api/jobsApi";
@@ -28,11 +28,12 @@ type ApplicationStatus = any;
 
 export function useCompanyDashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"applications" | "jobs" | "candidates">("applications");
   const [user, setUser] = useState<any>(null);
 
   // RTK Query hooks
-  const { data: jobsData, isLoading: isLoadingJobs } = useGetJobsQuery();
+  const { data: jobsData, isLoading: isLoadingJobs } = useGetMyJobsQuery();
   const { data: candidatesData, isLoading: isLoadingCandidates } = useGetCandidatesQuery({});
   const [createJobMutation] = useCreateJobMutation();
   const [deleteJobMutation] = useDeleteJobMutation();
@@ -118,6 +119,12 @@ export function useCompanyDashboard() {
     const cached = getCachedUser();
     if (cached) setUser(cached);
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("action") === "new") {
+      setShowAddJobModal(true);
+    }
+  }, [searchParams]);
 
   const fetchApplications = useCallback(async () => {}, []);
   const fetchJobs = useCallback(async () => {}, []);

@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { QdrantClient } from '@qdrant/js-client-rest';
 import { EmbeddingService } from './embedding.service';
+import * as crypto from 'crypto';
 
 export const RESOURCES_COLLECTION = 'resources';
 export const JOBS_COLLECTION = 'jobs';
@@ -287,11 +288,18 @@ export class RAGService implements OnModuleInit {
       );
       await this.client.upsert(collection, {
         wait: true,
-        points: docs.map((doc, i) => ({
-          id: doc.id,
-          vector: vectors[i],
-          payload: doc.payload,
-        })),
+        points: docs.map((doc, i) => {
+          let pointId = doc.id;
+          if (typeof pointId === 'string' && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pointId)) {
+            const hash = crypto.createHash('md5').update(pointId).digest('hex');
+            pointId = `${hash.slice(0, 8)}-${hash.slice(8, 12)}-${hash.slice(12, 16)}-${hash.slice(16, 20)}-${hash.slice(20, 32)}`;
+          }
+          return {
+            id: pointId,
+            vector: vectors[i],
+            payload: { ...doc.payload, originalId: doc.id },
+          };
+        }),
       });
     } catch (error: any) {
       this.logger.error(
