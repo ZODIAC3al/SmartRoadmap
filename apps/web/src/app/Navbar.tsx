@@ -29,6 +29,7 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react";
+import { UnreadMessageBadge } from "@/components/messaging/UnreadMessageBadge";
 
 // Crisp SVG Icons representing OS Platforms for PWA download
 const WindowsIcon = () => (
@@ -284,6 +285,7 @@ export default function Navbar() {
     { href: "/cv", label: t("nav.cv"), show: !!user && isLearner },
     { href: "/portfolio/builder", label: "Portfolio", show: !!user && isLearner },
     { href: "/hiring", label: t("nav.jobsMatch"), show: !!user && isLearner },
+    { href: "/messages", label: locale === "en" ? "Messages" : "الرسائل", show: !!user && isLearner, hasBadge: true },
     { href: "/community", label: locale === "en" ? "Community" : "المجتمع", show: !!user && isLearner },
     { href: "/mentors", label: locale === "en" ? "Mentors" : "الموجهين", show: !!user && isLearner },
     { href: "/resources", label: locale === "en" ? "Resources" : "المراجع", show: !!user && isLearner },
@@ -293,13 +295,14 @@ export default function Navbar() {
     { href: "/company", label: locale === "en" ? "Overview" : "نظرة عامة", show: !!user && isCompany },
     { href: "/company/jobs", label: locale === "en" ? "Jobs & Pipeline" : "الوظائف", show: !!user && isCompany },
     { href: "/company/talent", label: t("nav.talentBoard"), show: !!user && isCompany },
-    { href: "/company/messages", label: locale === "en" ? "Messages" : "الرسائل", show: !!user && isCompany },
+    { href: "/company/messages", label: locale === "en" ? "Messages" : "الرسائل", show: !!user && isCompany, hasBadge: true },
     { href: "/company/analytics", label: locale === "en" ? "Analytics" : "التحليلات", show: !!user && isCompany },
     { href: "/company/profile", label: locale === "en" ? "Company Profile" : "ملف الشركة", show: !!user && isCompany },
     // Admin-only
     { href: "/admin", label: locale === "en" ? "Admin Panel" : "لوحة الإدارة", show: !!user && isAdmin },
     { href: "/admin/users", label: locale === "en" ? "Users" : "المستخدمين", show: !!user && isAdmin },
     { href: "/admin/certificates", label: locale === "en" ? "Certificates" : "الشهادات", show: !!user && isAdmin },
+    { href: "/admin/messages", label: locale === "en" ? "Messages" : "الرسائل", show: !!user && isAdmin, hasBadge: true },
     // Always visible
     { href: "/pricing", label: t("nav.pricing"), show: true },
     { href: "/contact", label: t("nav.contact"), show: true },
@@ -382,10 +385,11 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/company/messages"
-                className={`transition-colors hover:text-[#10B981] ${isLinkActive("/company/messages") ? "text-[#10B981] font-black" : "text-base-content/70"
+                className={`flex items-center gap-1.5 transition-colors hover:text-[#10B981] ${isLinkActive("/company/messages") ? "text-[#10B981] font-black" : "text-base-content/70"
                   }`}
               >
                 {locale === "en" ? "Messages" : "الرسائل"}
+                <UnreadMessageBadge />
               </Link>
               <Link
                 href="/company/analytics"
@@ -420,6 +424,14 @@ export default function Navbar() {
                   }`}
               >
                 {locale === "en" ? "Certificates" : "الشهادات"}
+              </Link>
+              <Link
+                href="/admin/messages"
+                className={`flex items-center gap-1.5 transition-colors hover:text-[#10B981] ${isLinkActive("/admin/messages") ? "text-[#10B981] font-black" : "text-base-content/70"
+                  }`}
+              >
+                {locale === "en" ? "Messages" : "الرسائل"}
+                <UnreadMessageBadge />
               </Link>
             </>
           )}
@@ -472,6 +484,17 @@ export default function Navbar() {
                         <span>{locale === "en" ? "Recommendations" : "التوصيات"}</span>
                       </Link>
                     </li>
+                    {isLearner && (
+                      <li>
+                        <Link href="/messages" className={`flex items-center justify-between gap-2.5 ${isLinkActive("/messages") ? "text-[#10B981] font-bold" : ""}`}>
+                          <span className="flex items-center gap-2.5">
+                            <Mail className="w-4 h-4 text-emerald-500 shrink-0" />
+                            <span>{locale === "en" ? "Messages" : "الرسائل"}</span>
+                          </span>
+                          <UnreadMessageBadge />
+                        </Link>
+                      </li>
+                    )}
                   </>
                 )}
                 {/* Company-only explore items */}
@@ -814,9 +837,10 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`block text-sm font-bold transition-all ${isLinkActive(link.href) ? "text-[#10B981]" : "text-base-content/75"}`}
+                className={`flex items-center gap-1.5 block text-sm font-bold transition-all ${isLinkActive(link.href) ? "text-[#10B981]" : "text-base-content/75"}`}
               >
-                {link.label}
+                <span>{link.label}</span>
+                {link.hasBadge && <UnreadMessageBadge />}
               </Link>
             ))}
           {!user && (

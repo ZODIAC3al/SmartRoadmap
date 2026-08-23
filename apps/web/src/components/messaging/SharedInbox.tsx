@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import { apiFetch } from '@/lib/api';
 import { useSubscription } from '@/lib/use-subscription';
 import { UsageBar } from '@/components/company/UsageBar';
 import {
@@ -160,19 +161,19 @@ function NewConversationModal({
     if (!selectedUser || !initialMessage.trim()) return;
     setCreating(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/messaging/threads`, {
+      const res = await apiFetch('/messaging/threads', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token') || ''}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           otherUserId: selectedUser.id,
           context: 'hiring',
           initialMessage: initialMessage.trim(),
         }),
       });
-      if (!res.ok) throw new Error('Failed to create thread');
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error((errBody as any)?.message || 'Failed to create thread');
+      }
       const thread = await res.json();
       dispatch(baseApi.util.invalidateTags([{ type: 'MessageThread', id: 'LIST' }]));
       onThreadCreated(thread._id || thread.id);
@@ -332,7 +333,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
   } | null>(null);
   const [uploadProgress, setUploadProgress] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /* ── RTK Query ── */
@@ -367,7 +368,12 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
 
   /* ── Auto scroll ── */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
   }, [messages]);
 
   /* ── Mark as read on open ── */
@@ -474,8 +480,8 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
   /* ── Render ── */
   return (
     <>
-      {/* New Conversation Modal */}
-      {showNewConvo && (
+      {/* New Conversation Modal — admins and companies only */}
+      {showNewConvo && currentRole !== 'learner' && (
         <NewConversationModal
           currentUserId={currentUserId}
           onClose={() => setShowNewConvo(false)}
@@ -516,13 +522,15 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                   </span>
                 )}
               </div>
-              <button
-                onClick={() => setShowNewConvo(true)}
-                className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl gap-1 font-bold text-[11px]"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                New
-              </button>
+              {currentRole !== 'learner' && (
+                <button
+                  onClick={() => setShowNewConvo(true)}
+                  className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl gap-1 font-bold text-[11px]"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  New
+                </button>
+              )}
             </div>
 
             {/* Search */}
@@ -570,13 +578,15 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                 <p className="text-xs text-base-content/50 font-semibold">
                   {searchQuery ? 'No conversations match your search' : 'No messages yet'}
                 </p>
-                <button
-                  onClick={() => setShowNewConvo(true)}
-                  className="btn btn-xs bg-emerald-500 text-white border-none rounded-xl gap-1 font-bold text-[11px]"
-                >
-                  <Plus className="w-3 h-3" />
-                  Start a conversation
-                </button>
+                {!searchQuery && currentRole !== 'learner' && (
+                  <button
+                    onClick={() => setShowNewConvo(true)}
+                    className="btn btn-xs bg-emerald-500 text-white border-none rounded-xl gap-1 font-bold text-[11px]"
+                  >
+                    <Plus className="w-3 h-3" />
+                    Start a conversation
+                  </button>
+                )}
               </div>
             ) : (
               <div className="p-2 space-y-0.5">
@@ -682,7 +692,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
               </div>
 
               {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
+              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
                 {messagesLoading ? (
                   <div className="flex-1 flex items-center justify-center gap-2 text-xs text-base-content/50">
                     <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
@@ -766,7 +776,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                         </React.Fragment>
                       );
                     })}
-                    <div ref={messagesEndRef} />
+
                   </>
                 )}
               </div>
@@ -805,13 +815,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                   </div>
                 ) : (
                   <>
-                    {isCompany && (
-                      <UsageBar
-                        label="Monthly Message Quota"
-                        current={usage.messagesSentThisPeriod}
-                        limit={limits.messagesIncluded}
-                      />
-                    )}
+
                     <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                       {/* Attachment Button */}
                       <button
@@ -871,16 +875,20 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
               <div>
                 <p className="font-bold text-base text-base-content">Your messages</p>
                 <p className="text-xs text-base-content/50 mt-1 max-w-xs">
-                  Select a conversation from the left, or start a new one to communicate with candidates, companies, or admins.
+                  {currentRole === 'learner'
+                    ? 'Select a conversation from the left to read and reply to messages sent to you.'
+                    : 'Select a conversation from the left, or start a new one to communicate with candidates, companies, or admins.'}
                 </p>
               </div>
-              <button
-                onClick={() => setShowNewConvo(true)}
-                className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-2xl font-bold gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                New Conversation
-              </button>
+              {currentRole !== 'learner' && (
+                <button
+                  onClick={() => setShowNewConvo(true)}
+                  className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-2xl font-bold gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Conversation
+                </button>
+              )}
             </div>
           )}
         </div>

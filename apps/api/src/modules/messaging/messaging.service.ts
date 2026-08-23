@@ -13,20 +13,9 @@ import { Subscription, PlanTier } from '../../schemas/subscription.schema';
 import { PLAN_CONFIG } from '../billing/plan.config';
 import { NotificationsService } from '../notifications/notifications.service';
 import { EventsGateway } from '../events/events.gateway';
+import { CreateThreadDto, SendMessageDto } from './messaging.dto';
 
-export class CreateThreadDto {
-  otherUserId!: string;
-  context?: ThreadContext;
-  relatedJobId?: string;
-  initialMessage?: string;
-}
-
-export class SendMessageDto {
-  threadId!: string;
-  body!: string;
-  attachmentUrl?: string;
-  clientNonce?: string;
-}
+export { CreateThreadDto, SendMessageDto };
 
 @Injectable()
 export class MessagingService {
@@ -44,6 +33,9 @@ export class MessagingService {
   ) {}
 
   private sortParticipants(id1: string | Types.ObjectId, id2: string | Types.ObjectId): Types.ObjectId[] {
+    if (!id1 || !id2) {
+      throw new BadRequestException('Both participant IDs are required');
+    }
     const obj1 = typeof id1 === 'string' ? new Types.ObjectId(id1) : id1;
     const obj2 = typeof id2 === 'string' ? new Types.ObjectId(id2) : id2;
     return [obj1, obj2].sort((a, b) => a.toString().localeCompare(b.toString()));
@@ -54,6 +46,12 @@ export class MessagingService {
    * Prevents race conditions when two users initiate thread creation simultaneously.
    */
   async getOrCreateThread(currentUserId: string, dto: CreateThreadDto): Promise<MessageThread> {
+    if (!dto?.otherUserId || typeof dto.otherUserId !== 'string' || !dto.otherUserId.trim()) {
+      throw new BadRequestException('otherUserId is required');
+    }
+    if (!Types.ObjectId.isValid(dto.otherUserId)) {
+      throw new BadRequestException('otherUserId must be a valid ObjectId');
+    }
     if (currentUserId === dto.otherUserId) {
       throw new BadRequestException('Cannot create a thread with yourself');
     }
@@ -65,14 +63,17 @@ export class MessagingService {
     initialUnread[participants[0].toString()] = 0;
     initialUnread[participants[1].toString()] = 0;
 
+    const participantsKey = `${participants[0].toString()}_${participants[1].toString()}`;
+
     let thread: MessageThread | null = null;
 
     try {
       thread = await this.threadModel.findOneAndUpdate(
-        { participantIds: participants, context },
+        { participantsKey, context },
         {
           $setOnInsert: {
             participantIds: participants,
+            participantsKey,
             context,
             relatedJobId: dto.relatedJobId ? new Types.ObjectId(dto.relatedJobId) : undefined,
             lastMessageAt: new Date(),
@@ -86,7 +87,7 @@ export class MessagingService {
     } catch (err: any) {
       if (err.code === 11000) {
         // Fallback re-fetch if duplicate key race occurred under heavy concurrency
-        thread = await this.threadModel.findOne({ participantIds: participants, context });
+        thread = await this.threadModel.findOne({ participantsKey, context });
       } else {
         throw err;
       }
@@ -210,6 +211,9 @@ export class MessagingService {
         senderId: senderObjId,
         body: dto.body,
         attachmentUrl: dto.attachmentUrl,
+        attachmentName: dto.attachmentName,
+        attachmentType: dto.attachmentType,
+        attachmentSize: dto.attachmentSize,
         clientNonce: dto.clientNonce,
         deliveredVia: 'socket',
       });
@@ -291,12 +295,19 @@ export class MessagingService {
   /**
    * Search platform users to start or open a conversation with.
    * Excludes the caller. Supports fuzzy name/email search and role filter.
+   * Learners are NOT permitted to discover other users — returns [] immediately.
    */
   async searchMessagingUsers(
     currentUserId: string,
     q: string,
     role?: string,
   ): Promise<any[]> {
+    // Enforce learner discovery restriction
+    const caller = await this.userModel.findById(currentUserId).select('role').lean();
+    if (!caller || caller.role === 'learner') {
+      return [];
+    }
+
     const filter: any = {
       _id: { $ne: new Types.ObjectId(currentUserId) },
     };
@@ -320,7 +331,7 @@ export class MessagingService {
       .lean();
 
     return users.map((u) => ({
-      id: u._id,
+      id: u._id.toString(),
       name: u.name,
       email: u.email,
       role: u.role,
