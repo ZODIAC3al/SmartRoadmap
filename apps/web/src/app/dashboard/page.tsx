@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -31,7 +30,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 import {
   Lock,
@@ -71,8 +70,6 @@ import {
   Check,
 } from "lucide-react";
 import VoiceTutorModal from "@/components/VoiceTutorModal";
-import CareerGrowthVisual from "@/components/illustrations/CareerGrowthVisual";
-import AiAssistantFigure from "@/components/illustrations/AiAssistantFigure";
 
 // ─── Types (unchanged contract with backend) ───────────────────────────────
 type Module = {
@@ -209,7 +206,7 @@ function DevotopiaShieldBadge({
   const themeColors = {
     gold: { border: "#f59e0b", banner: "#d97706" },
     blue: { border: "#3b82f6", banner: "#2563eb" },
-    emerald: { border: "#8E1616", banner: "#8E1616" },
+    emerald: { border: "#10b981", banner: "#059669" },
     purple: { border: "#8b5cf6", banner: "#7c3aed" },
     pink: { border: "#ec4899", banner: "#db2777" },
     cyan: { border: "#06b6d4", banner: "#0891b2" },
@@ -302,7 +299,7 @@ function DevotopiaShieldBadge({
         <button
           onClick={handleExportSVG}
           title="Export Badge SVG"
-          className="absolute -bottom-1 right-1 bg-[#8E1616] hover:bg-[#701111] text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          className="absolute -bottom-1 right-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
         >
           <Download className="w-3 h-3" />
         </button>
@@ -313,7 +310,7 @@ function DevotopiaShieldBadge({
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isAr = locale === "ar";
   const tr = (key: DictKey, vars?: Record<string, string>) => {
     let str = dict[key][isAr ? "ar" : "en"];
@@ -946,13 +943,13 @@ export default function DashboardPage() {
   if (!user) {
     return (
       <div className="flex flex-col min-h-[80vh] items-center justify-center p-8 text-center bg-base-100">
-        <div className="w-16 h-16 rounded-full bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center mb-4">
-          <Lock className="w-8 h-8 text-[#8E1616]" />
+        <div className="w-16 h-16 rounded-full bg-indigo-600/10 text-indigo-600 flex items-center justify-center mb-4">
+          <Lock className="w-8 h-8 text-indigo-600" />
         </div>
         <h2 className="text-2xl font-black text-base-content tracking-tight">{tr("restricted")}</h2>
-        <p className="text-sm text-stone-700 dark:text-stone-300 font-medium max-w-sm mb-6">{tr("restrictedBody")}</p>
+        <p className="text-sm text-base-content/50 max-w-sm mb-6">{tr("restrictedBody")}</p>
         <div className="flex gap-4">
-          <Link href="/auth/login" className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl">
+          <Link href="/auth/login" className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none rounded-xl">
             {tr("logIn")}
           </Link>
           <Link href="/auth/register" className="btn btn-outline border-base-300 text-base-content rounded-xl">
@@ -963,7 +960,13 @@ export default function DashboardPage() {
     );
   }
 
+  if (user?.role === "admin") {
+    router.push("/admin");
+    return null;
+  }
+
   if (user?.role === "company") {
+    router.push("/company");
     return null;
   }
 
@@ -975,33 +978,33 @@ export default function DashboardPage() {
 
   const quizHistoryData = (summary as any).quizHistory?.length
     ? (summary as any).quizHistory.map((q: any, i: number) => ({
-      index: i + 1,
-      score: q.score,
-      name: `Quiz ${i + 1}`,
-    }))
+        index: i + 1,
+        score: q.score,
+        name: `Quiz ${i + 1}`,
+      }))
     : [
-      { name: "Quiz 1", score: 65 },
-      { name: "Quiz 2", score: 70 },
-      { name: "Quiz 3", score: 85 },
-      { name: "Quiz 4", score: 75 },
-      { name: "Quiz 5", score: 90 },
-    ];
+        { name: "Quiz 1", score: 65 },
+        { name: "Quiz 2", score: 70 },
+        { name: "Quiz 3", score: 85 },
+        { name: "Quiz 4", score: 75 },
+        { name: "Quiz 5", score: 90 },
+      ];
 
   const studyTimeData = (summary as any).progressHistory?.length
     ? (summary as any).progressHistory.map((p: any, i: number) => ({
-      index: i + 1,
-      minutes: p.timeSpentMinutes || 10,
-      name: `Session ${i + 1}`,
-    }))
+        index: i + 1,
+        minutes: p.timeSpentMinutes || 10,
+        name: `Session ${i + 1}`,
+      }))
     : [
-      { name: "Mon", minutes: 20 },
-      { name: "Tue", minutes: 45 },
-      { name: "Wed", minutes: 30 },
-      { name: "Thu", minutes: 60 },
-      { name: "Fri", minutes: 40 },
-      { name: "Sat", minutes: 75 },
-      { name: "Sun", minutes: 50 },
-    ];
+        { name: "Mon", minutes: 20 },
+        { name: "Tue", minutes: 45 },
+        { name: "Wed", minutes: 30 },
+        { name: "Thu", minutes: 60 },
+        { name: "Fri", minutes: 40 },
+        { name: "Sat", minutes: 75 },
+        { name: "Sun", minutes: 50 },
+      ];
 
   const radarSkillData = [
     { subject: "Frontend", A: summary.roadmapProgress || 85, fullMark: 100 },
@@ -1014,7 +1017,7 @@ export default function DashboardPage() {
 
   const topicDistributionData = [
     { name: "Frontend & UI", value: 40, color: "#6366f1" },
-    { name: "Backend APIs", value: 30, color: "#8E1616" },
+    { name: "Backend APIs", value: 30, color: "#10b981" },
     { name: "Database & Models", value: 18, color: "#f59e0b" },
     { name: "DevOps & Deploy", value: 12, color: "#ec4899" },
   ];
@@ -1035,26 +1038,12 @@ export default function DashboardPage() {
   return (
     <div dir={isAr ? "rtl" : "ltr"} className="bg-base-100 text-base-content min-h-screen pb-12 pt-6 px-4 sm:px-8 overflow-x-hidden">
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* Greeting Banner with Career Growth Visual */}
-        <motion.div {...fadeUp} transition={{ duration: 0.4 }} className="bg-gradient-to-r from-[#8E1616]/10 via-[#E8C999]/15 to-[#8E1616]/5 border border-[#8E1616]/20 rounded-3xl p-6 sm:p-8 flex flex-col lg:flex-row justify-between items-center gap-6 shadow-sm">
-          <div className="space-y-2 text-start max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8E1616]/10 text-[#8E1616] font-mono text-[10px] font-bold uppercase">
-              <span>● Adaptive Roadmap In-Sync</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-base-content">
-              {tr("greeting", { name: user.name })}
-            </h1>
-            <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
-              {tr("intro")} Track your milestone achievements, study habits, and skill velocity toward senior engineering roles.
-            </p>
-          </div>
-          <div className="shrink-0 w-full lg:w-auto">
-            <CareerGrowthVisual
-              currentRole={user?.targetRole || "Software Engineer"}
-              level={summary.roadmapProgress > 75 ? "Senior" : summary.roadmapProgress > 35 ? "Mid-Level" : "Junior"}
-              progress={summary.roadmapProgress || 45}
-            />
-          </div>
+        {/* Greeting */}
+        <motion.div {...fadeUp} transition={{ duration: 0.4 }} className="space-y-2 text-start">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-base-content">
+            {tr("greeting", { name: user.name })}
+          </h1>
+          <p className="text-sm text-base-content/45 max-w-xl">{tr("intro")}</p>
         </motion.div>
 
         {/* Action cards */}
@@ -1065,8 +1054,8 @@ export default function DashboardPage() {
           className="grid grid-cols-1 md:grid-cols-3 gap-6"
         >
           {[
-            { icon: <Layout className="w-5 h-5" />, title: tr("card1Title"), body: tr("card1Body"), color: "bg-[#8E1616]/10 text-[#8E1616]" },
-            { icon: <Zap className="w-5 h-5" />, title: tr("card2Title"), body: tr("card2Body"), color: "bg-[#8E1616]/10/10 text-[#8E1616]" },
+            { icon: <Layout className="w-5 h-5" />, title: tr("card1Title"), body: tr("card1Body"), color: "bg-indigo-600/10 text-indigo-600" },
+            { icon: <Zap className="w-5 h-5" />, title: tr("card2Title"), body: tr("card2Body"), color: "bg-emerald-600/10 text-emerald-600" },
             { icon: <Users className="w-5 h-5" />, title: tr("card3Title"), body: tr("card3Body"), color: "bg-purple-600/10 text-purple-600" },
           ].map((c, i) => (
             <motion.div
@@ -1079,7 +1068,7 @@ export default function DashboardPage() {
               </span>
               <div className="space-y-1 text-start">
                 <h3 className="font-bold text-base-content text-sm">{c.title}</h3>
-                <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">{c.body}</p>
+                <p className="text-xs text-base-content/45">{c.body}</p>
               </div>
             </motion.div>
           ))}
@@ -1089,19 +1078,21 @@ export default function DashboardPage() {
         <div className="flex border-b border-base-300 gap-6 text-sm font-semibold mb-6">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`pb-3 relative transition-all ${activeTab === "overview"
-                ? "text-[#8E1616] font-extrabold border-b-2 border-[#8E1616]"
-                : "text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
-              }`}
+            className={`pb-3 relative transition-all ${
+              activeTab === "overview"
+                ? "text-indigo-600 font-extrabold border-b-2 border-indigo-600"
+                : "text-base-content/60 hover:text-base-content"
+            }`}
           >
             {isAr ? "نظرة عامة" : "Overview"}
           </button>
           <button
             onClick={() => setActiveTab("activity")}
-            className={`pb-3 relative transition-all ${activeTab === "activity"
-                ? "text-[#8E1616] font-extrabold border-b-2 border-[#8E1616]"
-                : "text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
-              }`}
+            className={`pb-3 relative transition-all ${
+              activeTab === "activity"
+                ? "text-indigo-600 font-extrabold border-b-2 border-indigo-600"
+                : "text-base-content/60 hover:text-base-content"
+            }`}
           >
             {isAr ? "نشاط الدراسة" : "Study Activity"} 📊
           </button>
@@ -1134,7 +1125,7 @@ export default function DashboardPage() {
                       </RadialBarChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl font-black text-[#8E1616]">{summary.roadmapProgress}%</span>
+                      <span className="text-2xl font-black text-indigo-600">{summary.roadmapProgress}%</span>
                     </div>
                   </div>
                 </div>
@@ -1145,7 +1136,7 @@ export default function DashboardPage() {
                     <h3 className="font-bold text-base-content text-sm flex items-center gap-1.5">
                       <Flame className="w-4 h-4 text-amber-500" /> {tr("streakTitle")}
                     </h3>
-                    <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium font-mono">
+                    <span className="text-[10px] text-base-content/40 font-mono">
                       {summary.streak.freezesAvailable} {tr("freezesLeft")}
                     </span>
                   </div>
@@ -1189,22 +1180,22 @@ export default function DashboardPage() {
                 {/* AreaChart for Study Time Trend */}
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start">
                   <h3 className="font-bold text-base-content text-sm mb-4 flex items-center gap-1.5">
-                    <i className="lni lni-timer text-[#8E1616]" /> Study Activity
+                    <i className="lni lni-timer text-emerald-500" /> Study Activity
                   </h3>
                   <div className="h-40">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={studyTimeData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="colorMinutes" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8E1616" stopOpacity={0.2} />
-                            <stop offset="95%" stopColor="#8E1616" stopOpacity={0} />
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.15} />
                         <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                         <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-                        <Area type="monotone" dataKey="minutes" stroke="#8E1616" strokeWidth={2} fillOpacity={1} fill="url(#colorMinutes)" />
+                        <Area type="monotone" dataKey="minutes" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorMinutes)" />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
@@ -1216,7 +1207,7 @@ export default function DashboardPage() {
                 {/* RadarChart for Skill Mastery Matrix */}
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start">
                   <h3 className="font-bold text-base-content text-sm mb-2 flex items-center gap-1.5">
-                    <Target className="w-4 h-4 text-[#8E1616]" />
+                    <Target className="w-4 h-4 text-indigo-600" />
                     <span>Skill Mastery Matrix 🎯</span>
                   </h3>
                   <div className="h-44">
@@ -1233,7 +1224,7 @@ export default function DashboardPage() {
                 {/* PieChart / Donut for Topic Distribution */}
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start">
                   <h3 className="font-bold text-base-content text-sm mb-2 flex items-center gap-1.5">
-                    <PieChartIcon className="w-4 h-4 text-[#8E1616]" />
+                    <PieChartIcon className="w-4 h-4 text-emerald-500" />
                     <span>Study Time Allocation 📊</span>
                   </h3>
                   <div className="h-44 flex items-center justify-center">
@@ -1264,7 +1255,7 @@ export default function DashboardPage() {
               <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.08 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-base-content text-sm">{tr("notifTitle")}</h3>
-                  <Link href="/notifications" className="text-xs text-[#8E1616] hover:underline font-bold">
+                  <Link href="/notifications" className="text-xs text-indigo-600 hover:underline font-bold">
                     {tr("clearAll")}
                   </Link>
                 </div>
@@ -1273,17 +1264,17 @@ export default function DashboardPage() {
                     notifications.slice(0, 2).map((n, i) => (
                       <div key={i} className="bg-base-100 border border-base-300 rounded-xl p-4 flex justify-between items-center gap-3">
                         <div>
-                          <span className="text-[9px] uppercase font-mono font-bold text-[#8E1616] bg-[#8E1616]/10 px-2 py-0.5 rounded">
+                          <span className="text-[9px] uppercase font-mono font-bold text-indigo-600 bg-indigo-600/10 px-2 py-0.5 rounded">
                             {n.type}
                           </span>
                           <h4 className="font-bold text-base-content text-xs mt-1.5">{n.titleEn}</h4>
-                          <p className="text-[11px] text-stone-600 dark:text-stone-400 font-medium mt-0.5">{n.contentEn}</p>
+                          <p className="text-[11px] text-base-content/45 mt-0.5">{n.contentEn}</p>
                         </div>
-                        {!n.read && <span className="w-2 h-2 rounded-full bg-[#8E1616] shrink-0" />}
+                        {!n.read && <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0" />}
                       </div>
                     ))
                   ) : (
-                    <div className="text-xs text-stone-600 dark:text-stone-400 font-medium italic py-4">{tr("noNotif")}</div>
+                    <div className="text-xs text-base-content/40 italic py-4">{tr("noNotif")}</div>
                   )}
                 </div>
               </motion.div>
@@ -1301,27 +1292,27 @@ export default function DashboardPage() {
                   <div className="border border-base-300 rounded-xl p-4 bg-base-100 space-y-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-[9px] text-[#8E1616] font-extrabold uppercase font-mono tracking-wider block">
+                        <span className="text-[9px] text-indigo-600 font-extrabold uppercase font-mono tracking-wider block">
                           {tr("roadmapModule")}
                         </span>
                         <h4 className="font-bold text-base-content text-sm mt-0.5">{summary.nextModule.title}</h4>
-                        <p className="text-xs text-stone-600 dark:text-stone-400 font-medium mt-1 max-w-md">{summary.nextModule.description}</p>
+                        <p className="text-xs text-base-content/45 mt-1 max-w-md">{summary.nextModule.description}</p>
                       </div>
-                      <span className="text-[10px] uppercase font-bold text-stone-700 dark:text-stone-300 font-medium bg-base-300 border border-base-300 px-2.5 py-0.5 rounded">
+                      <span className="text-[10px] uppercase font-bold text-base-content/60 bg-base-300 border border-base-300 px-2.5 py-0.5 rounded">
                         {summary.nextModule.difficulty}
                       </span>
                     </div>
                     <div className="flex gap-2 justify-end pt-2">
-                      <Link href="/roadmap" className="btn btn-outline btn-xs rounded text-stone-700 dark:text-stone-300 font-medium border-base-300 hover:bg-base-200 gap-1">
+                      <Link href="/roadmap" className="btn btn-outline btn-xs rounded text-base-content/70 border-base-300 hover:bg-base-200 gap-1">
                         <MapPin className="w-3.5 h-3.5" /> {tr("openCanvas")}
                       </Link>
-                      <Link href={`/quiz/${summary.nextModule.id}`} className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-xs rounded font-bold px-4 gap-1">
+                      <Link href={`/quiz/${summary.nextModule.id}`} className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-xs rounded font-bold px-4 gap-1">
                         <Zap className="w-3.5 h-3.5" /> {tr("proveMastery")}
                       </Link>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-xs text-stone-600 dark:text-stone-400 font-medium italic py-4">{tr("noModule")}</div>
+                  <div className="text-xs text-base-content/40 italic py-4">{tr("noModule")}</div>
                 )}
               </motion.div>
 
@@ -1329,7 +1320,7 @@ export default function DashboardPage() {
               <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.15 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-base-content text-sm">{tr("todayTasks")}</h3>
-                  <span className="text-xs font-mono font-bold text-stone-600 dark:text-stone-400 font-medium">
+                  <span className="text-xs font-mono font-bold text-base-content/40">
                     {tr("total")}: {summary.nextModule?.topics?.length || 0}
                   </span>
                 </div>
@@ -1338,19 +1329,19 @@ export default function DashboardPage() {
                     summary.nextModule.topics.map((topic: string, i: number) => (
                       <div key={i} className="flex justify-between items-center bg-base-100 border border-base-300 rounded-xl p-3.5">
                         <div className="flex items-center gap-3">
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#8E1616]" />
-                          <span className="text-xs font-bold text-stone-800 dark:text-stone-200 font-medium">{topic}</span>
+                          <span className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                          <span className="text-xs font-bold text-base-content/80">{topic}</span>
                         </div>
                         <div className="flex items-center gap-4">
-                          <span className="text-[11px] text-stone-600 dark:text-stone-400 font-medium">{tr("estimated")}: 1h</span>
+                          <span className="text-[11px] text-base-content/40">{tr("estimated")}: 1h</span>
                           <div className="w-16 bg-base-300 rounded-full h-1.5 overflow-hidden">
-                            <div className="bg-[#8E1616] h-full" style={{ width: i === 0 ? "90%" : i === 1 ? "50%" : "10%" }} />
+                            <div className="bg-indigo-600 h-full" style={{ width: i === 0 ? "90%" : i === 1 ? "50%" : "10%" }} />
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-xs text-stone-600 dark:text-stone-400 font-medium italic py-4">{tr("noTasks")}</div>
+                    <div className="text-xs text-base-content/40 italic py-4">{tr("noTasks")}</div>
                   )}
                 </div>
               </motion.div>
@@ -1360,14 +1351,14 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-center border-b border-base-300 pb-3">
                   <div>
                     <h3 className="font-extrabold text-base-content text-sm flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-[#8E1616]" />
+                      <BookOpen className="w-4 h-4 text-indigo-600" />
                       <span>{isAr ? "خزينة الدراسة الذكية والأوراق الإرشادية 📚" : "AI Study Vault & Stored Cheatsheets 📚"}</span>
                     </h3>
-                    <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium mt-0.5">
+                    <p className="text-[11px] text-base-content/50 mt-0.5">
                       {isAr ? "جميع المواضيع والملاحظات والمساعد الصوتي المتاحة لحسابك" : "Instant access to your module topics, AI speech notes, PDF exports, and AI Voice Tutor."}
                     </p>
                   </div>
-                  <span className="text-[10px] bg-[#8E1616]/10 text-[#8E1616] font-mono font-bold px-2.5 py-1 rounded-lg">
+                  <span className="text-[10px] bg-indigo-600/10 text-indigo-600 font-mono font-bold px-2.5 py-1 rounded-lg">
                     {summary.activeRoadmap?.modules?.length || summary.storedCheatSheets?.length || 0} Modules
                   </span>
                 </div>
@@ -1376,38 +1367,39 @@ export default function DashboardPage() {
                   {(summary.activeRoadmap?.modules && summary.activeRoadmap.modules.length > 0
                     ? summary.activeRoadmap.modules
                     : (summary.storedCheatSheets || []).map(cs => ({
-                      id: cs.moduleId,
-                      title: cs.moduleId.replace(/-/g, ' ').toUpperCase(),
-                      description: "Generated AI master study guide and speech notes.",
-                      difficulty: "intermediate",
-                      status: "in_progress" as const,
-                      topics: ["Core Concepts", "Implementation", "Best Practices"],
-                    }))
+                        id: cs.moduleId,
+                        title: cs.moduleId.replace(/-/g, ' ').toUpperCase(),
+                        description: "Generated AI master study guide and speech notes.",
+                        difficulty: "intermediate",
+                        status: "in_progress" as const,
+                        topics: ["Core Concepts", "Implementation", "Best Practices"],
+                      }))
                   ).map((mod: any) => {
                     const storedCs = summary.storedCheatSheets?.find(c => c.moduleId === mod.id);
 
                     return (
-                      <div key={mod.id} className="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-3 shadow-xs hover:border-[#8E1616]/40 transition-all flex flex-col justify-between">
+                      <div key={mod.id} className="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-3 shadow-xs hover:border-indigo-600/40 transition-all flex flex-col justify-between">
                         <div className="space-y-1.5">
                           <div className="flex justify-between items-center">
-                            <span className="text-[9px] uppercase font-mono font-extrabold text-[#8E1616] bg-[#8E1616]/10 px-2 py-0.5 rounded">
+                            <span className="text-[9px] uppercase font-mono font-extrabold text-indigo-600 bg-indigo-600/10 px-2 py-0.5 rounded">
                               {mod.difficulty || "module"}
                             </span>
-                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase ${mod.status === 'completed' ? 'bg-[#8E1616]/10 text-[#8E1616]' : 'bg-amber-500/10 text-amber-600'
-                              }`}>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase ${
+                              mod.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
+                            }`}>
                               {mod.status || 'active'}
                             </span>
                           </div>
 
                           <h4 className="font-extrabold text-xs text-base-content line-clamp-1">{mod.title}</h4>
-                          <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium line-clamp-2 leading-relaxed">
+                          <p className="text-[10px] text-base-content/50 line-clamp-2 leading-relaxed">
                             {mod.description || "Master reference study notes and audio tutor topics."}
                           </p>
 
                           {mod.topics && mod.topics.length > 0 && (
                             <div className="flex flex-wrap gap-1 pt-1">
                               {mod.topics.slice(0, 3).map((tp: string, idx: number) => (
-                                <span key={idx} className="text-[9px] font-mono text-stone-700 dark:text-stone-300 font-medium bg-base-200 px-1.5 py-0.5 rounded">
+                                <span key={idx} className="text-[9px] font-mono text-base-content/60 bg-base-200 px-1.5 py-0.5 rounded">
                                   #{tp}
                                 </span>
                               ))}
@@ -1424,9 +1416,9 @@ export default function DashboardPage() {
                                 content: storedCs?.content || `### Speech Notes & Cheatsheet for ${mod.title}\n\n**Topics:** ${(mod.topics || []).join(', ')}\n\n${mod.description}`,
                               });
                             }}
-                            className="btn btn-outline btn-xs border-base-300 text-base-content hover:bg-[#8E1616] hover:text-white btn-block rounded-xl font-bold h-8 flex items-center justify-center gap-1 text-[10px]"
+                            className="btn btn-outline btn-xs border-base-300 text-base-content hover:bg-indigo-600 hover:text-white btn-block rounded-xl font-bold h-8 flex items-center justify-center gap-1 text-[10px]"
                           >
-                            <FileText className="w-3 h-3 text-[#8E1616]" />
+                            <FileText className="w-3 h-3 text-indigo-600" />
                             <span>{isAr ? "عرض الملاحظات 📄" : "Speech Notes 📄"}</span>
                           </button>
 
@@ -1449,7 +1441,7 @@ export default function DashboardPage() {
                                 setActiveTutorModule(mod);
                                 setShowVoiceTutorModal(true);
                               }}
-                              className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-xs text-[9px] font-bold rounded-lg h-7 flex items-center justify-center gap-1"
+                              className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-xs text-[9px] font-bold rounded-lg h-7 flex items-center justify-center gap-1"
                             >
                               <Mic className="w-2.5 h-2.5" />
                               <span>Voice Tutor 🎙️</span>
@@ -1467,14 +1459,14 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-center border-b border-base-300 pb-3">
                   <div>
                     <h3 className="font-extrabold text-base-content text-sm flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-[#8E1616]" />
+                      <Clock className="w-4 h-4 text-indigo-600" />
                       <span>{isAr ? "سجل الدراسة ومتتبع النشاط ⏱️" : "Study History & Activity Tracker ⏱️"}</span>
                     </h3>
-                    <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium mt-0.5">
+                    <p className="text-[11px] text-base-content/50 mt-0.5">
                       {isAr ? "سجل جلسات الدراسة والاختبارات المكتملة والدقائق المسجلة" : "Detailed log of your recent study sessions, quiz submissions, and active milestones."}
                     </p>
                   </div>
-                  <span className="text-[10px] bg-[#8E1616]/10 text-[#8E1616] font-mono font-bold px-2.5 py-1 rounded-lg">
+                  <span className="text-[10px] bg-emerald-500/10 text-emerald-600 font-mono font-bold px-2.5 py-1 rounded-lg">
                     Live Syncing
                   </span>
                 </div>
@@ -1486,14 +1478,14 @@ export default function DashboardPage() {
                     { event: "Mastered NestJS Microservices Module", score: 95, timeSpentMinutes: 60, createdAt: new Date(Date.now() - 172800000).toISOString() },
                     { event: "Reviewed Adaptive Remedial Node Graph", score: 88, timeSpentMinutes: 40, createdAt: new Date(Date.now() - 259200000).toISOString() },
                   ]).slice(0, 5).map((log: any, idx: number) => (
-                    <div key={idx} className="bg-base-100 border border-base-300 rounded-xl p-3.5 flex items-center justify-between gap-3 hover:border-[#8E1616]/30 transition-all">
+                    <div key={idx} className="bg-base-100 border border-base-300 rounded-xl p-3.5 flex items-center justify-between gap-3 hover:border-indigo-600/30 transition-all">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-[#8E1616]/10 border border-[#8E1616]/20 text-[#8E1616] flex items-center justify-center shrink-0">
-                          <CheckCircle2 className="w-4 h-4 text-[#8E1616]" />
+                        <div className="w-8 h-8 rounded-xl bg-indigo-600/10 border border-indigo-600/20 text-indigo-600 flex items-center justify-center shrink-0">
+                          <CheckCircle2 className="w-4 h-4 text-indigo-600" />
                         </div>
                         <div>
                           <h5 className="font-bold text-xs text-base-content">{log.event || `Study Session ${idx + 1}`}</h5>
-                          <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium mt-0.5 flex items-center gap-2 font-mono">
+                          <p className="text-[10px] text-base-content/40 mt-0.5 flex items-center gap-2 font-mono">
                             <span>{new Date(log.createdAt || Date.now()).toLocaleDateString()}</span>
                             <span>•</span>
                             <span>⏱️ {log.timeSpentMinutes || 25} mins logged</span>
@@ -1501,7 +1493,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       {log.score > 0 && (
-                        <div className="bg-[#8E1616]/10 text-[#8E1616] font-extrabold text-[10px] px-2.5 py-1 rounded-lg border border-[#8E1616]/20">
+                        <div className="bg-indigo-600/10 text-indigo-600 font-extrabold text-[10px] px-2.5 py-1 rounded-lg border border-indigo-600/20">
                           Score: {log.score}%
                         </div>
                       )}
@@ -1517,25 +1509,25 @@ export default function DashboardPage() {
               <motion.div {...fadeUp} transition={{ duration: 0.4 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-base-content text-sm">{tr("scheduleSummary")}</h3>
-                  <Link href="/calendar" className="text-xs text-[#8E1616] hover:underline font-bold">
+                  <Link href="/calendar" className="text-xs text-indigo-600 hover:underline font-bold">
                     {tr("openFull")}
                   </Link>
                 </div>
                 <div className="space-y-2 pt-1">
                   {summary.upcomingEvents.length > 0 ? (
                     summary.upcomingEvents.slice(0, 4).map((ev, i) => (
-                      <div key={i} className="text-[11px] font-semibold text-stone-700 dark:text-stone-300 font-medium flex justify-between items-center border-t border-base-300 pt-2">
+                      <div key={i} className="text-[11px] font-semibold text-base-content/60 flex justify-between items-center border-t border-base-300 pt-2">
                         <span className="truncate max-w-[150px] flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-[#8E1616]" />
+                          <Calendar className="w-3.5 h-3.5 text-indigo-600" />
                           {ev.title}
                         </span>
-                        <span className="text-[#8E1616] font-bold">
+                        <span className="text-indigo-600 font-bold">
                           {new Date(ev.startAt).toLocaleTimeString(isAr ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
                     ))
                   ) : (
-                    <div className="text-[11px] text-stone-600 dark:text-stone-400 font-medium italic">{tr("noSessions")}</div>
+                    <div className="text-[11px] text-base-content/40 italic">{tr("noSessions")}</div>
                   )}
                 </div>
               </motion.div>
@@ -1544,7 +1536,7 @@ export default function DashboardPage() {
               <motion.div
                 {...fadeUp}
                 transition={{ duration: 0.4, delay: 0.05 }}
-                className="bg-[#8E1616] text-white rounded-2xl p-6 shadow-md text-start space-y-4 relative overflow-hidden"
+                className="bg-indigo-600 text-white rounded-2xl p-6 shadow-md text-start space-y-4 relative overflow-hidden"
               >
                 <div className="absolute -top-12 -end-12 w-28 h-28 rounded-full bg-white/10" />
                 <div className="space-y-1 relative z-10">
@@ -1553,7 +1545,7 @@ export default function DashboardPage() {
                   </h3>
                   <p className="text-xs text-indigo-100 leading-relaxed">{tr("premiumBody")}</p>
                 </div>
-                <Link href="/pricing" className="btn bg-white hover:bg-base-100 text-[#8E1616] border-none btn-sm rounded-xl font-bold w-full relative z-10">
+                <Link href="/pricing" className="btn bg-white hover:bg-base-100 text-indigo-600 border-none btn-sm rounded-xl font-bold w-full relative z-10">
                   {tr("findOutMore")}
                 </Link>
               </motion.div>
@@ -1583,7 +1575,7 @@ export default function DashboardPage() {
                 <button
                   onClick={handleExportCert}
                   disabled={certLoading}
-                  className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-sm rounded-xl font-bold w-full gap-2 shadow-lg"
+                  className="btn bg-indigo-600 hover:bg-indigo-500 text-white border-none btn-sm rounded-xl font-bold w-full gap-2 shadow-lg"
                 >
                   {certLoading ? (
                     <span className="loading loading-spinner loading-xs" />
@@ -1603,17 +1595,17 @@ export default function DashboardPage() {
                   {(summary.recentAchievements.length > 0
                     ? summary.recentAchievements
                     : [
-                      { title: "AI Architect", tier: "gold", description: "AI & LLM Integration Mastery" },
-                      { title: "Solutions Architect", tier: "silver", description: "Fullstack Architecture Expert" },
-                      { title: "Cloud Practitioner", tier: "emerald" as any, description: "DevOps & Deployment Mastery" },
-                      { title: "Security Engineer", tier: "purple" as any, description: "Auth & Security Passport" },
-                      { title: "DevOps Pro", tier: "cyan" as any, description: "CI/CD & Kubernetes Specialist" },
-                      { title: "Fullstack Master", tier: "gold", description: "React & NestJS Fullstack" },
-                      { title: "Data Engineer", tier: "emerald" as any, description: "Pipeline & Analytics Expert" },
-                      { title: "ML Specialist", tier: "purple" as any, description: "Deep Learning & Neural Nets" },
-                      { title: "DB Architect", tier: "blue" as any, description: "High Scale MongoDB Schemas" },
-                      { title: "Cyber Defense", tier: "pink" as any, description: "Security & Guard Rails" },
-                    ]
+                        { title: "AI Architect", tier: "gold", description: "AI & LLM Integration Mastery" },
+                        { title: "Solutions Architect", tier: "silver", description: "Fullstack Architecture Expert" },
+                        { title: "Cloud Practitioner", tier: "emerald" as any, description: "DevOps & Deployment Mastery" },
+                        { title: "Security Engineer", tier: "purple" as any, description: "Auth & Security Passport" },
+                        { title: "DevOps Pro", tier: "cyan" as any, description: "CI/CD & Kubernetes Specialist" },
+                        { title: "Fullstack Master", tier: "gold", description: "React & NestJS Fullstack" },
+                        { title: "Data Engineer", tier: "emerald" as any, description: "Pipeline & Analytics Expert" },
+                        { title: "ML Specialist", tier: "purple" as any, description: "Deep Learning & Neural Nets" },
+                        { title: "DB Architect", tier: "blue" as any, description: "High Scale MongoDB Schemas" },
+                        { title: "Cyber Defense", tier: "pink" as any, description: "Security & Guard Rails" },
+                      ]
                   ).map((ach: any, i: number) => {
                     const themeMap: Record<string, "gold" | "blue" | "emerald" | "purple" | "cyan" | "pink"> = {
                       gold: "gold",
@@ -1634,7 +1626,7 @@ export default function DashboardPage() {
                           theme={theme}
                           allowExport={true}
                         />
-                        <p className="text-[9px] text-stone-700 dark:text-stone-300 font-medium font-semibold mt-1.5 line-clamp-1">{ach.description}</p>
+                        <p className="text-[9px] text-base-content/60 font-semibold mt-1.5 line-clamp-1">{ach.description}</p>
                       </div>
                     );
                   })}
@@ -1655,7 +1647,7 @@ export default function DashboardPage() {
                 <h3 className="font-extrabold text-sm text-base-content">
                   {isAr ? "تحليلات النشاط التفصيلية" : "Detailed Activity Analytics"}
                 </h3>
-                <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium">
+                <p className="text-[10px] text-base-content/50">
                   {isAr ? "إحصاءات من قاعدة بيانات تقدمك الفعلية" : "Historical analytics computed from actual study logs"}
                 </p>
               </div>
@@ -1664,8 +1656,9 @@ export default function DashboardPage() {
                   <button
                     key={p}
                     onClick={() => setPeriod(p)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${period === p ? "bg-white text-[#8E1616] shadow-sm" : "text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
-                      }`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      period === p ? "bg-white text-indigo-600 shadow-sm" : "text-base-content/60 hover:text-base-content"
+                    }`}
                   >
                     {p === "7d" ? (isAr ? "٧ أيام" : "7 Days") : p === "30d" ? (isAr ? "٣٠ يوم" : "30 Days") : (isAr ? "٩٠ يوم" : "90 Days")}
                   </button>
@@ -1675,61 +1668,61 @@ export default function DashboardPage() {
 
             {activityLoading ? (
               <div className="h-64 flex items-center justify-center">
-                <span className="loading loading-spinner loading-lg text-[#8E1616]" />
+                <span className="loading loading-spinner loading-lg text-indigo-600" />
               </div>
             ) : activityData ? (
               <div className="space-y-6">
                 {/* Summary Metrics Row */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-base-200 border border-base-300 p-5 rounded-2xl">
-                    <span className="text-[10px] uppercase font-bold text-stone-600 dark:text-stone-400 font-medium block">
+                    <span className="text-[10px] uppercase font-bold text-base-content/40 block">
                       {isAr ? "إجمالي وقت الدراسة" : "Total Time Spent"}
                     </span>
-                    <span className="text-2xl font-black text-[#8E1616] block mt-1">
+                    <span className="text-2xl font-black text-indigo-600 block mt-1">
                       {activityData.summary.totalMinutes} {isAr ? "دقائق" : "mins"}
                     </span>
-                    <span className="text-[9px] text-stone-700 dark:text-stone-300 font-medium block mt-1">
+                    <span className="text-[9px] text-base-content/50 block mt-1">
                       ~{Math.round(activityData.summary.totalMinutes / 60)} {isAr ? "ساعات دراسية" : "learning hours"}
                     </span>
                   </div>
 
                   <div className="bg-base-200 border border-base-300 p-5 rounded-2xl">
-                    <span className="text-[10px] uppercase font-bold text-stone-600 dark:text-stone-400 font-medium block">
+                    <span className="text-[10px] uppercase font-bold text-base-content/40 block">
                       {isAr ? "مجموع الاختبارات" : "Quizzes Completed"}
                     </span>
-                    <span className="text-2xl font-black text-[#8E1616] block mt-1">
+                    <span className="text-2xl font-black text-emerald-500 block mt-1">
                       {activityData.summary.totalQuizzes}
                     </span>
-                    <span className="text-[9px] text-stone-700 dark:text-stone-300 font-medium block mt-1">
+                    <span className="text-[9px] text-base-content/50 block mt-1">
                       {isAr ? "تحقق من الكفاءة" : "Mastery assessments"}
                     </span>
                   </div>
 
                   <div className="bg-base-200 border border-base-300 p-5 rounded-2xl">
-                    <span className="text-[10px] uppercase font-bold text-stone-600 dark:text-stone-400 font-medium block">
+                    <span className="text-[10px] uppercase font-bold text-base-content/40 block">
                       {isAr ? "سلسلة التعلم الحالية" : "Current Learning Streak"}
                     </span>
                     <span className="text-2xl font-black text-amber-500 block mt-1">
                       🔥 {activityData.summary.currentStreak} {isAr ? "يوم" : "days"}
                     </span>
-                    <span className="text-[9px] text-stone-700 dark:text-stone-300 font-medium block mt-1">
+                    <span className="text-[9px] text-base-content/50 block mt-1">
                       {isAr ? "الأطول:" : "Longest:"} {activityData.summary.longestStreak} {isAr ? "يوم" : "days"}
                     </span>
                   </div>
 
                   <div className="bg-base-200 border border-base-300 p-5 rounded-2xl">
-                    <span className="text-[10px] uppercase font-bold text-stone-600 dark:text-stone-400 font-medium block">
+                    <span className="text-[10px] uppercase font-bold text-base-content/40 block">
                       {isAr ? "معدل الأيام النشطة" : "Active Days Ratio"}
                     </span>
                     <span className="text-2xl font-black text-purple-600 block mt-1">
                       {Math.round(
                         (activityData.days.filter((d: any) => d.minutesStudied > 0 || d.quizzes > 0).length /
                           activityData.days.length) *
-                        100
+                          100
                       )}
                       %
                     </span>
-                    <span className="text-[9px] text-stone-700 dark:text-stone-300 font-medium block mt-1">
+                    <span className="text-[9px] text-base-content/50 block mt-1">
                       {activityData.days.filter((d: any) => d.minutesStudied > 0 || d.quizzes > 0).length}{" "}
                       {isAr ? "أيام نشطة" : "active days logged"}
                     </span>
@@ -1767,7 +1760,7 @@ export default function DashboardPage() {
                 {/* BarChart: Quizzes Taken & Average Score */}
                 <div className="bg-base-200 border border-base-300 p-6 rounded-2xl">
                   <h4 className="font-extrabold text-sm text-base-content mb-4 flex items-center gap-1.5">
-                    <Zap className="w-4 h-4 text-[#8E1616]" />
+                    <Zap className="w-4 h-4 text-emerald-500" />
                     {isAr ? "الاختبارات المنجزة ومتوسط النتائج" : "Quizzes Completed & Average Score"}
                   </h4>
                   <div className="h-64">
@@ -1778,7 +1771,7 @@ export default function DashboardPage() {
                         <YAxis yAxisId="left" orientation="left" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} label={{ value: "Quizzes", angle: -90, position: "insideLeft", fontSize: 10 }} />
                         <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} label={{ value: "Avg Score %", angle: 90, position: "insideRight", fontSize: 10 }} />
                         <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, background: "rgba(15, 23, 42, 0.9)", border: "none", color: "#fff" }} />
-                        <Bar yAxisId="left" dataKey="quizzes" name="Quizzes" fill="#8E1616" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                        <Bar yAxisId="left" dataKey="quizzes" name="Quizzes" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={30} />
                         <Line yAxisId="right" type="monotone" dataKey="avgScore" name="Avg Score %" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 3 }} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -1786,7 +1779,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-12 text-stone-600 dark:text-stone-400 font-medium italic">
+              <div className="text-center py-12 text-base-content/40 italic">
                 {isAr ? "لا توجد سجلات نشاط متاحة للفترة المحددة." : "No study activity logs recorded for this period."}
               </div>
             )}
@@ -1804,7 +1797,7 @@ export default function DashboardPage() {
           >
             <button
               onClick={() => setCertModalOpen(false)}
-              className="btn btn-sm btn-circle btn-ghost absolute top-4 right-4 text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
+              className="btn btn-sm btn-circle btn-ghost absolute top-4 right-4 text-base-content/60 hover:text-base-content"
             >
               <X className="w-4 h-4" />
             </button>
@@ -1815,7 +1808,7 @@ export default function DashboardPage() {
                 <Award className="w-7 h-7" />
               </div>
               <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E1616]">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-indigo-600">
                   {certData.certificateId}
                 </span>
                 <h3 className="font-extrabold text-lg text-base-content mt-0.5">
@@ -1940,7 +1933,7 @@ export default function DashboardPage() {
                   a.click();
                   toast.success(isAr ? "تم تحميل ملف الاعتماد الرقمي!" : "Digital credential JSON downloaded!");
                 }}
-                className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-sm rounded-xl gap-2 font-bold px-5"
+                className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-sm rounded-xl gap-2 font-bold px-5"
               >
                 <FileText className="w-4 h-4" />
                 {isAr ? "تحميل الشهادة (JSON)" : "Download Credential"}
@@ -1956,7 +1949,7 @@ export default function DashboardPage() {
           <div className="w-full max-w-2xl bg-base-200 border border-base-300 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col text-start">
             <div className="flex justify-between items-center pb-2 border-b border-base-300">
               <h3 className="font-extrabold text-sm text-base-content flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#8E1616]" />
+                <FileText className="w-4 h-4 text-indigo-600" />
                 <span>{selectedCheatsheet.title} — Speech Notes</span>
               </h3>
               <button onClick={() => setSelectedCheatsheet(null)} className="btn btn-ghost btn-circle btn-xs">
@@ -1971,7 +1964,7 @@ export default function DashboardPage() {
             <div className="flex justify-end gap-3 pt-2 border-t border-base-300">
               <button
                 onClick={() => handleDownloadCheatsheetPDF(selectedCheatsheet.title, selectedCheatsheet.content)}
-                className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl text-xs font-bold gap-1.5"
+                className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none rounded-xl text-xs font-bold gap-1.5"
               >
                 <Download className="w-4 h-4" />
                 Download PDF 📄

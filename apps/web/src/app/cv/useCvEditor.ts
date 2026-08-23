@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser, getUserId } from "@/lib/api";
 import type { CVData } from "./types";
 
@@ -13,7 +13,7 @@ import type { CVData } from "./types";
  * presentation, and this logic is unit-testable on its own.
  */
 export function useCvEditor() {
-  const { t, locale } = useApp();
+  const { t, locale } = useAppUi();
   const [userId, setUserId] = useState("654321098765432109876543"); // Default fallback test ID
   const [activeTab, setActiveTab] = useState<
     "fillin" | "guidance" | "analysis" | "matching"
@@ -136,8 +136,6 @@ export function useCvEditor() {
   };
 
   // AI Generator & ATS Checker States
-  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [isRegeneratingSection, setIsRegeneratingSection] = useState<Record<string, boolean>>({});
   const [isTailoring, setIsTailoring] = useState(false);
   const [isAtsChecking, setIsAtsChecking] = useState(false);
   const [isAtsAutoFixing, setIsAtsAutoFixing] = useState(false);
@@ -994,25 +992,20 @@ export function useCvEditor() {
       searchQuery === "" || s.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  // AI Resume Generator & Advanced Role-Specific Tailoring
-  const handleAdvancedAiGenerate = async (params: {
-    targetRole: string;
-    jobDescription: string;
-    sections: string[];
-  }) => {
-    const role = params.targetRole || targetJobTitle || 'Software Engineer';
-    setIsTailoring(true);
-    setTargetJobTitle(role);
-    setJobDescription(params.jobDescription || '');
+  // AI Resume Generator & Tailoring
+  const handleGenerateTailoredCv = async (overrideTitle?: string, overrideDesc?: string) => {
+    const title = overrideTitle || targetJobTitle || 'Software Engineer';
+    const desc = overrideDesc !== undefined ? overrideDesc : jobDescription;
 
+    setIsTailoring(true);
     try {
       const response = await apiFetch('/cv/generate-tailored', {
         method: 'POST',
         body: JSON.stringify({
-          targetJobTitle: role,
-          jobDescription: params.jobDescription,
-          includeProjects: params.sections.includes('projects'),
-          includeCertificates: params.sections.includes('certifications'),
+          targetJobTitle: title,
+          jobDescription: desc,
+          includeProjects: true,
+          includeCertificates: true,
           cvData: cv,
         }),
       });
@@ -1022,32 +1015,27 @@ export function useCvEditor() {
       const tailored = resData.data;
 
       if (tailored) {
-        const genTitle = tailored.personal?.title || role;
+        const genTitle = tailored.personal?.title || title;
         const updatedCv: CVData = {
           ...cv,
           personal: {
             ...cv.personal,
             title: genTitle,
-            summary: params.sections.includes('summary') ? (tailored.personal?.summary || cv.personal.summary) : cv.personal.summary,
+            summary: tailored.personal?.summary || cv.personal.summary,
             name: tailored.personal?.name || cv.personal.name,
-            email: params.sections.includes('links') ? (tailored.personal?.email || cv.personal.email) : cv.personal.email,
-            phone: params.sections.includes('links') ? (tailored.personal?.phone || cv.personal.phone) : cv.personal.phone,
-            gitHub: params.sections.includes('links') ? (tailored.personal?.gitHub || cv.personal.gitHub) : cv.personal.gitHub,
-            linkedIn: params.sections.includes('links') ? (tailored.personal?.linkedIn || cv.personal.linkedIn) : cv.personal.linkedIn,
-            website: params.sections.includes('links') ? (tailored.personal?.website || cv.personal.website) : cv.personal.website,
+            email: tailored.personal?.email || cv.personal.email,
+            phone: tailored.personal?.phone || cv.personal.phone,
           },
-          experience: params.sections.includes('experience') && tailored.experience?.length ? tailored.experience : cv.experience,
-          education: params.sections.includes('education') && tailored.education?.length ? tailored.education : cv.education,
-          skills: params.sections.includes('skills') && tailored.skills?.length ? tailored.skills : cv.skills,
-          projects: params.sections.includes('projects') && tailored.projects?.length ? tailored.projects : cv.projects,
-          certifications: params.sections.includes('certifications') && tailored.certifications?.length ? tailored.certifications : cv.certifications,
-          courses: params.sections.includes('courses') && tailored.courses?.length ? tailored.courses : cv.courses,
-          languages: params.sections.includes('languages') && tailored.languages?.length ? tailored.languages : cv.languages,
-          achievements: params.sections.includes('achievements') && tailored.achievements?.length ? tailored.achievements : cv.achievements,
+          experience: tailored.experience?.length ? tailored.experience : cv.experience,
+          education: tailored.education?.length ? tailored.education : cv.education,
+          skills: tailored.skills?.length ? tailored.skills : cv.skills,
+          projects: tailored.projects?.length ? tailored.projects : cv.projects,
+          certifications: tailored.certifications?.length ? tailored.certifications : cv.certifications,
+          courses: tailored.courses?.length ? tailored.courses : cv.courses,
+          languages: tailored.languages?.length ? tailored.languages : cv.languages,
           references: tailored.references?.length ? tailored.references : cv.references,
           hobbies: tailored.hobbies?.length ? tailored.hobbies : cv.hobbies,
         };
-
         setCv(updatedCv);
         setProfessionalTitle(genTitle);
 
@@ -1057,71 +1045,14 @@ export function useCvEditor() {
           setLastName(nameParts.slice(1).join(' ') || '');
         }
 
-        setIsAiModalOpen(false);
         setShowTailorModal(false);
-        toast.success(locale === 'en' ? `Resume generated for ${role}!` : `تم إنشاء السيرة الذاتية لـ ${role}!`);
+        toast.success(locale === 'en' ? 'Resume generated successfully with AI!' : 'تم إنشاء السيرة الذاتية بنجاح بالذكاء الاصطناعي!');
       }
     } catch (err: any) {
       toast.error(locale === 'en' ? `Generation failed: ${err.message}` : `فشل الإنشاء: ${err.message}`);
     } finally {
       setIsTailoring(false);
     }
-  };
-
-  // Section-Level AI Regeneration (Optimizes API tokens & avoids overwriting other sections)
-  const handleRegenerateSection = async (section: string) => {
-    setIsRegeneratingSection((prev) => ({ ...prev, [section]: true }));
-    try {
-      const response = await apiFetch('/cv/generate-section', {
-        method: 'POST',
-        body: JSON.stringify({
-          section,
-          targetJobTitle: targetJobTitle || 'Software Engineer',
-          jobDescription,
-          cvData: cv,
-        }),
-      });
-
-      if (!response.ok) throw new Error(`Regenerate ${section} failed`);
-      const resData = await response.json();
-      const data = resData.data;
-
-      if (data) {
-        if (section === 'summary' && data.summary) {
-          setCv((prev) => ({
-            ...prev,
-            personal: { ...prev.personal, summary: data.summary },
-          }));
-        } else if (section === 'skills' && data.skills) {
-          setCv((prev) => ({ ...prev, skills: data.skills }));
-        } else if (section === 'experience' && data.experience) {
-          setCv((prev) => ({ ...prev, experience: data.experience }));
-        } else if (section === 'projects' && data.projects) {
-          setCv((prev) => ({ ...prev, projects: data.projects }));
-        } else if (section === 'courses' && data.courses) {
-          setCv((prev) => ({ ...prev, courses: data.courses }));
-        } else if (section === 'certifications' && data.certifications) {
-          setCv((prev) => ({ ...prev, certifications: data.certifications }));
-        }
-        toast.success(
-          locale === 'en'
-            ? `Section "${section}" regenerated with AI!`
-            : `تم إعادة توليد قسم "${section}" بالذكاء الاصطناعي بنجاح!`
-        );
-      }
-    } catch (err: any) {
-      toast.error(locale === 'en' ? `Section regeneration failed: ${err.message}` : `فشل التوليد: ${err.message}`);
-    } finally {
-      setIsRegeneratingSection((prev) => ({ ...prev, [section]: false }));
-    }
-  };
-
-  const handleGenerateTailoredCv = async (overrideTitle?: string, overrideDesc?: string) => {
-    await handleAdvancedAiGenerate({
-      targetRole: overrideTitle || targetJobTitle || 'Software Engineer',
-      jobDescription: overrideDesc !== undefined ? overrideDesc : jobDescription,
-      sections: ['summary', 'skills', 'experience', 'projects', 'education', 'courses', 'certifications', 'achievements', 'languages', 'links'],
-    });
   };
 
   // ATS Checker
@@ -1327,11 +1258,12 @@ export function useCvEditor() {
     showCertifications,
     showCourses,
     showHobbies,
-    isAiModalOpen,
-    setIsAiModalOpen,
-    handleAdvancedAiGenerate,
-    handleRegenerateSection,
-    isRegeneratingSection,
+    showLanguages,
+    showPublications,
+    showPwaModal,
+    showReferences,
+    showTailorModal,
+    showVolunteer,
     t,
     targetJobTitle,
     updateCombinedName,

@@ -15,11 +15,19 @@ import {
   type JwtUser,
 } from '../../common/decorators/current-user.decorator';
 
+import { Public } from '../../common/decorators/public.decorator';
+
 @ApiTags('resource')
 @ApiBearerAuth()
 @Controller('resources')
 export class ResourceController {
   constructor(private readonly resourceService: ResourceService) {}
+
+  @Public()
+  @Get('youtube-videos')
+  getYouTubeVideos(@Query('topic') topic?: string) {
+    return this.resourceService.getYouTubeVideos(topic || 'Software Engineering');
+  }
 
   @Post()
   submit(@CurrentUser() user: JwtUser, @Body() dto: CreateResourceDto) {

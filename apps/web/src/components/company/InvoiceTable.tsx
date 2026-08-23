@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 
@@ -18,7 +18,7 @@ export function InvoiceTable() {
 
       <table className="table w-full text-left text-xs">
         <thead>
-          <tr className="bg-base-200/50 text-stone-700 dark:text-stone-300 font-medium uppercase">
+          <tr className="bg-base-200/50 text-base-content/60 uppercase">
             <th>Invoice Date</th>
             <th>Description</th>
             <th>Amount</th>
@@ -29,7 +29,7 @@ export function InvoiceTable() {
         <tbody className="divide-y divide-base-200">
           {MOCK_INVOICES.map((inv) => (
             <tr key={inv.id} className="hover:bg-base-200/40">
-              <td className="font-mono text-stone-700 dark:text-stone-300 font-medium">{inv.date}</td>
+              <td className="font-mono text-base-content/60">{inv.date}</td>
               <td className="font-semibold text-base-content">{inv.plan}</td>
               <td className="font-mono font-bold text-base-content">{inv.amount}</td>
               <td>

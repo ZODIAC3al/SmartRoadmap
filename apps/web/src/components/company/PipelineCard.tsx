@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { PlanGate } from './PlanGate';
@@ -58,7 +58,7 @@ export function PipelineCard({
         >
           <button
             onClick={() => onMoveStage(candidate.id, 'prev')}
-            className="btn btn-ghost btn-xs text-stone-700 dark:text-stone-300 font-medium"
+            className="btn btn-ghost btn-xs text-base-content/60"
             disabled={candidate.stage === 'applied'}
           >
             ← Move

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useSubscription } from '@/lib/use-subscription';
@@ -68,7 +68,7 @@ export function MessageThread({
               >
                 {m.text}
               </div>
-              <span className="text-[10px] font-mono text-stone-700 dark:text-stone-300 font-medium mt-1 px-1">
+              <span className="text-[10px] font-mono text-base-content/50 mt-1 px-1">
                 {m.time}
               </span>
             </div>

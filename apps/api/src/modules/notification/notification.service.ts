@@ -50,11 +50,13 @@ export class NotificationService {
     link?: string,
   ): Promise<Notification> {
     const created = new this.notificationModel({
-      userId: new Types.ObjectId(recipientId),
-      title: titleEn,
-      body: contentEn,
-      type: type === 'general' ? 'admin_broadcast' : type,
-      linkTo: link || '/dashboard',
+      recipient: new Types.ObjectId(recipientId),
+      titleEn,
+      titleAr,
+      contentEn,
+      contentAr,
+      type: type === 'general' ? 'system' : type,
+      link: link || '/dashboard',
     });
     const saved = await created.save();
 
@@ -74,10 +76,10 @@ export class NotificationService {
     if (subscriptions.length === 0) return;
 
     const payload = JSON.stringify({
-      title: notification.title,
-      body: notification.body,
+      title: notification.titleEn,
+      body: notification.contentEn,
       data: {
-        url: notification.linkTo || '/dashboard',
+        url: notification.link || '/dashboard',
         type: notification.type,
       },
     });

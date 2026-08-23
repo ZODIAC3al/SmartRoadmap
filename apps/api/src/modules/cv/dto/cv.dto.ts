@@ -91,30 +91,3 @@ export class GenerateFromProfileDto {
   forceRegenerate?: boolean;
 }
 
-export class GenerateSectionDto {
-  @IsString()
-  section!:
-    | 'summary'
-    | 'skills'
-    | 'experience'
-    | 'projects'
-    | 'education'
-    | 'courses'
-    | 'certifications'
-    | 'achievements';
-
-  @IsString()
-  @MinLength(2)
-  @MaxLength(100)
-  targetJobTitle!: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(5000)
-  jobDescription?: string;
-
-  @IsOptional()
-  @IsObject()
-  cvData?: Record<string, any>;
-}
-

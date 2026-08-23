@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
@@ -43,7 +43,7 @@ export function PlanGate({
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-semibold uppercase tracking-wider mb-2">
           ⚡ {requiredPlan.toUpperCase()} PLAN REQUIRED
         </div>
-        <p className="text-xs text-stone-800 dark:text-stone-200 font-medium mb-3 max-w-xs">
+        <p className="text-xs text-base-content/80 mb-3 max-w-xs">
           {fallbackText || `Upgrade to ${requiredPlan.toUpperCase()} to unlock this feature.`}
         </p>
         <Link

@@ -99,12 +99,8 @@ export class HiringService implements OnModuleInit {
             salaryMin: 80000,
             salaryMax: 110000,
             remote: true,
-            workType: 'remote',
-            jobType: 'full-time',
-            experienceLevel: 'mid',
             description:
               'Join our premium product team to build and design stunning human-resource workflow visualizations. Requires strong experience in React and TypeScript design tokens.',
-            postedAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
           },
           {
             title: 'NodeJS Backend Developer',
@@ -123,12 +119,8 @@ export class HiringService implements OnModuleInit {
             salaryMin: 70000,
             salaryMax: 95000,
             remote: true,
-            workType: 'hybrid',
-            jobType: 'full-time',
-            experienceLevel: 'mid',
             description:
               'Help build scalable accounting microservices, integrate MongoDB, design secure authentication pipelines, and deploy using containerized Docker engines.',
-            postedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
           },
           {
             title: 'Full Stack Engineer',
@@ -147,12 +139,8 @@ export class HiringService implements OnModuleInit {
             salaryMin: 25000,
             salaryMax: 40000,
             remote: false,
-            workType: 'onsite',
-            jobType: 'full-time',
-            experienceLevel: 'entry',
             description:
               'We are seeking a generalist software developer to help support client websites. Work across React frontends and Node/Mongoose API layers.',
-            postedAt: new Date(Date.now() - 7 * 60 * 60 * 1000),
           },
           {
             title: 'Data & Analytics Engineer',
@@ -164,46 +152,8 @@ export class HiringService implements OnModuleInit {
             salaryMin: 95000,
             salaryMax: 130000,
             remote: true,
-            workType: 'remote',
-            jobType: 'full-time',
-            experienceLevel: 'senior',
             description:
               'Maintain vector database connections (Qdrant), orchestrate ETL data pipelines in Python, and align client event streams dynamically.',
-            postedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          },
-          {
-            title: 'Next.js Product Engineer',
-            company: 'Linear App SAS',
-            location: 'Paris',
-            country: 'FR',
-            requiredSkills: ['React', 'TypeScript', 'Next.js', 'CSS'],
-            technologies: ['Next.js', 'TypeScript', 'GraphQL', 'Linear SDK'],
-            salaryMin: 90000,
-            salaryMax: 120000,
-            remote: false,
-            workType: 'hybrid',
-            jobType: 'full-time',
-            experienceLevel: 'mid',
-            description:
-              'Join our client interface team to build fast keyboard-driven features. Focus on design tokens alignment and clean, type-safe API consumption.',
-            postedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-          },
-          {
-            title: 'React Prototyping Engineer',
-            company: 'Vercel, Inc.',
-            location: 'Remote',
-            country: 'US',
-            requiredSkills: ['React', 'Next.js', 'JavaScript', 'Docker'],
-            technologies: ['Next.js', 'Vercel Edge', 'React Server Components'],
-            salaryMin: 110000,
-            salaryMax: 135000,
-            remote: true,
-            workType: 'remote',
-            jobType: 'full-time',
-            experienceLevel: 'senior',
-            description:
-              'Seeking a developer focused on rendering pipeline optimization and edge-computing templates. Docker configuration experience is nice to have.',
-            postedAt: new Date(Date.now() - 30 * 60 * 1000),
           },
         ]);
         for (const job of saved) {
@@ -570,7 +520,10 @@ export class HiringService implements OnModuleInit {
     };
   }
 
-  // ── Application Pipeline Methods ────────────────────────────────────────────
+  async getCandidates(): Promise<any[]> {
+    this.logger.log(
+      'Fetching pre-vetted candidates pipeline for company portal',
+    );
 
   private normalizeApplicationStatus(status?: string): ApplicationStatus {
     if (!status) return 'Applied';

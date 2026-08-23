@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useMemo } from 'react';
 import { PipelineCard, CandidateCardData } from './PipelineCard';
@@ -129,7 +129,7 @@ export function PipelineBoard({ jobId }: PipelineBoardProps) {
                   />
                 ))}
                 {stageCandidates.length === 0 && (
-                  <div className="flex-1 flex items-center justify-center text-xs text-stone-600 dark:text-stone-400 font-medium italic">
+                  <div className="flex-1 flex items-center justify-center text-xs text-base-content/40 italic">
                     No candidates
                   </div>
                 )}

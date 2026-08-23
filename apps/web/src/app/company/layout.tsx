@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/company/Sidebar';
@@ -32,7 +32,7 @@ export default function CompanyLayout({
         <header className="h-16 bg-base-100 border-b border-base-300 px-6 flex items-center justify-between shrink-0 shadow-xs">
           {/* Search Input */}
           <div className="relative w-full max-w-xs sm:max-w-sm">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-700 dark:text-stone-300 font-medium" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/50" />
             <input
               type="text"
               placeholder="Search applicants, jobs, or skills..."
@@ -53,9 +53,9 @@ export default function CompanyLayout({
                 <span className="font-bold text-xs text-base-content leading-tight">
                   {userName}
                 </span>
-                <span className="text-[10px] text-stone-700 dark:text-stone-300 font-medium">Recruiting Team</span>
+                <span className="text-[10px] text-base-content/60">Recruiting Team</span>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-stone-700 dark:text-stone-300 font-medium" />
+              <ChevronDown className="w-3.5 h-3.5 text-base-content/50" />
             </div>
           </div>
         </header>

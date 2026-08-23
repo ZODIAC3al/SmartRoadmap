@@ -1,7 +1,4 @@
-﻿'use client';
-// NOTE: apiFetch is the canonical way to make authenticated requests.
-// It injects the Bearer token from in-memory storage automatically.
-import { apiFetch } from '@/lib/api';
+'use client';
 
 import React, {
   useState,
@@ -10,6 +7,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import { apiFetch } from '@/lib/api';
 import { useSubscription } from '@/lib/use-subscription';
 import { UsageBar } from '@/components/company/UsageBar';
 import {
@@ -68,21 +66,21 @@ function formatBytes(bytes: number) {
 }
 
 function getFileIcon(type?: string) {
-  if (!type) return <File className="w-5 h-5 text-stone-700 dark:text-stone-300 font-medium" />;
+  if (!type) return <File className="w-5 h-5 text-base-content/60" />;
   if (type.startsWith('image/')) return <ImageIcon className="w-5 h-5 text-blue-500" />;
   if (type === 'application/pdf') return <FileText className="w-5 h-5 text-red-500" />;
-  return <FileText className="w-5 h-5 text-stone-700 dark:text-stone-300 font-medium" />;
+  return <FileText className="w-5 h-5 text-base-content/60" />;
 }
 
 function RoleIcon({ role }: { role?: string }) {
   if (role === 'company') return <Building2 className="w-3.5 h-3.5 text-purple-500" />;
   if (role === 'admin') return <ShieldCheck className="w-3.5 h-3.5 text-red-500" />;
-  return <GraduationCap className="w-3.5 h-3.5 text-[#8E1616]" />;
+  return <GraduationCap className="w-3.5 h-3.5 text-emerald-500" />;
 }
 
 function RoleBadge({ role }: { role?: string }) {
   const map: Record<string, { bg: string; text: string }> = {
-    learner: { bg: 'bg-[#8E1616]/10 border-[#8E1616]/20/20', text: 'text-[#8E1616]' },
+    learner: { bg: 'bg-emerald-500/10 border-emerald-500/20', text: 'text-emerald-600' },
     company: { bg: 'bg-purple-500/10 border-purple-500/20', text: 'text-purple-600' },
     admin: { bg: 'bg-red-500/10 border-red-500/20', text: 'text-red-600' },
   };
@@ -101,7 +99,7 @@ function AttachmentBubble({ url, name, type, size, isMe }: {
 }) {
   const isImage = type?.startsWith('image/');
   const baseClass = isMe
-    ? 'bg-[#8E1616]/90 text-white'
+    ? 'bg-emerald-500/90 text-white'
     : 'bg-base-100 border border-base-300 text-base-content';
 
   if (isImage) {
@@ -163,17 +161,19 @@ function NewConversationModal({
     if (!selectedUser || !initialMessage.trim()) return;
     setCreating(true);
     try {
-      // Use apiFetch — it automatically attaches the Bearer token from
-      // in-memory state and falls back to a silent token-refresh via cookie.
       const res = await apiFetch('/messaging/threads', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           otherUserId: selectedUser.id,
           context: 'hiring',
           initialMessage: initialMessage.trim(),
         }),
       });
-      if (!res.ok) throw new Error('Failed to create thread');
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error((errBody as any)?.message || 'Failed to create thread');
+      }
       const thread = await res.json();
       dispatch(baseApi.util.invalidateTags([{ type: 'MessageThread', id: 'LIST' }]));
       onThreadCreated(thread._id || thread.id);
@@ -200,14 +200,14 @@ function NewConversationModal({
         {/* Search + Filter */}
         <div className="px-5 pt-4 pb-3 space-y-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-600 dark:text-stone-400 font-medium" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-base-content/40" />
             <input
               autoFocus
               type="text"
               placeholder="Search by name or email..."
               value={query}
               onChange={(e) => { setQuery(e.target.value); setSelectedUser(null); }}
-              className="w-full pl-9 pr-3 py-2.5 text-xs bg-base-200 border border-base-300 rounded-xl outline-none focus:border-[#8E1616]/20/50 focus:ring-2 focus:ring-[#8E1616]/10 transition-all"
+              className="w-full pl-9 pr-3 py-2.5 text-xs bg-base-200 border border-base-300 rounded-xl outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 transition-all"
             />
           </div>
 
@@ -219,8 +219,8 @@ function NewConversationModal({
                 onClick={() => setSelectedRole(v)}
                 className={`px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all ${
                   selectedRole === v
-                    ? 'bg-[#8E1616] text-white border-[#8E1616]/20 shadow-xs'
-                    : 'bg-base-200 text-stone-700 dark:text-stone-300 font-medium border-base-300 hover:border-[#8E1616]/20/50'
+                    ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
+                    : 'bg-base-200 text-base-content/70 border-base-300 hover:border-emerald-500/50'
                 }`}
               >
                 {l}
@@ -232,16 +232,16 @@ function NewConversationModal({
         {/* Results List */}
         <div className="flex-1 overflow-y-auto max-h-48 border-t border-base-200">
           {isFetching ? (
-            <div className="flex items-center justify-center py-6 gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium">
-              <Loader2 className="w-4 h-4 animate-spin text-[#8E1616]" />
+            <div className="flex items-center justify-center py-6 gap-2 text-xs text-base-content/50">
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
               Searching...
             </div>
           ) : query.length < 1 ? (
-            <div className="py-8 text-center text-xs text-stone-600 dark:text-stone-400 font-medium">
+            <div className="py-8 text-center text-xs text-base-content/40">
               Type a name or email to search users
             </div>
           ) : users.length === 0 ? (
-            <div className="py-8 text-center text-xs text-stone-600 dark:text-stone-400 font-medium">
+            <div className="py-8 text-center text-xs text-base-content/40">
               No users found for &ldquo;{query}&rdquo;
             </div>
           ) : (
@@ -252,11 +252,11 @@ function NewConversationModal({
                   onClick={() => setSelectedUser(u)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
                     selectedUser?.id === u.id
-                      ? 'bg-[#8E1616]/10 border border-[#8E1616]/20/30'
+                      ? 'bg-emerald-500/10 border border-emerald-500/30'
                       : 'hover:bg-base-200 border border-transparent'
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-xl bg-base-200 text-stone-700 dark:text-stone-300 font-medium font-bold text-xs flex items-center justify-center font-heading flex-shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-base-200 text-base-content/70 font-bold text-xs flex items-center justify-center font-heading flex-shrink-0">
                     {u.name.substring(0, 2).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -264,10 +264,10 @@ function NewConversationModal({
                       <span className="font-bold text-xs text-base-content truncate">{u.name}</span>
                       <RoleBadge role={u.role} />
                     </div>
-                    <span className="text-[10px] text-stone-700 dark:text-stone-300 font-medium font-mono truncate block">{u.email}</span>
+                    <span className="text-[10px] text-base-content/50 font-mono truncate block">{u.email}</span>
                   </div>
                   {selectedUser?.id === u.id && (
-                    <Check className="w-4 h-4 text-[#8E1616] flex-shrink-0" />
+                    <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                   )}
                 </button>
               ))}
@@ -279,12 +279,12 @@ function NewConversationModal({
         {selectedUser && (
           <div className="px-5 py-4 border-t border-base-200 space-y-3 bg-base-200/30">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-[#8E1616]/10 text-[#8E1616] font-bold text-[10px] flex items-center justify-center">
+              <div className="w-7 h-7 rounded-xl bg-emerald-500/10 text-emerald-600 font-bold text-[10px] flex items-center justify-center">
                 {selectedUser.name.substring(0, 2).toUpperCase()}
               </div>
               <div>
                 <span className="text-xs font-bold text-base-content">{selectedUser.name}</span>
-                <span className="text-[10px] text-stone-700 dark:text-stone-300 font-medium ml-2 capitalize">{selectedUser.role}</span>
+                <span className="text-[10px] text-base-content/50 ml-2 capitalize">{selectedUser.role}</span>
               </div>
             </div>
             <textarea
@@ -292,12 +292,12 @@ function NewConversationModal({
               value={initialMessage}
               onChange={(e) => setInitialMessage(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2.5 text-xs bg-base-100 border border-base-300 rounded-xl outline-none focus:border-[#8E1616]/20/50 focus:ring-2 focus:ring-[#8E1616]/10 resize-none transition-all"
+              className="w-full px-3 py-2.5 text-xs bg-base-100 border border-base-300 rounded-xl outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 resize-none transition-all"
             />
             <button
               onClick={handleStart}
               disabled={!initialMessage.trim() || creating}
-              className="w-full btn btn-sm bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none rounded-xl font-bold text-xs flex items-center justify-center gap-2 disabled:opacity-40"
+              className="w-full btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold text-xs flex items-center justify-center gap-2 disabled:opacity-40"
             >
               {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               {creating ? 'Starting...' : 'Start Conversation'}
@@ -333,7 +333,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
   } | null>(null);
   const [uploadProgress, setUploadProgress] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   /* ── RTK Query ── */
@@ -368,7 +368,12 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
 
   /* ── Auto scroll ── */
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: scrollContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
   }, [messages]);
 
   /* ── Mark as read on open ── */
@@ -475,8 +480,8 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
   /* ── Render ── */
   return (
     <>
-      {/* New Conversation Modal */}
-      {showNewConvo && (
+      {/* New Conversation Modal — admins and companies only */}
+      {showNewConvo && currentRole !== 'learner' && (
         <NewConversationModal
           currentUserId={currentUserId}
           onClose={() => setShowNewConvo(false)}
@@ -509,32 +514,34 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
           <div className="px-3 pt-3 pb-2.5 border-b border-base-200 bg-base-200/40 flex flex-col gap-2.5">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-[#8E1616]" />
+                <MessageSquare className="w-4 h-4 text-emerald-500" />
                 <h2 className="font-bold text-sm text-base-content font-heading">Inbox</h2>
                 {totalUnread > 0 && (
-                  <span className="min-w-5 h-5 px-1.5 rounded-full bg-[#8E1616] text-white font-bold text-[10px] flex items-center justify-center">
+                  <span className="min-w-5 h-5 px-1.5 rounded-full bg-emerald-500 text-white font-bold text-[10px] flex items-center justify-center">
                     {totalUnread}
                   </span>
                 )}
               </div>
-              <button
-                onClick={() => setShowNewConvo(true)}
-                className="btn btn-xs bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none rounded-xl gap-1 font-bold text-[11px]"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                New
-              </button>
+              {currentRole !== 'learner' && (
+                <button
+                  onClick={() => setShowNewConvo(true)}
+                  className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl gap-1 font-bold text-[11px]"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  New
+                </button>
+              )}
             </div>
 
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-600 dark:text-stone-400 font-medium" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-base-content/40" />
               <input
                 type="text"
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-base-100 border border-base-300 rounded-xl outline-none focus:border-[#8E1616]/20/50 focus:ring-1 focus:ring-[#8E1616]/20 transition-all"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-base-100 border border-base-300 rounded-xl outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
               />
             </div>
 
@@ -559,25 +566,27 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
           {/* Threads Scroll List */}
           <div className="flex-1 overflow-y-auto">
             {threadsLoading ? (
-              <div className="flex items-center justify-center py-12 gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium">
-                <Loader2 className="w-4 h-4 animate-spin text-[#8E1616]" />
+              <div className="flex items-center justify-center py-12 gap-2 text-xs text-base-content/50">
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
                 Loading threads...
               </div>
             ) : filteredThreads.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
                 <div className="w-12 h-12 rounded-2xl bg-base-200 flex items-center justify-center">
-                  <MessageSquare className="w-6 h-6 text-stone-500 dark:text-stone-400 font-medium" />
+                  <MessageSquare className="w-6 h-6 text-base-content/30" />
                 </div>
-                <p className="text-xs text-stone-700 dark:text-stone-300 font-medium font-semibold">
+                <p className="text-xs text-base-content/50 font-semibold">
                   {searchQuery ? 'No conversations match your search' : 'No messages yet'}
                 </p>
-                <button
-                  onClick={() => setShowNewConvo(true)}
-                  className="btn btn-xs bg-[#8E1616] text-white border-none rounded-xl gap-1 font-bold text-[11px]"
-                >
-                  <Plus className="w-3 h-3" />
-                  Start a conversation
-                </button>
+                {!searchQuery && currentRole !== 'learner' && (
+                  <button
+                    onClick={() => setShowNewConvo(true)}
+                    className="btn btn-xs bg-emerald-500 text-white border-none rounded-xl gap-1 font-bold text-[11px]"
+                  >
+                    <Plus className="w-3 h-3" />
+                    Start a conversation
+                  </button>
+                )}
               </div>
             ) : (
               <div className="p-2 space-y-0.5">
@@ -593,7 +602,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                       }}
                       className={`w-full p-3 rounded-2xl text-left transition-all flex items-center gap-3 group ${
                         isActive
-                          ? 'bg-[#8E1616]/10 border border-[#8E1616]/20/25'
+                          ? 'bg-emerald-500/10 border border-emerald-500/25'
                           : 'hover:bg-base-200/70 border border-transparent'
                       }`}
                     >
@@ -601,13 +610,13 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                       <div
                         className={`w-10 h-10 rounded-2xl flex-shrink-0 font-bold text-xs flex items-center justify-center font-heading relative ${
                           isActive
-                            ? 'bg-[#8E1616] text-white'
-                            : 'bg-base-200 text-stone-700 dark:text-stone-300 font-medium group-hover:bg-base-300'
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-base-200 text-base-content/70 group-hover:bg-base-300'
                         }`}
                       >
                         {initial}
                         {t.unreadCount > 0 && (
-                          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#8E1616] border-2 border-base-100 text-white text-[8px] font-black flex items-center justify-center">
+                          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-emerald-500 border-2 border-base-100 text-white text-[8px] font-black flex items-center justify-center">
                             {t.unreadCount > 9 ? '9+' : t.unreadCount}
                           </span>
                         )}
@@ -617,16 +626,16 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-center gap-1">
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <span className={`font-bold text-xs truncate ${t.unreadCount > 0 ? 'text-base-content' : 'text-stone-800 dark:text-stone-200 font-medium'}`}>
+                            <span className={`font-bold text-xs truncate ${t.unreadCount > 0 ? 'text-base-content' : 'text-base-content/80'}`}>
                               {t.otherParticipant?.name || 'User'}
                             </span>
                             <RoleIcon role={t.otherParticipant?.role} />
                           </div>
-                          <span className="text-[10px] font-mono text-stone-600 dark:text-stone-400 font-medium flex-shrink-0">
+                          <span className="text-[10px] font-mono text-base-content/40 flex-shrink-0">
                             {formatTime(t.lastMessageAt)}
                           </span>
                         </div>
-                        <p className={`text-[11px] truncate mt-0.5 ${t.unreadCount > 0 ? 'text-stone-800 dark:text-stone-200 font-medium font-semibold' : 'text-stone-700 dark:text-stone-300 font-medium'}`}>
+                        <p className={`text-[11px] truncate mt-0.5 ${t.unreadCount > 0 ? 'text-base-content/80 font-semibold' : 'text-base-content/50'}`}>
                           {t.lastMessagePreview || 'No messages yet'}
                         </p>
                       </div>
@@ -655,7 +664,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                   >
                     <ArrowLeft className="w-4 h-4" />
                   </button>
-                  <div className="w-9 h-9 rounded-2xl bg-[#8E1616]/10 text-[#8E1616] font-bold text-xs flex items-center justify-center font-heading">
+                  <div className="w-9 h-9 rounded-2xl bg-emerald-500/10 text-emerald-600 font-bold text-xs flex items-center justify-center font-heading">
                     {(activeThread.otherParticipant?.name || 'U').substring(0, 2).toUpperCase()}
                   </div>
                   <div>
@@ -663,11 +672,11 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                       {activeThread.otherParticipant?.name || 'User'}
                     </h3>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <Circle className="w-2 h-2 fill-emerald-500 text-[#8E1616]" />
-                      <span className="text-[11px] text-stone-700 dark:text-stone-300 font-medium capitalize">
+                      <Circle className="w-2 h-2 fill-emerald-500 text-emerald-500" />
+                      <span className="text-[11px] text-base-content/60 capitalize">
                         {activeThread.otherParticipant?.role}
                       </span>
-                      <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium font-mono">
+                      <span className="text-[10px] text-base-content/40 font-mono">
                         · {activeThread.context}
                       </span>
                     </div>
@@ -683,18 +692,18 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
               </div>
 
               {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
+              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-2">
                 {messagesLoading ? (
-                  <div className="flex-1 flex items-center justify-center gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#8E1616]" />
+                  <div className="flex-1 flex items-center justify-center gap-2 text-xs text-base-content/50">
+                    <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
                     Loading messages...
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center gap-3 py-12">
                     <div className="w-14 h-14 rounded-3xl bg-base-200 flex items-center justify-center">
-                      <MessageSquare className="w-7 h-7 text-stone-400 dark:text-stone-500" />
+                      <MessageSquare className="w-7 h-7 text-base-content/20" />
                     </div>
-                    <p className="text-xs text-stone-700 dark:text-stone-300 font-medium font-semibold">
+                    <p className="text-xs text-base-content/50 font-semibold">
                       No messages yet — send the first one!
                     </p>
                   </div>
@@ -712,7 +721,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                           {showDateDivider && (
                             <div className="flex items-center gap-3 my-2">
                               <div className="flex-1 h-px bg-base-300" />
-                              <span className="text-[10px] font-mono text-stone-600 dark:text-stone-400 font-medium px-3 py-0.5 rounded-full border border-base-300 bg-base-200/50">
+                              <span className="text-[10px] font-mono text-base-content/40 px-3 py-0.5 rounded-full border border-base-300 bg-base-200/50">
                                 {new Date(m.createdAt).toLocaleDateString([], {
                                   weekday: 'short',
                                   month: 'short',
@@ -740,7 +749,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                               <div
                                 className={`max-w-[75%] md:max-w-lg px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-xs ${
                                   isMe
-                                    ? 'bg-[#8E1616] text-white rounded-br-sm'
+                                    ? 'bg-emerald-500 text-white rounded-br-sm'
                                     : 'bg-base-100 border border-base-300 text-base-content rounded-bl-sm'
                                 }`}
                               >
@@ -749,7 +758,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                             )}
 
                             {/* Meta: time + read receipt */}
-                            <div className="flex items-center gap-1 text-[10px] font-mono text-stone-600 dark:text-stone-400 font-medium px-1">
+                            <div className="flex items-center gap-1 text-[10px] font-mono text-base-content/40 px-1">
                               <span>
                                 {new Date(m.createdAt).toLocaleTimeString([], {
                                   hour: '2-digit',
@@ -758,16 +767,16 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                               </span>
                               {isMe &&
                                 (m.read ? (
-                                  <CheckCheck className="w-3 h-3 text-[#8E1616]" />
+                                  <CheckCheck className="w-3 h-3 text-emerald-500" />
                                 ) : (
-                                  <Check className="w-3 h-3 text-stone-600 dark:text-stone-400 font-medium" />
+                                  <Check className="w-3 h-3 text-base-content/40" />
                                 ))}
                             </div>
                           </div>
                         </React.Fragment>
                       );
                     })}
-                    <div ref={messagesEndRef} />
+
                   </>
                 )}
               </div>
@@ -779,13 +788,13 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                     {getFileIcon(pendingAttachment.type)}
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold truncate text-base-content">{pendingAttachment.name}</p>
-                      <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium font-mono">
+                      <p className="text-[10px] text-base-content/50 font-mono">
                         {formatBytes(pendingAttachment.size)} · Ready to send
                       </p>
                     </div>
                     <button
                       onClick={() => setPendingAttachment(null)}
-                      className="btn btn-ghost btn-xs btn-circle text-stone-700 dark:text-stone-300 font-medium"
+                      className="btn btn-ghost btn-xs btn-circle text-base-content/60"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -806,13 +815,7 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                   </div>
                 ) : (
                   <>
-                    {isCompany && (
-                      <UsageBar
-                        label="Monthly Message Quota"
-                        current={usage.messagesSentThisPeriod}
-                        limit={limits.messagesIncluded}
-                      />
-                    )}
+
                     <form onSubmit={handleSendMessage} className="flex items-center gap-2">
                       {/* Attachment Button */}
                       <button
@@ -823,9 +826,9 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                         title="Attach file or image"
                       >
                         {uploadProgress ? (
-                          <Loader2 className="w-4 h-4 animate-spin text-[#8E1616]" />
+                          <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
                         ) : (
-                          <Paperclip className="w-4 h-4 text-stone-700 dark:text-stone-300 font-medium" />
+                          <Paperclip className="w-4 h-4 text-base-content/60" />
                         )}
                       </button>
 
@@ -843,14 +846,14 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
                         onChange={(e) => setInputText(e.target.value)}
                         onKeyDown={handleKeyDown}
                         disabled={isQuotaExhausted || sending}
-                        className="flex-1 px-4 py-2.5 text-xs bg-base-200 border border-base-300 rounded-2xl outline-none focus:border-[#8E1616]/20/50 focus:ring-2 focus:ring-[#8E1616]/10 transition-all disabled:opacity-50"
+                        className="flex-1 px-4 py-2.5 text-xs bg-base-200 border border-base-300 rounded-2xl outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 transition-all disabled:opacity-50"
                       />
 
                       {/* Send Button */}
                       <button
                         type="submit"
                         disabled={isQuotaExhausted || ((!inputText.trim()) && !pendingAttachment) || sending}
-                        className="w-9 h-9 rounded-2xl bg-[#8E1616] hover:bg-[#8E1616]/10 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all shadow-xs flex-shrink-0"
+                        className="w-9 h-9 rounded-2xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center transition-all shadow-xs flex-shrink-0"
                       >
                         {sending ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -866,22 +869,26 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
           ) : (
             /* Empty state — no thread selected */
             <div className="flex-1 flex flex-col items-center justify-center gap-5 p-8 text-center">
-              <div className="w-20 h-20 rounded-3xl bg-[#8E1616]/10 flex items-center justify-center">
-                <MessageSquare className="w-10 h-10 text-[#8E1616]/60" />
+              <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center">
+                <MessageSquare className="w-10 h-10 text-emerald-500/60" />
               </div>
               <div>
                 <p className="font-bold text-base text-base-content">Your messages</p>
-                <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1 max-w-xs">
-                  Select a conversation from the left, or start a new one to communicate with candidates, companies, or admins.
+                <p className="text-xs text-base-content/50 mt-1 max-w-xs">
+                  {currentRole === 'learner'
+                    ? 'Select a conversation from the left to read and reply to messages sent to you.'
+                    : 'Select a conversation from the left, or start a new one to communicate with candidates, companies, or admins.'}
                 </p>
               </div>
-              <button
-                onClick={() => setShowNewConvo(true)}
-                className="btn btn-sm bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none rounded-2xl font-bold gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                New Conversation
-              </button>
+              {currentRole !== 'learner' && (
+                <button
+                  onClick={() => setShowNewConvo(true)}
+                  className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-2xl font-bold gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Conversation
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -180,66 +180,20 @@
   background: rgba(142, 22, 22, 0.6);
 }
 
-/* Custom react-toastify theme in warm beige and deep red */
+/* Custom react-toastify theme overrides */
 .Toastify__toast {
-  border-radius: 14px;
+  border-radius: 12px;
   font-family: 'Inter', sans-serif;
-  border: 1px solid #E8C999;
-  box-shadow: 0 10px 30px rgba(35, 24, 21, 0.12);
-  color: #231815;
-  background: #FAF3EA;
+  border: 1px solid #E4E7EC;
+  box-shadow: 0 8px 24px rgba(24, 27, 35, 0.12);
+  color: #181B23;
+  background: #FFFFFF;
 }
-[data-theme="smartdark"] .Toastify__toast {
-  background: #1A1A1A;
-  border-color: #2E2822;
-  color: #F5EBE1;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-.Toastify__toast--success { border-left: 5px solid #16A34A; }
-.Toastify__toast--error    { border-left: 5px solid #8E1616; }
-.Toastify__toast--warning  { border-left: 5px solid #D97706; }
-.Toastify__toast--info     { border-left: 5px solid #8E1616; }
-.Toastify__progress-bar    { background: #8E1616; }
-
-/* Interactive Card & Button Micro-Interactions */
-.sr-interactive-card {
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
-}
-.sr-interactive-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 28px -8px rgba(142, 22, 22, 0.12), 0 8px 12px -6px rgba(232, 201, 153, 0.15);
-}
-[data-theme="smartdark"] .sr-interactive-card:hover {
-  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.6), 0 0 15px rgba(232, 201, 153, 0.08);
-}
-
-.sr-btn-primary {
-  background-color: #8E1616;
-  color: #FFFFFF;
-  border: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.sr-btn-primary:hover {
-  background-color: #701111;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(142, 22, 22, 0.35);
-}
-
-/* Reduced Motion preferences */
-@media (prefers-reduced-motion: reduce) {
-  .animate-road-dash,
-  .animate-pin-pulse,
-  .animate-pin-float,
-  .animate-character-walk,
-  .animate-trophy-glow,
-  .animate-blob {
-    animation: none !important;
-    transform: none !important;
-  }
-  .sr-interactive-card:hover {
-    transform: none !important;
-  }
-}
+.Toastify__toast--success { border-left: 4px solid #0F9D6F; }
+.Toastify__toast--error    { border-left: 4px solid #DC2626; }
+.Toastify__toast--warning  { border-left: 4px solid #D97706; }
+.Toastify__toast--info     { border-left: 4px solid #4F46E5; }
+.Toastify__progress-bar    { background: #4F46E5; }
 
 /* Invisible scrollbar — scroll still works, bar is hidden */
 .no-scrollbar {

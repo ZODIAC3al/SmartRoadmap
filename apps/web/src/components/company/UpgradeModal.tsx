@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { useCreateCheckoutSessionMutation } from '@/store/api/billingApi';
@@ -45,7 +45,7 @@ export function UpgradeModal({
           </div>
           <button
             onClick={onClose}
-            className="btn btn-sm btn-ghost btn-circle text-stone-700 dark:text-stone-300 font-medium"
+            className="btn btn-sm btn-ghost btn-circle text-base-content/60"
           >
             ✕
           </button>
@@ -58,7 +58,7 @@ export function UpgradeModal({
             <div>
               <h3 className="font-bold text-sm">Starter</h3>
               <p className="text-xl font-bold font-mono mt-1">$0</p>
-              <ul className="mt-3 space-y-1.5 text-xs text-stone-700 dark:text-stone-300 font-medium">
+              <ul className="mt-3 space-y-1.5 text-xs text-base-content/70">
                 <li>• 1 Active Job Post</li>
                 <li>• 1 Recruiter Seat</li>
                 <li>• Basic Applicant Pipeline</li>
@@ -83,7 +83,7 @@ export function UpgradeModal({
                 <span className="badge badge-xs badge-warning uppercase font-bold">Popular</span>
               </div>
               <p className="text-xl font-bold font-mono mt-1">$49 <span className="text-xs font-normal">/ mo</span></p>
-              <ul className="mt-3 space-y-1.5 text-xs text-stone-800 dark:text-stone-200 font-medium">
+              <ul className="mt-3 space-y-1.5 text-xs text-base-content/80">
                 <li>✓ 5 Active Job Posts</li>
                 <li>✓ 3 Recruiter Seats</li>
                 <li>✓ AI Candidate Match %</li>
@@ -111,7 +111,7 @@ export function UpgradeModal({
             <div>
               <h3 className="font-bold text-sm text-purple-500">Scale</h3>
               <p className="text-xl font-bold font-mono mt-1">$199 <span className="text-xs font-normal">/ mo</span></p>
-              <ul className="mt-3 space-y-1.5 text-xs text-stone-800 dark:text-stone-200 font-medium">
+              <ul className="mt-3 space-y-1.5 text-xs text-base-content/80">
                 <li>✓ Unlimited Job Posts</li>
                 <li>✓ 10 Recruiter Seats</li>
                 <li>✓ Unlimited Messaging</li>

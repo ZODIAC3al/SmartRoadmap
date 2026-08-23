@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
@@ -71,12 +71,12 @@ export function Sidebar() {
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all ${
                   isActive
                     ? 'bg-primary/10 text-primary border-l-4 border-primary shadow-xs'
-                    : 'text-stone-700 dark:text-stone-300 font-medium hover:bg-base-200 hover:text-base-content'
+                    : 'text-base-content/70 hover:bg-base-200 hover:text-base-content'
                 }`}
               >
                 <Icon
                   className={`w-4 h-4 shrink-0 ${
-                    isActive ? 'text-primary' : 'text-stone-700 dark:text-stone-300 font-medium'
+                    isActive ? 'text-primary' : 'text-base-content/50'
                   }`}
                 />
                 <span>{item.label}</span>
@@ -95,7 +95,7 @@ export function Sidebar() {
           <h4 className="font-extrabold text-xs text-base-content font-heading uppercase">
             {plan} Plan Active
           </h4>
-          <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium mt-0.5 font-medium">
+          <p className="text-[11px] text-base-content/60 mt-0.5 font-medium">
             {usage.jobPostsActive} job posts • {usage.messagesSentThisPeriod} msgs
           </p>
         </div>

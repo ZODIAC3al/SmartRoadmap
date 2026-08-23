@@ -128,6 +128,7 @@ export function RecommendedContentPanel({ locale = "en" }: RecommendedContentPan
   };
 
   const filteredItems = items.filter((item) => {
+    if (item.category === "course") return false;
     if (item.status === "dismissed") return false;
     if (selectedCategory === "all") return true;
     if (selectedCategory === "saved") return item.status === "saved";
@@ -184,7 +185,6 @@ export function RecommendedContentPanel({ locale = "en" }: RecommendedContentPan
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {[
           { id: "all", label: locale === "en" ? "All Matches" : "الكل" },
-          { id: "course", label: locale === "en" ? "📚 Courses" : "📚 الدورات" },
           { id: "project", label: locale === "en" ? "🚀 Projects" : "🚀 المشاريع" },
           { id: "article", label: locale === "en" ? "📰 Articles" : "📰 المقالات" },
           { id: "certification", label: locale === "en" ? "📜 Certifications" : "📜 الشهادات" },

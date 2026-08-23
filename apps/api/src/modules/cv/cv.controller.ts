@@ -102,18 +102,6 @@ export class CvController {
     };
   }
 
-  @Post('generate-section')
-  @HttpCode(HttpStatus.OK)
-  async generateSection(
-    @CurrentUser() user: JwtUser,
-    @Body() dto: any,
-  ) {
-    return {
-      success: true,
-      data: await this.cvService.generateSection(user.sub, dto),
-    };
-  }
-
   @Post('generate-from-profile')
   @HttpCode(HttpStatus.OK)
   async generateFromProfile(

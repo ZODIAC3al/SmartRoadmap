@@ -1,12 +1,12 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
-import { useGetJobsQuery } from '@/store/api/jobsApi';
+import { useGetMyJobsQuery } from '@/store/api/jobsApi';
 import { Loader2 } from 'lucide-react';
 
 export default function JobsListPage() {
-  const { data: jobsData, isLoading } = useGetJobsQuery();
+  const { data: jobsData, isLoading } = useGetMyJobsQuery();
 
   const jobsList = React.useMemo(() => {
     if (!jobsData) return [];
@@ -26,7 +26,7 @@ export default function JobsListPage() {
     return (
       <div className="flex items-center justify-center p-12 bg-base-100 rounded-3xl border border-base-300">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        <span className="ml-2 text-xs font-semibold text-stone-700 dark:text-stone-300 font-medium">Loading active jobs from database...</span>
+        <span className="ml-2 text-xs font-semibold text-base-content/70">Loading active jobs from database...</span>
       </div>
     );
   }
@@ -36,11 +36,11 @@ export default function JobsListPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold font-heading">Active Job Postings</h1>
-          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">
+          <p className="text-xs text-base-content/70 mt-1">
             Manage jobs, review candidates, and trigger candidate boosts dynamically.
           </p>
         </div>
-        <Link href="/company/jobs?action=new" className="btn btn-sm btn-primary shadow-xs rounded-xl font-bold">
+        <Link href="/company?action=new" className="btn btn-sm btn-primary shadow-xs rounded-xl font-bold">
           + Post Job
         </Link>
       </div>
@@ -48,10 +48,10 @@ export default function JobsListPage() {
       {jobsList.length === 0 ? (
         <div className="p-12 text-center bg-base-100 rounded-3xl border border-base-300 flex flex-col items-center gap-3">
           <h3 className="font-extrabold text-base">No active job postings in database</h3>
-          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium max-w-sm">
+          <p className="text-xs text-base-content/60 max-w-sm">
             Create your first job posting to start receiving verified candidate applications.
           </p>
-          <Link href="/company/jobs?action=new" className="btn btn-sm btn-primary rounded-xl font-bold mt-2">
+          <Link href="/company?action=new" className="btn btn-sm btn-primary rounded-xl font-bold mt-2">
             Create First Job Posting
           </Link>
         </div>
@@ -59,7 +59,7 @@ export default function JobsListPage() {
         <div className="bg-base-100 rounded-3xl border border-base-300 overflow-hidden shadow-xs">
           <table className="table w-full text-left">
             <thead>
-              <tr className="bg-base-200/50 text-xs text-stone-700 dark:text-stone-300 font-medium uppercase">
+              <tr className="bg-base-200/50 text-xs text-base-content/60 uppercase">
                 <th>Job Title</th>
                 <th>Applicants</th>
                 <th>Status</th>
@@ -77,7 +77,7 @@ export default function JobsListPage() {
                     >
                       {job.title}
                     </Link>
-                    <div className="text-xs font-normal text-stone-700 dark:text-stone-300 font-medium">
+                    <div className="text-xs font-normal text-base-content/60">
                       {job.location} • {job.postedAt}
                     </div>
                   </td>

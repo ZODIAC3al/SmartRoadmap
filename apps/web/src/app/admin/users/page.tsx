@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import {
   apiJson,
   fetchMe,
@@ -39,7 +39,7 @@ function isUserRole(value: string): value is UserRole {
 }
 
 export default function AdminUsersPage() {
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -47,6 +47,8 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // CRUD Form states
   const [addName, setAddName] = useState("");
@@ -198,6 +200,7 @@ export default function AdminUsersPage() {
     try {
       const allUsers = await apiJson<User[]>(`/admin/users?search=${search}`);
       setUsers(allUsers);
+      setCurrentPage(1);
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, "Failed to search users."));
     }
@@ -206,46 +209,52 @@ export default function AdminUsersPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
+        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
       </div>
     );
   }
 
   const isRtl = locale === "ar";
 
+  const totalPages = Math.ceil(users.length / itemsPerPage) || 1;
+  const paginatedUsers = users.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <div className={`sr-console min-h-screen text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
-      <div className="sr-shell max-w-6xl mx-auto space-y-8">
+    <div className={`min-h-screen bg-base-100 text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
+      <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Navigation Admin Header Banner */}
-        <div className="sr-stage sr-signal flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 rounded-3xl p-6 sm:p-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
           <div>
-            <span className="sr-kicker">
+            <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
               {isRtl ? "بوابة الأمان والعمليات" : "PLATFORM OPERATIONS & SECURITY"}
             </span>
-            <h1 className="text-2xl font-black tracking-tight mt-1">
+            <h1 className="text-xl font-extrabold text-base-content mt-1">
               {isRtl ? "إدارة الأعضاء وسجلات الأمان" : "User Operations & Audit Trails"}
             </h1>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-0.5">
+            <p className="text-sm text-base-content/60 mt-0.5">
               {isRtl ? "تحكم في أدوار الأعضاء، وراقب محاولات الدخول غير الاعتيادية وسجلات الأمان." : "Modify database scopes, audit user role permissions, and view authentication trails."}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-3">
             <Link
               href="/admin/certificates"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
             >
               {isRtl ? "مراجعة الشهادات" : "Certificates"}
             </Link>
             <Link
               href="/admin/content"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
             >
               {isRtl ? "إشراف المحتوى" : "Moderation"}
             </Link>
             <Link
               href="/admin"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
             >
               {isRtl ? "لوحة التحليلات" : "Back to analytics"}
             </Link>
@@ -256,9 +265,9 @@ export default function AdminUsersPage() {
         <div className="grid md:grid-cols-3 gap-6">
           
           {/* Users List Column */}
-          <div className="sr-panel md:col-span-2 rounded-2xl p-5 space-y-4">
+          <div className="bg-base-200 border border-base-300 rounded-2xl shadow-sm p-5 space-y-4 md:col-span-2">
             <div className="flex justify-between items-center flex-wrap gap-3">
-              <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-stone-600 dark:text-stone-400 font-medium">
+              <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
                 {isRtl ? "إدارة أدوار الأعضاء" : "Manage User Roles"}
               </h3>
               <div className="flex items-center gap-2 flex-wrap">
@@ -284,7 +293,7 @@ export default function AdminUsersPage() {
                     onChange={(e) => setSearch(e.target.value)}
                     className="input input-bordered rounded-xl bg-base-100 text-xs w-32 sm:w-40 h-8"
                   />
-                  <button type="submit" className="btn btn-xs bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl h-8 px-2.5 font-bold">
+                  <button type="submit" className="btn btn-xs bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl h-8 px-2.5 font-bold">
                     {isRtl ? "بحث" : "Go"}
                   </button>
                 </form>
@@ -310,7 +319,7 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
+                  {paginatedUsers.map((u) => (
                     <tr key={u._id} className="border-b border-base-300">
                       <td>
                         <input
@@ -322,7 +331,7 @@ export default function AdminUsersPage() {
                         />
                       </td>
                       <td className="font-bold">{u.name}</td>
-                      <td className="font-mono text-[10px] text-stone-700 dark:text-stone-300 font-medium">{u.email}</td>
+                      <td className="font-mono text-[10px] text-base-content/65">{u.email}</td>
                       <td>
                         <span className="badge badge-sm badge-outline uppercase tracking-wider font-mono text-[9px] font-bold">
                           {u.role}
@@ -349,11 +358,39 @@ export default function AdminUsersPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center mt-2 px-1 text-xs font-mono">
+                <span className="text-base-content/60">
+                  {isRtl ? "عرض" : "Showing"} {(currentPage - 1) * itemsPerPage + 1} {isRtl ? "إلى" : "to"} {Math.min(currentPage * itemsPerPage, users.length)} {isRtl ? "من" : "of"} {users.length} {isRtl ? "مستخدم" : "users"}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="btn btn-xs btn-outline rounded-lg border-base-300 disabled:opacity-40"
+                  >
+                    {isRtl ? "السابق" : "Prev"}
+                  </button>
+                  <span className="px-3 font-bold">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="btn btn-xs btn-outline rounded-lg border-base-300 disabled:opacity-40"
+                  >
+                    {isRtl ? "التالي" : "Next"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Severity Breakdown */}
-          <div className="sr-panel md:col-span-1 rounded-2xl p-5 space-y-4">
-            <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-stone-600 dark:text-stone-400 font-medium">
+          <div className="bg-base-200 border border-base-300 md:col-span-1 rounded-2xl shadow-sm p-5 space-y-4">
+            <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
               {isRtl ? "تحليل مخاطر الأمان" : "Security Risk Index"}
             </h3>
             <div className="space-y-3 text-xs">
@@ -374,9 +411,9 @@ export default function AdminUsersPage() {
 
         </div>
 
-        {/* Audit Log list */}
-        <div className="sr-panel rounded-2xl p-5 space-y-4">
-          <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-stone-600 dark:text-stone-400 font-medium">
+        {/* Audit Log / Security Events */}
+        <div className="bg-base-200 border border-base-300 rounded-2xl shadow-sm p-5 mt-8 space-y-4">
+          <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
             {isRtl ? "سجل مراقبة العمليات الكامل" : "Audit Trail Index"}
           </h3>
 
@@ -395,7 +432,7 @@ export default function AdminUsersPage() {
               <tbody>
                 {auditLogs.map((log) => (
                   <tr key={log._id} className="border-b border-base-300">
-                    <td className="font-mono text-[10px] text-stone-600 dark:text-stone-400 font-medium">
+                    <td className="font-mono text-[10px] text-base-content/45">
                       {new Date(log.createdAt).toLocaleString(locale === "en" ? "en-US" : "ar-EG", {
                         month: "short",
                         day: "2-digit",
@@ -414,7 +451,7 @@ export default function AdminUsersPage() {
                         {log.severity}
                       </span>
                     </td>
-                    <td className="font-mono text-[9px] text-stone-600 dark:text-stone-400 font-medium max-w-[150px] truncate" title={log.userAgent}>
+                    <td className="font-mono text-[9px] text-base-content/45 max-w-[150px] truncate" title={log.userAgent}>
                       {log.ip || "unknown"} • {log.userAgent || "client"}
                     </td>
                   </tr>
@@ -430,12 +467,12 @@ export default function AdminUsersPage() {
       {isAddModalOpen && (
         <div className="modal modal-open">
           <div
-            className="sr-panel modal-box rounded-2xl shadow-xl"
+            className="bg-base-200 border border-base-300 modal-box rounded-2xl shadow-xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="admin-add-user-title"
           >
-            <h3 id="admin-add-user-title" className="font-bold text-lg mb-4 text-[#8E1616]">
+            <h3 id="admin-add-user-title" className="font-bold text-lg mb-4 text-[#10B981]">
               {isRtl ? "إضافة مستخدم جديد" : "Add New User"}
             </h3>
             <form onSubmit={handleCreateUserSubmit} className="space-y-4 text-xs">
@@ -494,7 +531,7 @@ export default function AdminUsersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-sm bg-[#8E1616] hover:bg-[#8E1616] text-white border-none text-xs rounded-xl font-bold px-6"
+                  className="btn btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none text-xs rounded-xl font-bold px-6"
                 >
                   {isRtl ? "إضافة" : "Add User"}
                 </button>
@@ -508,12 +545,12 @@ export default function AdminUsersPage() {
       {isEditModalOpen && editingUser && (
         <div className="modal modal-open">
           <div
-            className="sr-panel modal-box rounded-2xl shadow-xl"
+            className="bg-base-200 border border-base-300 modal-box rounded-2xl shadow-xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="admin-edit-user-title"
           >
-            <h3 id="admin-edit-user-title" className="font-bold text-lg mb-4 text-[#8E1616]">
+            <h3 id="admin-edit-user-title" className="font-bold text-lg mb-4 text-[#10B981]">
               {isRtl ? "تعديل تفاصيل العضو" : "Edit User Details"}
             </h3>
             <form onSubmit={handleEditUserSubmit} className="space-y-4 text-xs">
@@ -562,7 +599,7 @@ export default function AdminUsersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-sm bg-[#8E1616] hover:bg-[#8E1616] text-white border-none text-xs rounded-xl font-bold px-6"
+                  className="btn btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none text-xs rounded-xl font-bold px-6"
                 >
                   {isRtl ? "حفظ التغييرات" : "Save Changes"}
                 </button>

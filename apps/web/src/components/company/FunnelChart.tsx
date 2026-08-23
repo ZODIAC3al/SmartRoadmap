@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 
@@ -27,7 +27,7 @@ export function FunnelChart() {
           <div key={s.stage} className="flex flex-col gap-1">
             <div className="flex justify-between text-xs font-medium">
               <span className="text-base-content font-semibold">{s.stage}</span>
-              <span className="font-mono text-stone-700 dark:text-stone-300 font-medium">
+              <span className="font-mono text-base-content/60">
                 {s.count} candidates ({s.conversionPercent}% conv)
               </span>
             </div>

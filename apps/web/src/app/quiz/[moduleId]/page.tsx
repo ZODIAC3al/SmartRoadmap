@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from "recharts";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser } from "@/lib/api";
 
 type QuestionPayload = {
@@ -64,7 +64,7 @@ type DictKey = keyof typeof dict;
 
 export default function QuizPage({ params }: { params: { moduleId: string } }) {
   const { moduleId } = params;
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isAr = locale === "ar";
   const tr = (key: DictKey, vars?: Record<string, string>) => {
     let s = dict[key][isAr ? "ar" : "en"];
@@ -216,7 +216,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
           <i className="lni lni-warning" />
         </div>
         <h2 className="text-2xl font-bold">{tr("loadError")}</h2>
-        <p className="text-stone-700 dark:text-stone-300 font-medium max-w-sm mb-2">{tr("loadErrorBody")}</p>
+        <p className="text-base-content/60 max-w-sm mb-2">{tr("loadErrorBody")}</p>
         <Link href="/roadmap" className="btn btn-primary gap-2">
           <i className={isAr ? "lni lni-arrow-right" : "lni lni-arrow-left"} /> {tr("backBtn")}
         </Link>
@@ -231,7 +231,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
       <div className="max-w-4xl mx-auto w-full">
         {/* Header */}
         <div className="mb-8 pt-6">
-          <Link href="/roadmap" className="text-xs text-[#8E1616] hover:underline font-mono font-bold flex items-center gap-1.5 w-fit">
+          <Link href="/roadmap" className="text-xs text-indigo-600 hover:underline font-mono font-bold flex items-center gap-1.5 w-fit">
             <i className={isAr ? "lni lni-arrow-right" : "lni lni-arrow-left"} /> {tr("backToRoadmap")}
           </Link>
           <h1 className="text-2xl sm:text-3xl font-bold mt-2 truncate">{moduleTitle}</h1>
@@ -248,7 +248,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
               className="md:col-span-8 card bg-base-200 border border-base-300 shadow-sm"
             >
               <div className="card-body p-6">
-                <div className="flex justify-between items-center mb-6 text-xs font-mono text-stone-700 dark:text-stone-300 font-medium border-b border-base-300 pb-3">
+                <div className="flex justify-between items-center mb-6 text-xs font-mono text-base-content/50 border-b border-base-300 pb-3">
                   <span>
                     {tr("question")} {session.currentQuestionIndex + 1} {tr("of")} {session.totalQuestions}
                   </span>
@@ -301,7 +301,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                           <i className={`lni ${isCorrect ? "lni-checkmark-circle" : "lni-close"}`} />
                           {isCorrect ? tr("correct") : tr("incorrect")}
                         </h4>
-                        <p className="text-sm text-stone-800 dark:text-stone-200 font-medium">{explanation}</p>
+                        <p className="text-sm text-base-content/80">{explanation}</p>
                       </div>
 
                       <div className="card-actions justify-end">
@@ -342,7 +342,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                       </RadialBarChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className={`text-xl font-black font-mono ${timer <= 10 ? "text-error" : "text-[#8E1616]"}`}>
+                      <span className={`text-xl font-black font-mono ${timer <= 10 ? "text-error" : "text-indigo-600"}`}>
                         {timer}s
                       </span>
                     </div>
@@ -352,7 +352,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
 
               <div className="card bg-base-200 border border-base-300 shadow-sm">
                 <div className="card-body p-5">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-stone-600 dark:text-stone-400 font-medium mb-3">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-base-content/40 mb-3">
                     {tr("quickList")}
                   </h3>
                   <div className="space-y-2">
@@ -363,17 +363,17 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                         <div
                           key={i}
                           className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold ${isCurrent
-                            ? "bg-[#8E1616]/10 text-[#8E1616] border border-[#8E1616]/30"
+                            ? "bg-indigo-600/10 text-indigo-600 border border-indigo-600/30"
                             : entry
                               ? entry.correct
                                 ? "text-success"
                                 : "text-error"
-                              : "text-stone-500 dark:text-stone-400 font-medium"
+                              : "text-base-content/35"
                             }`}
                         >
                           <span
                             className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${isCurrent
-                              ? "bg-[#8E1616] text-white"
+                              ? "bg-indigo-600 text-white"
                               : entry
                                 ? entry.correct
                                   ? "bg-success text-white"
@@ -411,7 +411,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                   </div>
                   <h2 className="text-2xl text-success font-bold mb-2">{tr("passed")}</h2>
                   <div className="text-5xl font-extrabold mb-4">{results.score}%</div>
-                  <p className="text-sm text-stone-700 dark:text-stone-300 font-medium max-w-sm mb-8 leading-relaxed">{tr("passedBody")}</p>
+                  <p className="text-sm text-base-content/70 max-w-sm mb-8 leading-relaxed">{tr("passedBody")}</p>
                 </>
               ) : (
                 <>
@@ -420,7 +420,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                   </div>
                   <h2 className="text-2xl text-error font-bold mb-2">{tr("failed")}</h2>
                   <div className="text-5xl font-extrabold mb-4">{results?.score}%</div>
-                  <p className="text-sm text-stone-700 dark:text-stone-300 font-medium max-w-sm mb-8 leading-relaxed">
+                  <p className="text-sm text-base-content/70 max-w-sm mb-8 leading-relaxed">
                     {tr("failedBody", {
                       correct: String(results?.correctAnswers ?? 0),
                       total: String(results?.totalQuestions ?? 0),

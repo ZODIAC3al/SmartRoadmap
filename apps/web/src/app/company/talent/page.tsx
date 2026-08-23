@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useGetCandidatesQuery, useEvaluateCandidateAiMutation } from '@/store/api/pipelineApi';
@@ -81,7 +81,7 @@ export default function TalentSearchPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-100 p-6 rounded-3xl border border-base-300 shadow-xs">
         <div>
           <h1 className="text-2xl font-bold font-heading text-base-content">AI Talent Pool Search</h1>
-          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">
+          <p className="text-xs text-base-content/70 mt-1">
             Search pre-vetted tech candidates by verified skills, milestone completions, and AI fit scores.
           </p>
         </div>
@@ -97,15 +97,15 @@ export default function TalentSearchPage() {
       {isLoading ? (
         <div className="flex items-center justify-center p-12 bg-base-100 rounded-3xl border border-base-300">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
-          <span className="ml-2 text-xs text-stone-700 dark:text-stone-300 font-medium">Fetching pre-vetted candidate list...</span>
+          <span className="ml-2 text-xs text-base-content/70">Fetching pre-vetted candidate list...</span>
         </div>
       ) : filteredCandidates.length === 0 ? (
-        <div className="p-12 text-center bg-base-100 rounded-3xl border border-base-300 text-xs text-stone-700 dark:text-stone-300 font-medium">
+        <div className="p-12 text-center bg-base-100 rounded-3xl border border-base-300 text-xs text-base-content/60">
           No candidates matching &quot;{filterQuery}&quot;.
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex justify-between items-center text-xs text-stone-700 dark:text-stone-300 font-medium font-mono">
+          <div className="flex justify-between items-center text-xs text-base-content/60 font-mono">
             <span>
               Showing {Math.min((currentPage - 1) * PAGE_SIZE + 1, filteredCandidates.length)}-
               {Math.min(currentPage * PAGE_SIZE, filteredCandidates.length)} of {filteredCandidates.length} top candidates
@@ -123,7 +123,7 @@ export default function TalentSearchPage() {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-bold text-base text-base-content">{cand.name}</h3>
-                      <p className="text-xs text-stone-700 dark:text-stone-300 font-medium font-medium">{cand.role}</p>
+                      <p className="text-xs text-base-content/60 font-medium">{cand.role}</p>
                     </div>
                     <span className="badge badge-sm badge-neutral font-mono text-xs">
                       {cand.verifiedCerts} certs
@@ -134,7 +134,7 @@ export default function TalentSearchPage() {
                     {cand.skills.map((skill: string) => (
                       <span
                         key={skill}
-                        className="px-2 py-0.5 rounded-md bg-base-200 text-xs font-medium text-stone-800 dark:text-stone-200 font-medium"
+                        className="px-2 py-0.5 rounded-md bg-base-200 text-xs font-medium text-base-content/80"
                       >
                         {skill}
                       </span>
@@ -149,16 +149,16 @@ export default function TalentSearchPage() {
                     requiredPlan="growth"
                     fallbackText="Upgrade to Growth to unlock AI candidate match scores."
                   >
-                    <div className="flex justify-between items-center bg-[#8E1616]/10 p-2.5 rounded-xl border border-[#8E1616]/20/20">
-                      <span className="text-xs font-semibold text-[#8E1616] uppercase">
+                    <div className="flex justify-between items-center bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
+                      <span className="text-xs font-semibold text-emerald-500 uppercase">
                         AI Match Score
                       </span>
-                      <span className="text-lg font-bold text-[#8E1616] font-mono">
+                      <span className="text-lg font-bold text-emerald-500 font-mono">
                         {evaluations[cand.id]?.score !== undefined ? `${evaluations[cand.id].score}%` : `${cand.matchScore}%`}
                       </span>
                     </div>
                     {evaluations[cand.id]?.reason && (
-                      <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium italic mt-1 bg-base-200 p-2 rounded-lg border border-base-300">
+                      <p className="text-[11px] text-base-content/70 italic mt-1 bg-base-200 p-2 rounded-lg border border-base-300">
                         🤖 {evaluations[cand.id].reason}
                       </p>
                     )}
@@ -200,8 +200,8 @@ export default function TalentSearchPage() {
                     onClick={() => setCurrentPage(page)}
                     className={`w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition-all ${
                       currentPage === page
-                        ? 'bg-[#8E1616] text-white shadow-xs'
-                        : 'bg-base-200 text-stone-700 dark:text-stone-300 font-medium hover:bg-base-300'
+                        ? 'bg-emerald-500 text-white shadow-xs'
+                        : 'bg-base-200 text-base-content/70 hover:bg-base-300'
                     }`}
                   >
                     {page}

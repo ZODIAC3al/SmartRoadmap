@@ -124,4 +124,48 @@ export class AdminController {
     }
     return res.redirect(url);
   }
+
+  @Patch('certificates/:id/accept')
+  acceptCertificate(@CurrentUser() admin: JwtUser, @Param('id') id: string) {
+    return this.adminService.acceptCertificate(id, admin.sub);
+  }
+
+  @Patch('certificates/:id/reject')
+  rejectCertificate(
+    @CurrentUser() admin: JwtUser,
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+  ) {
+    return this.adminService.rejectCertificate(id, admin.sub, reason);
+  }
+
+  // ───────────────────────── Company Approval ─────────────────────────
+
+  @Get('companies')
+  getCompanies(@Query('status') status?: string) {
+    return this.adminService.getCompanies(status);
+  }
+
+  @Patch('companies/:id/accept')
+  acceptCompany(@CurrentUser() admin: JwtUser, @Param('id') id: string) {
+    return this.adminService.acceptCompany(id, admin.sub);
+  }
+
+  @Patch('companies/:id/reject')
+  rejectCompany(
+    @CurrentUser() admin: JwtUser,
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+  ) {
+    return this.adminService.rejectCompany(id, admin.sub, reason);
+  }
+
+  @Patch('companies/:id/block')
+  blockCompany(
+    @CurrentUser() admin: JwtUser,
+    @Param('id') id: string,
+    @Body('reason') reason?: string,
+  ) {
+    return this.adminService.blockCompany(id, admin.sub, reason);
+  }
 }

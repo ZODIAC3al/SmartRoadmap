@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { SharedInbox } from '@/components/messaging/SharedInbox';
@@ -13,7 +13,7 @@ export default function AdminMessagesPage() {
         <h1 className="text-2xl font-bold font-heading text-base-content">
           Admin Support Central Inbox
         </h1>
-        <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">
+        <p className="text-xs text-base-content/60 mt-1">
           Unified support threads across Learners and Company recruiters.
         </p>
       </div>

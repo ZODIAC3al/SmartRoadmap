@@ -9,30 +9,107 @@ const STATIC_FAQS = [
   {
     id: 'faq-1',
     title: 'How does SmartRoadmap generate roadmaps?',
-    text: 'SmartRoadmap uses advanced Gemini Generative AI to design a fully customized roadmap based on your goals, current skills, and career level.',
+    text: 'SmartRoadmap uses Gemini Generative AI to create a personalized learning roadmap based on the learner goals, current skills, career level, and target career path.',
     type: 'faq',
     url: '/roadmaps',
   },
   {
     id: 'faq-2',
     title: 'Can I change my learning roadmap later?',
-    text: 'Yes, you can edit, extend, or add missing skills to your roadmap at any time from your roadmap details dashboard page.',
+    text: 'Yes. Learners can edit their roadmap, extend it, or add missing skills from the roadmap details dashboard.',
     type: 'faq',
     url: '/roadmaps',
   },
   {
     id: 'faq-3',
     title: 'How do I schedule a session with a mentor?',
-    text: 'Go to the Mentors page, search for a mentor matching your target skills, click Book Session, choose a timing slot, and submit.',
+    text: 'Open the Mentors page, search for a mentor based on your target skills, open the mentor profile, click Book Session, select an available time slot, and confirm the booking.',
     type: 'faq',
     url: '/mentors',
   },
   {
     id: 'faq-4',
     title: 'What is the community space for?',
-    text: 'Community spaces are topic-based forums where you can post questions, share code resources, and converse with other learners and professionals.',
+    text: 'Community spaces are topic-based forums where learners and professionals can ask questions, share code, exchange resources, and discuss technical topics.',
     type: 'faq',
     url: '/community',
+  },
+  {
+    id: 'faq-5',
+    title: 'How can I track my roadmap progress?',
+    text: 'Learners can open their roadmap dashboard to view completed modules, remaining skills, progress percentage, and upcoming learning activities.',
+    type: 'faq',
+    url: '/roadmaps',
+  },
+  {
+    id: 'faq-6',
+    title: 'How do I find a course?',
+    text: 'Open the Resources page and search for a technology, skill, or topic. SmartRoadmap displays relevant courses and learning resources.',
+    type: 'faq',
+    url: '/resources',
+  },
+  {
+    id: 'faq-7',
+    title: 'How can I find a mentor?',
+    text: 'Go to the Mentors page and search or filter mentors by their skills and specialization. You can view their profile and available sessions before booking.',
+    type: 'faq',
+    url: '/mentors',
+  },
+  {
+    id: 'faq-8',
+    title: 'How do I search for jobs?',
+    text: 'Open the Jobs page and search for positions using job titles, technologies, skills, or career-related keywords.',
+    type: 'faq',
+    url: '/jobs',
+  },
+  {
+    id: 'faq-9',
+    title: 'Can I update my skills?',
+    text: 'Yes. Learners can update their skills from their profile. The updated skills can be used when generating or modifying a learning roadmap.',
+    type: 'faq',
+    url: '/profile',
+  },
+  {
+    id: 'faq-10',
+    title: 'What is Study Buddy AI?',
+    text: 'Study Buddy AI is the SmartRoadmap chatbot that helps learners understand courses, projects, programming concepts, career topics, and platform features using relevant platform knowledge.',
+    type: 'faq',
+    url: '/chatbot',
+  },
+  {
+    id: 'faq-11',
+    title: 'How can I cancel a mentor session?',
+    text: 'Open your scheduled mentoring sessions and select the session you want to cancel. Mentorship cancellations should be made according to the platform cancellation policy.',
+    type: 'faq',
+    url: '/mentors',
+  },
+  {
+    id: 'faq-12',
+    title: 'What are roadmap modules?',
+    text: 'Roadmap modules are organized learning steps containing skills, topics, courses, or resources that help learners progress toward their target career.',
+    type: 'faq',
+    url: '/roadmaps',
+  },
+  {
+    id: 'faq-13',
+    title: 'What score do I need to pass an exam?',
+    text: 'The passing score is 70 percent. You need to answer at least 70 percent of the total questions correctly to pass the exam.',
+    type: 'faq',
+    url: '/resources',
+  },
+  {
+    id: 'faq-14',
+    title: 'How many correct answers do I need to get a 70 percent score?',
+    text: 'To get a passing score of 70 percent, multiply the total number of exam questions by 0.70. For example, you need 7 correct answers out of 10, 14 out of 20, 21 out of 30, 35 out of 50, or 70 out of 100.',
+    type: 'faq',
+    url: '/resources',
+  },
+  {
+    id: 'faq-15',
+    title: 'How is the exam score calculated?',
+    text: 'The exam score is calculated by dividing the number of correct answers by the total number of questions and multiplying the result by 100. A score of 70 percent or higher is considered a passing score.',
+    type: 'faq',
+    url: '/resources',
   },
 ];
 
@@ -53,22 +130,7 @@ const STATIC_DOCUMENTATION = [
   },
 ];
 
-const STATIC_COURSES = [
-  {
-    id: 'course-1',
-    title: 'NestJS Framework Masterclass: Advanced Web Apps',
-    text: 'Learn NestJS dependency injection, custom filters, middleware, mongoose schemas, and microservice architectures.',
-    type: 'course',
-    url: '/resources',
-  },
-  {
-    id: 'course-2',
-    title: 'NextJS 15 App Router and TailwindCSS styling',
-    text: 'A comprehensive frontend masterclass explaining server components, client components, routing, and glassmorphic designs.',
-    type: 'course',
-    url: '/resources',
-  },
-];
+
 
 @Injectable()
 export class SearchService implements OnApplicationBootstrap {
@@ -79,7 +141,7 @@ export class SearchService implements OnApplicationBootstrap {
     @InjectModel(LearningResource.name)
     private readonly resourceModel: Model<LearningResource>,
     private readonly ragService: RAGService,
-  ) {}
+  ) { }
 
   async onApplicationBootstrap() {
     this.logger.log(
@@ -93,11 +155,6 @@ export class SearchService implements OnApplicationBootstrap {
           payload: { ...item, description: item.text },
         })),
         ...STATIC_DOCUMENTATION.map((item) => ({
-          id: item.id,
-          text: `${item.title} ${item.text}`,
-          payload: { ...item, description: item.text },
-        })),
-        ...STATIC_COURSES.map((item) => ({
           id: item.id,
           text: `${item.title} ${item.text}`,
           payload: { ...item, description: item.text },

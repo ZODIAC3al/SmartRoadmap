@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -11,14 +11,12 @@ import {
   selectAllNotifications,
 } from '@/store/api/notificationsApi';
 import { resetUnread } from '@/store/slices/notificationsSlice';
-import { hasSession } from '@/lib/api';
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const dispatch = useAppDispatch();
-  // Use the canonical session check — the app never stores the raw token in localStorage.
-  const isAuthenticated = hasSession();
-
+  const token = useAppSelector((state) => state.auth?.token) || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+  const isAuthenticated = !!token;
   const unreadCount = useAppSelector((state) => state.notifications.unreadCount);
 
   const { data: notificationsState, isLoading } = useGetNotificationsQuery(undefined, { skip: !isAuthenticated });
@@ -53,7 +51,7 @@ export function NotificationBell() {
       {/* Bell Icon Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="btn btn-ghost btn-circle btn-sm relative text-stone-800 dark:text-stone-200 font-medium hover:text-base-content"
+        className="btn btn-ghost btn-circle btn-sm relative text-base-content/80 hover:text-base-content"
         aria-label="Open notifications"
       >
         <Bell className="w-5 h-5" />
@@ -95,7 +93,7 @@ export function NotificationBell() {
             {/* Notifications Feed */}
             <div className="flex-1 overflow-y-auto divide-y divide-base-200 p-1">
               {isLoading && (
-                <div className="p-4 text-center text-xs text-stone-700 dark:text-stone-300 font-medium">
+                <div className="p-4 text-center text-xs text-base-content/50">
                   Loading notifications...
                 </div>
               )}
@@ -117,14 +115,14 @@ export function NotificationBell() {
                       <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-stone-700 dark:text-stone-300 font-medium line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-base-content/70 line-clamp-2 leading-relaxed">
                     {n.message || n.body}
                   </p>
                 </Link>
               ))}
 
               {!isLoading && notifications.length === 0 && (
-                <div className="p-8 text-center text-xs text-stone-600 dark:text-stone-400 font-medium italic">
+                <div className="p-8 text-center text-xs text-base-content/40 italic">
                   No notifications yet
                 </div>
               )}

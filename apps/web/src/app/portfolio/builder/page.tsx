@@ -13,8 +13,6 @@ import {
 } from '@/lib/portfolio';
 import { getGitHubRepos, GitHubRepo } from '@/lib/profileImport';
 import { PortfolioRenderer } from '../_components/PortfolioRenderer';
-import AnimatedFigure from '@/components/illustrations/AnimatedFigure';
-import EmptyStateIllustration from '@/components/illustrations/EmptyStateIllustration';
 
 export default function PortfolioBuilderPage() {
   const [portfolio, setPortfolio] = useState<PortfolioData>({
@@ -37,25 +35,19 @@ export default function PortfolioBuilderPage() {
   const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
-
     async function loadData() {
       try {
         const res = await getMyPortfolio();
-        if (isMounted && res.success && res.data) {
+        if (res.success && res.data) {
           setPortfolio(res.data);
         }
       } catch (err) {
         console.error('Failed to load portfolio data:', err);
       } finally {
-        if (isMounted) setIsLoading(false);
+        setIsLoading(false);
       }
     }
     loadData();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   const handleSave = async () => {
@@ -117,42 +109,21 @@ export default function PortfolioBuilderPage() {
 
     setPortfolio((prev) => ({
       ...prev,
-      projects: [...(prev.projects || []), newProj],
+      projects: [...prev.projects, newProj],
     }));
     toast.success(`Imported project "${repo.name}"!`);
-  };
-
-  const updateProjectField = (
-    index: number,
-    field: keyof PortfolioProjectData,
-    value: string
-  ) => {
-    setPortfolio((prev) => {
-      const updated = (prev.projects || []).map((proj, i) =>
-        i === index ? { ...proj, [field]: value } : proj
-      );
-      return { ...prev, projects: updated };
-    });
-  };
-
-  const removeProject = (index: number) => {
-    setPortfolio((prev) => ({
-      ...prev,
-      projects: (prev.projects || []).filter((_, i) => i !== index),
-    }));
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-base-100 space-y-3">
         <span className="loading loading-spinner loading-md text-primary"></span>
-        <p className="text-xs text-stone-700 dark:text-stone-300 font-medium font-mono">Loading Portfolio Builder...</p>
+        <p className="text-xs text-base-content/60 font-mono">Loading Portfolio Builder...</p>
       </div>
     );
   }
 
   const publicUrl = `/portfolio/${portfolio.username || 'user'}`;
-  const projects = portfolio.projects || [];
 
   return (
     <div className="flex flex-col min-h-screen bg-base-100 text-base-content select-none">
@@ -165,7 +136,7 @@ export default function PortfolioBuilderPage() {
           <div>
             <h1 className="font-extrabold text-base leading-none">Portfolio Studio</h1>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className={`badge badge-xs font-mono font-bold uppercase ${portfolio.isPublished ? 'badge-success text-white' : 'badge-ghost text-stone-700 dark:text-stone-300 font-medium'}`}>
+              <span className={`badge badge-xs font-mono font-bold uppercase ${portfolio.isPublished ? 'badge-success text-white' : 'badge-ghost text-base-content/50'}`}>
                 {portfolio.isPublished ? 'Published' : 'Draft (Private)'}
               </span>
               {portfolio.isPublished && (
@@ -180,10 +151,11 @@ export default function PortfolioBuilderPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleTogglePublish}
-            className={`btn btn-xs sm:btn-sm rounded-lg font-bold border-none ${portfolio.isPublished
-              ? 'bg-warning/20 text-warning hover:bg-warning/30'
-              : 'bg-success text-white hover:bg-success/90'
-              }`}
+            className={`btn btn-xs sm:btn-sm rounded-lg font-bold border-none ${
+              portfolio.isPublished
+                ? 'bg-warning/20 text-warning hover:bg-warning/30'
+                : 'bg-success text-white hover:bg-success/90'
+            }`}
           >
             {portfolio.isPublished ? 'Unpublish' : 'Publish Portfolio'}
           </button>
@@ -191,22 +163,13 @@ export default function PortfolioBuilderPage() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="btn bg-primary hover:bg-[#8E1616] text-white btn-xs sm:btn-sm rounded-lg border-none font-bold px-4"
+            className="btn bg-primary hover:bg-[#059669] text-white btn-xs sm:btn-sm rounded-lg border-none font-bold px-4"
           >
             {isSaving && <span className="loading loading-spinner loading-xs mr-1"></span>}
             Save Portfolio
           </button>
         </div>
       </header>
-
-      {/* Portfolio Builder Animated Helper — desktop floating figure */}
-      <div className="fixed bottom-6 right-6 z-30 hidden xl:block pointer-events-none">
-        <AnimatedFigure
-          persona="developer-coding"
-          size="sm"
-          speechText="Building your portfolio..."
-        />
-      </div>
 
       {/* Main Split Interface */}
       <div className="flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-6 items-stretch">
@@ -219,7 +182,7 @@ export default function PortfolioBuilderPage() {
             </h3>
 
             <div className="form-control">
-              <label className="label text-[10px] font-bold uppercase text-stone-700 dark:text-stone-300 font-medium">Portfolio Title</label>
+              <label className="label text-[10px] font-bold uppercase text-base-content/50">Portfolio Title</label>
               <input
                 type="text"
                 value={portfolio.title}
@@ -230,7 +193,7 @@ export default function PortfolioBuilderPage() {
             </div>
 
             <div className="form-control">
-              <label className="label text-[10px] font-bold uppercase text-stone-700 dark:text-stone-300 font-medium">Bio Headline</label>
+              <label className="label text-[10px] font-bold uppercase text-base-content/50">Bio Headline</label>
               <textarea
                 value={portfolio.bio}
                 onChange={(e) => setPortfolio({ ...portfolio, bio: e.target.value })}
@@ -254,11 +217,12 @@ export default function PortfolioBuilderPage() {
                 <button
                   key={tpl.id}
                   type="button"
-                  onClick={() => setPortfolio({ ...portfolio, template: tpl.id as PortfolioData['template'] })}
-                  className={`p-3 rounded-xl border transition-all text-xs font-extrabold ${portfolio.template === tpl.id
-                    ? 'bg-primary/10 border-primary text-primary'
-                    : 'bg-base-200 border-base-300 text-stone-700 dark:text-stone-300 font-medium hover:border-base-400'
-                    }`}
+                  onClick={() => setPortfolio({ ...portfolio, template: tpl.id as any })}
+                  className={`p-3 rounded-xl border transition-all text-xs font-extrabold ${
+                    portfolio.template === tpl.id
+                      ? 'bg-primary/10 border-primary text-primary'
+                      : 'bg-base-200 border-base-300 text-base-content/70 hover:border-base-400'
+                  }`}
                 >
                   {tpl.name}
                 </button>
@@ -270,7 +234,7 @@ export default function PortfolioBuilderPage() {
           <div className="space-y-4 bg-base-100 p-4 rounded-xl border border-base-300">
             <div className="flex justify-between items-center">
               <h3 className="font-extrabold text-xs uppercase tracking-wider text-base-content">
-                Projects ({projects.length})
+                Projects ({portfolio.projects?.length || 0})
               </h3>
               <button
                 type="button"
@@ -282,20 +246,15 @@ export default function PortfolioBuilderPage() {
             </div>
 
             <div className="space-y-3">
-              {projects.length === 0 && (
-                <div className="flex flex-col items-center py-8">
-                  <EmptyStateIllustration
-                    type="no-projects"
-                    title="No Projects Added Yet"
-                    description="Import GitHub repositories or add projects manually below."
-                  />
-                </div>
-              )}
-              {projects.map((proj, i) => (
-                <div key={`${proj.name}-${i}`} className="bg-base-200 border border-base-300 p-3 rounded-xl space-y-2 relative">
+              {portfolio.projects && portfolio.projects.map((proj, i) => (
+                <div key={i} className="bg-base-200 border border-base-300 p-3 rounded-xl space-y-2 relative">
                   <button
                     type="button"
-                    onClick={() => removeProject(i)}
+                    onClick={() => {
+                      const updated = [...portfolio.projects];
+                      updated.splice(i, 1);
+                      setPortfolio({ ...portfolio, projects: updated });
+                    }}
                     className="absolute top-2 right-2 btn btn-xs btn-circle btn-ghost text-error"
                   >
                     ×
@@ -303,13 +262,21 @@ export default function PortfolioBuilderPage() {
                   <input
                     type="text"
                     value={proj.name}
-                    onChange={(e) => updateProjectField(i, 'name', e.target.value)}
+                    onChange={(e) => {
+                      const updated = [...portfolio.projects];
+                      updated[i].name = e.target.value;
+                      setPortfolio({ ...portfolio, projects: updated });
+                    }}
                     className="input input-bordered input-xs bg-base-100 font-extrabold w-full"
                     placeholder="Project Name"
                   />
                   <textarea
                     value={proj.description || ''}
-                    onChange={(e) => updateProjectField(i, 'description', e.target.value)}
+                    onChange={(e) => {
+                      const updated = [...portfolio.projects];
+                      updated[i].description = e.target.value;
+                      setPortfolio({ ...portfolio, projects: updated });
+                    }}
                     className="textarea textarea-bordered textarea-xs bg-base-100 font-medium w-full h-14"
                     placeholder="Project description..."
                   />
@@ -353,7 +320,7 @@ export default function PortfolioBuilderPage() {
                 >
                   <div>
                     <span className="font-extrabold block">{repo.name}</span>
-                    <span className="text-[10px] text-stone-700 dark:text-stone-300 font-medium font-mono">⭐ {repo.stargazers_count || 0}</span>
+                    <span className="text-[10px] text-base-content/50 font-mono">⭐ {repo.stargazers_count || 0}</span>
                   </div>
                   <button
                     onClick={() => importSelectedRepo(repo)}

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
@@ -31,14 +31,14 @@ export default function PublicCompanyPage({ params }: PublicCompanyProps) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-base-200/50">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <span className="ml-3 text-sm font-semibold text-stone-700 dark:text-stone-300 font-medium">Loading company profile...</span>
+        <span className="ml-3 text-sm font-semibold text-base-content/70">Loading company profile...</span>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-base-200/50 text-stone-700 dark:text-stone-300 font-medium">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-base-200/50 text-base-content/70">
         <span className="text-4xl">🏢</span>
         <p className="font-bold text-lg">Company profile not found.</p>
         <Link href="/company/jobs" className="btn btn-primary btn-sm rounded-xl text-xs">
@@ -124,11 +124,11 @@ export default function PublicCompanyPage({ params }: PublicCompanyProps) {
                 )}
               </div>
 
-              <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-medium max-w-2xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-base-content/70 max-w-2xl leading-relaxed">
                 {company?.about || 'Building next-generation cloud architecture, AI-driven platforms, and adaptive enterprise software. Partnered with SmartRoadmap to source verified technical talent.'}
               </p>
 
-              <div className="flex flex-wrap gap-4 pt-3 text-xs text-stone-700 dark:text-stone-300 font-medium font-medium">
+              <div className="flex flex-wrap gap-4 pt-3 text-xs text-base-content/60 font-medium">
                 {company?.industry && (
                   <span className="flex items-center gap-1">
                     <Briefcase className="w-4 h-4 text-primary" /> {company.industry}
@@ -167,12 +167,12 @@ export default function PublicCompanyPage({ params }: PublicCompanyProps) {
           </div>
 
           {jobsLoading ? (
-            <div className="flex items-center justify-center p-8 text-stone-700 dark:text-stone-300 font-medium">
+            <div className="flex items-center justify-center p-8 text-base-content/50">
               <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
               <span className="text-xs">Fetching live job openings...</span>
             </div>
           ) : jobs.length === 0 ? (
-            <div className="p-8 text-center text-xs text-stone-700 dark:text-stone-300 font-medium">
+            <div className="p-8 text-center text-xs text-base-content/50">
               No open positions at this time. Check back soon!
             </div>
           ) : (
@@ -186,7 +186,7 @@ export default function PublicCompanyPage({ params }: PublicCompanyProps) {
                     <h3 className="font-bold text-sm text-base-content font-heading">
                       {job.title}
                     </h3>
-                    <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-0.5 font-mono">
+                    <p className="text-xs text-base-content/60 mt-0.5 font-mono">
                       {job.employmentType || 'Full-time'}
                       {job.salaryMin ? ` • $${job.salaryMin.toLocaleString()} - $${(job.salaryMax || 0).toLocaleString()}` : ''}
                       {job.requiredSkills?.length ? ` • ${job.requiredSkills.slice(0, 2).join(' & ')} Skill Match Required` : ''}

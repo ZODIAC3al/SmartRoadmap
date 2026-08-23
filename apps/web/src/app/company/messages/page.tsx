@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { SharedInbox } from '@/components/messaging/SharedInbox';
@@ -14,14 +14,14 @@ export default function CompanyMessagesPage() {
           <h1 className="text-2xl font-bold font-heading text-base-content">
             Candidate Inbox
           </h1>
-          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">
+          <p className="text-xs text-base-content/60 mt-1">
             Real-time direct messaging with pipeline candidates and platform support. All threads are persisted in MongoDB.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#8E1616]/10 border border-[#8E1616]/20/20">
-          <span className="w-2 h-2 rounded-full bg-[#8E1616] animate-pulse" />
-          <span className="text-[11px] font-bold text-[#8E1616] font-mono">Live · Real-time</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[11px] font-bold text-emerald-600 font-mono">Live · Real-time</span>
         </div>
       </div>
 

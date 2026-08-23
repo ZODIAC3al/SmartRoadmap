@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -98,7 +98,7 @@ export function ProfileEditor() {
     return (
       <div className="flex items-center justify-center p-12 bg-base-100 rounded-3xl border border-base-300">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        <span className="ml-2 text-xs font-semibold text-stone-700 dark:text-stone-300 font-medium">Loading company profile...</span>
+        <span className="ml-2 text-xs font-semibold text-base-content/70">Loading company profile...</span>
       </div>
     );
   }
@@ -121,7 +121,7 @@ export function ProfileEditor() {
           {coverUrl && coverUrl !== '/cover-placeholder.png' ? (
             <img src={coverUrl} alt="Cover Banner" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center text-stone-600 dark:text-stone-400 font-medium text-xs font-mono">
+            <div className="w-full h-full bg-gradient-to-r from-primary/20 via-secondary/20 to-accent/20 flex items-center justify-center text-base-content/40 text-xs font-mono">
               21:9 Cover Banner Image
             </div>
           )}
@@ -157,7 +157,7 @@ export function ProfileEditor() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 font-medium">Company Name</label>
+          <label className="text-xs font-semibold text-base-content/70">Company Name</label>
           <input
             type="text"
             value={name}
@@ -167,7 +167,7 @@ export function ProfileEditor() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 font-medium">Public Profile Slug</label>
+          <label className="text-xs font-semibold text-base-content/70">Public Profile Slug</label>
           <div className="bg-base-200 px-3 py-2 rounded-xl text-xs font-mono text-primary border border-base-300">
             https://smartroadmap.app/companies/{slug}
           </div>
@@ -175,7 +175,7 @@ export function ProfileEditor() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 font-medium">Website</label>
+            <label className="text-xs font-semibold text-base-content/70">Website</label>
             <input
               type="text"
               value={website}
@@ -184,7 +184,7 @@ export function ProfileEditor() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 font-medium">Industry</label>
+            <label className="text-xs font-semibold text-base-content/70">Industry</label>
             <input
               type="text"
               value={industry}
@@ -195,7 +195,7 @@ export function ProfileEditor() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-stone-700 dark:text-stone-300 font-medium">Company Bio / Overview</label>
+          <label className="text-xs font-semibold text-base-content/70">Company Bio / Overview</label>
           <textarea
             rows={3}
             value={about}
@@ -252,11 +252,11 @@ export function ProfileEditor() {
               </span>
             </div>
 
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1 line-clamp-2">
+            <p className="text-xs text-base-content/60 mt-1 line-clamp-2">
               {about}
             </p>
 
-            <div className="mt-4 pt-3 border-t border-base-300 flex justify-between text-xs text-stone-700 dark:text-stone-300 font-medium">
+            <div className="mt-4 pt-3 border-t border-base-300 flex justify-between text-xs text-base-content/70">
               <span>{industry}</span>
               <span className="font-mono">{size} employees</span>
             </div>
