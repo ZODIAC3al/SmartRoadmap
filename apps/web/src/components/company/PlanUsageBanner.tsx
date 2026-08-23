@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -16,7 +16,7 @@ export function PlanUsageBanner() {
           <span className="font-bold text-amber-500 uppercase tracking-wider">
             Starter Plan Limitations
           </span>
-          <p className="text-base-content/80 mt-0.5">
+          <p className="text-stone-800 dark:text-stone-200 font-medium mt-0.5">
             AI candidate match scores, candidate messaging, and skill-gap analytics are locked on Starter.
           </p>
         </div>
@@ -30,7 +30,7 @@ export function PlanUsageBanner() {
         </Link>
         <button
           onClick={() => setIsDismissed(true)}
-          className="btn btn-xs btn-ghost btn-circle text-base-content/50"
+          className="btn btn-xs btn-ghost btn-circle text-stone-700 dark:text-stone-300 font-medium"
         >
           ✕
         </button>

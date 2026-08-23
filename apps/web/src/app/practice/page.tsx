@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
@@ -183,7 +183,7 @@ export default function PracticePage() {
   if (loading) {
     return (
       <div className="flex min-h-screen bg-slate-50 items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-indigo-600"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
@@ -228,7 +228,7 @@ export default function PracticePage() {
               // Prompt panel
               <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-[9px] uppercase font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                  <span className="text-[9px] uppercase font-mono font-bold text-[#8E1616] bg-indigo-50 px-2 py-0.5 rounded">
                     Challenge Prompt
                   </span>
                   <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200">
@@ -259,7 +259,7 @@ export default function PracticePage() {
                         </span>
                       </div>
                       {c.passed ? (
-                        <span className="text-emerald-600 font-bold text-xs">✓ Done</span>
+                        <span className="text-[#8E1616] font-bold text-xs">✓ Done</span>
                       ) : (
                         <span className="text-slate-400 text-xs">Play →</span>
                       )}
@@ -312,7 +312,7 @@ export default function PracticePage() {
                   <button
                     onClick={handleSubmitCode}
                     disabled={executing}
-                    className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-sm rounded-xl font-bold text-xs"
+                    className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-sm rounded-xl font-bold text-xs"
                   >
                     Submit Challenge
                   </button>
@@ -328,7 +328,7 @@ export default function PracticePage() {
                   {testResults.map((tc, idx) => (
                     <div key={idx} className="flex justify-between items-center bg-slate-50 border border-slate-100 rounded-xl p-3">
                       <div className="flex items-center gap-3 text-xs">
-                        <span className={tc.passed ? "text-emerald-600 font-bold" : "text-red-500 font-bold"}>
+                        <span className={tc.passed ? "text-[#8E1616] font-bold" : "text-red-500 font-bold"}>
                           {tc.passed ? "✓" : "✗"}
                         </span>
                         <span className="font-bold text-slate-700">Test Case {idx + 1}</span>

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import type { PortfolioData } from '@/lib/portfolio';
 
 interface Props {
@@ -93,7 +93,7 @@ export const DeveloperPortfolio: React.FC<Props> = ({ portfolio }) => {
                       </a>
                     )}
                     {proj.demoLink && (
-                      <a href={proj.demoLink} target="_blank" rel="noreferrer" className="text-emerald-400 hover:underline">
+                      <a href={proj.demoLink} target="_blank" rel="noreferrer" className="text-[#8E1616] hover:underline">
                         Live Demo ↗
                       </a>
                     )}

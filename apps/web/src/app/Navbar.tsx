@@ -322,32 +322,32 @@ export default function Navbar() {
             <>
               <Link
                 href="/dashboard"
-                className={`transition-colors hover:text-[#10B981] ${
-                  isLinkActive("/dashboard") ? "text-[#10B981] font-black" : "text-base-content/70"
+                className={`transition-colors hover:text-[#8E1616] dark:hover:text-[#E8C999] ${
+                  isLinkActive("/dashboard") ? "text-[#8E1616] dark:text-[#E8C999] font-black" : "text-stone-800 dark:text-stone-200 font-bold"
                 }`}
               >
                 {locale === "en" ? "Dashboard" : "لوحة التحكم"}
               </Link>
               <Link
                 href="/roadmap"
-                className={`transition-colors hover:text-[#10B981] ${
-                  isLinkActive("/roadmap") ? "text-[#10B981] font-black" : "text-base-content/70"
+                className={`transition-colors hover:text-[#8E1616] dark:hover:text-[#E8C999] ${
+                  isLinkActive("/roadmap") ? "text-[#8E1616] dark:text-[#E8C999] font-black" : "text-stone-800 dark:text-stone-200 font-bold"
                 }`}
               >
                 {t("nav.roadmap")}
               </Link>
               <Link
                 href="/cv"
-                className={`transition-colors hover:text-[#10B981] ${
-                  isLinkActive("/cv") ? "text-[#10B981] font-black" : "text-base-content/70"
+                className={`transition-colors hover:text-[#8E1616] dark:hover:text-[#E8C999] ${
+                  isLinkActive("/cv") ? "text-[#8E1616] dark:text-[#E8C999] font-black" : "text-stone-800 dark:text-stone-200 font-bold"
                 }`}
               >
                 {t("nav.cv")}
               </Link>
               <Link
                 href="/community"
-                className={`transition-colors hover:text-[#10B981] ${
-                  isLinkActive("/community") ? "text-[#10B981] font-black" : "text-base-content/70"
+                className={`transition-colors hover:text-[#8E1616] dark:hover:text-[#E8C999] ${
+                  isLinkActive("/community") ? "text-[#8E1616] dark:text-[#E8C999] font-black" : "text-stone-800 dark:text-stone-200 font-bold"
                 }`}
               >
                 {locale === "en" ? "Community" : "المجتمع"}
@@ -360,40 +360,40 @@ export default function Navbar() {
             <>
               <Link
                 href="/company"
-                className={`transition-colors hover:text-[#10B981] ${
-                  isLinkActive("/company") ? "text-[#10B981] font-black" : "text-base-content/70"
+                className={`transition-colors hover:text-[#8E1616] dark:hover:text-[#E8C999] ${
+                  isLinkActive("/company") ? "text-[#8E1616] dark:text-[#E8C999] font-black" : "text-stone-800 dark:text-stone-200 font-bold"
                 }`}
               >
                 {locale === "en" ? "Overview" : "نظرة عامة"}
               </Link>
               <Link
                 href="/company/jobs"
-                className={`transition-colors hover:text-[#10B981] ${
-                  isLinkActive("/company/jobs") ? "text-[#10B981] font-black" : "text-base-content/70"
+                className={`transition-colors hover:text-[#8E1616] dark:hover:text-[#E8C999] ${
+                  isLinkActive("/company/jobs") ? "text-[#8E1616] dark:text-[#E8C999] font-black" : "text-stone-800 dark:text-stone-200 font-bold"
                 }`}
               >
                 {locale === "en" ? "Jobs" : "الوظائف"}
               </Link>
               <Link
                 href="/company/talent"
-                className={`transition-colors hover:text-[#10B981] ${
-                  isLinkActive("/company/talent") ? "text-[#10B981] font-black" : "text-base-content/70"
+                className={`transition-colors hover:text-[#8E1616] dark:hover:text-[#E8C999] ${
+                  isLinkActive("/company/talent") ? "text-[#8E1616] dark:text-[#E8C999] font-black" : "text-stone-800 dark:text-stone-200 font-bold"
                 }`}
               >
                 {t("nav.talentBoard")}
               </Link>
               <Link
                 href="/company/messages"
-                className={`transition-colors hover:text-[#10B981] ${
-                  isLinkActive("/company/messages") ? "text-[#10B981] font-black" : "text-base-content/70"
+                className={`transition-colors hover:text-[#8E1616] dark:hover:text-[#E8C999] ${
+                  isLinkActive("/company/messages") ? "text-[#8E1616] dark:text-[#E8C999] font-black" : "text-stone-800 dark:text-stone-200 font-bold"
                 }`}
               >
                 {locale === "en" ? "Messages" : "الرسائل"}
               </Link>
               <Link
                 href="/company/analytics"
-                className={`transition-colors hover:text-[#10B981] ${
-                  isLinkActive("/company/analytics") ? "text-[#10B981] font-black" : "text-base-content/70"
+                className={`transition-colors hover:text-[#8E1616] dark:hover:text-[#E8C999] ${
+                  isLinkActive("/company/analytics") ? "text-[#8E1616] dark:text-[#E8C999] font-black" : "text-stone-800 dark:text-stone-200 font-bold"
                 }`}
               >
                 {locale === "en" ? "Analytics" : "التحليلات"}
@@ -405,11 +405,11 @@ export default function Navbar() {
           <div className="dropdown dropdown-hover dropdown-bottom dropdown-end">
             <label
               tabIndex={0}
-              className="flex items-center gap-1.5 cursor-pointer transition-colors text-base-content/70 hover:text-[#10B981] font-bold py-1 px-1.5 rounded-lg"
+              className="flex items-center gap-1.5 cursor-pointer transition-colors text-stone-800 dark:text-stone-200 font-bold hover:text-[#8E1616] dark:hover:text-[#E8C999] font-bold py-1 px-1.5 rounded-lg"
             >
-              <Compass className="w-3.5 h-3.5 text-[#10B981]" />
+              <Compass className="w-3.5 h-3.5 text-[#8E1616] dark:text-[#E8C999]" />
               <span>{locale === "en" ? "Explore" : "استكشف"}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-base-content/50" />
+              <ChevronDown className="w-3.5 h-3.5 text-stone-800 dark:text-stone-200 font-bold" />
             </label>
             <ul
               tabIndex={0}
@@ -419,26 +419,26 @@ export default function Navbar() {
               {(isLearner || isAdmin) && (
                 <>
                   <li>
-                    <Link href="/mentors" className={`flex items-center gap-2.5 ${isLinkActive("/mentors") ? "text-[#10B981] font-bold" : ""}`}>
-                      <GraduationCap className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <Link href="/mentors" className={`flex items-center gap-2.5 ${isLinkActive("/mentors") ? "text-[#8E1616] dark:text-[#E8C999] font-bold" : ""}`}>
+                      <GraduationCap className="w-4 h-4 text-[#8E1616] shrink-0" />
                       <span>{locale === "en" ? "Mentors" : "الموجهين"}</span>
                     </Link>
                   </li>
                   <li>
-                    <Link href="/resources" className={`flex items-center gap-2.5 ${isLinkActive("/resources") ? "text-[#10B981] font-bold" : ""}`}>
-                      <BookOpen className="w-4 h-4 text-blue-500 shrink-0" />
+                    <Link href="/resources" className={`flex items-center gap-2.5 ${isLinkActive("/resources") ? "text-[#8E1616] dark:text-[#E8C999] font-bold" : ""}`}>
+                      <BookOpen className="w-4 h-4 text-[#D97706] shrink-0" />
                       <span>{locale === "en" ? "Resources" : "المراجع"}</span>
                     </Link>
                   </li>
                   <li>
-                    <Link href="/mock-interview" className={`flex items-center gap-2.5 ${isLinkActive("/mock-interview") ? "text-[#10B981] font-bold" : ""}`}>
+                    <Link href="/mock-interview" className={`flex items-center gap-2.5 ${isLinkActive("/mock-interview") ? "text-[#8E1616] dark:text-[#E8C999] font-bold" : ""}`}>
                       <Mic className="w-4 h-4 text-indigo-500 shrink-0" />
                       <span>{locale === "en" ? "Mock Interview" : "مقابلة تجريبية"}</span>
                     </Link>
                   </li>
                   <li>
-                    <Link href="/hiring" className={`flex items-center gap-2.5 ${isLinkActive("/hiring") ? "text-[#10B981] font-bold" : ""}`}>
-                      <Briefcase className="w-4 h-4 text-amber-500 shrink-0" />
+                    <Link href="/hiring" className={`flex items-center gap-2.5 ${isLinkActive("/hiring") ? "text-[#8E1616] dark:text-[#E8C999] font-bold" : ""}`}>
+                      <Briefcase className="w-4 h-4 text-[#8E1616] shrink-0" />
                       <span>{t("nav.jobsMatch")}</span>
                     </Link>
                   </li>
@@ -448,7 +448,7 @@ export default function Navbar() {
               {(isCompany || isAdmin) && (
                 <>
                   <li>
-                    <Link href="/company/profile" className={`flex items-center gap-2.5 ${isLinkActive("/company/profile") ? "text-[#10B981] font-bold" : ""}`}>
+                    <Link href="/company/profile" className={`flex items-center gap-2.5 ${isLinkActive("/company/profile") ? "text-[#8E1616] dark:text-[#E8C999] font-bold" : ""}`}>
                       <Building2 className="w-4 h-4 text-purple-500 shrink-0" />
                       <span>{locale === "en" ? "Company Profile" : "ملف الشركة"}</span>
                     </Link>
@@ -458,21 +458,21 @@ export default function Navbar() {
               {/* Admin */}
               {isAdmin && (
                 <li>
-                  <Link href="/admin" className={`flex items-center gap-2.5 ${isLinkActive("/admin") ? "text-[#10B981] font-bold" : ""}`}>
-                    <ShieldCheck className="w-4 h-4 text-red-500 shrink-0" />
+                  <Link href="/admin" className={`flex items-center gap-2.5 ${isLinkActive("/admin") ? "text-[#8E1616] dark:text-[#E8C999] font-bold" : ""}`}>
+                    <ShieldCheck className="w-4 h-4 text-[#8E1616] shrink-0" />
                     <span>{locale === "en" ? "Admin Panel" : "لوحة الإدارة"}</span>
                   </Link>
                 </li>
               )}
               <li className="border-t border-base-300 pt-1">
-                <Link href="/pricing" className={`flex items-center gap-2.5 ${isLinkActive("/pricing") ? "text-[#10B981] font-bold" : ""}`}>
-                  <Gem className="w-4 h-4 text-cyan-500 shrink-0" />
+                <Link href="/pricing" className={`flex items-center gap-2.5 ${isLinkActive("/pricing") ? "text-[#8E1616] dark:text-[#E8C999] font-bold" : ""}`}>
+                  <Gem className="w-4 h-4 text-[#8E1616] shrink-0" />
                   <span>{t("nav.pricing")}</span>
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className={`flex items-center gap-2.5 ${isLinkActive("/contact") ? "text-[#10B981] font-bold" : ""}`}>
-                  <Mail className="w-4 h-4 text-orange-500 shrink-0" />
+                <Link href="/contact" className={`flex items-center gap-2.5 ${isLinkActive("/contact") ? "text-[#8E1616] dark:text-[#E8C999] font-bold" : ""}`}>
+                  <Mail className="w-4 h-4 text-[#D97706] shrink-0" />
                   <span>{t("nav.contact")}</span>
                 </Link>
               </li>
@@ -485,7 +485,7 @@ export default function Navbar() {
           {/* Language Selector Button */}
           <button
             onClick={toggleLocale}
-            className="btn btn-ghost btn-xs text-base-content/85 font-black tracking-wide hover:bg-base-300 px-2 rounded-lg"
+            className="btn btn-ghost btn-xs text-stone-800 dark:text-stone-200 font-medium font-black tracking-wide hover:bg-base-300 px-2 rounded-lg"
             title={locale === "en" ? "Switch to Arabic" : "تغيير للإنجليزية"}
           >
             {locale === "en" ? "AR" : "EN"}
@@ -494,20 +494,20 @@ export default function Navbar() {
           {/* Theme Selector Toggle */}
           <button
             onClick={toggleTheme}
-            className="btn btn-ghost btn-circle btn-xs text-base-content/85 hover:bg-base-300"
+            className="btn btn-ghost btn-circle btn-xs text-stone-800 dark:text-stone-200 font-medium hover:bg-base-300"
             title={theme === "smartlight" ? "Dark Mode" : "Light Mode"}
           >
             {theme === "smartlight" ? (
               <Moon className="w-4 h-4 text-current" />
             ) : (
-              <Sun className="w-4 h-4 text-amber-400" />
+              <Sun className="w-4 h-4 text-amber-500" />
             )}
           </button>
 
           {/* Localized PWA App Installation Trigger */}
           <button
             onClick={handleInstallClick}
-            className="hidden xs:flex btn btn-ghost btn-circle btn-xs text-base-content/85 hover:bg-base-300 items-center justify-center relative group"
+            className="hidden xs:flex btn btn-ghost btn-circle btn-xs text-stone-800 dark:text-stone-200 font-medium hover:bg-base-300 items-center justify-center relative group"
             title={
               locale === "en"
                 ? `Download Standalone App (${os.toUpperCase()})`
@@ -521,7 +521,7 @@ export default function Navbar() {
             {os === "other" && <DownloadAppIcon />}
 
             {isInstallable && (
-              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
+              <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-[#8E1616] rounded-full animate-ping"></span>
             )}
           </button>
 
@@ -530,11 +530,11 @@ export default function Navbar() {
             <div className="hidden xs:block dropdown dropdown-end">
               <label
                 tabIndex={0}
-                className="btn btn-ghost btn-circle btn-xs text-base-content/85 hover:bg-base-300 flex items-center justify-center relative cursor-pointer"
+                className="btn btn-ghost btn-circle btn-xs text-stone-800 dark:text-stone-200 font-medium hover:bg-base-300 flex items-center justify-center relative cursor-pointer"
               >
                 <Bell className="w-4 h-4 text-current" />
                 {unreadNotificationsCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-[#8E1616] rounded-full animate-pulse"></span>
                 )}
               </label>
 
@@ -558,7 +558,7 @@ export default function Navbar() {
 
                 <div className="max-h-60 overflow-y-auto space-y-2">
                   {notifications.length === 0 ? (
-                    <p className="text-[10px] text-base-content/40 text-center py-6">
+                    <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium text-center py-6">
                       {locale === "en"
                         ? "No notifications yet."
                         : "لا توجد تنبيهات حالياً."}
@@ -580,10 +580,10 @@ export default function Navbar() {
                             <span className="w-1.5 h-1.5 bg-primary rounded-full shrink-0 mt-1"></span>
                           )}
                         </div>
-                        <p className="text-[10px] text-base-content/65 leading-normal">
+                        <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium leading-normal">
                           {locale === "en" ? n.contentEn : n.contentAr}
                         </p>
-                        <span className="text-[8px] text-base-content/30 block font-mono">
+                        <span className="text-[8px] text-stone-500 dark:text-stone-400 font-medium block font-mono">
                           {new Date(n.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -631,7 +631,7 @@ export default function Navbar() {
                 <span className="hidden sm:block max-w-[100px] truncate text-[11px] font-mono">
                   {user.email}
                 </span>
-                <ChevronDown className="w-3 h-3 text-base-content/50" />
+                <ChevronDown className="w-3 h-3 text-stone-700 dark:text-stone-300 font-medium" />
               </label>
               <ul
                 tabIndex={0}
@@ -656,7 +656,7 @@ export default function Navbar() {
                     <div className="font-black text-xs truncate p-0 leading-none text-base-content">
                       {user.name}
                     </div>
-                    <div className="text-[9px] text-base-content/50 truncate p-0 font-mono mt-1">
+                    <div className="text-[9px] text-stone-700 dark:text-stone-300 font-medium truncate p-0 font-mono mt-1">
                       {user.email}
                     </div>
                   </div>
@@ -665,7 +665,7 @@ export default function Navbar() {
                 {(isLearner || isAdmin) && (
                   <li>
                     <Link href="/dashboard" className="flex items-center gap-2">
-                      <LayoutDashboard className="w-4 h-4 text-indigo-500" />
+                      <LayoutDashboard className="w-4 h-4 text-[#8E1616]" />
                       <span>{t("nav.dashboard")}</span>
                     </Link>
                   </li>
@@ -673,7 +673,7 @@ export default function Navbar() {
                 {(isLearner || isAdmin) && (
                   <li>
                     <Link href="/roadmap" className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-emerald-500" />
+                      <MapPin className="w-4 h-4 text-[#8E1616]" />
                       <span>{t("nav.roadmap")}</span>
                     </Link>
                   </li>
@@ -681,7 +681,7 @@ export default function Navbar() {
                 {(isLearner || isAdmin) && (
                   <li>
                     <Link href="/cv" className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-blue-500" />
+                      <FileText className="w-4 h-4 text-[#D97706]" />
                       <span>{t("nav.cv")}</span>
                     </Link>
                   </li>
@@ -689,7 +689,7 @@ export default function Navbar() {
                 {(isLearner || isAdmin) && (
                   <li>
                     <Link href="/hiring" className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-amber-500" />
+                      <Briefcase className="w-4 h-4 text-[#8E1616]" />
                       <span>{t("nav.jobsMatch")}</span>
                     </Link>
                   </li>
@@ -706,7 +706,7 @@ export default function Navbar() {
                 {(isCompany || isAdmin) && (
                   <li>
                     <Link href="/company" className="flex items-center gap-2">
-                      <LayoutDashboard className="w-4 h-4 text-emerald-500" />
+                      <LayoutDashboard className="w-4 h-4 text-[#8E1616]" />
                       <span>{locale === "en" ? "Company Overview" : "نظرة عامة"}</span>
                     </Link>
                   </li>
@@ -714,7 +714,7 @@ export default function Navbar() {
                 {(isCompany || isAdmin) && (
                   <li>
                     <Link href="/company/talent" className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-purple-500" />
+                      <Building2 className="w-4 h-4 text-[#8E1616]" />
                       <span>{t("nav.talentBoard")}</span>
                     </Link>
                   </li>
@@ -722,7 +722,7 @@ export default function Navbar() {
                 {(isCompany || isAdmin) && (
                   <li>
                     <Link href="/company/analytics" className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-cyan-500" />
+                      <TrendingUp className="w-4 h-4 text-[#D97706]" />
                       <span>{locale === "en" ? "Analytics" : "التحليلات"}</span>
                     </Link>
                   </li>
@@ -756,13 +756,13 @@ export default function Navbar() {
             <>
               <Link
                 href="/auth/login"
-                className="hidden sm:inline text-xs font-bold text-base-content/75 hover:text-[#10B981] transition-colors"
+                className="hidden sm:inline text-xs font-bold text-stone-700 dark:text-stone-300 font-medium hover:text-[#8E1616] dark:hover:text-[#E8C999] transition-colors"
               >
                 {t("nav.login")}
               </Link>
               <Link
                 href="/auth/register"
-                className="btn btn-xs rounded-full bg-[#10B981] hover:bg-[#059669] text-white border-none px-3 sm:px-4 font-bold text-xs shadow-sm transition-all"
+                className="btn btn-xs rounded-full bg-[#8E1616] hover:bg-[#701111] text-white border-none px-3 sm:px-4 font-bold text-xs shadow-sm transition-all"
               >
                 {t("nav.signup")}
               </Link>
@@ -793,7 +793,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`block text-sm font-bold transition-all ${isLinkActive(link.href) ? "text-[#10B981]" : "text-base-content/75"}`}
+                className={`block text-sm font-bold transition-all ${isLinkActive(link.href) ? "text-[#8E1616] dark:text-[#E8C999]" : "text-stone-700 dark:text-stone-300 font-medium"}`}
               >
                 {link.label}
               </Link>
@@ -801,7 +801,7 @@ export default function Navbar() {
           {!user && (
             <Link
               href="/auth/login"
-              className="block text-sm font-bold text-base-content/75 pt-2 border-t border-base-300"
+              className="block text-sm font-bold text-stone-700 dark:text-stone-300 font-medium pt-2 border-t border-base-300"
             >
               {t("nav.login")}
             </Link>
@@ -814,7 +814,7 @@ export default function Navbar() {
           <div className="card w-full max-w-sm bg-base-200 border border-base-300 text-base-content p-6 rounded-2xl shadow-2xl relative text-start animate-in fade-in zoom-in-95 duration-200">
             <button
               onClick={() => setShowModal(false)}
-              className="absolute top-3 right-3 btn btn-circle btn-xs btn-ghost text-base-content/60"
+              className="absolute top-3 right-3 btn btn-circle btn-xs btn-ghost text-stone-700 dark:text-stone-300 font-medium"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -842,13 +842,13 @@ export default function Navbar() {
                       ? "Install Standalone App"
                       : "تثبيت التطبيق المستقل"}
                   </h3>
-                  <span className="text-[10px] text-base-content/40 font-bold uppercase font-mono mt-0.5 block">
+                  <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium font-bold uppercase font-mono mt-0.5 block">
                     {os.toUpperCase()} OS DETECTED
                   </span>
                 </div>
               </div>
 
-              <div className="text-xs leading-relaxed space-y-2.5 font-medium text-base-content/80">
+              <div className="text-xs leading-relaxed space-y-2.5 font-medium text-stone-800 dark:text-stone-200 font-medium">
                 {os === "windows" && (
                   <p>
                     {locale === "en"
@@ -905,7 +905,7 @@ export default function Navbar() {
               <div className="pt-2 flex justify-end">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="btn bg-primary hover:bg-[#059669] text-white btn-xs sm:btn-sm rounded-lg font-bold border-none px-5"
+                  className="btn bg-primary hover:bg-[#8E1616] text-white btn-xs sm:btn-sm rounded-lg font-bold border-none px-5"
                 >
                   {locale === "en" ? "Got it" : "حسناً، فهمت"}
                 </button>

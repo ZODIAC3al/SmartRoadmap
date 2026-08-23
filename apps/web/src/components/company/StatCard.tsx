@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 
@@ -15,7 +15,7 @@ export function StatCard({ label, value, trend, icon }: StatCardProps) {
   return (
     <div className="p-4 rounded-xl bg-base-100 border border-base-300 shadow-xs flex flex-col justify-between">
       <div className="flex justify-between items-start">
-        <span className="text-xs text-base-content/60 font-medium">{label}</span>
+        <span className="text-xs text-stone-700 dark:text-stone-300 font-medium font-medium">{label}</span>
         {icon && (
           <span className="p-2 rounded-lg bg-primary/10 text-primary text-sm">
             {icon}

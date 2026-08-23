@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch, getToken } from "@/lib/api";
 import { Trophy, Star, Shield, Lock, CheckCircle2, Zap } from "lucide-react";
+import AchievementCelebrationVisual from "@/components/illustrations/AchievementCelebrationVisual";
+import EmptyStateIllustration from "@/components/illustrations/EmptyStateIllustration";
 
 interface Achievement {
   key: string;
@@ -154,13 +156,24 @@ export default function AchievementsPage() {
                 <Trophy className="w-6 h-6 text-yellow-400" />
                 {tr("title")}
               </h1>
-              <p className="text-xs text-base-content/50 mt-0.5">{tr("subtitle")}</p>
+              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-0.5">{tr("subtitle")}</p>
+            </div>
+
+            {/* Achievement celebration visual — shown at top right */}
+            <div className="hidden lg:block flex-shrink-0">
+              <AchievementCelebrationVisual
+                title="Keep Going!"
+                badgeName={progress ? `${progress.unlocked} of ${progress.total} Unlocked` : "Earn Your First Badge"}
+                tier={progress && progress.unlocked > 5 ? "gold" : progress && progress.unlocked > 2 ? "silver" : "bronze"}
+                xpEarned={progress ? progress.unlocked * 50 : 0}
+                className="scale-90 origin-right"
+              />
             </div>
 
             {progress && (
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-xs text-base-content/50">{tr("progress")}</p>
+                  <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">{tr("progress")}</p>
                   <p className="text-sm font-black text-base-content">
                     {progress.unlocked} {tr("of")} {progress.total}
                   </p>
@@ -194,7 +207,7 @@ export default function AchievementsPage() {
               <div key={tier.label} className="flex items-center gap-1.5 bg-base-200 rounded-xl px-3 py-1.5">
                 <Star className={`w-3.5 h-3.5 ${tier.color}`} />
                 <span className={`text-xs font-bold ${tier.color}`}>{tier.label}</span>
-                <span className="text-xs text-base-content/40">{tier.count}/{tier.total}</span>
+                <span className="text-xs text-stone-600 dark:text-stone-400 font-medium">{tier.count}/{tier.total}</span>
               </div>
             ))}
           </div>
@@ -211,7 +224,7 @@ export default function AchievementsPage() {
               className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                 filter === f
                   ? "bg-primary text-primary-content"
-                  : "bg-base-200 text-base-content/60 hover:bg-base-300"
+                  : "bg-base-200 text-stone-700 dark:text-stone-300 font-medium hover:bg-base-300"
               }`}
             >
               {f === "all" ? tr("all") : f === "unlocked" ? tr("unlocked") : tr("locked")}
@@ -228,7 +241,7 @@ export default function AchievementsPage() {
                   : t === "silver" ? "bg-slate-400/20 text-slate-300 ring-1 ring-slate-400/40"
                   : t === "bronze" ? "bg-amber-700/20 text-amber-400 ring-1 ring-amber-700/40"
                   : "bg-primary text-primary-content"
-                  : "bg-base-200 text-base-content/60 hover:bg-base-300"
+                  : "bg-base-200 text-stone-700 dark:text-stone-300 font-medium hover:bg-base-300"
               }`}
             >
               {t}
@@ -238,9 +251,12 @@ export default function AchievementsPage() {
 
         {/* Achievement grid */}
         {filtered.length === 0 ? (
-          <div className="text-center py-20 text-base-content/40">
-            <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="font-semibold">No achievements in this category yet</p>
+          <div className="flex flex-col items-center justify-center py-16">
+            <EmptyStateIllustration
+              type="no-achievements"
+              title="No Achievements Yet"
+              description="Complete modules and pass assessments to unlock badges and level up your career tier."
+            />
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -269,14 +285,14 @@ export default function AchievementsPage() {
                   </div>
 
                   <h3 className="font-bold text-sm text-base-content mb-1">{ach.title}</h3>
-                  <p className="text-xs text-base-content/50 leading-relaxed">{ach.description}</p>
+                  <p className="text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed">{ach.description}</p>
 
                   {/* Status */}
                   <div className="mt-3 flex items-center gap-1.5">
                     {ach.unlocked ? (
                       <>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span className="text-[10px] text-emerald-400 font-semibold">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#8E1616]" />
+                        <span className="text-[10px] text-[#8E1616] font-semibold">
                           {ach.unlockedAt
                             ? `Unlocked ${new Date(ach.unlockedAt).toLocaleDateString()}`
                             : "Unlocked"}
@@ -284,8 +300,8 @@ export default function AchievementsPage() {
                       </>
                     ) : (
                       <>
-                        <Lock className="w-3.5 h-3.5 text-base-content/30" />
-                        <span className="text-[10px] text-base-content/30 font-semibold">Locked</span>
+                        <Lock className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 font-medium" />
+                        <span className="text-[10px] text-stone-500 dark:text-stone-400 font-medium font-semibold">Locked</span>
                       </>
                     )}
                   </div>

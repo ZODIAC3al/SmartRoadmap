@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -55,13 +55,13 @@ export function CandidateDrawer({
                 <h2 className="text-lg font-bold text-base-content">
                   {candidate.name}
                 </h2>
-                <span className="text-xs text-base-content/60">
+                <span className="text-xs text-stone-700 dark:text-stone-300 font-medium">
                   Stage: <strong className="uppercase text-primary font-mono">{candidate.stage}</strong>
                 </span>
               </div>
               <button
                 onClick={onClose}
-                className="btn btn-sm btn-ghost btn-circle text-base-content/60"
+                className="btn btn-sm btn-ghost btn-circle text-stone-700 dark:text-stone-300 font-medium"
               >
                 ✕
               </button>
@@ -70,13 +70,13 @@ export function CandidateDrawer({
             {/* Candidate Highlights */}
             <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-base-200/60 border border-base-300 text-xs">
               <div>
-                <span className="text-base-content/60">AI Match Score</span>
+                <span className="text-stone-700 dark:text-stone-300 font-medium">AI Match Score</span>
                 <p className="font-mono font-bold text-success text-base">
                   {candidate.matchScore}%
                 </p>
               </div>
               <div>
-                <span className="text-base-content/60">Verified Skills</span>
+                <span className="text-stone-700 dark:text-stone-300 font-medium">Verified Skills</span>
                 <p className="font-mono font-bold text-base-content text-base">
                   {candidate.verifiedSkillsCount} Certs
                 </p>
@@ -103,7 +103,7 @@ export function CandidateDrawer({
                     key={n.id}
                     className="p-3 rounded-lg bg-base-200/60 border border-base-300 text-xs flex flex-col gap-1"
                   >
-                    <div className="flex justify-between items-center text-[10px] text-base-content/50">
+                    <div className="flex justify-between items-center text-[10px] text-stone-700 dark:text-stone-300 font-medium">
                       <span className="font-semibold text-base-content">{n.author}</span>
                       <span>{n.time}</span>
                     </div>

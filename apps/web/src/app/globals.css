@@ -2,11 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* globals.css — extend DaisyUI base */
+/* globals.css — extend DaisyUI base with SmartRoadmap Design Language */
 :root {
   --font-display: 'Cal Sans', 'Inter', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --brand-beige: #F8EEDF;
+  --brand-sand: #E8C999;
+  --brand-red: #8E1616;
+  --brand-dark-1: #121212;
+  --brand-dark-2: #151515;
+  --brand-dark-3: #1A1A1A;
+  --brand-dark-4: #222222;
 }
 
 /* Type scale */
@@ -49,7 +56,87 @@
   letter-spacing: 0.05em;
 }
 
-/* Custom premium animated background styles */
+/* Animated Road Dash & Flow */
+@keyframes roadDash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -40;
+  }
+}
+
+.animate-road-dash {
+  stroke-dasharray: 8, 12;
+  animation: roadDash 2s linear infinite;
+}
+
+/* Pin Float & Pulsing Animation */
+@keyframes pinPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(142, 22, 22, 0.4);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 10px rgba(142, 22, 22, 0);
+  }
+}
+
+.animate-pin-pulse {
+  animation: pinPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pinFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-pin-float {
+  animation: pinFloat 3s ease-in-out infinite;
+}
+
+/* Character Walking/Bobbing Animation */
+@keyframes characterWalk {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(1deg);
+  }
+  50% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-3px) rotate(-1deg);
+  }
+}
+
+.animate-character-walk {
+  animation: characterWalk 1.8s ease-in-out infinite;
+}
+
+/* Trophy Sparkle & Glow */
+@keyframes trophyGlow {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 10px rgba(232, 201, 153, 0.5));
+  }
+  50% {
+    transform: scale(1.06) rotate(2deg);
+    filter: drop-shadow(0 0 20px rgba(232, 201, 153, 0.9));
+  }
+}
+
+.animate-trophy-glow {
+  animation: trophyGlow 3s ease-in-out infinite;
+}
+
+/* Ambient Blobs in Warm Palette */
 @keyframes blob {
   0% {
     transform: translate(0px, 0px) scale(1);
@@ -77,36 +164,82 @@
   animation-delay: 5s;
 }
 
-/* Custom premium scrollbar for dashboards */
+/* Custom premium scrollbar in warm tones */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--fallback-bc,oklch(var(--bc)/0.2));
+  background: rgba(232, 201, 153, 0.4);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--fallback-bc,oklch(var(--bc)/0.35));
+  background: rgba(142, 22, 22, 0.6);
 }
 
-/* Custom react-toastify theme overrides */
+/* Custom react-toastify theme in warm beige and deep red */
 .Toastify__toast {
-  border-radius: 12px;
+  border-radius: 14px;
   font-family: 'Inter', sans-serif;
-  border: 1px solid #E4E7EC;
-  box-shadow: 0 8px 24px rgba(24, 27, 35, 0.12);
-  color: #181B23;
-  background: #FFFFFF;
+  border: 1px solid #E8C999;
+  box-shadow: 0 10px 30px rgba(35, 24, 21, 0.12);
+  color: #231815;
+  background: #FAF3EA;
 }
-.Toastify__toast--success { border-left: 4px solid #0F9D6F; }
-.Toastify__toast--error    { border-left: 4px solid #DC2626; }
-.Toastify__toast--warning  { border-left: 4px solid #D97706; }
-.Toastify__toast--info     { border-left: 4px solid #4F46E5; }
-.Toastify__progress-bar    { background: #4F46E5; }
+[data-theme="smartdark"] .Toastify__toast {
+  background: #1A1A1A;
+  border-color: #2E2822;
+  color: #F5EBE1;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.Toastify__toast--success { border-left: 5px solid #16A34A; }
+.Toastify__toast--error    { border-left: 5px solid #8E1616; }
+.Toastify__toast--warning  { border-left: 5px solid #D97706; }
+.Toastify__toast--info     { border-left: 5px solid #8E1616; }
+.Toastify__progress-bar    { background: #8E1616; }
+
+/* Interactive Card & Button Micro-Interactions */
+.sr-interactive-card {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
+}
+.sr-interactive-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px -8px rgba(142, 22, 22, 0.12), 0 8px 12px -6px rgba(232, 201, 153, 0.15);
+}
+[data-theme="smartdark"] .sr-interactive-card:hover {
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.6), 0 0 15px rgba(232, 201, 153, 0.08);
+}
+
+.sr-btn-primary {
+  background-color: #8E1616;
+  color: #FFFFFF;
+  border: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sr-btn-primary:hover {
+  background-color: #701111;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(142, 22, 22, 0.35);
+}
+
+/* Reduced Motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-road-dash,
+  .animate-pin-pulse,
+  .animate-pin-float,
+  .animate-character-walk,
+  .animate-trophy-glow,
+  .animate-blob {
+    animation: none !important;
+    transform: none !important;
+  }
+  .sr-interactive-card:hover {
+    transform: none !important;
+  }
+}
 
 /* Invisible scrollbar — scroll still works, bar is hidden */
 .no-scrollbar {
@@ -349,3 +482,261 @@
     }
   }
 }
+
+/* ============================================================
+   SMARTROADMAP — CENTRALIZED THEME SYSTEM & CONTRAST ENGINE
+   ============================================================ */
+
+:root {
+  --background: #F8EEDF;
+  --foreground: #111827;
+  --heading: #111827;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #4B5563;
+  --card-bg: #FAF3EA;
+  --card-foreground: #111827;
+  --card-border: #E8C999;
+  --border: #E8C999;
+  --accent: #8E1616;
+  --destructive: #EF4444;
+}
+
+/* ── LIGHT MODE ─────────────────────────────────────────────── */
+[data-theme="smartlight"] {
+  color-scheme: light;
+  --background: #F8EEDF;
+  --foreground: #111827;
+  --heading: #111827;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #4B5563;
+  --card-bg: #FAF3EA;
+  --card-foreground: #111827;
+  --card-border: #E8C999;
+  --border: #E8C999;
+  --accent: #8E1616;
+  --destructive: #EF4444;
+  --tw-text-opacity: 1;
+}
+
+/* Universal Typography High-Contrast in Light Mode */
+[data-theme="smartlight"] h1,
+[data-theme="smartlight"] h2,
+[data-theme="smartlight"] h3,
+[data-theme="smartlight"] h4,
+[data-theme="smartlight"] h5,
+[data-theme="smartlight"] h6 {
+  color: #111827;
+}
+
+[data-theme="smartlight"] p,
+[data-theme="smartlight"] li,
+[data-theme="smartlight"] label {
+  color: #1F2937;
+}
+
+/* Target all opacity modifier text classes generated by DaisyUI and Tailwind */
+[data-theme="smartlight"] [class*="text-base-content/1"],
+[data-theme="smartlight"] [class*="text-base-content/2"],
+[data-theme="smartlight"] [class*="text-base-content/3"] {
+  color: #4B5563 !important; /* stone-600 / gray-600 */
+}
+
+[data-theme="smartlight"] [class*="text-base-content/4"],
+[data-theme="smartlight"] [class*="text-base-content/5"] {
+  color: #374151 !important; /* stone-700 / gray-700 */
+}
+
+[data-theme="smartlight"] [class*="text-base-content/6"],
+[data-theme="smartlight"] [class*="text-base-content/7"] {
+  color: #1F2937 !important; /* stone-800 / gray-800 */
+}
+
+[data-theme="smartlight"] [class*="text-base-content/8"],
+[data-theme="smartlight"] [class*="text-base-content/9"] {
+  color: #111827 !important; /* stone-900 / near-black */
+}
+
+/* Neutral-content opacity variants in light mode */
+[data-theme="smartlight"] [class*="text-neutral-content/1"],
+[data-theme="smartlight"] [class*="text-neutral-content/2"],
+[data-theme="smartlight"] [class*="text-neutral-content/3"] {
+  color: #4B5563 !important;
+}
+[data-theme="smartlight"] [class*="text-neutral-content/4"],
+[data-theme="smartlight"] [class*="text-neutral-content/5"] {
+  color: #374151 !important;
+}
+[data-theme="smartlight"] [class*="text-neutral-content/6"],
+[data-theme="smartlight"] [class*="text-neutral-content/7"],
+[data-theme="smartlight"] [class*="text-neutral-content/8"],
+[data-theme="smartlight"] [class*="text-neutral-content/9"] {
+  color: #1F2937 !important;
+}
+
+/* Override light/faded utility classes when rendered in light mode */
+[data-theme="smartlight"] .text-stone-300,
+[data-theme="smartlight"] .text-stone-400,
+[data-theme="smartlight"] .text-gray-300,
+[data-theme="smartlight"] .text-gray-400,
+[data-theme="smartlight"] .text-slate-300,
+[data-theme="smartlight"] .text-slate-400,
+[data-theme="smartlight"] .text-zinc-300,
+[data-theme="smartlight"] .text-zinc-400 {
+  color: #4B5563 !important;
+}
+
+[data-theme="smartlight"] .text-stone-500,
+[data-theme="smartlight"] .text-stone-600,
+[data-theme="smartlight"] .text-gray-500,
+[data-theme="smartlight"] .text-gray-600,
+[data-theme="smartlight"] .text-slate-500,
+[data-theme="smartlight"] .text-slate-600 {
+  color: #374151 !important;
+}
+
+[data-theme="smartlight"] .text-stone-700,
+[data-theme="smartlight"] .text-stone-800,
+[data-theme="smartlight"] .text-gray-700,
+[data-theme="smartlight"] .text-gray-800 {
+  color: #1F2937 !important;
+}
+
+/* Form inputs, textareas, selects in light mode */
+[data-theme="smartlight"] input,
+[data-theme="smartlight"] textarea,
+[data-theme="smartlight"] select {
+  color: #111827 !important;
+  background-color: #FAF3EA;
+}
+
+[data-theme="smartlight"] input::placeholder,
+[data-theme="smartlight"] textarea::placeholder {
+  color: #6B7280 !important;
+  opacity: 1 !important;
+}
+
+[data-theme="smartlight"] .input,
+[data-theme="smartlight"] .textarea,
+[data-theme="smartlight"] .select {
+  border-color: #D6B480;
+  color: #111827;
+}
+
+[data-theme="smartlight"] .input:focus,
+[data-theme="smartlight"] .textarea:focus,
+[data-theme="smartlight"] .select:focus {
+  border-color: #8E1616 !important;
+  outline-color: #8E1616 !important;
+}
+
+/* Cards and badges */
+[data-theme="smartlight"] .card,
+[data-theme="smartlight"] .badge {
+  color: #111827;
+}
+
+/* Tables */
+[data-theme="smartlight"] td,
+[data-theme="smartlight"] th {
+  color: #111827 !important;
+}
+
+/* Stats */
+[data-theme="smartlight"] .stat-value,
+[data-theme="smartlight"] .stat-desc,
+[data-theme="smartlight"] .stat-title {
+  color: #111827;
+}
+[data-theme="smartlight"] .stat-desc {
+  color: #374151;
+}
+
+/* Labels */
+[data-theme="smartlight"] label,
+[data-theme="smartlight"] .label-text,
+[data-theme="smartlight"] .label-text-alt {
+  color: #1F2937 !important;
+}
+
+/* Menu items */
+[data-theme="smartlight"] .menu li > *,
+[data-theme="smartlight"] .menu li > a {
+  color: #1F2937;
+}
+
+/* Modals & drawers */
+[data-theme="smartlight"] .modal-box,
+[data-theme="smartlight"] .drawer-side {
+  color: #111827;
+  background-color: #FAF3EA;
+}
+
+/* ── DARK MODE ──────────────────────────────────────────────── */
+[data-theme="smartdark"],
+.dark {
+  color-scheme: dark;
+  --background: #121212;
+  --foreground: #F5EBE1;
+  --heading: #FFFFFF;
+  --text-primary: #F5EBE1;
+  --text-secondary: #D1D5DB;
+  --text-muted: #9CA3AF;
+  --card-bg: #151515;
+  --card-foreground: #F5EBE1;
+  --card-border: #2E2822;
+  --border: #1F1F1F;
+  --accent: #8E1616;
+  --destructive: #EF4444;
+}
+
+/* Dark mode opacity overrides */
+[data-theme="smartdark"] [class*="text-base-content/2"],
+[data-theme="smartdark"] [class*="text-base-content/3"],
+.dark [class*="text-base-content/2"],
+.dark [class*="text-base-content/3"] {
+  color: #9CA3AF !important;
+}
+
+[data-theme="smartdark"] [class*="text-base-content/4"],
+[data-theme="smartdark"] [class*="text-base-content/5"],
+.dark [class*="text-base-content/4"],
+.dark [class*="text-base-content/5"] {
+  color: #D1D5DB !important;
+}
+
+[data-theme="smartdark"] [class*="text-base-content/6"],
+[data-theme="smartdark"] [class*="text-base-content/7"],
+.dark [class*="text-base-content/6"],
+.dark [class*="text-base-content/7"] {
+  color: #E5E7EB !important;
+}
+
+[data-theme="smartdark"] [class*="text-base-content/8"],
+[data-theme="smartdark"] [class*="text-base-content/9"],
+.dark [class*="text-base-content/8"],
+.dark [class*="text-base-content/9"] {
+  color: #F5EBE1 !important;
+}
+
+/* Inputs / placeholders in dark mode */
+[data-theme="smartdark"] input,
+[data-theme="smartdark"] textarea,
+[data-theme="smartdark"] select,
+.dark input,
+.dark textarea,
+.dark select {
+  color: #F5EBE1 !important;
+  background-color: #151515;
+}
+
+[data-theme="smartdark"] input::placeholder,
+[data-theme="smartdark"] textarea::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9CA3AF !important;
+  opacity: 1 !important;
+}
+
+

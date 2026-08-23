@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,7 +69,7 @@ export default function VoiceTutorModal({
         {/* Top Header */}
         <div className="flex justify-between items-center pb-2 border-b border-base-300">
           <div>
-            <span className="text-[9px] uppercase font-mono font-bold text-indigo-650 bg-indigo-600/10 px-2 py-0.5 rounded">
+            <span className="text-[9px] uppercase font-mono font-bold text-indigo-650 bg-[#8E1616]/10 px-2 py-0.5 rounded">
               AssemblyAI Voice Agent
             </span>
             <h3 className="font-extrabold text-sm text-base-content mt-1.5">
@@ -78,7 +78,7 @@ export default function VoiceTutorModal({
           </div>
           <button
             onClick={handleClose}
-            className="btn btn-ghost btn-circle btn-xs text-base-content/40 hover:text-base-content"
+            className="btn btn-ghost btn-circle btn-xs text-stone-600 dark:text-stone-400 font-medium hover:text-base-content"
           >
             <X className="w-4 h-4" />
           </button>
@@ -89,7 +89,7 @@ export default function VoiceTutorModal({
           <div className="space-y-6">
             <div className="space-y-1">
               <h4 className="font-bold text-xs text-base-content">Select Tutor Behavior</h4>
-              <p className="text-[10px] text-base-content/50">
+              <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium">
                 Choose how the AI tutor should interact with you during this audio session.
               </p>
             </div>
@@ -106,7 +106,7 @@ export default function VoiceTutorModal({
                   id: "quiz" as const,
                   title: "Quiz Me! 🧠",
                   desc: "Starts immediate oral quiz based on module topics & cheatsheet.",
-                  icon: <BrainCircuit className="w-5 h-5 text-emerald-500" />,
+                  icon: <BrainCircuit className="w-5 h-5 text-[#8E1616]" />,
                 },
                 {
                   id: "assistant" as const,
@@ -120,7 +120,7 @@ export default function VoiceTutorModal({
                   onClick={() => setMode(m.id)}
                   className={`border p-4 rounded-2xl flex flex-col items-center text-center space-y-2.5 transition-all ${
                     mode === m.id
-                      ? "border-indigo-600 bg-indigo-600/5 shadow-md"
+                      ? "border-[#8E1616] bg-[#8E1616]/5 shadow-md"
                       : "border-base-300 bg-base-100 hover:bg-base-200"
                   }`}
                 >
@@ -129,7 +129,7 @@ export default function VoiceTutorModal({
                   </div>
                   <div className="space-y-0.5">
                     <h5 className="font-bold text-xs text-base-content">{m.title}</h5>
-                    <p className="text-[9px] text-base-content/50 leading-snug">{m.desc}</p>
+                    <p className="text-[9px] text-stone-700 dark:text-stone-300 font-medium leading-snug">{m.desc}</p>
                   </div>
                 </button>
               ))}
@@ -137,7 +137,7 @@ export default function VoiceTutorModal({
 
             <button
               onClick={handleStart}
-              className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-block rounded-xl font-bold h-12 flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/10"
+              className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-block rounded-xl font-bold h-12 flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/10"
             >
               <Play className="w-4 h-4 fill-white" />
               Start Audio Session
@@ -157,7 +157,7 @@ export default function VoiceTutorModal({
                       exit={{ opacity: 0 }}
                       transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
                       className={`absolute w-20 h-20 rounded-full ${
-                        status === "talking" ? "bg-indigo-600/30" : "bg-emerald-500/30"
+                        status === "talking" ? "bg-[#8E1616]/30" : "bg-[#8E1616]/30"
                       }`}
                     />
                   )}
@@ -166,10 +166,10 @@ export default function VoiceTutorModal({
                 <div
                   className={`w-16 h-16 rounded-full flex items-center justify-center border-2 shadow-lg relative z-10 transition-all duration-300 ${
                     status === "talking"
-                      ? "border-indigo-600 bg-indigo-600/10 text-indigo-600"
+                      ? "border-[#8E1616] bg-[#8E1616]/10 text-[#8E1616]"
                       : status === "listening"
-                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-500"
-                      : "border-base-350 bg-base-100 text-base-content/40"
+                      ? "border-[#8E1616]/20 bg-[#8E1616]/10 text-[#8E1616]"
+                      : "border-base-350 bg-base-100 text-stone-600 dark:text-stone-400 font-medium"
                   }`}
                 >
                   {status === "talking" ? (
@@ -183,7 +183,7 @@ export default function VoiceTutorModal({
               </div>
 
               <div className="text-center">
-                <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-base-content/40">
+                <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-stone-600 dark:text-stone-400 font-medium">
                   {status === "connecting"
                     ? "Establishing connection..."
                     : status === "ready"
@@ -213,8 +213,8 @@ export default function VoiceTutorModal({
               {/* Agent Bubble */}
               {agentTranscript && (
                 <div className="space-y-1">
-                  <span className="text-[9px] uppercase font-bold text-indigo-600">AI Tutor</span>
-                  <div className="bg-indigo-600/5 border border-indigo-600/15 p-3 rounded-xl text-xs font-semibold text-base-content leading-relaxed">
+                  <span className="text-[9px] uppercase font-bold text-[#8E1616]">AI Tutor</span>
+                  <div className="bg-[#8E1616]/5 border border-[#8E1616]/15 p-3 rounded-xl text-xs font-semibold text-base-content leading-relaxed">
                     {agentTranscript}
                   </div>
                 </div>
@@ -223,15 +223,15 @@ export default function VoiceTutorModal({
               {/* User Bubble */}
               {userTranscript && (
                 <div className="space-y-1 text-right">
-                  <span className="text-[9px] uppercase font-bold text-emerald-500">You (Speaking)</span>
-                  <div className="bg-emerald-500/5 border border-emerald-500/15 p-3 rounded-xl text-xs font-semibold text-base-content leading-relaxed text-right inline-block max-w-sm">
+                  <span className="text-[9px] uppercase font-bold text-[#8E1616]">You (Speaking)</span>
+                  <div className="bg-[#8E1616]/5 border border-[#8E1616]/20/15 p-3 rounded-xl text-xs font-semibold text-base-content leading-relaxed text-right inline-block max-w-sm">
                     {userTranscript}
                   </div>
                 </div>
               )}
 
               {!agentTranscript && !userTranscript && (
-                <div className="text-center py-6 text-[10px] text-base-content/40 italic">
+                <div className="text-center py-6 text-[10px] text-stone-600 dark:text-stone-400 font-medium italic">
                   Say &quot;Hello&quot; or ask a question to begin the tutoring session.
                 </div>
               )}

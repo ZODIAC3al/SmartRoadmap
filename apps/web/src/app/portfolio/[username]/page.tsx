@@ -38,7 +38,7 @@ export default async function PublicPortfolioPage({
         </p>
         <Link
           href="/"
-          className="btn bg-primary hover:bg-[#059669] text-white btn-sm rounded-xl font-bold border-none"
+          className="btn bg-primary hover:bg-[#6E1010] text-white btn-sm rounded-xl font-bold border-none"
         >
           Return to Home
         </Link>

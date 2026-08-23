@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 
@@ -18,7 +18,7 @@ export function UsageBar({ label, current, limit }: UsageBarProps) {
 
   return (
     <div className="flex flex-col gap-1.5 w-full">
-      <div className="flex justify-between items-center text-xs font-medium text-base-content/80">
+      <div className="flex justify-between items-center text-xs font-medium text-stone-800 dark:text-stone-200 font-medium">
         <span>{label}</span>
         <span>
           {current} {isUnlimited ? '/ ∞ (Unlimited)' : `/ ${limit}`}

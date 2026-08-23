@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { formatBytes } from "@/lib/useApiProgress";
 
@@ -33,10 +33,10 @@ export default function LoadingProgress({
   return (
     <div className={`w-full ${className}`} role="status" aria-live="polite">
       <div className="flex items-center justify-between mb-1.5 text-xs">
-        <span className="font-semibold text-base-content/70">
+        <span className="font-semibold text-stone-700 dark:text-stone-300 font-medium">
           {label ?? "Loading…"}
         </span>
-        <span className="font-mono text-base-content/50 tabular-nums">
+        <span className="font-mono text-stone-700 dark:text-stone-300 font-medium tabular-nums">
           {isIndeterminate
             ? showBytes && loaded
               ? formatBytes(loaded)
@@ -54,17 +54,17 @@ export default function LoadingProgress({
         aria-label={label ?? "Loading"}
       >
         {isIndeterminate ? (
-          <div className="h-full w-1/3 animate-[loading-slide_1.2s_ease-in-out_infinite] rounded-full bg-indigo-600" />
+          <div className="h-full w-1/3 animate-[loading-slide_1.2s_ease-in-out_infinite] rounded-full bg-[#8E1616]" />
         ) : (
           <div
-            className="h-full rounded-full bg-indigo-600 transition-[width] duration-200 ease-out"
+            className="h-full rounded-full bg-[#8E1616] transition-[width] duration-200 ease-out"
             style={{ width: `${value}%` }}
           />
         )}
       </div>
 
       {showBytes && !isIndeterminate && total ? (
-        <p className="mt-1 text-[10px] font-mono text-base-content/40 tabular-nums">
+        <p className="mt-1 text-[10px] font-mono text-stone-600 dark:text-stone-400 font-medium tabular-nums">
           {formatBytes(loaded ?? 0)} / {formatBytes(total)}
         </p>
       ) : null}

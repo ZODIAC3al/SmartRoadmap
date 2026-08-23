@@ -1,4 +1,4 @@
-// apps/web/src/components/InterviewAssistant.tsx
+﻿// apps/web/src/components/InterviewAssistant.tsx
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -381,7 +381,7 @@ export default function InterviewAssistant({ roadmapId }: { roadmapId?: string }
       <div className="p-10 bg-base-200 rounded-xl shadow-lg my-8 flex flex-col items-center justify-center space-y-4">
         <span className="loading loading-spinner loading-lg text-primary"></span>
         <h2 className="text-xl font-bold">Evaluating your performance...</h2>
-        <p className="text-base-content/60">Please wait while we generate your detailed interview report.</p>
+        <p className="text-stone-700 dark:text-stone-300 font-medium">Please wait while we generate your detailed interview report.</p>
       </div>
     );
   }
@@ -609,7 +609,7 @@ export default function InterviewAssistant({ roadmapId }: { roadmapId?: string }
                   </span>
                 </div>
                <div>
-                 <p className="text-sm font-semibold text-base-content/70">Feedback:</p>
+                 <p className="text-sm font-semibold text-stone-700 dark:text-stone-300 font-medium">Feedback:</p>
                  <p>{feedbackData.feedback}</p>
                </div>
                {feedbackData.improvementTips && (

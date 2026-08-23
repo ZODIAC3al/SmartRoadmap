@@ -9,6 +9,8 @@ import { useApp } from "@/components/AppContext";
 import { apiFetch, getCachedUser, hasSession, API_BASE } from "@/lib/api";
 import InterviewAssistant from "@/components/InterviewAssistant";
 import VoiceTutorModal from "@/components/VoiceTutorModal";
+import LearningJourneyVisual from "@/components/illustrations/LearningJourneyVisual";
+import EmptyStateIllustration from "@/components/illustrations/EmptyStateIllustration";
 import {
   Sparkles,
   Compass,
@@ -193,7 +195,7 @@ const FolderSearchIllustration = ({ title }: { title: string }) => (
       </div>
     </div>
     {/* Magnifying Glass floating in front */}
-    <div className="absolute -top-2 z-10 w-16 h-16 text-indigo-600 flex items-center justify-center animate-bounce">
+    <div className="absolute -top-2 z-10 w-16 h-16 text-[#8E1616] flex items-center justify-center animate-bounce">
       <svg className="w-12 h-12 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
@@ -1162,16 +1164,35 @@ export default function RoadmapPage() {
 
       {/* Page Title Header */}
       <div className="text-center max-w-3xl mx-auto mb-8 space-y-3 select-none">
-        <div className="badge bg-indigo-600 text-white gap-2 p-3.5 font-bold uppercase tracking-wider text-xs shadow-md border-none select-none">
+        <div className="badge bg-[#8E1616] text-white gap-2 p-3.5 font-bold uppercase tracking-wider text-xs shadow-md border-none select-none">
           <Sparkles className="w-3.5 h-3.5 fill-white text-white" /> {tr("interactiveMindmap")}
         </div>
         <h1 className="text-3xl md:text-5xl font-black tracking-tight text-base-content leading-tight">
           {roadmap?.title || tr("trackWeb")}
         </h1>
-        <p className="text-xs md:text-sm text-base-content/60 font-semibold max-w-lg mx-auto leading-relaxed">
+        <p className="text-xs md:text-sm text-stone-700 dark:text-stone-300 font-medium font-semibold max-w-lg mx-auto leading-relaxed">
           {tr("subtitle")}
         </p>
       </div>
+
+      {/* Learning Journey Visual — milestone preview strip */}
+      {roadmap?.modules && roadmap.modules.length > 0 && (
+        <div className="flex justify-center mb-8">
+          <LearningJourneyVisual
+            trackName={roadmap.title}
+            completionRate={Math.round(
+              (roadmap.modules.filter((m) => m.status === "completed").length /
+                roadmap.modules.length) *
+                100
+            )}
+            nodes={roadmap.modules.slice(0, 4).map((m) => ({
+              id: m.id,
+              title: m.title,
+              status: m.status === "failed" ? "in_progress" : m.status,
+            }))}
+          />
+        </div>
+      )}
 
       {/* Action Selectors Row: Tracks + Layout Switcher */}
       <div className="flex flex-col gap-4 items-center justify-center mb-10">
@@ -1186,8 +1207,8 @@ export default function RoadmapPage() {
             glow: string;
             hoverBg: string;
           }[] = [
-            { key: 'web',      label: tr("trackWeb"),      Icon: Globe,       gradient: 'from-indigo-500 to-violet-500',  glow: '80, 70, 229',   hoverBg: 'hover:bg-indigo-500/10' },
-            { key: 'mobile',   label: tr("trackMobile"),   Icon: Smartphone,  gradient: 'from-emerald-500 to-teal-500',   glow: '16, 185, 129',  hoverBg: 'hover:bg-emerald-500/10' },
+            { key: 'web',      label: tr("trackWeb"),      Icon: Globe,       gradient: 'from-indigo-500 to-violet-500',  glow: '80, 70, 229',   hoverBg: 'hover:bg-[#701111]/10' },
+            { key: 'mobile',   label: tr("trackMobile"),   Icon: Smartphone,  gradient: 'from-[#8E1616] to-teal-500',   glow: '16, 185, 129',  hoverBg: 'hover:bg-[#8E1616]/10' },
             { key: 'ai',       label: tr("trackAI"),       Icon: Bot,         gradient: 'from-fuchsia-500 to-pink-500',   glow: '217, 70, 239',  hoverBg: 'hover:bg-fuchsia-500/10' },
             { key: 'backend',  label: tr("trackBackend"),  Icon: Server,      gradient: 'from-orange-500 to-amber-500',   glow: '249, 115, 22',  hoverBg: 'hover:bg-orange-500/10' },
             { key: 'devops',   label: tr("trackDevOps"),   Icon: Cloud,       gradient: 'from-sky-500 to-cyan-400',       glow: '14, 165, 233',  hoverBg: 'hover:bg-sky-500/10' },
@@ -1215,7 +1236,7 @@ export default function RoadmapPage() {
                           'text-[11px] font-extrabold tracking-wide transition-all duration-200 cursor-pointer',
                           active
                             ? `bg-gradient-to-r ${track.gradient} text-white`
-                            : `text-base-content/55 ${track.hoverBg} hover:text-base-content`,
+                            : `text-stone-700 dark:text-stone-300 font-medium ${track.hoverBg} hover:text-base-content`,
                         ].join(' ')}
                       >
                         {/* Lucide icon */}
@@ -1244,7 +1265,7 @@ export default function RoadmapPage() {
             className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
               viewMode === 'tree'
                 ? 'bg-base-100 text-base-content shadow-sm'
-                : 'text-base-content/50 hover:text-base-content'
+                : 'text-stone-700 dark:text-stone-300 font-medium hover:text-base-content'
             }`}
           >
             <GitBranch className="w-3.5 h-3.5" />
@@ -1255,7 +1276,7 @@ export default function RoadmapPage() {
             className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
               viewMode === 'timeline'
                 ? 'bg-base-100 text-base-content shadow-sm'
-                : 'text-base-content/50 hover:text-base-content'
+                : 'text-stone-700 dark:text-stone-300 font-medium hover:text-base-content'
             }`}
           >
             <Grid3X3 className="w-3.5 h-3.5" />
@@ -1269,10 +1290,10 @@ export default function RoadmapPage() {
         <div className="relative max-w-5xl mx-auto pb-10">
           {/* Root node */}
           <div className="flex flex-col items-center mb-2 relative z-10 select-none">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[2.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-500/20 border-4 border-base-100">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[2.5rem] bg-[#8E1616] text-white flex items-center justify-center shadow-xl shadow-[#8E1616]/20 border-4 border-base-100">
               <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 fill-white text-white" />
             </div>
-            <span className="mt-3 text-xs sm:text-sm font-black uppercase tracking-wider text-base-content/70 text-center px-4">
+            <span className="mt-3 text-xs sm:text-sm font-black uppercase tracking-wider text-stone-700 dark:text-stone-300 font-medium text-center px-4">
               {roadmap?.title || "Syllabus Track"}
             </span>
           </div>
@@ -1322,13 +1343,13 @@ export default function RoadmapPage() {
                       className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.5rem] flex items-center justify-center shadow-md border-2 transition-all duration-200 ${
                         isActiveCat
                           ? `bg-${meta.color} text-${meta.color}-content border-${meta.color} shadow-lg`
-                          : 'bg-base-200 text-base-content/50 border-base-300 group-hover:border-base-content/30'
+                          : 'bg-base-200 text-stone-700 dark:text-stone-300 font-medium border-base-300 group-hover:border-base-content/30'
                       }`}
                     >
                       <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
                     </div>
                     <div className="text-center select-none">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-stone-600 dark:text-stone-400 font-medium">
                         {catLabels[cat]}
                       </h4>
                       <p className="text-xs sm:text-sm font-extrabold text-base-content mt-0.5 max-w-[160px] leading-snug">
@@ -1362,7 +1383,7 @@ export default function RoadmapPage() {
                                 className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[10px] font-black ${
                                   isSelected
                                     ? `bg-${meta.color} text-${meta.color}-content`
-                                    : 'bg-base-200 text-base-content/60 border border-base-300'
+                                    : 'bg-base-200 text-stone-700 dark:text-stone-300 font-medium border border-base-300'
                                 }`}
                               >
                                 {idx + 1}
@@ -1370,18 +1391,18 @@ export default function RoadmapPage() {
                               <div className="min-w-0">
                                 <h5
                                   className={`text-xs font-extrabold truncate transition-colors ${
-                                    isSelected ? `text-${meta.color}` : 'text-base-content group-hover:text-indigo-600'
+                                    isSelected ? `text-${meta.color}` : 'text-base-content group-hover:text-[#8E1616]'
                                   }`}
                                 >
                                   {node.title}
                                 </h5>
-                                <span className="text-[9px] text-base-content/45 font-bold flex items-center gap-1 mt-0.5">
+                                <span className="text-[9px] text-stone-600 dark:text-stone-400 font-medium font-bold flex items-center gap-1 mt-0.5">
                                   <Clock className="w-2.5 h-2.5" />
                                   {node.estimatedHours} hrs
                                 </span>
                               </div>
                             </div>
-                            <ArrowRight className="w-3.5 h-3.5 text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+                            <ArrowRight className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 font-medium group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
                           </button>
                         </div>
                       );
@@ -1404,7 +1425,7 @@ export default function RoadmapPage() {
             <h2 className="text-2xl font-black text-slate-800 tracking-tight dark:text-white uppercase">
               Design Upgrade Roadmap
             </h2>
-            <p className="text-[11px] font-extrabold text-indigo-600 tracking-widest uppercase">
+            <p className="text-[11px] font-extrabold text-[#8E1616] tracking-widest uppercase">
               FOR {roadmap?.targetRole.toUpperCase() || "SNAPBUY"}
             </p>
           </div>
@@ -1420,7 +1441,7 @@ export default function RoadmapPage() {
               <div className="min-w-[800px] relative">
                 
                 {/* Blue Header: Quarters (Q1 - Q4) */}
-                <div className="grid grid-cols-12 bg-indigo-600 text-white font-extrabold text-center rounded-t-2xl py-3.5 border-b border-indigo-700/20 shadow-sm text-sm">
+                <div className="grid grid-cols-12 bg-[#8E1616] text-white font-extrabold text-center rounded-t-2xl py-3.5 border-b border-indigo-700/20 shadow-sm text-sm">
                   <div className="col-span-3 border-r border-white/10">Q1</div>
                   <div className="col-span-3 border-r border-white/10">Q2</div>
                   <div className="col-span-3 border-r border-white/10">Q3</div>
@@ -1428,7 +1449,7 @@ export default function RoadmapPage() {
                 </div>
                 
                 {/* Grey Subheader: Months (Jan - Dec) */}
-                <div className="grid grid-cols-12 bg-base-350 text-base-content/60 font-bold text-[10px] uppercase text-center py-2 border-b border-base-300">
+                <div className="grid grid-cols-12 bg-base-350 text-stone-700 dark:text-stone-300 font-medium font-bold text-[10px] uppercase text-center py-2 border-b border-base-300">
                   <div className="border-r border-base-300/40">Jan</div>
                   <div className="border-r border-base-300/40">Feb</div>
                   <div className="border-r border-base-300/40">Mar</div>
@@ -1500,7 +1521,7 @@ export default function RoadmapPage() {
 
       {/* Helper message when no module is active */}
       {!selectedModule && (
-        <div className="text-center max-w-md mx-auto mt-10 space-y-2 text-base-content/40 select-none">
+        <div className="text-center max-w-md mx-auto mt-10 space-y-2 text-stone-600 dark:text-stone-400 font-medium select-none">
           <HelpCircle className="w-6 h-6 mx-auto animate-pulse text-indigo-500" />
           <p className="text-xs font-extrabold leading-relaxed">
             {tr("tapAnyNode")}
@@ -1538,7 +1559,7 @@ export default function RoadmapPage() {
                 </span>
                 <button
                   onClick={() => setSelectedModule(null)}
-                  className="btn btn-sm btn-ghost btn-circle text-base-content/40 hover:text-base-content hover:bg-base-200"
+                  className="btn btn-sm btn-ghost btn-circle text-stone-600 dark:text-stone-400 font-medium hover:text-base-content hover:bg-base-200"
                   aria-label="Close"
                 >
                   <X className="w-4 h-4" />
@@ -1550,21 +1571,21 @@ export default function RoadmapPage() {
                 <h3 className="text-2xl font-black text-base-content leading-tight">
                   {selectedModule.title}
                 </h3>
-                <p className="text-xs text-base-content/60 leading-relaxed font-semibold">
+                <p className="text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed font-semibold">
                   {selectedModule.description}
                 </p>
               </div>
 
               {/* Syllabus / Module Details Grid */}
               <div className="py-4 border-t border-b border-base-300 space-y-3 font-medium">
-                <div className="flex items-center justify-between text-xs font-bold text-base-content/60">
+                <div className="flex items-center justify-between text-xs font-bold text-stone-700 dark:text-stone-300 font-medium">
                   <span className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" />
                     {tr("estimatedDuration")}
                   </span>
-                  <span className="text-indigo-600 font-black">{selectedModule.estimatedHours} hrs</span>
+                  <span className="text-[#8E1616] font-black">{selectedModule.estimatedHours} hrs</span>
                 </div>
-                <div className="flex items-center justify-between text-xs font-bold text-base-content/60">
+                <div className="flex items-center justify-between text-xs font-bold text-stone-700 dark:text-stone-300 font-medium">
                   <span className="flex items-center gap-1.5">
                     <Award className="w-3.5 h-3.5" />
                     {tr("difficultyLevel")}
@@ -1573,7 +1594,7 @@ export default function RoadmapPage() {
                     {selectedModule.difficulty || "Intermediate"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-xs font-bold text-base-content/60">
+                <div className="flex items-center justify-between text-xs font-bold text-stone-700 dark:text-stone-300 font-medium">
                   <span className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     {tr("track")}
@@ -1585,7 +1606,7 @@ export default function RoadmapPage() {
               {/* Key Topics List */}
               {selectedModule.topics && selectedModule.topics.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-extrabold uppercase tracking-widest text-base-content/40">
+                  <h4 className="text-xs font-extrabold uppercase tracking-widest text-stone-600 dark:text-stone-400 font-medium">
                     {tr("keyTopics")}
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
@@ -1600,7 +1621,7 @@ export default function RoadmapPage() {
 
               {/* AI Speech Notes section */}
               <div className="space-y-2.5 pt-2">
-                <h4 className="text-xs font-extrabold uppercase tracking-widest text-base-content/40 flex items-center gap-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-widest text-stone-600 dark:text-stone-400 font-medium flex items-center gap-2">
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>{tr("referenceCheatsheet")}</span>
                 </h4>
@@ -1610,7 +1631,7 @@ export default function RoadmapPage() {
                     {/* Version history picker */}
                     {cheatSheetHistory.length > 0 && (
                       <div className="flex items-center gap-2 justify-between">
-                        <span className="text-[10px] text-base-content/40 font-bold uppercase">{isAr ? "النسخة:" : "Version:"}</span>
+                        <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium font-bold uppercase">{isAr ? "النسخة:" : "Version:"}</span>
                         <select
                           value={selectedHistoryVersion ? selectedHistoryVersion._id || selectedHistoryVersion.generatedAt : "current"}
                           onChange={(e) => {
@@ -1642,7 +1663,7 @@ export default function RoadmapPage() {
                       <button
                         onClick={regenerateReferenceGuide}
                         disabled={generatingSheet}
-                        className="btn btn-outline border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-[10px] font-extrabold h-9"
+                        className="btn btn-outline border-[#8E1616] text-[#8E1616] hover:bg-[#8E1616] hover:text-white rounded-xl text-[10px] font-extrabold h-9"
                       >
                         {generatingSheet ? (
                           <span className="loading loading-spinner loading-xs" />
@@ -1683,7 +1704,7 @@ export default function RoadmapPage() {
 
               {/* Audio summary voice narration player */}
               <div className="space-y-2.5 pt-2">
-                <h4 className="text-xs font-extrabold uppercase tracking-widest text-base-content/40 flex items-center gap-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-widest text-stone-600 dark:text-stone-400 font-medium flex items-center gap-2">
                   <Volume2 className="w-3.5 h-3.5" />
                   <span>{tr("audioNarration")}</span>
                 </h4>
@@ -1706,13 +1727,13 @@ export default function RoadmapPage() {
                       </button>
 
                       {/* Status indicator */}
-                      <span className="text-[10px] font-bold text-base-content/50">
+                      <span className="text-[10px] font-bold text-stone-700 dark:text-stone-300 font-medium">
                         {isPlaying ? "Playing summary..." : "Audio ready — press play"}
                       </span>
 
                       {/* Playback speed selector */}
                       <div className="flex items-center gap-1.5 ml-auto">
-                        <span className="text-[10px] font-black uppercase text-base-content/40">Speed:</span>
+                        <span className="text-[10px] font-black uppercase text-stone-600 dark:text-stone-400 font-medium">Speed:</span>
                         <select
                           value={audioRate}
                           onChange={(e) => {
@@ -1736,7 +1757,7 @@ export default function RoadmapPage() {
                     <span className="loading loading-spinner loading-sm text-primary" />
                     <div>
                       <p className="text-xs font-extrabold text-base-content">{tr("synthesising")}</p>
-                      <p className="text-[10px] text-base-content/50">This takes 15–30 seconds. Hang tight.</p>
+                      <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium">This takes 15–30 seconds. Hang tight.</p>
                     </div>
                   </div>
                 ) : (
@@ -1755,9 +1776,9 @@ export default function RoadmapPage() {
               <div className="pt-2">
                 <button
                   onClick={() => setShowVoiceTutor(true)}
-                  className="btn btn-outline border-indigo-650 text-indigo-600 hover:bg-indigo-600 hover:text-white btn-block rounded-xl text-xs font-extrabold h-11 flex items-center justify-center gap-2"
+                  className="btn btn-outline border-[#8E1616] text-[#8E1616] hover:bg-[#8E1616] hover:text-white btn-block rounded-xl text-xs font-extrabold h-11 flex items-center justify-center gap-2"
                 >
-                  <Mic className="w-4 h-4 text-indigo-600 group-hover:text-white" />
+                  <Mic className="w-4 h-4 text-[#8E1616] group-hover:text-white" />
                   {isAr ? "التحدث مع المعلم الصوتي 🎙️" : "Talk to Voice Tutor 🎙️"}
                 </button>
               </div>
@@ -1768,7 +1789,7 @@ export default function RoadmapPage() {
                   setSelectedModule(null);
                   router.push(`/quiz/${selectedModule.id}`);
                 }}
-                className="btn bg-indigo-600 hover:bg-indigo-700 border-none btn-block rounded-xl text-white font-extrabold text-xs shadow-lg shadow-indigo-500/10 mt-auto h-12 flex items-center justify-center gap-1.5"
+                className="btn bg-[#8E1616] hover:bg-[#701111] border-none btn-block rounded-xl text-white font-extrabold text-xs shadow-lg shadow-indigo-500/10 mt-auto h-12 flex items-center justify-center gap-1.5"
               >
                 <span>{tr("startChallenge")}</span>
                 <ArrowRight className="w-4 h-4 text-white" />

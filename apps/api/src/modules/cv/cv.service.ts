@@ -1481,4 +1481,114 @@ Return ONLY a JSON object: { summary: string }.`;
 
     return updatedData;
   }
+
+  async generateSection(userId: string, dto: any): Promise<any> {
+    const section = dto.section;
+    const targetTitle = dto.targetJobTitle || 'Software Engineer';
+    const userObjId = Types.ObjectId.isValid(userId)
+      ? new Types.ObjectId(userId)
+      : undefined;
+
+    let existingCv = dto.cvData;
+    if (!existingCv && userObjId) {
+      try {
+        existingCv = await this.getCvByUserId(userId);
+      } catch {}
+    }
+
+    if (section === 'summary') {
+      const bio = existingCv?.personal?.summary || '';
+      const skills = existingCv?.skills || [];
+      const prompt = `You are a Principal Technical Recruiter. Write an impactful, ATS-friendly, tailored 2-4 sentence professional summary for a "${targetTitle}".
+CRITICAL: Use ONLY the candidate's real skills: ${JSON.stringify(skills.slice(0, 10))}. Do not invent fake claims.
+Current summary / notes: "${bio}".
+Return ONLY a JSON object: { "summary": "Impactful tailored summary" }`;
+
+      const raw = await this.llmService.complete(prompt, { json: true });
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          return { summary: parsed.summary };
+        } catch {}
+      }
+      return {
+        summary: `Results-driven ${targetTitle} with proven proficiency in ${skills.slice(0, 4).join(', ') || 'modern software development'}, dedicated to building resilient and scalable solutions.`,
+      };
+    }
+
+    if (section === 'skills') {
+      const skills = existingCv?.skills || [];
+      const prompt = `You are a Technical Resume Expert. Organize and categorize these REAL candidate skills for a "${targetTitle}" role. Do NOT invent new skills that do not exist in the candidate list.
+Candidate Skills: ${JSON.stringify(skills)}
+
+Return ONLY JSON:
+{
+  "skills": ["Skill1", "Skill2", ...],
+  "categories": {
+    "languages": string[],
+    "frameworks": string[],
+    "databases": string[],
+    "tools": string[],
+    "cloudDevOps": string[],
+    "softSkills": string[]
+  }
+}`;
+      const raw = await this.llmService.complete(prompt, { json: true });
+      if (raw) {
+        try {
+          return JSON.parse(raw);
+        } catch {}
+      }
+      return { skills, categories: {} };
+    }
+
+    if (section === 'experience') {
+      const exp = existingCv?.experience || [];
+      if (!exp.length) return { experience: [] };
+      const prompt = `You are an ATS Resume Optimizer. Improve the bullet point descriptions for these REAL work experiences for target role "${targetTitle}".
+Use strong action verbs (Engineered, Architected, Implemented, Deployed) and emphasize outcomes. Keep company names, roles, and dates EXACTLY unchanged.
+Experience Data: ${JSON.stringify(exp)}
+
+Return ONLY JSON: { "experience": [ { "company": string, "role": string, "startDate": string, "endDate": string, "description": string } ] }`;
+
+      const raw = await this.llmService.complete(prompt, { json: true });
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed.experience)) return { experience: parsed.experience };
+        } catch {}
+      }
+      return { experience: exp };
+    }
+
+    if (section === 'projects') {
+      const projs = existingCv?.projects || [];
+      if (!projs.length) return { projects: [] };
+      const prompt = `You are a Technical Recruiter. Refine project descriptions for a "${targetTitle}" candidate. Highlight architecture, technologies, and features.
+Projects Data: ${JSON.stringify(projs)}
+
+Return ONLY JSON: { "projects": [ { "name": string, "description": string, "technologies": string[], "url": string, "githubUrl": string } ] }`;
+
+      const raw = await this.llmService.complete(prompt, { json: true });
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed.projects)) return { projects: parsed.projects };
+        } catch {}
+      }
+      return { projects: projs };
+    }
+
+    if (section === 'courses') {
+      const courses = existingCv?.courses || [];
+      return { courses };
+    }
+
+    if (section === 'certifications') {
+      const certs = existingCv?.certifications || [];
+      return { certifications: certs };
+    }
+
+    return { [section]: existingCv?.[section] || [] };
+  }
 }

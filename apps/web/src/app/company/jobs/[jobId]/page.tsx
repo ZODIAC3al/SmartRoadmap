@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import Link from 'next/link';
@@ -14,7 +14,7 @@ export default function JobKanbanPage({ params }: { params: { jobId: string } })
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center">
         <div>
-          <div className="flex items-center gap-2 text-xs text-base-content/60 mb-1">
+          <div className="flex items-center gap-2 text-xs text-stone-700 dark:text-stone-300 font-medium mb-1">
             <Link href="/company/jobs" className="hover:underline text-primary">
               ← Jobs List
             </Link>

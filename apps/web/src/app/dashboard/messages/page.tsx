@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { SharedInbox } from '@/components/messaging/SharedInbox';
@@ -13,7 +13,7 @@ export default function LearnerMessagesPage() {
         <h1 className="text-2xl font-bold font-heading text-base-content">
           Support & Recruiter Messages
         </h1>
-        <p className="text-xs text-base-content/60 mt-1">
+        <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">
           Direct threaded communication with hiring managers and SmartRoadmap support.
         </p>
       </div>

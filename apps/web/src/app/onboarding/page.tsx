@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Stepper from "@/components/Stepper";
 import { useApp } from "@/components/AppContext";
 import { apiFetch, getCachedUser } from "@/lib/api";
+import OnboardingStepVisual from "@/components/illustrations/OnboardingStepVisual";
 
 const PRESET_ROLES = [
   {
@@ -230,8 +231,15 @@ export default function OnboardingPage() {
         <Stepper steps={STEP_LABELS} currentIndex={step - 1} />
       </div>
 
+      {/* Main panel — side-by-side layout: visual left, form right */}
+      <div className="max-w-4xl w-full flex flex-col lg:flex-row gap-6 items-start">
+        {/* Contextual visual for current step */}
+        <div className="hidden lg:flex flex-col justify-center flex-shrink-0">
+          <OnboardingStepVisual step={step <= 3 ? (step as 1 | 2 | 3) : 4} />
+        </div>
+
       {/* Main card panel */}
-      <div className="card bg-base-200 border border-base-300 shadow-md max-w-2xl w-full">
+      <div className="card bg-base-200 border border-base-300 shadow-md flex-1 w-full">
         <div className="card-body">
           {/* STEP 1: TARGET CAREER GOAL */}
           {step === 1 && (
@@ -239,7 +247,7 @@ export default function OnboardingPage() {
               <h2 className="card-title text-xl sm:text-2xl mb-2">
                 {t("onboard.title")}
               </h2>
-              <p className="text-xs sm:text-sm text-base-content/70 mb-6">
+              <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-medium mb-6">
                 {t("onboard.subtitle")}
               </p>
 
@@ -263,7 +271,7 @@ export default function OnboardingPage() {
                         <h3 className="font-bold text-sm text-base-content">
                           {getRoleTitle(role.id, role.title)}
                         </h3>
-                        <p className="text-[11px] text-base-content/60 mt-1 leading-snug">
+                        <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium mt-1 leading-snug">
                           {getRoleDesc(role.id, role.desc)}
                         </p>
                       </div>
@@ -272,7 +280,7 @@ export default function OnboardingPage() {
                 ))}
               </div>
 
-              <div className="divider text-[10px] tracking-wider font-bold text-base-content/40 uppercase">
+              <div className="divider text-[10px] tracking-wider font-bold text-stone-600 dark:text-stone-400 font-medium uppercase">
                 {t("onboard.custom_divider")}
               </div>
               <div className="form-control mb-6">
@@ -307,7 +315,7 @@ export default function OnboardingPage() {
                   ? "Tell us about your background"
                   : "أخبرنا عن خلفيتك المهنية"}
               </h2>
-              <p className="text-xs sm:text-sm text-base-content/70 mb-6">
+              <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-medium mb-6">
                 {locale === "en"
                   ? "We adapt the syllabus pacing and baseline requirements to match your background."
                   : "نحن نقوم بضبط سرعة المنهج الدراسي ومستويات الانطلاق لتتناسب مع مستواك وخبرتك."}
@@ -394,7 +402,7 @@ export default function OnboardingPage() {
               <h2 className="card-title text-xl sm:text-2xl mb-2">
                 {t("onboard.step3")}
               </h2>
-              <p className="text-xs sm:text-sm text-base-content/70 mb-6">
+              <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-medium mb-6">
                 {t("onboard.skills_subtitle")}
               </p>
 
@@ -453,6 +461,7 @@ export default function OnboardingPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

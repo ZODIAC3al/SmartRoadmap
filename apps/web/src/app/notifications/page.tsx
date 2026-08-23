@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -13,8 +13,8 @@ const TYPE_META: Record<string, { icon: string; ring: string; dot: string; bg: s
   quiz_reminder: { icon: "lni-clipboard", ring: "ring-amber-200", dot: "bg-amber-500", bg: "bg-amber-100 text-amber-600" },
   job_interview: { icon: "lni-briefcase", ring: "ring-purple-200", dot: "bg-purple-500", bg: "bg-purple-100 text-purple-600" },
   achievement: { icon: "lni-trophy", ring: "ring-yellow-200", dot: "bg-yellow-500", bg: "bg-yellow-100 text-yellow-600" },
-  module_unlock: { icon: "lni-unlock", ring: "ring-emerald-200", dot: "bg-emerald-500", bg: "bg-emerald-100 text-emerald-600" },
-  study_session: { icon: "lni-alarm-clock", ring: "ring-indigo-200", dot: "bg-indigo-500", bg: "bg-indigo-100 text-indigo-600" },
+  module_unlock: { icon: "lni-unlock", ring: "ring-[#8E1616]", dot: "bg-[#8E1616]", bg: "bg-[#8E1616]/10 text-[#8E1616]" },
+  study_session: { icon: "lni-alarm-clock", ring: "ring-indigo-200", dot: "bg-indigo-500", bg: "bg-indigo-100 text-[#8E1616]" },
   job_match: { icon: "lni-target", ring: "ring-pink-200", dot: "bg-pink-500", bg: "bg-pink-100 text-pink-600" },
 };
 const typeMeta = (type: string) => TYPE_META[type] ?? TYPE_META.general;
@@ -120,10 +120,10 @@ export default function NotificationsPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-base-300 pb-4">
           <div>
             <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
-              <i className="lni lni-bell text-indigo-600" />
+              <i className="lni lni-bell text-[#8E1616]" />
               {tr("title")}
             </h1>
-            <p className="text-xs text-base-content/50 mt-1">{tr("subtitle")}</p>
+            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">{tr("subtitle")}</p>
           </div>
           <div className="flex gap-2">
             <Link
@@ -137,7 +137,7 @@ export default function NotificationsPage() {
               <motion.button
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
                 onClick={handleMarkAllRead}
-                className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-xs sm:btn-sm rounded-lg text-xs font-bold gap-1.5"
+                className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-xs sm:btn-sm rounded-lg text-xs font-bold gap-1.5"
               >
                 <i className="lni lni-checkmark-circle" />
                 {tr("markAll")}
@@ -150,13 +150,13 @@ export default function NotificationsPage() {
         <div className="flex gap-2 border-b border-base-300 pb-3">
           <button
             onClick={() => setFilter("all")}
-            className={`btn btn-xs rounded-full font-bold uppercase tracking-wider ${filter === "all" ? "bg-indigo-600 text-white border-none" : "btn-ghost text-base-content/60"}`}
+            className={`btn btn-xs rounded-full font-bold uppercase tracking-wider ${filter === "all" ? "bg-[#8E1616] text-white border-none" : "btn-ghost text-stone-700 dark:text-stone-300 font-medium"}`}
           >
             {tr("all")} ({notifications.length})
           </button>
           <button
             onClick={() => setFilter("unread")}
-            className={`btn btn-xs rounded-full font-bold uppercase tracking-wider ${filter === "unread" ? "bg-indigo-600 text-white border-none" : "btn-ghost text-base-content/60"}`}
+            className={`btn btn-xs rounded-full font-bold uppercase tracking-wider ${filter === "unread" ? "bg-[#8E1616] text-white border-none" : "btn-ghost text-stone-700 dark:text-stone-300 font-medium"}`}
           >
             {tr("unread")} ({unreadCount})
           </button>
@@ -187,10 +187,10 @@ export default function NotificationsPage() {
                 animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
                 className="bg-base-200 border border-base-300 rounded-2xl p-12 text-center"
               >
-                <div className="w-14 h-14 bg-indigo-600/10 text-indigo-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+                <div className="w-14 h-14 bg-[#8E1616]/10 text-[#8E1616] rounded-full flex items-center justify-center mx-auto text-2xl">
                   <i className="lni lni-alarm-clock" />
                 </div>
-                <p className="text-xs text-base-content/50 font-bold mt-3">
+                <p className="text-xs text-stone-700 dark:text-stone-300 font-medium font-bold mt-3">
                   {filter === "unread" ? tr("emptyUnread") : tr("empty")}
                 </p>
               </motion.div>
@@ -221,7 +221,7 @@ export default function NotificationsPage() {
                           {/* card */}
                           <div
                             onClick={() => handleMarkRead(n._id)}
-                            className={`flex-1 card bg-base-200 border border-base-300 p-4 rounded-xl flex flex-row items-start justify-between gap-4 cursor-pointer hover:bg-base-300/60 transition-all ${!n.read ? "border-indigo-600/30 bg-indigo-600/5" : ""}`}
+                            className={`flex-1 card bg-base-200 border border-base-300 p-4 rounded-xl flex flex-row items-start justify-between gap-4 cursor-pointer hover:bg-base-300/60 transition-all ${!n.read ? "border-[#8E1616]/30 bg-[#8E1616]/5" : ""}`}
                           >
                             <div className="flex gap-3 flex-grow min-w-0">
                               <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base shrink-0 ${meta.bg}`}>
@@ -232,19 +232,19 @@ export default function NotificationsPage() {
                                   <h3 className="font-extrabold text-sm text-base-content truncate">
                                     {isAr ? n.titleAr || n.titleEn : n.titleEn}
                                   </h3>
-                                  {!n.read && <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0" />}
+                                  {!n.read && <span className="w-1.5 h-1.5 bg-[#8E1616] rounded-full shrink-0" />}
                                 </div>
-                                <p className="text-xs text-base-content/70 leading-relaxed">
+                                <p className="text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
                                   {isAr ? n.contentAr || n.contentEn : n.contentEn}
                                 </p>
-                                <div className="flex gap-2 items-center text-[9px] text-base-content/40 font-mono mt-1">
+                                <div className="flex gap-2 items-center text-[9px] text-stone-600 dark:text-stone-400 font-medium font-mono mt-1">
                                   <span>{formatDate(n.createdAt)}</span>
                                   <span>•</span>
                                   <span>{formatTime(n.createdAt)}</span>
                                   {n.type !== "general" && (
                                     <>
                                       <span>•</span>
-                                      <span className="uppercase text-indigo-600 font-black">{n.type.replace("_", " ")}</span>
+                                      <span className="uppercase text-[#8E1616] font-black">{n.type.replace("_", " ")}</span>
                                     </>
                                   )}
                                 </div>
@@ -256,7 +256,7 @@ export default function NotificationsPage() {
                                 <Link
                                   href={n.link}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="btn btn-outline border-indigo-600 hover:bg-indigo-600 hover:text-white btn-xs rounded px-2 gap-1"
+                                  className="btn btn-outline border-[#8E1616] hover:bg-[#8E1616] hover:text-white btn-xs rounded px-2 gap-1"
                                 >
                                   <i className="lni lni-arrow-top-right" />
                                   {tr("open")}

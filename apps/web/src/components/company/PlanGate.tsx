@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useSubscription } from '@/lib/use-subscription';
@@ -53,7 +53,7 @@ export function PlanGate({
             <Lock className="w-3 h-3" />
             <span>{requiredPlan.toUpperCase()} PLAN REQUIRED</span>
           </div>
-          <p className="text-xs text-base-content/80 max-w-xs font-medium">
+          <p className="text-xs text-stone-800 dark:text-stone-200 font-medium max-w-xs font-medium">
             {fallbackText || `Upgrade to ${requiredPlan.toUpperCase()} to unlock this feature.`}
           </p>
         </div>

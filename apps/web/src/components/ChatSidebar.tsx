@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
@@ -145,10 +145,10 @@ export default function ChatSidebar() {
         {/* Header */}
         <div className="p-4 border-b border-base-300 bg-base-300 flex justify-between items-center">
           <div>
-            <h3 className="font-extrabold text-sm text-[#10B981] flex items-center gap-1.5">
+            <h3 className="font-extrabold text-sm text-[#8E1616] flex items-center gap-1.5">
               {t.title}
             </h3>
-            <p className="text-[10px] text-base-content/65 font-medium leading-tight">
+            <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium font-medium leading-tight">
               {t.subtitle}
             </p>
           </div>
@@ -174,7 +174,7 @@ export default function ChatSidebar() {
           {messages.length === 0 && (
             <div className="space-y-4 py-4 text-center">
               <span className="text-4xl block">✨</span>
-              <p className="text-xs text-base-content/60 px-4">
+              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium px-4">
                 {isRtl
                   ? "مرحباً بك! أنا رفيقك الدراسي. اسألني أي سؤال لمساعدتك في المذاكرة وفهم الأكواد!"
                   : "Welcome! I am your study buddy. Feel free to ask me anything to help you learn and understand code!"}
@@ -182,7 +182,7 @@ export default function ChatSidebar() {
               
               {/* Suggestions */}
               <div className="text-left space-y-2 mt-4 px-2" style={{ direction: isRtl ? "rtl" : "ltr" }}>
-                <span className="text-[10px] font-bold text-base-content/40 uppercase block mb-1">
+                <span className="text-[10px] font-bold text-stone-600 dark:text-stone-400 font-medium uppercase block mb-1">
                   {t.suggestedTitle}
                 </span>
                 <div className="flex flex-col gap-1.5">
