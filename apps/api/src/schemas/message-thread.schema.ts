@@ -12,6 +12,9 @@ export class MessageThread extends Document {
   })
   participantIds!: Types.ObjectId[];
 
+  @Prop({ required: true, index: true })
+  participantsKey!: string;
+
   @Prop({
     type: String,
     enum: ['hiring', 'support'],
@@ -39,5 +42,8 @@ export class MessageThread extends Document {
 export const MessageThreadSchema = SchemaFactory.createForClass(MessageThread);
 
 // Production Unique Compound Index to prevent concurrent thread creation race conditions
-MessageThreadSchema.index({ participantIds: 1, context: 1 }, { unique: true });
+// participantIds is a multikey index so we can't make it unique directly.
+// Instead, we make participantsKey (which is the sorted and joined IDs) unique per context.
+MessageThreadSchema.index({ participantIds: 1, context: 1 });
+MessageThreadSchema.index({ participantsKey: 1, context: 1 }, { unique: true });
 MessageThreadSchema.index({ participantIds: 1, lastMessageAt: -1 });

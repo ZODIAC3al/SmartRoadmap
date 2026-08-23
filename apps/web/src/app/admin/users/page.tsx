@@ -47,6 +47,8 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // CRUD Form states
   const [addName, setAddName] = useState("");
@@ -198,6 +200,7 @@ export default function AdminUsersPage() {
     try {
       const allUsers = await apiJson<User[]>(`/admin/users?search=${search}`);
       setUsers(allUsers);
+      setCurrentPage(1);
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, "Failed to search users."));
     }
@@ -212,6 +215,12 @@ export default function AdminUsersPage() {
   }
 
   const isRtl = locale === "ar";
+
+  const totalPages = Math.ceil(users.length / itemsPerPage) || 1;
+  const paginatedUsers = users.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className={`min-h-screen bg-base-100 text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
@@ -310,7 +319,7 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
+                  {paginatedUsers.map((u) => (
                     <tr key={u._id} className="border-b border-base-300">
                       <td>
                         <input
@@ -349,6 +358,34 @@ export default function AdminUsersPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-between items-center mt-2 px-1 text-xs font-mono">
+                <span className="text-base-content/60">
+                  {isRtl ? "عرض" : "Showing"} {(currentPage - 1) * itemsPerPage + 1} {isRtl ? "إلى" : "to"} {Math.min(currentPage * itemsPerPage, users.length)} {isRtl ? "من" : "of"} {users.length} {isRtl ? "مستخدم" : "users"}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="btn btn-xs btn-outline rounded-lg border-base-300 disabled:opacity-40"
+                  >
+                    {isRtl ? "السابق" : "Prev"}
+                  </button>
+                  <span className="px-3 font-bold">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="btn btn-xs btn-outline rounded-lg border-base-300 disabled:opacity-40"
+                  >
+                    {isRtl ? "التالي" : "Next"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Severity Breakdown */}
