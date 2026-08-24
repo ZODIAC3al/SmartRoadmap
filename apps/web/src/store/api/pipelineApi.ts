@@ -88,11 +88,33 @@ export const pipelineApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    getCompanyApplications: builder.query<
+      EntityState<CandidatePipelineItem, string>,
+      void
+    >({
+      query: () => `/hiring/applications/company`,
+      transformResponse: (response: any[]) => {
+        const mapped: CandidatePipelineItem[] = (response || []).map((item: any) => ({
+          id: item.id || item._id || `app-${Math.random()}`,
+          jobId: item.jobId || '',
+          jobTitle: item.jobTitle || '',
+          company: item.company || '',
+          candidateName: item.candidateName || item.name || 'Applicant',
+          candidateAvatar: item.avatarUrl || item.candidateAvatar,
+          matchScore: item.matchScore || 0,
+          stage: item.stage || item.status || 'applied',
+          appliedAt: item.appliedAt || item.createdAt || new Date().toISOString(),
+        }));
+        return pipelineAdapter.setAll(pipelineAdapter.getInitialState(), mapped);
+      },
+      providesTags: [{ type: 'CandidatePipeline', id: 'COMPANY_LIST' }],
+    }),
   }),
 });
 
 export const {
   useGetCandidatesQuery,
+  useGetCompanyApplicationsQuery,
   useUpdateStageMutation,
   useEvaluateCandidateAiMutation,
 } = pipelineApi;

@@ -56,7 +56,7 @@ export default function OnboardingStepVisual({
               Baseline Skills Audit
             </h4>
             <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">
-              Declare existing tech stacks so we don't repeat what you already master.
+              Declare existing tech stacks so we don&apos;t repeat what you already master.
             </p>
           </div>
         </div>

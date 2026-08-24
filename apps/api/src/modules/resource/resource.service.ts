@@ -241,6 +241,69 @@ export class ResourceService {
   private getCuratedEducationalVideos(topic: string): YouTubeVideoItem[] {
     const t = topic.toLowerCase();
 
+    if (
+      t.includes('data structure') ||
+      t.includes('algorithm') ||
+      t.includes('dsa') ||
+      t.includes('leetcode') ||
+      t.includes('sorting') ||
+      t.includes('graph') ||
+      t.includes('tree') ||
+      t.includes('linked list') ||
+      t.includes('dynamic programming') ||
+      t.includes('programming core') ||
+      t.includes('cs fundamental') ||
+      t.includes('computer science')
+    ) {
+      return [
+        {
+          id: 'pkYVOmU3MgA',
+          title: `${topic} — Complete Course for Beginners`,
+          channelTitle: 'freeCodeCamp.org',
+          thumbnailUrl: 'https://i.ytimg.com/vi/pkYVOmU3MgA/hqdefault.jpg',
+          embedUrl: 'https://www.youtube.com/embed/pkYVOmU3MgA',
+          videoUrl: 'https://www.youtube.com/watch?v=pkYVOmU3MgA',
+          duration: '8 hours',
+        },
+        {
+          id: 'RBSGKlAvoiM',
+          title: `${topic} — Full Course`,
+          channelTitle: 'freeCodeCamp.org',
+          thumbnailUrl: 'https://i.ytimg.com/vi/RBSGKlAvoiM/hqdefault.jpg',
+          embedUrl: 'https://www.youtube.com/embed/RBSGKlAvoiM',
+          videoUrl: 'https://www.youtube.com/watch?v=RBSGKlAvoiM',
+          duration: '8 hours',
+        },
+        {
+          id: 'B31LgI4Y4DQ',
+          title: `${topic} Explained Visually`,
+          channelTitle: 'WilliamFiset',
+          thumbnailUrl: 'https://i.ytimg.com/vi/B31LgI4Y4DQ/hqdefault.jpg',
+          embedUrl: 'https://www.youtube.com/embed/B31LgI4Y4DQ',
+          videoUrl: 'https://www.youtube.com/watch?v=B31LgI4Y4DQ',
+          duration: '3 hours',
+        },
+        {
+          id: 'HtSuA80QTyo',
+          title: `${topic} — Algorithms & Data Structures`,
+          channelTitle: 'Abdul Bari',
+          thumbnailUrl: 'https://i.ytimg.com/vi/HtSuA80QTyo/hqdefault.jpg',
+          embedUrl: 'https://www.youtube.com/embed/HtSuA80QTyo',
+          videoUrl: 'https://www.youtube.com/watch?v=HtSuA80QTyo',
+          duration: '5 hours',
+        },
+        {
+          id: 'oBt53YbR9Kk',
+          title: `${topic} Dynamic Programming Crash Course`,
+          channelTitle: 'freeCodeCamp.org',
+          thumbnailUrl: 'https://i.ytimg.com/vi/oBt53YbR9Kk/hqdefault.jpg',
+          embedUrl: 'https://www.youtube.com/embed/oBt53YbR9Kk',
+          videoUrl: 'https://www.youtube.com/watch?v=oBt53YbR9Kk',
+          duration: '5 hours',
+        },
+      ];
+    }
+
     if (t.includes('react') || t.includes('html') || t.includes('css') || t.includes('frontend') || t.includes('flexbox') || t.includes('web')) {
       return [
         {

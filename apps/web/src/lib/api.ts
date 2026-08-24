@@ -303,6 +303,108 @@ export async function apiFetch(
   return executeFetch();
 }
 
+// ── Download progress ─────────────────────────────────────────────────────
+
+export interface DownloadProgress {
+  /** 0–100, or null when the server does not declare a length. */
+  percent: number | null;
+  /** Bytes received so far. Always available. */
+  loaded: number;
+  /** Total bytes, or null when unknown. */
+  total: number | null;
+  /** True when the size is unknown and `percent` cannot be computed. */
+  indeterminate: boolean;
+}
+
+export interface ProgressInit extends RequestInit {
+  onProgress?: (progress: DownloadProgress) => void;
+  bypassCache?: boolean;
+  ttlMs?: number;
+}
+
+/**
+ * Like `apiFetch`, but reports download progress as the body streams in.
+ *
+ * The percentage comes from `Content-Length`. That header is absent whenever
+ * the response is compressed or chunked — which is the common case for a JSON
+ * API behind gzip — so callers must handle `percent: null` by showing an
+ * indeterminate indicator rather than a fake number. Inventing a percentage
+ * from a guessed total is worse than admitting the size is unknown: a bar that
+ * jumps backwards reads as a bug.
+ *
+ * The returned Response is reconstructed from the streamed bytes, so callers
+ * use `.json()` / `.text()` exactly as they would with `apiFetch`.
+ */
+export async function apiFetchWithProgress(
+  path: string,
+  init: ProgressInit = {},
+): Promise<Response> {
+  const { onProgress, ...rest } = init;
+
+  // Progress requires a fresh stream, so never serve this from the memory cache.
+  const response = await apiFetch(path, { ...rest, bypassCache: true });
+
+  if (!onProgress || !response.body || !response.ok) return response;
+
+  const header = response.headers.get("Content-Length");
+  const total = header ? Number(header) : null;
+  const hasTotal = total !== null && Number.isFinite(total) && total > 0;
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let loaded = 0;
+
+  const report = () =>
+    onProgress({
+      percent: hasTotal ? Math.min(100, Math.round((loaded / total!) * 100)) : null,
+      loaded,
+      total: hasTotal ? total : null,
+      indeterminate: !hasTotal,
+    });
+
+  report();
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value) {
+      chunks.push(value);
+      loaded += value.length;
+      report();
+    }
+  }
+
+  // The stream is consumed, so hand back an equivalent Response over the bytes.
+  const merged = new Uint8Array(loaded);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  // A body that arrived with no declared length still finished at 100%.
+  onProgress({ percent: 100, loaded, total: hasTotal ? total : loaded, indeterminate: false });
+
+  return new Response(merged, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
+/** Progress-reporting JSON fetch. Throws on error responses, like `apiJson`. */
+export async function apiJsonWithProgress<T>(
+  path: string,
+  init: ProgressInit = {},
+): Promise<T> {
+  const res = await apiFetchWithProgress(path, init);
+  const data: unknown = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(extractErrorMessage(data, `Request failed (${res.status})`));
+  }
+  return data as T;
+}
+
 export function extractErrorMessage(data: unknown, fallback: string): string {
   if (typeof data === "object" && data !== null) {
     const obj = data as Record<string, unknown>;

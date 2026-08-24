@@ -62,6 +62,7 @@ export default function CvPage() {
     handleCancel,
     handleEnhanceDescription,
     handleExportPDF,
+    handleFileUpload,
     handleGenerateFromProfile,
     handlePhotoUpload,
     handleSaveCv,
@@ -207,7 +208,7 @@ export default function CvPage() {
                 <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">
                   📝
                 </div>
-                <h4 className="font-extrabold text-base">You don't have any saved CVs yet.</h4>
+                <h4 className="font-extrabold text-base">You don&apos;t have any saved CVs yet.</h4>
                 <p className="text-xs text-base-content/60 max-w-md mx-auto">
                   Create your first CV in minutes with tailored ATS analysis and GitHub repository imports.
                 </p>

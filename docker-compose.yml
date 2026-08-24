@@ -29,15 +29,18 @@ services:
     volumes:
       - redis_data:/data
 
-  qdrant:
-    image: qdrant/qdrant:v1.12.4   # pinned, not :latest
-    container_name: smartroadmap-qdrant
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:6333:6333"
-      - "127.0.0.1:6334:6334"
-    volumes:
-      - qdrant_data:/qdrant/storage
+  # Qdrant is hosted on Qdrant Cloud — no local container needed.
+  # Set QDRANT_URL + QDRANT_API_KEY in your .env file.
+  # Un-comment below only if you want a fully-offline local instance.
+  # qdrant:
+  #   image: qdrant/qdrant:v1.12.4   # pinned, not :latest
+  #   container_name: smartroadmap-qdrant
+  #   restart: unless-stopped
+  #   ports:
+  #     - "127.0.0.1:6333:6333"
+  #     - "127.0.0.1:6334:6334"
+  #   volumes:
+  #     - qdrant_data:/qdrant/storage
 
   # piston:
   #   image: engineerman/piston:latest
@@ -48,5 +51,5 @@ services:
 
 volumes:
   # mongodb_data:  # unused — MongoDB runs on Atlas
+  # qdrant_data:   # unused — Qdrant runs on Qdrant Cloud
   redis_data:
-  qdrant_data:

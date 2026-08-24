@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -24,7 +24,7 @@ function normalizeStatus(s?: string): string {
   return "Applied";
 }
 
-export default function CompanyPage() {
+function CompanyPageContent() {
   const {
     activeCvPreview,
     activePassport,
@@ -999,5 +999,17 @@ export default function CompanyPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CompanyPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="flex min-h-screen bg-base-100 items-center justify-center">
+        <span className="loading loading-spinner loading-lg text-emerald-500"></span>
+      </div>
+    }>
+      <CompanyPageContent />
+    </React.Suspense>
   );
 }

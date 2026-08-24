@@ -24,6 +24,9 @@ import { InterviewModule } from './modules/interview/interview.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { MessageModule } from './modules/message/message.module';
 import { ProfileImportModule } from './modules/profile-import/profile-import.module';
+import { ResourceModule } from './modules/resource/resource.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { SearchModule } from './modules/search/search.module';
 import { PortfolioModule } from './modules/portfolio/portfolio.module';
 
 import { BillingModule } from './modules/billing/billing.module';
@@ -83,6 +86,9 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     NotificationModule,
     MessageModule,
     ProfileImportModule,
+    ResourceModule,
+    ChatbotModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [

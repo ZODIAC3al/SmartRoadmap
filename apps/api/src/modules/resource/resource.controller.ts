@@ -7,7 +7,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ResourceService } from './resource.service';
 import { CreateResourceDto } from './dto/resource.dto';
 import {
@@ -25,6 +25,8 @@ export class ResourceController {
 
   @Public()
   @Get('youtube-videos')
+  @ApiOperation({ summary: 'Get top 5 educational YouTube videos for a topic' })
+  @ApiQuery({ name: 'topic', required: false, description: 'Topic to search videos for' })
   getYouTubeVideos(@Query('topic') topic?: string) {
     return this.resourceService.getYouTubeVideos(topic || 'Software Engineering');
   }

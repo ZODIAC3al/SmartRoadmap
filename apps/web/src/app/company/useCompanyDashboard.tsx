@@ -17,6 +17,7 @@ import {
 } from "@/store/api/jobsApi";
 import {
   useGetCandidatesQuery,
+  useGetCompanyApplicationsQuery,
   useUpdateStageMutation,
 } from "@/store/api/pipelineApi";
 import type { Candidate } from "./types";
@@ -35,11 +36,12 @@ export function useCompanyDashboard() {
   // RTK Query hooks
   const { data: jobsData, isLoading: isLoadingJobs } = useGetMyJobsQuery();
   const { data: candidatesData, isLoading: isLoadingCandidates } = useGetCandidatesQuery({});
+  const { data: applicationsData, isLoading: isLoadingApplications } = useGetCompanyApplicationsQuery();
   const [createJobMutation] = useCreateJobMutation();
   const [deleteJobMutation] = useDeleteJobMutation();
   const [updateStageMutation] = useUpdateStageMutation();
 
-  const loading = isLoadingJobs || isLoadingCandidates;
+  const loading = isLoadingJobs || isLoadingCandidates || isLoadingApplications;
 
   // Derive jobs array from RTK Query store
   const jobs = useMemo(() => {
@@ -72,11 +74,11 @@ export function useCompanyDashboard() {
     }));
   }, [candidatesData]);
 
-  // Derive applications array
+  // Real received job applications from /hiring/applications/company
   const applications = useMemo(() => {
-    if (!candidatesData) return [];
-    return Object.values(candidatesData.entities || {}).filter(Boolean);
-  }, [candidatesData]);
+    if (!applicationsData) return [];
+    return Object.values(applicationsData.entities || {}).filter(Boolean);
+  }, [applicationsData]);
 
   // Applications state
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
@@ -121,7 +123,7 @@ export function useCompanyDashboard() {
   }, []);
 
   useEffect(() => {
-    if (searchParams.get("action") === "new") {
+    if (searchParams && searchParams.get("action") === "new") {
       setShowAddJobModal(true);
     }
   }, [searchParams]);
