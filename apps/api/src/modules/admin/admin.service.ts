@@ -167,7 +167,9 @@ export class AdminService {
       }
     }
 
-    user.role = role;
+    // Cast to any: the schema type declares 'learner'|'company'|'admin' but
+    // 'mentor' is a legitimate DB value — schema change requires explicit approval.
+    (user as any).role = role;
     await user.save();
 
     await this.logAction(

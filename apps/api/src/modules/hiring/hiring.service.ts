@@ -525,6 +525,57 @@ export class HiringService implements OnModuleInit {
       'Fetching pre-vetted candidates pipeline for company portal',
     );
 
+    const learners = await this.userModel
+      .find({ role: 'learner' })
+      .lean()
+      .exec();
+    const candidates: any[] = [];
+
+    for (const learner of learners) {
+      const learnerId = learner._id.toString();
+      const pool = await this.collectLearnerSkillsPool(learnerId);
+
+      const completedCount = pool.roadmap?.modules
+        ? pool.roadmap.modules.filter((m: any) => m.status === 'completed')
+            .length
+        : 0;
+      const totalCount = pool.roadmap?.modules?.length || 0;
+
+      let totalQuizScore = 0;
+      let passedQuizCount = 0;
+      pool.quizSessions.forEach((q) => {
+        if (q.score !== null && q.score !== undefined)
+          totalQuizScore += q.score;
+        if (q.passed) passedQuizCount++;
+      });
+
+      const averageScore =
+        pool.quizSessions.length > 0
+          ? Math.round(totalQuizScore / pool.quizSessions.length)
+          : null;
+
+      candidates.push({
+        userId: learnerId,
+        name: learner.name,
+        email: learner.email,
+        avatarUrl: learner.avatarUrl,
+        targetRole: pool.roadmap?.targetRole || 'Software Professional',
+        progress:
+          totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
+        completedMilestones: completedCount,
+        verifiedSkills: pool.verifiedSkills,
+        averageQuizScore: averageScore,
+        quizzesPassed: passedQuizCount,
+        cvUploaded: !!pool.cv,
+        certificationsCount:
+          pool.trackCertifications.length + pool.verifiedCertificates.length,
+        projectsCount: pool.projects.length,
+      });
+    }
+
+    return candidates;
+  }
+
   private normalizeApplicationStatus(status?: string): ApplicationStatus {
     if (!status) return 'Applied';
     const lower = status.toLowerCase().trim();
@@ -863,64 +914,6 @@ export class HiringService implements OnModuleInit {
     });
 
     return app.save();
-  }
-
-  // ────────────────────────────────────────────────────────────────────────────
-
-  async getCandidates(): Promise<any[]> {
-    this.logger.log(
-      'Fetching pre-vetted candidates pipeline for company portal',
-    );
-
-    const learners = await this.userModel
-      .find({ role: 'learner' })
-      .lean()
-      .exec();
-    const candidates: any[] = [];
-
-    for (const learner of learners) {
-      const learnerId = learner._id.toString();
-      const pool = await this.collectLearnerSkillsPool(learnerId);
-
-      const completedCount = pool.roadmap?.modules
-        ? pool.roadmap.modules.filter((m: any) => m.status === 'completed')
-            .length
-        : 0;
-      const totalCount = pool.roadmap?.modules?.length || 0;
-
-      let totalQuizScore = 0;
-      let passedQuizCount = 0;
-      pool.quizSessions.forEach((q) => {
-        if (q.score !== null && q.score !== undefined)
-          totalQuizScore += q.score;
-        if (q.passed) passedQuizCount++;
-      });
-
-      const averageScore =
-        pool.quizSessions.length > 0
-          ? Math.round(totalQuizScore / pool.quizSessions.length)
-          : null;
-
-      candidates.push({
-        userId: learnerId,
-        name: learner.name,
-        email: learner.email,
-        avatarUrl: learner.avatarUrl,
-        targetRole: pool.roadmap?.targetRole || 'Software Professional',
-        progress:
-          totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
-        completedMilestones: completedCount,
-        verifiedSkills: pool.verifiedSkills,
-        averageQuizScore: averageScore,
-        quizzesPassed: passedQuizCount,
-        cvUploaded: !!pool.cv,
-        certificationsCount:
-          pool.trackCertifications.length + pool.verifiedCertificates.length,
-        projectsCount: pool.projects.length,
-      });
-    }
-
-    return candidates;
   }
 
   // ── Saved Searches & Analytics ─────────────────────────────────────────────

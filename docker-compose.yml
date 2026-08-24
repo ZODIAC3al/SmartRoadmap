@@ -1,20 +1,24 @@
 services:
-  mongodb:
-    image: mongo:6.0
-    container_name: smartroadmap-mongodb
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:27017:27017"   # bound to loopback, not 0.0.0.0
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-root}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-changeme}
-    volumes:
-      - mongodb_data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # MongoDB is hosted on Atlas (cloud) — no local container needed.
+  # The Windows local MongoDB service already occupies port 27017, so this
+  # container would conflict. Comment it back in only if you want a local
+  # Mongo instance and the Atlas URI is unavailable.
+  # mongodb:
+  #   image: mongo:6.0
+  #   container_name: smartroadmap-mongodb
+  #   restart: unless-stopped
+  #   ports:
+  #     - "127.0.0.1:27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-root}
+  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-changeme}
+  #   volumes:
+  #     - mongodb_data:/data/db
+  #   healthcheck:
+  #     test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
   redis:
     image: redis:7-alpine
@@ -43,6 +47,6 @@ services:
   #     - "127.0.0.1:2000:2000"
 
 volumes:
-  mongodb_data:
+  # mongodb_data:  # unused — MongoDB runs on Atlas
   redis_data:
   qdrant_data:

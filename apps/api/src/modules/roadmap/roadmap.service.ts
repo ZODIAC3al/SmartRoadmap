@@ -36,6 +36,7 @@ export class RoadmapService {
     );
 
     const modules = Array.isArray(generated?.modules) ? generated.modules : [];
+    const userObjId = this.safeUserObjectId(userId);
 
     // 3. Save new roadmap to MongoDB
     const roadmap = new this.roadmapModel({
@@ -217,5 +218,44 @@ export class RoadmapService {
         },
       },
     ]);
+  }
+
+  // ── Private helpers ─────────────────────────────────────────────────────────
+
+  /**
+   * Safely converts a string userId to a Mongoose ObjectId.
+   * Falls back to a new ObjectId if the string is invalid.
+   */
+  private safeUserObjectId(userId: string): Types.ObjectId {
+    return Types.ObjectId.isValid(userId)
+      ? new Types.ObjectId(userId)
+      : new Types.ObjectId();
+  }
+
+  /**
+   * Ensures difficulty is one of the allowed enum values.
+   */
+  private sanitizeDifficulty(
+    d: unknown,
+  ): 'beginner' | 'intermediate' | 'advanced' {
+    const allowed = ['beginner', 'intermediate', 'advanced'];
+    return allowed.includes(d as string)
+      ? (d as 'beginner' | 'intermediate' | 'advanced')
+      : 'intermediate';
+  }
+
+  /**
+   * Ensures status is a valid module status.
+   * The first module defaults to 'in_progress' if not specified.
+   */
+  private sanitizeStatus(
+    s: unknown,
+    isFirst: boolean,
+  ): 'locked' | 'in_progress' | 'completed' | 'failed' {
+    const allowed = ['locked', 'in_progress', 'completed', 'failed'];
+    if (allowed.includes(s as string)) {
+      return s as 'locked' | 'in_progress' | 'completed' | 'failed';
+    }
+    return isFirst ? 'in_progress' : 'locked';
   }
 }

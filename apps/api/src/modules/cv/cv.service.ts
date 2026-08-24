@@ -735,6 +735,8 @@ ${plainText}`,
 
     let userObj: any = null;
     let learnerProfileObj: any = null;
+    let githubAccountObj: any = null;
+    let linkedinAccountObj: any = null;
     let roadmapsList: any[] = [];
     let quizzesList: any[] = [];
     let projectsList: any[] = [];
@@ -894,22 +896,17 @@ ${plainText}`,
     ).filter((s) => typeof s === 'string' && s.trim().length > 0);
 
     // 3. Gather Projects (real data only)
-    const verifiedProjects = (projectsList || []).map((p) => ({
-      name: p.name,
-      description:
-        p.description || (p.readmeSnippet ? p.readmeSnippet.slice(0, 300) : ''),
-      technologies: p.technologies || Object.keys(p.languages || {}),
-      url: p.demoLink || p.githubUrl || '',
-      githubUrl: p.githubUrl || '',
-      stars: p.stars || 0,
-    }));
-
     const verifiedProjects =
       projectsList.length > 0
         ? projectsList.map((p) => ({
             name: p.name,
-            description: p.description,
-            url: p.demoLink || p.githubUrl || 'https://github.com',
+            description:
+              p.description ||
+              (p.readmeSnippet ? p.readmeSnippet.slice(0, 300) : ''),
+            technologies: p.technologies || Object.keys(p.languages || {}),
+            url: p.demoLink || p.githubUrl || '',
+            githubUrl: p.githubUrl || '',
+            stars: p.stars || 0,
           }))
         : existingCv?.projects?.length
           ? existingCv.projects
@@ -921,6 +918,7 @@ ${plainText}`,
                 url: 'https://github.com/developia/smartroadmap',
               },
             ];
+
 
     // 4. Gather Certifications (real data only: uploaded + platform track certs + linkedin certs)
     const verifiedCertificates: any[] = [];

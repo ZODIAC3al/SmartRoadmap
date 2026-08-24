@@ -84,65 +84,20 @@ export class EmbeddingService {
     const cached = this.readCache(text);
     if (cached) return cached;
 
-    try {
-      const response = await this.client.embeddings.create({
-        model: this.config.get<string>(
-          'OPENAI_EMBEDDING_MODEL',
-          'text-embedding-3-small',
-        ),
-        input: text,
-      });
-      return response.data[0]?.embedding ?? this.mockEmbedding(text);
-    } catch (error: any) {
-      // Previously: `return this.embed(text)` → infinite recursion.
-      this.logger.error(`OpenAI embedding failed: ${error.message}`);
-      return this.mockEmbedding(text);
-    }
-  }
-
-  async embedBatch(texts: string[]): Promise<number[][]> {
-    if (this.isMockMode || !this.client)
-      return texts.map((t) => this.mockEmbedding(t));
-
-    try {
-      // One batched request instead of N sequential ones.
-      const response = await this.client.embeddings.create({
-        model: this.config.get<string>(
-          'OPENAI_EMBEDDING_MODEL',
-          'text-embedding-3-small',
-        ),
-        input: texts,
-      });
-      return response.data.map((d) => d.embedding);
-    } catch (error: any) {
-      this.logger.error(`OpenAI batch embedding failed: ${error.message}`);
-      return texts.map((t) => this.mockEmbedding(t));
-    }
-
-    if (this.geminiApiKey) {
+    if (!this.isMockMode && this.client) {
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${this.geminiApiKey}`;
-        const response = await axios.post(
-          url,
-          {
-            model: 'models/text-embedding-004',
-            content: { parts: [{ text }] },
-          },
-          {
-            headers: { 'Content-Type': 'application/json' },
-          },
-        );
-        const vector = response.data?.embedding?.values;
-        if (Array.isArray(vector)) {
-          const padded = [...vector];
-          while (padded.length < 1536) {
-            padded.push(0);
-          }
-          return padded;
-        }
+        const response = await this.client.embeddings.create({
+          model: this.config.get<string>(
+            'OPENAI_EMBEDDING_MODEL',
+            'text-embedding-3-small',
+          ),
+          input: text,
+        });
+        const vector = response.data[0]?.embedding ?? this.mockEmbedding(text);
+        this.writeCache(text, vector);
+        return vector;
       } catch (error: any) {
-        const errMsg = error.response?.data?.error?.message || error.message;
-        this.logger.error(`Gemini embedding failed: ${errMsg}`);
+        this.logger.error(`OpenAI embedding failed: ${error.message}`);
       }
     }
 
