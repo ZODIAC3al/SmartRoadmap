@@ -33,10 +33,10 @@ export default function LoadingProgress({
   return (
     <div className={`w-full ${className}`} role="status" aria-live="polite">
       <div className="flex items-center justify-between mb-1.5 text-xs">
-        <span className="font-semibold text-stone-700 dark:text-stone-300 font-medium">
+        <span className="font-semibold text-base-content/70 dark:text-stone-300 font-medium">
           {label ?? "Loading…"}
         </span>
-        <span className="font-mono text-stone-700 dark:text-stone-300 font-medium tabular-nums">
+        <span className="font-mono text-base-content/70 dark:text-stone-300 font-medium tabular-nums">
           {isIndeterminate
             ? showBytes && loaded
               ? formatBytes(loaded)
@@ -64,7 +64,7 @@ export default function LoadingProgress({
       </div>
 
       {showBytes && !isIndeterminate && total ? (
-        <p className="mt-1 text-[10px] font-mono text-stone-600 dark:text-stone-400 font-medium tabular-nums">
+        <p className="mt-1 text-[10px] font-mono text-base-content/70 dark:text-stone-400 font-medium tabular-nums">
           {formatBytes(loaded ?? 0)} / {formatBytes(total)}
         </p>
       ) : null}

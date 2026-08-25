@@ -159,7 +159,7 @@ export function usePricing() {
       );
     }
     if (value === false) {
-      return <span className="text-stone-500 dark:text-stone-400 font-medium text-xs font-mono">–</span>;
+      return <span className="text-base-content/70 dark:text-stone-400 font-medium text-xs font-mono">–</span>;
     }
     if (value === "No limit") {
       return locale === "ar" ? "بدون حد" : "No limit";

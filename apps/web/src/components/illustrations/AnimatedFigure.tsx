@@ -48,10 +48,10 @@ export default function AnimatedFigure({
           initial={{ opacity: 0, y: 6, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.3 }}
-          className="mb-2 max-w-[200px] text-center bg-base-100 dark:bg-stone-900 border border-[#8E1616]/30 dark:border-[#E8C999]/40 text-stone-800 dark:text-stone-100 text-[11px] font-bold py-1.5 px-3 rounded-2xl shadow-lg relative"
+          className="mb-2 max-w-[200px] text-center bg-base-100 dark:bg-base-300 border border-[#8E1616]/30 dark:border-[#E8C999]/40 text-base-content dark:text-stone-100 text-[11px] font-bold py-1.5 px-3 rounded-2xl shadow-lg relative"
         >
           <span>{speechText}</span>
-          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-base-100 dark:bg-stone-900 border-r border-b border-[#8E1616]/30 dark:border-[#E8C999]/40 rotate-45" />
+          <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-base-100 dark:bg-base-300 border-r border-b border-[#8E1616]/30 dark:border-[#E8C999]/40 rotate-45" />
         </motion.div>
       )}
 

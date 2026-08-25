@@ -50,7 +50,7 @@ export default function Stepper({ steps, currentIndex }: StepperProps) {
                   ? "bg-primary border-primary text-white shadow-lg shadow-primary/20"
                   : isActive
                     ? "bg-base-100 border-primary text-primary ring-4 ring-primary/20 scale-110"
-                    : "bg-base-200 border-base-300 text-stone-600 dark:text-stone-400 font-medium"
+                    : "bg-base-200 border-base-300 text-base-content/70 dark:text-stone-400 font-medium"
               }`}
             >
               {isCompleted ? (
@@ -77,8 +77,8 @@ export default function Stepper({ steps, currentIndex }: StepperProps) {
                 isActive
                   ? "text-primary scale-105"
                   : isCompleted
-                    ? "text-stone-800 dark:text-stone-200 font-medium"
-                    : "text-stone-600 dark:text-stone-400 font-medium"
+                    ? "text-base-content dark:text-stone-200 font-medium"
+                    : "text-base-content/70 dark:text-stone-400 font-medium"
               }`}
             >
               {step.label}

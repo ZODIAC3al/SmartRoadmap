@@ -186,16 +186,16 @@ const FolderSearchIllustration = ({ title }: { title: string }) => (
       {/* Folder tab */}
       <div className="absolute -top-3 left-6 w-14 h-6 bg-indigo-100 rounded-t-xl" />
       {/* Folder front tab white insert */}
-      <div className="absolute inset-2 bg-white/70 rounded-[1.5rem] flex flex-col justify-center px-4 space-y-1">
+      <div className="absolute inset-2 bg-base-100/70 rounded-[1.5rem] flex flex-col justify-center px-4 space-y-1">
         {/* Mock browser address line */}
-        <div className="h-5 bg-slate-50 rounded-lg flex items-center px-1.5 gap-1 border border-slate-200">
+        <div className="h-5 bg-base-200 rounded-2xl flex items-center px-1.5 gap-1 border border-base-300">
           <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
           <div className="h-1 bg-slate-200 rounded-full flex-grow" />
         </div>
       </div>
     </div>
     {/* Magnifying Glass floating in front */}
-    <div className="absolute -top-2 z-10 w-16 h-16 text-indigo-600 flex items-center justify-center animate-bounce">
+    <div className="absolute -top-2 z-10 w-16 h-16 text-primary flex items-center justify-center animate-bounce">
       <svg className="w-12 h-12 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
@@ -1273,16 +1273,40 @@ export default function RoadmapPage() {
       )}
 
       {/* Page Title Header */}
-      <div className="text-center max-w-3xl mx-auto mb-8 space-y-3 select-none">
-        <div className="badge bg-indigo-600 text-white gap-2 p-3.5 font-bold uppercase tracking-wider text-xs shadow-md border-none select-none">
-          <Sparkles className="w-3.5 h-3.5 fill-white text-white" /> {tr("interactiveMindmap")}
+      <div className="bg-[#E8C999]/20 border border-[#E8C999]/40 rounded-[2rem] p-8 sm:p-10 flex flex-col md:flex-row justify-between items-center gap-8 max-w-5xl mx-auto mb-10 shadow-sm select-none">
+        {/* Left Side */}
+        <div className="space-y-4 text-start flex-1 max-w-xl">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full border border-primary/20">
+            <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+            NEXT-GEN LEARNING ENGINE
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-base-content leading-tight">
+            {roadmap?.title || tr("trackWeb")}
+          </h1>
+          <p className="text-sm font-semibold text-base-content/60 leading-relaxed max-w-md">
+            {tr("subtitle")}
+          </p>
         </div>
-        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-base-content leading-tight">
-          {roadmap?.title || tr("trackWeb")}
-        </h1>
-        <p className="text-xs md:text-sm text-base-content/60 font-semibold max-w-lg mx-auto leading-relaxed">
-          {tr("subtitle")}
-        </p>
+
+        {/* Right Side: AI Assistant Graphic */}
+        <div className="hidden md:flex flex-col items-center justify-center relative w-64 shrink-0">
+          <div className="absolute -top-4 -left-4 bg-base-100 border border-base-300 shadow-sm rounded-full px-4 py-2 text-[10px] font-bold text-base-content whitespace-nowrap z-10">
+            Select a track below! 👇
+          </div>
+          <div className="w-32 h-32 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center relative bg-base-100 shadow-sm">
+            <Bot className="w-14 h-14 text-primary" />
+            <div className="absolute -left-3 top-12 w-6 h-6 rounded-full bg-[#F8EEDF] border border-base-300 shadow-sm flex items-center justify-center">
+              <span className="w-2 h-2 rounded-full bg-primary/50"></span>
+            </div>
+            <div className="absolute -right-3 top-12 w-6 h-6 rounded-full bg-[#F8EEDF] border border-base-300 shadow-sm flex items-center justify-center">
+              <span className="w-2 h-2 rounded-full bg-primary/50"></span>
+            </div>
+          </div>
+          <span className="mt-4 px-3 py-1 bg-base-100 border border-[#8E1616]/30 text-[#8E1616] text-[9px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 shadow-sm">
+            <span className="w-1.5 h-1.5 bg-[#8E1616] rounded-full"></span>
+            AI Active
+          </span>
+        </div>
       </div>
 
       {/* Action Selectors Row: Tracks + Layout Switcher */}
@@ -1298,8 +1322,8 @@ export default function RoadmapPage() {
             glow: string;
             hoverBg: string;
           }[] = [
-              { key: 'web', label: tr("trackWeb"), Icon: Globe, gradient: 'from-indigo-500 to-violet-500', glow: '80, 70, 229', hoverBg: 'hover:bg-indigo-500/10' },
-              { key: 'mobile', label: tr("trackMobile"), Icon: Smartphone, gradient: 'from-emerald-500 to-teal-500', glow: '16, 185, 129', hoverBg: 'hover:bg-emerald-500/10' },
+              { key: 'web', label: tr("trackWeb"), Icon: Globe, gradient: 'from-indigo-500 to-violet-500', glow: '80, 70, 229', hoverBg: 'hover:bg-primary text-primary-content/10' },
+              { key: 'mobile', label: tr("trackMobile"), Icon: Smartphone, gradient: 'from-[#8E1616] to-teal-500', glow: '16, 185, 129', hoverBg: 'hover:bg-[#8E1616]/10' },
               { key: 'ai', label: tr("trackAI"), Icon: Bot, gradient: 'from-fuchsia-500 to-pink-500', glow: '217, 70, 239', hoverBg: 'hover:bg-fuchsia-500/10' },
               { key: 'backend', label: tr("trackBackend"), Icon: Server, gradient: 'from-orange-500 to-amber-500', glow: '249, 115, 22', hoverBg: 'hover:bg-orange-500/10' },
               { key: 'devops', label: tr("trackDevOps"), Icon: Cloud, gradient: 'from-sky-500 to-cyan-400', glow: '14, 165, 233', hoverBg: 'hover:bg-sky-500/10' },
@@ -1340,7 +1364,7 @@ export default function RoadmapPage() {
                         <span className="whitespace-nowrap">{track.label}</span>
                         {/* Active dot */}
                         {active && (
-                          <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-white/70 shadow-sm" />
+                          <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-base-100/70 shadow-sm" />
                         )}
                       </button>
                     );
@@ -1381,7 +1405,7 @@ export default function RoadmapPage() {
         <div className="relative max-w-5xl mx-auto pb-10">
           {/* Root node */}
           <div className="flex flex-col items-center mb-2 relative z-10 select-none">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[2.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-500/20 border-4 border-base-100">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[2.5rem] bg-primary text-primary-content text-white flex items-center justify-center shadow-xl shadow-indigo-500/20 border-4 border-base-100">
               <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 fill-white text-white" />
             </div>
             <span className="mt-3 text-xs sm:text-sm font-black uppercase tracking-wider text-base-content/70 text-center px-4">
@@ -1477,7 +1501,7 @@ export default function RoadmapPage() {
                               </div>
                               <div className="min-w-0">
                                 <h5
-                                  className={`text-xs font-extrabold truncate transition-colors ${isSelected ? `text-${meta.color}` : 'text-base-content group-hover:text-indigo-600'
+                                  className={`text-xs font-extrabold truncate transition-colors ${isSelected ? `text-${meta.color}` : 'text-base-content group-hover:text-primary'
                                     }`}
                                 >
                                   {node.title}
@@ -1508,10 +1532,10 @@ export default function RoadmapPage() {
           {/* Mockup Folder Search Graphic */}
           <div className="text-center space-y-2 mb-6 select-none">
             <FolderSearchIllustration title={roadmap?.title || "Design Upgrade Roadmap"} />
-            <h2 className="text-2xl font-black text-slate-800 tracking-tight dark:text-white uppercase">
+            <h2 className="text-2xl font-black text-base-content tracking-tight dark:text-white uppercase">
               Design Upgrade Roadmap
             </h2>
-            <p className="text-[11px] font-extrabold text-indigo-600 tracking-widest uppercase">
+            <p className="text-[11px] font-extrabold text-primary tracking-widest uppercase">
               FOR {roadmap?.targetRole.toUpperCase() || "SNAPBUY"}
             </p>
           </div>
@@ -1527,7 +1551,7 @@ export default function RoadmapPage() {
               <div className="min-w-[800px] relative">
 
                 {/* Blue Header: Quarters (Q1 - Q4) */}
-                <div className="grid grid-cols-12 bg-indigo-600 text-white font-extrabold text-center rounded-t-2xl py-3.5 border-b border-indigo-700/20 shadow-sm text-sm">
+                <div className="grid grid-cols-12 bg-primary text-primary-content text-white font-extrabold text-center rounded-t-2xl py-3.5 border-b border-indigo-700/20 shadow-sm text-sm">
                   <div className="col-span-3 border-r border-white/10">Q1</div>
                   <div className="col-span-3 border-r border-white/10">Q2</div>
                   <div className="col-span-3 border-r border-white/10">Q3</div>
@@ -1608,7 +1632,7 @@ export default function RoadmapPage() {
       {/* Helper message when no module is active */}
       {!selectedModule && (
         <div className="text-center max-w-md mx-auto mt-10 space-y-2 text-base-content/40 select-none">
-          <HelpCircle className="w-6 h-6 mx-auto animate-pulse text-indigo-500" />
+          <HelpCircle className="w-6 h-6 mx-auto animate-pulse text-primary" />
           <p className="text-xs font-extrabold leading-relaxed">
             {tr("tapAnyNode")}
           </p>
@@ -1644,7 +1668,7 @@ export default function RoadmapPage() {
                 </span>
                 <button
                   onClick={() => setSelectedModule(null)}
-                  className="btn btn-sm btn-ghost btn-circle text-base-content/40 hover:text-base-content hover:bg-base-200"
+                  className="btn btn-sm btn-ghost btn-circle text-base-content/40 hover:text-base-content hover:bg-base-200 transition-all duration-300 ease-in-out"
                   aria-label="Close"
                 >
                   <X className="w-4 h-4" />
@@ -1668,7 +1692,7 @@ export default function RoadmapPage() {
                     <Clock className="w-3.5 h-3.5" />
                     {tr("estimatedDuration")}
                   </span>
-                  <span className="text-indigo-600 font-black">{selectedModule.estimatedHours} hrs</span>
+                  <span className="text-primary font-black">{selectedModule.estimatedHours} hrs</span>
                 </div>
                 <div className="flex items-center justify-between text-xs font-bold text-base-content/60">
                   <span className="flex items-center gap-1.5">
@@ -1696,7 +1720,7 @@ export default function RoadmapPage() {
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedModule.topics.map((t, i) => (
-                      <span key={i} className="px-2.5 py-1 text-[10px] font-bold bg-base-200 border border-base-300 rounded-lg">
+                      <span key={i} className="px-2.5 py-1 text-[10px] font-bold bg-base-200 border border-base-300 rounded-2xl">
                         {t}
                       </span>
                     ))}
@@ -1728,7 +1752,7 @@ export default function RoadmapPage() {
                               setSelectedHistoryVersion(found || null);
                             }
                           }}
-                          className="select select-bordered select-xs bg-base-200 text-[10px] rounded-lg border-base-300"
+                          className="select select-bordered select-xs bg-base-200 text-[10px] rounded-2xl border-base-300"
                         >
                           <option value="current">{isAr ? "النسخة الحالية" : "Current Version"}</option>
                           {cheatSheetHistory.map((h, i) => (
@@ -1748,7 +1772,7 @@ export default function RoadmapPage() {
                       <button
                         onClick={regenerateReferenceGuide}
                         disabled={generatingSheet}
-                        className="btn btn-outline border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-[10px] font-extrabold h-9"
+                        className="btn btn-outline border-primary text-primary hover:bg-primary text-primary-content hover:text-white rounded-xl text-[10px] font-extrabold h-9 transition-all duration-300 ease-in-out"
                       >
                         {generatingSheet ? (
                           <AiSpinner variant="inline" label={isAr ? "جاري…" : "Generating…"} />
@@ -1773,7 +1797,7 @@ export default function RoadmapPage() {
                   <button
                     onClick={generateReferenceGuide}
                     disabled={generatingSheet}
-                    className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-block rounded-xl text-xs font-extrabold h-11"
+                    className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-block rounded-xl text-xs font-extrabold h-11 transition-all duration-300 ease-in-out"
                   >
                     {generatingSheet ? (
                       <AiSpinner variant="inline" label={isAr ? "جاري التوليد…" : "Generating…"} />
@@ -1846,7 +1870,7 @@ export default function RoadmapPage() {
                   /* Not generated yet */
                   <button
                     onClick={generateAudioSummary}
-                    className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-block rounded-xl text-xs font-extrabold h-11"
+                    className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-block rounded-xl text-xs font-extrabold h-11 transition-all duration-300 ease-in-out"
                   >
                     <Music className="w-4 h-4 mr-1" />
                     {tr("generateAudio")}
@@ -1883,7 +1907,7 @@ export default function RoadmapPage() {
                           }}
                           className="group bg-base-200 hover:bg-base-300/80 border border-base-300 rounded-xl p-2 flex items-center gap-3 transition-all cursor-pointer select-none"
                         >
-                          <div className="relative w-20 h-12 shrink-0 rounded-lg overflow-hidden bg-slate-900 shadow-sm border border-base-300">
+                          <div className="relative w-20 h-12 shrink-0 rounded-2xl overflow-hidden bg-base-300 shadow-sm border border-base-300">
                             <img
                               src={video.thumbnailUrl}
                               alt={video.title}
@@ -1924,9 +1948,9 @@ export default function RoadmapPage() {
               <div className="pt-2">
                 <button
                   onClick={() => setShowVoiceTutor(true)}
-                  className="btn btn-outline border-indigo-650 text-indigo-600 hover:bg-indigo-600 hover:text-white btn-block rounded-xl text-xs font-extrabold h-11 flex items-center justify-center gap-2"
+                  className="btn btn-outline border-indigo-650 text-primary hover:bg-primary text-primary-content hover:text-white btn-block rounded-xl text-xs font-extrabold h-11 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out"
                 >
-                  <Mic className="w-4 h-4 text-indigo-600 group-hover:text-white" />
+                  <Mic className="w-4 h-4 text-primary group-hover:text-white transition-all duration-300 ease-in-out" />
                   {isAr ? "التحدث مع المعلم الصوتي 🎙️" : "Talk to Voice Tutor 🎙️"}
                 </button>
               </div>
@@ -1937,7 +1961,7 @@ export default function RoadmapPage() {
                   setSelectedModule(null);
                   router.push(`/quiz/${selectedModule.id}`);
                 }}
-                className="btn bg-indigo-600 hover:bg-indigo-700 border-none btn-block rounded-xl text-white font-extrabold text-xs shadow-lg shadow-indigo-500/10 mt-auto h-12 flex items-center justify-center gap-1.5"
+                className="btn bg-primary text-primary-content hover:bg-indigo-700 border-none btn-block rounded-xl text-white font-extrabold text-xs shadow-lg shadow-indigo-500/10 mt-auto h-12 flex items-center justify-center gap-1.5 transition-all duration-300 ease-in-out"
               >
                 <span>{tr("startChallenge")}</span>
                 <ArrowRight className="w-4 h-4 text-white" />
@@ -1979,7 +2003,7 @@ export default function RoadmapPage() {
                 </div>
                 <button
                   onClick={() => setShowVideoModal(false)}
-                  className="btn btn-circle btn-ghost btn-xs text-base-content/60 hover:text-base-content"
+                  className="btn btn-circle btn-ghost btn-xs text-base-content/60 hover:text-base-content transition-all duration-300 ease-in-out"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -2003,7 +2027,7 @@ export default function RoadmapPage() {
                   href={selectedVideo.videoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn btn-xs btn-outline border-red-600 text-red-600 hover:bg-red-600 hover:text-white rounded-lg gap-1 font-extrabold shrink-0"
+                  className="btn btn-xs btn-outline border-red-600 text-red-600 hover:bg-red-600 hover:text-white rounded-2xl gap-1 font-extrabold shrink-0 transition-all duration-300 ease-in-out"
                 >
                   <span>{isAr ? "مشاهدة في يوتيوب ↗" : "Watch on YouTube ↗"}</span>
                 </a>

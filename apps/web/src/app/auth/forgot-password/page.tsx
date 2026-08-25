@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
           <h2 className="text-2xl font-black tracking-tight text-base-content leading-none">
             Reset Password
           </h2>
-          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+          <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">
             Enter your email coordinates to receive a reset token.
           </p>
         </div>
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
         {!isSuccess ? (
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div className="form-control space-y-1">
-              <label className="text-[10px] font-bold uppercase text-stone-700 dark:text-stone-300 font-medium font-mono">
+              <label className="text-[10px] font-bold uppercase text-base-content/70 dark:text-stone-300 font-medium font-mono">
                 Email Address
               </label>
               <input
@@ -89,7 +89,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full btn bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl h-11 text-xs font-semibold flex items-center justify-center gap-2"
+              className="w-full btn bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl h-11 text-xs font-semibold flex items-center justify-center gap-2 transition-all duration-300 ease-in-out"
             >
               {isSubmitting && (
                 <span className="loading loading-spinner loading-xs" />
@@ -105,14 +105,14 @@ export default function ForgotPasswordPage() {
             <h3 className="font-extrabold text-sm text-[#8E1616]">
               Reset Link Dispatched
             </h3>
-            <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
+            <p className="text-[11px] text-base-content/70 dark:text-stone-300 font-medium leading-relaxed">
               We simulated sending a reset email to{" "}
               <strong className="text-base-content font-bold">{email}</strong>.
               Check your spam or local logs!
             </p>
             <button
               onClick={() => setIsSuccess(false)}
-              className="text-[10px] text-primary hover:underline font-mono block mx-auto pt-1"
+              className="text-[10px] text-primary hover:underline font-mono block mx-auto pt-1 transition-all duration-300 ease-in-out"
             >
               Retry different email
             </button>
@@ -126,7 +126,7 @@ export default function ForgotPasswordPage() {
           >
             Back to Login
           </Link>
-          <Link href="/auth/register" className="text-primary hover:underline">
+          <Link href="/auth/register" className="text-primary hover:underline transition-all duration-300 ease-in-out">
             Register Account
           </Link>
         </div>

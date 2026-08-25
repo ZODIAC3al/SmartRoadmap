@@ -157,11 +157,11 @@ export default function BottomNav() {
                   <span className="relative">{tab.icon(true)}</span>
                 </span>
               )}
-              <span className={active ? "opacity-0" : "text-stone-600 dark:text-stone-400 font-medium"}>
+              <span className={active ? "opacity-0" : "text-base-content/70 dark:text-stone-400 font-medium"}>
                 {!active && tab.icon(false)}
               </span>
               <span
-                className={`text-[11px] font-medium ${active ? "text-primary mt-5" : "text-stone-600 dark:text-stone-400 font-medium"}`}
+                className={`text-[11px] font-medium ${active ? "text-primary mt-5" : "text-base-content/70 dark:text-stone-400 font-medium"}`}
               >
                 {tab.label}
               </span>

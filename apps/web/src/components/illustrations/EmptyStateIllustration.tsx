@@ -108,7 +108,7 @@ export default function EmptyStateIllustration({
         <h4 className="font-extrabold text-base sm:text-lg text-base-content tracking-tight">
           {currentMeta.title}
         </h4>
-        <p className="text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
+        <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium leading-relaxed">
           {currentMeta.desc}
         </p>
       </div>
@@ -117,7 +117,7 @@ export default function EmptyStateIllustration({
         <button
           type="button"
           onClick={onAction}
-          className="btn bg-[#8E1616] hover:bg-[#701111] text-white btn-sm rounded-xl font-bold border-none shadow px-6 mt-2"
+          className="btn bg-[#8E1616] hover:bg-[#701111] text-white btn-sm rounded-xl font-bold border-none shadow px-6 mt-2 transition-all duration-300 ease-in-out"
         >
           {actionText}
         </button>

@@ -231,7 +231,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
       <div className="max-w-4xl mx-auto w-full">
         {/* Header */}
         <div className="mb-8 pt-6">
-          <Link href="/roadmap" className="text-xs text-indigo-600 hover:underline font-mono font-bold flex items-center gap-1.5 w-fit">
+          <Link href="/roadmap" className="text-xs text-primary hover:underline font-mono font-bold flex items-center gap-1.5 w-fit transition-all duration-300 ease-in-out">
             <i className={isAr ? "lni lni-arrow-right" : "lni lni-arrow-left"} /> {tr("backToRoadmap")}
           </Link>
           <h1 className="text-2xl sm:text-3xl font-bold mt-2 truncate">{moduleTitle}</h1>
@@ -271,7 +271,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                         btnStyle = "btn-ghost opacity-50";
                       }
                     } else {
-                      btnStyle += " hover:border-indigo-500";
+                      btnStyle += " hover:border-primary";
                     }
 
                     return (
@@ -342,7 +342,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                       </RadialBarChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className={`text-xl font-black font-mono ${timer <= 10 ? "text-error" : "text-indigo-600"}`}>
+                      <span className={`text-xl font-black font-mono ${timer <= 10 ? "text-error" : "text-primary"}`}>
                         {timer}s
                       </span>
                     </div>
@@ -362,8 +362,8 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                       return (
                         <div
                           key={i}
-                          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold ${isCurrent
-                            ? "bg-indigo-600/10 text-indigo-600 border border-indigo-600/30"
+                          className={`flex items-center gap-3 rounded-2xl px-3 py-2 text-xs font-semibold ${isCurrent
+                            ? "bg-primary text-primary-content/10 text-primary border border-primary/30"
                             : entry
                               ? entry.correct
                                 ? "text-success"
@@ -373,7 +373,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                         >
                           <span
                             className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${isCurrent
-                              ? "bg-indigo-600 text-white"
+                              ? "bg-primary text-primary-content text-white"
                               : entry
                                 ? entry.correct
                                   ? "bg-success text-white"

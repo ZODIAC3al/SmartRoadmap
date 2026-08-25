@@ -29,7 +29,7 @@ export default async function PublicPortfolioPage({
   if (!portfolio || !portfolio.isPublished) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <div className="w-16 h-16 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center text-2xl font-bold">
+        <div className="w-16 h-16 bg-base-300 border border-base-300 rounded-3xl flex items-center justify-center text-2xl font-bold">
           🔒
         </div>
         <h1 className="text-2xl font-extrabold text-white">Portfolio Private or Not Found</h1>
@@ -38,7 +38,7 @@ export default async function PublicPortfolioPage({
         </p>
         <Link
           href="/"
-          className="btn bg-primary hover:bg-[#059669] text-white btn-sm rounded-xl font-bold border-none"
+          className="btn bg-primary hover:bg-[#701111] text-white btn-sm rounded-xl font-bold border-none transition-all duration-300 ease-in-out"
         >
           Return to Home
         </Link>

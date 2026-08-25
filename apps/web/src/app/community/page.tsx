@@ -215,7 +215,7 @@ export default function CommunityPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
@@ -230,7 +230,7 @@ export default function CommunityPage() {
         {/* Header Block */}
         <div className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-5 shadow-xl relative overflow-hidden">
           <div className="space-y-1 z-10">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-extrabold uppercase tracking-widest font-mono border border-emerald-500/20">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8E1616]/10 text-[#8E1616] text-[10px] font-extrabold uppercase tracking-widest font-mono border border-[#8E1616]/20">
               💬 {isRtl ? "مساحة عملية لتبادل الخبرات" : "PEOPLE · PRACTICE · PROGRESS"}
             </span>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-base-content mt-2">
@@ -244,7 +244,7 @@ export default function CommunityPage() {
           </div>
           <button
             onClick={() => setShowCreatePost(true)}
-            className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-2xl font-bold px-5 text-xs gap-2 shadow-lg shrink-0 z-10"
+            className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-2xl font-bold px-5 text-xs gap-2 shadow-lg shrink-0 z-10 transition-all duration-300 ease-in-out"
           >
             ✏️ {isRtl ? "موضوع جديد" : "Start a discussion"}
           </button>
@@ -268,7 +268,7 @@ export default function CommunityPage() {
                       onClick={() => handleSpaceSelect(space)}
                       className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-bold transition-all text-start border ${
                         isActive
-                          ? "bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]"
+                          ? "bg-[#8E1616]/10 border-[#8E1616]/30 text-[#8E1616]"
                           : "bg-base-100 hover:bg-base-300 border-transparent text-base-content/70 hover:border-base-300"
                       }`}
                     >
@@ -280,7 +280,7 @@ export default function CommunityPage() {
                       </div>
                       {space.recommended && (
                         <span
-                          className="text-[9px] font-bold font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-wide shrink-0"
+                          className="text-[9px] font-bold font-mono px-2 py-0.5 rounded-full bg-[#8E1616]/10 text-[#8E1616] border border-[#8E1616]/20 uppercase tracking-wide shrink-0"
                           title={isRtl ? "موصى به لمهاراتك" : "Recommended for your skills"}
                         >
                           MATCH
@@ -373,7 +373,7 @@ export default function CommunityPage() {
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-bold"
+                      className="btn btn-sm bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl font-bold transition-all duration-300 ease-in-out"
                     >
                       {isRtl ? "نشر الموضوع" : "Publish Post"}
                     </button>
@@ -400,7 +400,7 @@ export default function CommunityPage() {
                 posts.map((post) => (
                   <div
                     key={post._id}
-                    className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-2xl p-5 space-y-4 shadow-lg hover:border-[#10B981]/30 transition-all"
+                    className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-2xl p-5 space-y-4 shadow-lg hover:border-[#8E1616]/30 transition-all"
                   >
                     {/* Author block */}
                     <div className="flex justify-between items-start gap-4">
@@ -412,7 +412,7 @@ export default function CommunityPage() {
                             className="w-8 h-8 rounded-full object-cover border border-base-300"
                           />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-[#10B981]/20 text-[#10B981] flex items-center justify-center font-bold text-xs font-sans border border-[#10B981]/30">
+                          <div className="w-8 h-8 rounded-full bg-[#8E1616]/20 text-[#8E1616] flex items-center justify-center font-bold text-xs font-sans border border-[#8E1616]/30">
                             {(post.authorId?.name || "?").split(" ").map((n) => n[0]).join("")}
                           </div>
                         )}
@@ -440,7 +440,7 @@ export default function CommunityPage() {
                           setFlaggedContentId(post._id);
                           setFlaggedType("post");
                         }}
-                        className="btn btn-ghost btn-circle btn-xs text-base-content/40 hover:text-red-500"
+                        className="btn btn-ghost btn-circle btn-xs text-base-content/40 hover:text-red-500 transition-all duration-300 ease-in-out"
                         title={isRtl ? "إبلاغ عن محتوى غير لائق" : "Flag content"}
                       >
                         ⚠️
@@ -450,12 +450,12 @@ export default function CommunityPage() {
                     {/* Post content */}
                     <div className="space-y-1.5">
                       {post.isArticle && (
-                        <span className="badge bg-[#10B981]/15 text-[#059669] text-[9px] font-bold border-none py-1">
+                        <span className="badge bg-[#8E1616]/15 text-[#701111] text-[9px] font-bold border-none py-1">
                           📚 {isRtl ? "مقالة تعليمية" : "Educational Article"}
                         </span>
                       )}
                       <h3
-                        className="font-black text-sm text-base-content leading-tight hover:text-[#10B981] cursor-pointer transition-colors"
+                        className="font-black text-sm text-base-content leading-tight hover:text-[#8E1616] cursor-pointer transition-colors"
                         onClick={() => handleViewComments(post)}
                       >
                         {post.title}
@@ -471,7 +471,7 @@ export default function CommunityPage() {
                         {post.tags.map((t) => (
                           <span
                             key={t}
-                            className="text-[10px] font-bold text-base-content/50 font-mono bg-base-100 px-2 py-0.5 rounded-lg border border-base-300"
+                            className="text-[10px] font-bold text-base-content/50 font-mono bg-base-100 px-2 py-0.5 rounded-2xl border border-base-300"
                           >
                             #{t}
                           </span>
@@ -488,8 +488,8 @@ export default function CommunityPage() {
                           aria-label={`Upvote ${post.title}`}
                           className={`font-black px-1.5 transition-colors ${
                             currentUserId && post.upvotes?.includes(currentUserId)
-                              ? "text-[#10B981]"
-                              : "hover:text-[#10B981]"
+                              ? "text-[#8E1616]"
+                              : "hover:text-[#8E1616]"
                           }`}
                         >
                           ▲
@@ -513,7 +513,7 @@ export default function CommunityPage() {
                       {/* Comment trigger */}
                       <button
                         onClick={() => handleViewComments(post)}
-                        className="btn btn-ghost btn-xs text-xs font-bold text-base-content/65 hover:text-[#10B981] rounded-xl flex items-center gap-1.5 transition-colors"
+                        className="btn btn-ghost btn-xs text-xs font-bold text-base-content/65 hover:text-[#8E1616] rounded-xl flex items-center gap-1.5 transition-colors"
                       >
                         💬 {isRtl ? "التعليقات والمناقشة" : "Comments"}
                       </button>
@@ -553,7 +553,7 @@ export default function CommunityPage() {
                     comments.map((c) => (
                       <div
                         key={c._id}
-                        className="p-3 bg-base-100 border border-base-300 rounded-xl space-y-2 hover:border-[#10B981]/20 transition-colors"
+                        className="p-3 bg-base-100 border border-base-300 rounded-xl space-y-2 hover:border-[#8E1616]/20 transition-colors"
                       >
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
@@ -564,7 +564,7 @@ export default function CommunityPage() {
                                 className="w-6 h-6 rounded-full object-cover"
                               />
                             ) : (
-                              <div className="w-6 h-6 rounded-full bg-[#10B981]/20 text-[#10B981] flex items-center justify-center font-bold text-[9px] font-sans border border-[#10B981]/30">
+                              <div className="w-6 h-6 rounded-full bg-[#8E1616]/20 text-[#8E1616] flex items-center justify-center font-bold text-[9px] font-sans border border-[#8E1616]/30">
                                 {(c.authorId?.name || "?").split(" ").map((n) => n[0]).join("")}
                               </div>
                             )}
@@ -606,7 +606,7 @@ export default function CommunityPage() {
                   />
                   <button
                     type="submit"
-                    className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl px-4 text-xs font-bold"
+                    className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl px-4 text-xs font-bold transition-all duration-300 ease-in-out"
                   >
                     {isRtl ? "إرسال" : "Reply"}
                   </button>
@@ -647,13 +647,13 @@ export default function CommunityPage() {
                           setFlaggedContentId(null);
                           setFlaggedType(null);
                         }}
-                        className="btn btn-xs sm:btn-sm btn-ghost rounded-lg"
+                        className="btn btn-xs sm:btn-sm btn-ghost rounded-2xl"
                       >
                         {isRtl ? "إلغاء" : "Cancel"}
                       </button>
                       <button
                         type="submit"
-                        className="btn btn-xs sm:btn-sm bg-red-500 hover:bg-red-600 text-white border-none rounded-lg font-bold"
+                        className="btn btn-xs sm:btn-sm bg-red-500 hover:bg-red-600 text-white border-none rounded-2xl font-bold transition-all duration-300 ease-in-out"
                       >
                         {isRtl ? "إرسال البلاغ" : "Submit Flag"}
                       </button>

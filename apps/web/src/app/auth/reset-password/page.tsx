@@ -52,7 +52,7 @@ function ResetPasswordForm() {
     return (
       <div className="text-center space-y-4">
         <h1 className="text-2xl font-bold">Invalid reset link</h1>
-        <p className="text-sm text-stone-700 dark:text-stone-300 font-medium">
+        <p className="text-sm text-base-content/70 dark:text-stone-300 font-medium">
           This link is missing its token. Request a new one.
         </p>
         <Link
@@ -71,7 +71,7 @@ function ResetPasswordForm() {
         <h1 className="text-2xl font-bold tracking-tight">
           Choose a new password
         </h1>
-        <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+        <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">
           You&apos;ll be signed out of every device once it&apos;s changed.
         </p>
       </div>
@@ -113,8 +113,8 @@ function ResetPasswordForm() {
         )}
       </button>
 
-      <p className="text-center text-xs text-stone-700 dark:text-stone-300 font-medium">
-        <Link href="/auth/login" className="font-semibold hover:underline">
+      <p className="text-center text-xs text-base-content/70 dark:text-stone-300 font-medium">
+        <Link href="/auth/login" className="font-semibold hover:underline transition-all duration-300 ease-in-out">
           Back to sign in
         </Link>
       </p>

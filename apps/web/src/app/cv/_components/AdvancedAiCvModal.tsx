@@ -91,7 +91,7 @@ export function AdvancedAiCvModal({
               <h2 className="text-lg font-black text-base-content">
                 Advanced AI CV Generator
               </h2>
-              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+              <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">
                 Tailor a comprehensive, ATS-ready resume from your verified profile
               </p>
             </div>
@@ -99,7 +99,7 @@ export function AdvancedAiCvModal({
           <button
             onClick={onClose}
             disabled={isGenerating}
-            className="btn btn-ghost btn-sm btn-circle text-stone-500 hover:text-base-content"
+            className="btn btn-ghost btn-sm btn-circle text-base-content/70 hover:text-base-content transition-all duration-300 ease-in-out"
           >
             <CloseIcon />
           </button>
@@ -123,7 +123,7 @@ export function AdvancedAiCvModal({
                   className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
                     targetRole === role
                       ? "bg-[#8E1616] text-white shadow-sm"
-                      : "bg-base-200 text-stone-800 dark:text-stone-200 border border-base-300 hover:border-[#8E1616]/40"
+                      : "bg-base-200 text-base-content dark:text-stone-200 border border-base-300 hover:border-[#8E1616]/40"
                   }`}
                 >
                   {role}
@@ -147,7 +147,7 @@ export function AdvancedAiCvModal({
               <label className="text-xs font-mono font-extrabold uppercase tracking-wider text-[#8E1616]">
                 2. Job Description (Optional for ATS keyword alignment)
               </label>
-              <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium">
+              <span className="text-[10px] text-base-content/70 dark:text-stone-400 font-medium">
                 Paste recruiter posting
               </span>
             </div>
@@ -165,7 +165,7 @@ export function AdvancedAiCvModal({
               <label className="text-xs font-mono font-extrabold uppercase tracking-wider text-[#8E1616]">
                 3. Select Sections to Populate
               </label>
-              <span className="text-[10px] font-bold text-stone-700 dark:text-stone-300">
+              <span className="text-[10px] font-bold text-base-content/70 dark:text-stone-300">
                 {selectedSections.length} of {AVAILABLE_SECTIONS.length} selected
               </span>
             </div>
@@ -180,7 +180,7 @@ export function AdvancedAiCvModal({
                     className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 select-none ${
                       isSelected
                         ? "bg-[#8E1616]/5 border-[#8E1616]/40 text-base-content"
-                        : "bg-base-200/50 border-base-300 opacity-60 text-stone-600 dark:text-stone-400 hover:opacity-90"
+                        : "bg-base-200/50 border-base-300 opacity-60 text-base-content/70 dark:text-stone-400 hover:opacity-90"
                     }`}
                   >
                     <input
@@ -191,7 +191,7 @@ export function AdvancedAiCvModal({
                     />
                     <div className="space-y-0.5">
                       <p className="text-xs font-black leading-tight text-base-content">{sec.label}</p>
-                      <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium leading-normal">{sec.desc}</p>
+                      <p className="text-[10px] text-base-content/70 dark:text-stone-400 font-medium leading-normal">{sec.desc}</p>
                     </div>
                   </div>
                 );
@@ -200,9 +200,9 @@ export function AdvancedAiCvModal({
           </div>
 
           {/* Anti-Hallucination Assurance */}
-          <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3">
-            <span className="text-emerald-600 text-lg">🛡️</span>
-            <p className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold leading-relaxed">
+          <div className="p-3.5 rounded-2xl bg-[#8E1616]/10 border border-[#8E1616]/30 flex items-center gap-3">
+            <span className="text-[#701111] text-lg">🛡️</span>
+            <p className="text-xs text-emerald-800 dark:text-[#E8C999] font-semibold leading-relaxed">
               <strong>Truthful Data Integrity:</strong> The AI extracts strictly from your verified profile, projects, GitHub repositories, and certifications. No fabricated roles or fake credentials.
             </p>
           </div>
@@ -223,7 +223,7 @@ export function AdvancedAiCvModal({
             type="button"
             onClick={handleStartGeneration}
             disabled={isGenerating || !targetRole.trim() || selectedSections.length === 0}
-            className="btn bg-gradient-to-r from-[#8E1616] via-[#B32424] to-[#8E1616] text-white hover:from-[#701111] hover:to-[#701111] btn-sm px-6 rounded-xl font-black border-none shadow-md flex items-center gap-2"
+            className="btn bg-gradient-to-r from-[#8E1616] via-[#B32424] to-[#8E1616] text-white hover:from-[#701111] hover:to-[#701111] btn-sm px-6 rounded-xl font-black border-none shadow-md flex items-center gap-2 transition-all duration-300 ease-in-out"
           >
             {isGenerating ? (
               <>

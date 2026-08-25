@@ -209,7 +209,7 @@ export default function AdminUsersPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
@@ -229,7 +229,7 @@ export default function AdminUsersPage() {
         {/* Navigation Admin Header Banner */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
           <div>
-            <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
+            <span className="text-[10px] text-[#8E1616] font-bold uppercase tracking-wider font-mono bg-[#8E1616]/10 px-2 py-0.5 rounded">
               {isRtl ? "بوابة الأمان والعمليات" : "PLATFORM OPERATIONS & SECURITY"}
             </span>
             <h1 className="text-xl font-extrabold text-base-content mt-1">
@@ -242,19 +242,19 @@ export default function AdminUsersPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/admin/certificates"
-              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "مراجعة الشهادات" : "Certificates"}
             </Link>
             <Link
               href="/admin/content"
-              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "إشراف المحتوى" : "Moderation"}
             </Link>
             <Link
               href="/admin"
-              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "لوحة التحليلات" : "Back to analytics"}
             </Link>
@@ -293,7 +293,7 @@ export default function AdminUsersPage() {
                     onChange={(e) => setSearch(e.target.value)}
                     className="input input-bordered rounded-xl bg-base-100 text-xs w-32 sm:w-40 h-8"
                   />
-                  <button type="submit" className="btn btn-xs bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl h-8 px-2.5 font-bold">
+                  <button type="submit" className="btn btn-xs bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl h-8 px-2.5 font-bold transition-all duration-300 ease-in-out">
                     {isRtl ? "بحث" : "Go"}
                   </button>
                 </form>
@@ -340,7 +340,7 @@ export default function AdminUsersPage() {
                       <td className="flex gap-1.5 flex-wrap">
                         <button
                           onClick={() => handleOpenEditModal(u)}
-                          className="btn btn-xs btn-outline btn-info rounded-lg font-bold"
+                          className="btn btn-xs btn-outline btn-info rounded-2xl font-bold"
                         >
                           ✏️ {isRtl ? "تعديل" : "Edit"}
                         </button>
@@ -348,7 +348,7 @@ export default function AdminUsersPage() {
                           onClick={() => handleDeleteUser(u._id)}
                           disabled={u._id === currentUser?._id}
                           title={u._id === currentUser?._id ? (isRtl ? "لا يمكنك حذف حسابك الخاص" : "You cannot delete your own account") : undefined}
-                          className="btn btn-xs btn-outline btn-error rounded-lg font-bold disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="btn btn-xs btn-outline btn-error rounded-2xl font-bold disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           🗑️ {isRtl ? "حذف" : "Remove"}
                         </button>
@@ -369,7 +369,7 @@ export default function AdminUsersPage() {
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="btn btn-xs btn-outline rounded-lg border-base-300 disabled:opacity-40"
+                    className="btn btn-xs btn-outline rounded-2xl border-base-300 disabled:opacity-40"
                   >
                     {isRtl ? "السابق" : "Prev"}
                   </button>
@@ -379,7 +379,7 @@ export default function AdminUsersPage() {
                   <button
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="btn btn-xs btn-outline rounded-lg border-base-300 disabled:opacity-40"
+                    className="btn btn-xs btn-outline rounded-2xl border-base-300 disabled:opacity-40"
                   >
                     {isRtl ? "التالي" : "Next"}
                   </button>
@@ -402,7 +402,7 @@ export default function AdminUsersPage() {
                 <span className="font-bold">WARNINGS IN LOG</span>
                 <span className="font-mono font-black">{auditLogs.filter((l) => l.severity === "warning").length}</span>
               </div>
-              <div className="flex justify-between items-center p-2.5 bg-blue-500/10 border border-blue-500/20 text-blue-500 rounded-xl">
+              <div className="flex justify-between items-center p-2.5 bg-primary text-primary-content/10 border border-primary/20 text-primary rounded-xl">
                 <span className="font-bold">INFO TRAFFIC logs</span>
                 <span className="font-mono font-black">{auditLogs.filter((l) => l.severity === "info").length}</span>
               </div>
@@ -446,7 +446,7 @@ export default function AdminUsersPage() {
                     <td>
                       <span className={`badge border-none font-bold text-[8px] uppercase px-1.5 py-0.5 rounded font-mono ${
                         log.severity === "critical" ? "bg-red-500/10 text-red-500 animate-pulse" :
-                        log.severity === "warning" ? "bg-yellow-500/10 text-yellow-500" : "bg-blue-500/10 text-blue-500"
+                        log.severity === "warning" ? "bg-yellow-500/10 text-yellow-500" : "bg-primary text-primary-content/10 text-primary"
                       }`}>
                         {log.severity}
                       </span>
@@ -472,7 +472,7 @@ export default function AdminUsersPage() {
             aria-modal="true"
             aria-labelledby="admin-add-user-title"
           >
-            <h3 id="admin-add-user-title" className="font-bold text-lg mb-4 text-[#10B981]">
+            <h3 id="admin-add-user-title" className="font-bold text-lg mb-4 text-[#8E1616]">
               {isRtl ? "إضافة مستخدم جديد" : "Add New User"}
             </h3>
             <form onSubmit={handleCreateUserSubmit} className="space-y-4 text-xs">
@@ -531,7 +531,7 @@ export default function AdminUsersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none text-xs rounded-xl font-bold px-6"
+                  className="btn btn-sm bg-[#8E1616] hover:bg-[#701111] text-white border-none text-xs rounded-xl font-bold px-6 transition-all duration-300 ease-in-out"
                 >
                   {isRtl ? "إضافة" : "Add User"}
                 </button>
@@ -550,7 +550,7 @@ export default function AdminUsersPage() {
             aria-modal="true"
             aria-labelledby="admin-edit-user-title"
           >
-            <h3 id="admin-edit-user-title" className="font-bold text-lg mb-4 text-[#10B981]">
+            <h3 id="admin-edit-user-title" className="font-bold text-lg mb-4 text-[#8E1616]">
               {isRtl ? "تعديل تفاصيل العضو" : "Edit User Details"}
             </h3>
             <form onSubmit={handleEditUserSubmit} className="space-y-4 text-xs">
@@ -599,7 +599,7 @@ export default function AdminUsersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="btn btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none text-xs rounded-xl font-bold px-6"
+                  className="btn btn-sm bg-[#8E1616] hover:bg-[#701111] text-white border-none text-xs rounded-xl font-bold px-6 transition-all duration-300 ease-in-out"
                 >
                   {isRtl ? "حفظ التغييرات" : "Save Changes"}
                 </button>

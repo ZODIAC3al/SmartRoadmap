@@ -83,7 +83,7 @@ export default function AdminContentPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
@@ -97,7 +97,7 @@ export default function AdminContentPage() {
         {/* Navigation Admin Header Banner */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-6 sm:p-8 shadow-sm">
           <div>
-            <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
+            <span className="text-[10px] text-[#8E1616] font-bold uppercase tracking-wider font-mono bg-[#8E1616]/10 px-2 py-0.5 rounded">
               {isRtl ? "إشراف ومراقبة المحتوى" : "MODERATION GATEWAY"}
             </span>
             <h1 className="text-xl font-extrabold text-base-content mt-1">
@@ -110,19 +110,19 @@ export default function AdminContentPage() {
           <div className="flex items-center gap-3">
             <Link
               href="/admin/certificates"
-              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "مراجعة الشهادات" : "Certificates"}
             </Link>
             <Link
               href="/admin/users"
-              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "إدارة الأعضاء" : "Manage users"}
             </Link>
             <Link
               href="/admin"
-              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "لوحة التحليلات" : "Back to analytics"}
             </Link>
@@ -171,7 +171,7 @@ export default function AdminContentPage() {
                         <td>
                           <span className={`badge border-none font-bold text-[8px] uppercase px-1.5 py-0.5 rounded font-mono ${
                             rep.status === "pending" ? "bg-yellow-500/10 text-yellow-500" :
-                            rep.status === "resolved" ? "bg-green-500/10 text-green-500" : "bg-neutral-content/10 text-neutral-content/40"
+                            rep.status === "resolved" ? "bg-[#8E1616]/10 text-[#8E1616]" : "bg-neutral-content/10 text-neutral-content/40"
                           }`}>
                             {rep.status}
                           </span>
@@ -180,7 +180,7 @@ export default function AdminContentPage() {
                           {rep.status === "pending" && (
                             <button
                               onClick={() => setSelectedReport(rep)}
-                              className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none rounded-lg px-2 font-bold"
+                              className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none rounded-2xl px-2 font-bold transition-all duration-300 ease-in-out"
                             >
                               {isRtl ? "معالجة" : "Handle"}
                             </button>
@@ -202,7 +202,7 @@ export default function AdminContentPage() {
                   <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
                     {isRtl ? "معالجة بلاغ" : "Report Handler Action"}
                   </h3>
-                  <button onClick={() => setSelectedReport(null)} className="text-[11px] font-bold hover:underline">
+                  <button onClick={() => setSelectedReport(null)} className="text-[11px] font-bold hover:underline transition-all duration-300 ease-in-out">
                     ✕
                   </button>
                 </div>
@@ -214,7 +214,7 @@ export default function AdminContentPage() {
                   </div>
                   <div>
                     <span className="font-bold text-[10px] text-base-content/40 block font-mono">CONTENT KEY ID</span>
-                    <span className="font-mono text-[10px] text-base-content block bg-base-100 p-1.5 rounded-lg truncate">{selectedReport.contentId}</span>
+                    <span className="font-mono text-[10px] text-base-content block bg-base-100 p-1.5 rounded-2xl truncate">{selectedReport.contentId}</span>
                   </div>
                   <div>
                     <span className="font-bold text-[10px] text-base-content/40 block font-mono">VIOLATION DETAILS</span>

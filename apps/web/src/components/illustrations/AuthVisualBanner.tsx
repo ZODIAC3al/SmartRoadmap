@@ -36,7 +36,7 @@ export default function AuthVisualBanner({
 
       {/* Top Brand Pill */}
       <div className="relative z-10">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#E8C999] font-mono text-[10px] font-bold uppercase tracking-wider">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-base-100/10 backdrop-blur-md border border-white/20 text-[#E8C999] font-mono text-[10px] font-bold uppercase tracking-wider">
           <span className="w-2 h-2 rounded-full bg-[#E8C999] animate-pulse" />
           Devotopia Ecosystem
         </div>
@@ -49,7 +49,7 @@ export default function AuthVisualBanner({
           <motion.div
             animate={shouldReduceMotion ? {} : { scale: [1, 1.05, 1], y: [-4, 4, -4] }}
             transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-            className="w-32 h-32 rounded-3xl bg-white/10 backdrop-blur-xl border-2 border-white/30 flex flex-col items-center justify-center shadow-2xl relative"
+            className="w-32 h-32 rounded-3xl bg-base-100/10 backdrop-blur-xl border-2 border-white/30 flex flex-col items-center justify-center shadow-2xl relative"
           >
             <span className="text-4xl">🚀</span>
             <span className="text-[10px] font-mono font-bold mt-1 text-[#E8C999]">
@@ -61,7 +61,7 @@ export default function AuthVisualBanner({
           <motion.div
             animate={shouldReduceMotion ? {} : { y: [-3, 3, -3] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-4 -left-8 px-3 py-1.5 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 text-[10px] font-bold shadow-lg flex items-center gap-1.5"
+            className="absolute -top-4 -left-8 px-3 py-1.5 rounded-xl bg-base-100/15 backdrop-blur-md border border-white/20 text-[10px] font-bold shadow-lg flex items-center gap-1.5"
           >
             <span>⚡</span>
             <span>Adaptive AI Roadmap</span>
@@ -70,7 +70,7 @@ export default function AuthVisualBanner({
           <motion.div
             animate={shouldReduceMotion ? {} : { y: [3, -3, 3] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-            className="absolute -bottom-4 -right-8 px-3 py-1.5 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 text-[10px] font-bold shadow-lg flex items-center gap-1.5"
+            className="absolute -bottom-4 -right-8 px-3 py-1.5 rounded-xl bg-base-100/15 backdrop-blur-md border border-white/20 text-[10px] font-bold shadow-lg flex items-center gap-1.5"
           >
             <span>🏆</span>
             <span>Verified ATS Credentials</span>

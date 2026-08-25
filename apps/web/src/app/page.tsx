@@ -151,7 +151,7 @@ export default function Home() {
             </span>
           </h1>
 
-          <p className="text-body-md sm:text-body-lg text-stone-800 dark:text-stone-200 font-medium max-w-2xl mx-auto leading-relaxed">
+          <p className="text-body-md sm:text-body-lg text-base-content dark:text-stone-200 font-medium max-w-2xl mx-auto leading-relaxed">
             Follow your personalized adaptive roadmap, calibrate knowledge gaps with anti-cheat assessments, and advance step-by-step toward your dream tech role.
           </p>
 
@@ -204,7 +204,7 @@ export default function Home() {
             <h2 className="text-display-md tracking-tight text-base-content font-extrabold">
               Pinpoint and Fix Your Career Skill Gaps
             </h2>
-            <p className="text-body-md text-stone-800 dark:text-stone-200 leading-relaxed font-medium">
+            <p className="text-body-md text-base-content dark:text-stone-200 leading-relaxed font-medium">
               Input any target career role. Our AI instantly audits the global
               hiring pipeline requirements, matches them against your verified
               profile, and maps out the exact skills you need to land an offer.
@@ -222,12 +222,12 @@ export default function Home() {
                 />
                 <button
                   type="submit"
-                  className="btn bg-[#8E1616] hover:bg-[#6E1010] text-white border-none rounded-xl h-12 px-6"
+                  className="btn bg-[#8E1616] hover:bg-[#6E1010] text-white border-none rounded-xl h-12 px-6 transition-all duration-300 ease-in-out"
                 >
                   Audit Gaps
                 </button>
               </div>
-              <span className="text-[10px] text-stone-600 dark:text-stone-400 block italic font-medium">
+              <span className="text-[10px] text-base-content/70 dark:text-stone-400 block italic font-medium">
                 Type &quot;Backend&quot;, &quot;Software&quot;, or
                 &quot;Design&quot; to check simulator presets.
               </span>
@@ -239,7 +239,7 @@ export default function Home() {
             <div className="border border-base-300 rounded-2xl p-6 bg-base-100 shadow-sm text-start space-y-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <span className="text-[10px] text-stone-700 dark:text-stone-300 font-bold uppercase tracking-wider block font-mono">
+                  <span className="text-[10px] text-base-content/70 dark:text-stone-300 font-bold uppercase tracking-wider block font-mono">
                     Job Role Target
                   </span>
                   <span className="text-lg font-black text-base-content">
@@ -247,7 +247,7 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-stone-700 dark:text-stone-300 font-bold uppercase tracking-wider block font-mono">
+                  <span className="text-[10px] text-base-content/70 dark:text-stone-300 font-bold uppercase tracking-wider block font-mono">
                     Compatibility score
                   </span>
                   <span className="text-2xl font-black font-mono text-[#8E1616]">
@@ -262,7 +262,7 @@ export default function Home() {
                   <span className="text-xs font-black text-[#8E1616] flex items-center gap-1.5">
                     ✓ Verified In Passport
                   </span>
-                  <ul className="space-y-2 text-xs text-stone-800 dark:text-stone-200 font-semibold">
+                  <ul className="space-y-2 text-xs text-base-content dark:text-stone-200 font-semibold">
                     {analyzerResult.verifiedSkills.map((s, i) => (
                       <li key={i} className="flex gap-2 items-center">
                         <span className="text-[#8E1616]">●</span>
@@ -277,7 +277,7 @@ export default function Home() {
                   <span className="text-xs font-black text-[#EF4444] flex items-center gap-1.5">
                     ⚠ Gaps Found (Needs Roadmap)
                   </span>
-                  <ul className="space-y-2 text-xs text-stone-800 dark:text-stone-200 font-semibold">
+                  <ul className="space-y-2 text-xs text-base-content dark:text-stone-200 font-semibold">
                     {analyzerResult.missingSkills.map((s, i) => (
                       <li key={i} className="flex gap-2 items-center">
                         <span className="text-[#EF4444]">●</span>
@@ -291,7 +291,7 @@ export default function Home() {
               <div className="flex justify-end pt-2">
                 <Link
                   href="/onboarding"
-                  className="btn btn-outline border-[#8E1616] hover:bg-[#8E1616] hover:text-white text-[#8E1616] btn-sm rounded-lg text-xs"
+                  className="btn btn-outline border-[#8E1616] hover:bg-[#8E1616] hover:text-white text-[#8E1616] btn-sm rounded-2xl text-xs transition-all duration-300 ease-in-out"
                 >
                   Generate Roadmap to Close Gaps →
                 </Link>
@@ -307,7 +307,7 @@ export default function Home() {
           <h2 className="text-display-lg tracking-tight font-extrabold text-base-content">
             The Path to Verification
           </h2>
-          <p className="text-body-md text-stone-800 dark:text-stone-200 font-medium mt-3">
+          <p className="text-body-md text-base-content dark:text-stone-200 font-medium mt-3">
             Traditional CVs are based on claims. SmartRoadmap transforms your
             career journey into verified facts.
           </p>
@@ -347,7 +347,7 @@ export default function Home() {
               <h3 className="font-extrabold text-base-content text-lg mb-2">
                 {t.title}
               </h3>
-              <p className="text-xs text-stone-800 dark:text-stone-200 font-medium leading-relaxed">
+              <p className="text-xs text-base-content dark:text-stone-200 font-medium leading-relaxed">
                 {t.desc}
               </p>
             </div>
@@ -366,7 +366,7 @@ export default function Home() {
                   <h3 className="font-black text-xl text-base-content tracking-tight">
                     SKILL PASSPORT
                   </h3>
-                  <p className="text-xs text-stone-700 dark:text-stone-300 font-mono font-bold mt-1">
+                  <p className="text-xs text-base-content/70 dark:text-stone-300 font-mono font-bold mt-1">
                     ID: VET-2026-X892-AM
                   </p>
                 </div>
@@ -378,7 +378,7 @@ export default function Home() {
               {/* Grid metrics */}
               <div className="grid grid-cols-3 gap-4 border-b border-base-300 pb-5">
                 <div>
-                  <span className="text-[9px] uppercase tracking-wider text-stone-600 dark:text-stone-400 font-mono font-bold block">
+                  <span className="text-[9px] uppercase tracking-wider text-base-content/70 dark:text-stone-400 font-mono font-bold block">
                     Career Score
                   </span>
                   <span className="text-2xl font-black text-[#8E1616] font-mono">
@@ -386,7 +386,7 @@ export default function Home() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-[9px] uppercase tracking-wider text-stone-600 dark:text-stone-400 font-mono font-bold block">
+                  <span className="text-[9px] uppercase tracking-wider text-base-content/70 dark:text-stone-400 font-mono font-bold block">
                     Vetted badges
                   </span>
                   <span className="text-2xl font-black text-base-content font-mono">
@@ -394,7 +394,7 @@ export default function Home() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-[9px] uppercase tracking-wider text-stone-600 dark:text-stone-400 font-mono font-bold block">
+                  <span className="text-[9px] uppercase tracking-wider text-base-content/70 dark:text-stone-400 font-mono font-bold block">
                     Hiring Readiness
                   </span>
                   <span className="text-2xl font-black text-[#8E1616] font-mono">
@@ -405,7 +405,7 @@ export default function Home() {
 
               {/* Verified Skills list */}
               <div className="space-y-3">
-                <span className="text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider block font-mono">
+                <span className="text-xs font-bold text-base-content/70 dark:text-stone-300 uppercase tracking-wider block font-mono">
                   Assessment Scores
                 </span>
                 <div className="space-y-2.5">
@@ -428,7 +428,7 @@ export default function Home() {
                   ].map((s, i) => (
                     <div
                       key={i}
-                      className="flex justify-between items-center bg-base-200 p-3 rounded-lg border border-base-300"
+                      className="flex justify-between items-center bg-base-200 p-3 rounded-2xl border border-base-300"
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-[#8E1616]">✓</span>
@@ -450,7 +450,7 @@ export default function Home() {
               {/* Projects & Certifications */}
               <div className="grid grid-cols-2 gap-4 border-t border-base-300 pt-5">
                 <div>
-                  <span className="text-[10px] text-stone-700 dark:text-stone-300 font-bold uppercase tracking-wider block font-mono">
+                  <span className="text-[10px] text-base-content/70 dark:text-stone-300 font-bold uppercase tracking-wider block font-mono">
                     Verified Project
                   </span>
                   <p className="text-xs font-bold mt-1 text-base-content">
@@ -461,13 +461,13 @@ export default function Home() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-stone-700 dark:text-stone-300 font-bold uppercase tracking-wider block font-mono">
+                  <span className="text-[10px] text-base-content/70 dark:text-stone-300 font-bold uppercase tracking-wider block font-mono">
                     Interview Readiness
                   </span>
                   <p className="text-xs font-bold mt-1 text-base-content">
                     Excellent (System Design)
                   </p>
-                  <span className="text-[9px] text-stone-600 dark:text-stone-400 font-semibold block mt-0.5">
+                  <span className="text-[9px] text-base-content/70 dark:text-stone-400 font-semibold block mt-0.5">
                     Mock session logged ✓
                   </span>
                 </div>
@@ -479,20 +479,20 @@ export default function Home() {
             <h2 className="text-display-md tracking-tight font-extrabold text-base-content">
               Your Verified Skill Passport: The Vetted Candidate Standard
             </h2>
-            <p className="text-body-md text-stone-800 dark:text-stone-200 font-medium leading-relaxed">
+            <p className="text-body-md text-base-content dark:text-stone-200 font-medium leading-relaxed">
               The Skill Passport is the core visual asset of the SmartRoadmap
               ecosystem. It replaces traditional unverified CVs with real-time
               competency indexes, showing certified assessment scores, verified
               code audits, and hiring readiness parameters.
             </p>
-            <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">
+            <p className="text-xs text-base-content/70 dark:text-stone-400 font-medium">
               * Every credential in the passport corresponds to a completed
               module assessment with anti-cheat telemetry validation.
             </p>
             <div className="pt-2">
               <Link
                 href="/onboarding"
-                className="btn bg-[#8E1616] hover:bg-[#6E1010] border-none text-white px-8 rounded-xl font-semibold"
+                className="btn bg-[#8E1616] hover:bg-[#6E1010] border-none text-white px-8 rounded-xl font-semibold transition-all duration-300 ease-in-out"
               >
                 Generate My Passport Profile
               </Link>
@@ -508,7 +508,7 @@ export default function Home() {
             <h2 className="text-display-md tracking-tight font-extrabold text-base-content">
               98% Semantic Match. AI Matching Pipeline.
             </h2>
-            <p className="text-body-md text-stone-800 dark:text-stone-200 font-medium leading-relaxed">
+            <p className="text-body-md text-base-content dark:text-stone-200 font-medium leading-relaxed">
               No more random job board postings. Recruiters use our vector
               database search index to find candidates matching their exact
               skill parameters. If you match, the pipeline updates your
@@ -551,7 +551,7 @@ export default function Home() {
                       <h4 className="font-extrabold text-xs text-base-content">
                         {job.role}
                       </h4>
-                      <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium">
+                      <p className="text-[10px] text-base-content/70 dark:text-stone-400 font-medium">
                         {job.company} • {job.type}
                       </p>
                     </div>
@@ -566,7 +566,7 @@ export default function Home() {
 
           <div className="lg:col-span-6">
             <div className="border border-base-300 rounded-2xl bg-base-200 p-6 shadow-sm text-start space-y-4">
-              <span className="text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider font-mono">
+              <span className="text-xs font-bold text-base-content/70 dark:text-stone-300 uppercase tracking-wider font-mono">
                 Recruiter Match Analytics
               </span>
 
@@ -589,7 +589,7 @@ export default function Home() {
 
               {/* Skills Gaps identified indicator */}
               <div className="space-y-2 text-xs">
-                <span className="font-bold text-stone-800 dark:text-stone-200 font-medium">
+                <span className="font-bold text-base-content dark:text-stone-200 font-medium">
                   Close Gaps to Reach 100% Match:
                 </span>
                 <div className="flex flex-wrap gap-2 pt-1">
@@ -613,7 +613,7 @@ export default function Home() {
             <h2 className="text-display-lg tracking-tight font-extrabold text-base-content">
               Proven Career Outcomes
             </h2>
-            <p className="text-body-md text-stone-800 dark:text-stone-200 font-medium">
+            <p className="text-body-md text-base-content dark:text-stone-200 font-medium">
               See how learners went from scattered tutorials to verified talent
               profiles hired by top tech engineering guilds.
             </p>
@@ -651,7 +651,7 @@ export default function Home() {
                   <span className="text-[10px] bg-[#8E1616]/10 text-[#8E1616] font-mono px-2.5 py-1 rounded-full font-bold uppercase block w-max mb-4">
                     {s.badge}
                   </span>
-                  <p className="text-xs text-stone-800 dark:text-stone-200 font-medium leading-relaxed italic mb-6">
+                  <p className="text-xs text-base-content dark:text-stone-200 font-medium leading-relaxed italic mb-6">
                     &ldquo;{s.quote}&rdquo;
                   </p>
                 </div>
@@ -666,7 +666,7 @@ export default function Home() {
                     <h4 className="font-extrabold text-xs text-base-content">
                       {s.name}
                     </h4>
-                    <p className="text-[10px] text-stone-600 dark:text-stone-400 font-semibold">{s.role}</p>
+                    <p className="text-[10px] text-base-content/70 dark:text-stone-400 font-semibold">{s.role}</p>
                   </div>
                 </div>
               </div>
@@ -682,7 +682,7 @@ export default function Home() {
             <h2 className="text-display-md tracking-tight font-extrabold text-base-content">
               Recruiter Dashboard: Vetted Sourcing Pipeline
             </h2>
-            <p className="text-body-md text-stone-800 dark:text-stone-200 font-medium leading-relaxed">
+            <p className="text-body-md text-base-content dark:text-stone-200 font-medium leading-relaxed">
               Tech recruiters no longer sift through generic resume PDFs. Search
               and rank candidates by verified assessment scores, completed
               project validation logs, and matching compatibility percentages.
@@ -690,7 +690,7 @@ export default function Home() {
             <div className="pt-2">
               <Link
                 href="/auth/register"
-                className="btn bg-[#8E1616] hover:bg-[#701111] text-white rounded-xl font-bold text-xs h-11 border-none px-6 shadow-md"
+                className="btn bg-[#8E1616] hover:bg-[#701111] text-white rounded-xl font-bold text-xs h-11 border-none px-6 shadow-md transition-all duration-300 ease-in-out"
               >
                 Recruit Verified Candidates
               </Link>
@@ -700,7 +700,7 @@ export default function Home() {
           <div className="lg:col-span-7">
             {/* Recruiters Board Visual mock */}
             <div className="border border-base-300 rounded-2xl bg-base-200 p-6 shadow-md text-start space-y-4">
-              <span className="text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider font-mono">
+              <span className="text-xs font-bold text-base-content/70 dark:text-stone-300 uppercase tracking-wider font-mono">
                 Hiring Manager Candidates Board
               </span>
 
@@ -729,7 +729,7 @@ export default function Home() {
                       <h4 className="font-extrabold text-xs text-base-content">
                         {cand.name}
                       </h4>
-                      <p className="text-[10px] text-stone-600 dark:text-stone-400 font-semibold">
+                      <p className="text-[10px] text-base-content/70 dark:text-stone-400 font-semibold">
                         {cand.role} • {cand.verified}
                       </p>
                     </div>

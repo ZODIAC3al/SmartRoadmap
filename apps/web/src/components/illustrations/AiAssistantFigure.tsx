@@ -142,8 +142,8 @@ export default function AiAssistantFigure({
 
       {/* Status Pill */}
       {statusText && (
-        <div className="mt-2.5 px-3 py-1 rounded-full bg-base-200 border border-base-300 text-[10px] font-mono font-extrabold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+        <div className="mt-2.5 px-3 py-1 rounded-full bg-base-200 border border-base-300 text-[10px] font-mono font-extrabold text-base-content dark:text-stone-200 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#8E1616] animate-pulse" />
           {statusText}
         </div>
       )}

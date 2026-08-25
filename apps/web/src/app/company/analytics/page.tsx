@@ -79,7 +79,7 @@ export default function HiringAnalyticsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12 bg-base-100 rounded-3xl border border-base-300">
-        <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#8E1616]" />
         <span className="ml-2 text-xs font-semibold text-base-content/70">Loading hiring analytics & interactive charts...</span>
       </div>
     );
@@ -98,7 +98,7 @@ export default function HiringAnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center font-bold">
               <Users className="w-6 h-6" />
             </div>
             <div>
@@ -140,7 +140,7 @@ export default function HiringAnalyticsPage() {
 
         <div className="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-primary text-primary-content/10 text-primary flex items-center justify-center font-bold">
               <TrendingUp className="w-6 h-6" />
             </div>
             <div>
@@ -173,7 +173,7 @@ export default function HiringAnalyticsPage() {
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'currentColor' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: 'currentColor' }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ backgroundColor: 'var(--fallback-b1,oklch(var(--b1)))', borderColor: 'var(--fallback-b3,oklch(var(--b3)))', borderRadius: '12px', color: 'currentColor' }} />
-                  <Bar dataKey="applied" fill="#10B981" radius={[4, 4, 0, 0]} barSize={12} />
+                  <Bar dataKey="applied" fill="#8E1616" radius={[4, 4, 0, 0]} barSize={12} />
                   <Bar dataKey="interviewed" fill="#8B5CF6" radius={[4, 4, 0, 0]} barSize={12} />
                 </BarChart>
               </ResponsiveContainer>
@@ -192,7 +192,7 @@ export default function HiringAnalyticsPage() {
                       endAngle={-270}
                       dataKey="value"
                     >
-                      <Cell fill="#10B981" />
+                      <Cell fill="#8E1616" />
                       <Cell fill="#8B5CF6" />
                     </Pie>
                   </PieChart>
@@ -206,7 +206,7 @@ export default function HiringAnalyticsPage() {
 
               <div className="flex gap-4 mt-3 text-xs font-semibold">
                 <span className="flex items-center gap-1.5 text-base-content">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" /> Applied
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#8E1616]" /> Applied
                 </span>
                 <span className="flex items-center gap-1.5 text-base-content">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]" /> Interviewed
@@ -261,14 +261,14 @@ export default function HiringAnalyticsPage() {
             <div>
               <div className="flex justify-between text-xs mb-1 font-semibold">
                 <span>Applied → Screening</span>
-                <span className="font-bold font-mono text-emerald-500">{funnelStats.appliedToScreening}% ({funnelStats.screeningCount}/{funnelStats.total})</span>
+                <span className="font-bold font-mono text-[#8E1616]">{funnelStats.appliedToScreening}% ({funnelStats.screeningCount}/{funnelStats.total})</span>
               </div>
               <progress className="progress progress-emerald w-full h-2.5" value={funnelStats.appliedToScreening} max="100" />
             </div>
             <div>
               <div className="flex justify-between text-xs mb-1 font-semibold">
                 <span>Screening → Interview</span>
-                <span className="font-bold font-mono text-purple-500">{funnelStats.screeningToInterview}% ({funnelStats.interviewCount}/{Math.max(funnelStats.screeningCount, 1)})</span>
+                <span className="font-bold font-mono text-primary">{funnelStats.screeningToInterview}% ({funnelStats.interviewCount}/{Math.max(funnelStats.screeningCount, 1)})</span>
               </div>
               <progress className="progress progress-purple w-full h-2.5" value={funnelStats.screeningToInterview} max="100" />
             </div>
@@ -300,7 +300,7 @@ export default function HiringAnalyticsPage() {
             {divisionStats.map((item: any) => (
               <div key={item.name} className="flex justify-between items-center">
                 <span className="flex items-center gap-2 font-medium text-base-content">
-                  <Activity className="w-4 h-4 text-emerald-500" /> {item.name}
+                  <Activity className="w-4 h-4 text-[#8E1616]" /> {item.name}
                 </span>
                 <span className="font-mono font-bold text-base-content">{item.count}</span>
               </div>

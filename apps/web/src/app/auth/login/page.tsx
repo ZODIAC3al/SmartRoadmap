@@ -204,10 +204,10 @@ export default function LoginPage() {
     <div className={`min-h-screen -mt-24 bg-base-100 flex flex-col md:grid md:grid-cols-12 overflow-hidden select-none relative ${isRtl ? 'rtl' : 'ltr'}`}>
 
       {/* Top link bar floating at top left */}
-      <div className={`absolute top-32 z-20 flex items-center gap-1.5 text-xs text-stone-600 dark:text-stone-400 font-medium font-semibold ${isRtl ? 'right-6 md:right-12' : 'left-6 md:left-12'}`}>
+      <div className={`absolute top-32 z-20 flex items-center gap-1.5 text-xs text-base-content/70 dark:text-stone-400 font-medium font-semibold ${isRtl ? 'right-6 md:right-12' : 'left-6 md:left-12'}`}>
         <ArrowRight className={`w-3 h-3 ${isRtl ? 'rotate-180' : ''}`} />
         <span>{locale === 'en' ? 'New here?' : 'جديد هنا؟'}</span>
-        <Link href="/auth/register" className="text-[#8E1616] font-bold hover:underline">
+        <Link href="/auth/register" className="text-[#8E1616] font-bold hover:underline transition-all duration-300 ease-in-out">
           {tLocal('signUp')}
         </Link>
       </div>
@@ -225,7 +225,7 @@ export default function LoginPage() {
             <h1 className="text-4xl font-extrabold text-base-content tracking-tight">
               {tLocal('signIn')}
             </h1>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+            <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">
               {tLocal('subtitle')}
             </p>
           </div>
@@ -239,9 +239,9 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4 text-start">
             <div className="form-control">
-              <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">{tLocal('email')}</label>
+              <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium mb-1">{tLocal('email')}</label>
               <div className="relative">
-                <Mail className={`w-4 h-4 text-stone-600 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
+                <Mail className={`w-4 h-4 text-base-content/70 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
                 <input
                   type="email"
                   placeholder={tLocal('emailPlaceholder')}
@@ -258,10 +258,10 @@ export default function LoginPage() {
 
             <div className="form-control">
               <div className="flex justify-between items-center mb-1">
-                <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium p-0">{tLocal('password')}</label>
+                <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium p-0">{tLocal('password')}</label>
               </div>
               <div className="relative">
-                <Lock className={`w-4 h-4 text-stone-600 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
+                <Lock className={`w-4 h-4 text-base-content/70 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
@@ -273,24 +273,24 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute inset-y-0 pr-3.5 flex items-center text-stone-600 dark:text-stone-400 font-medium hover:text-stone-700 dark:text-stone-300 font-medium ${isRtl ? 'left-0' : 'right-0'}`}
+                  className={`absolute inset-y-0 pr-3.5 flex items-center text-base-content/70 dark:text-stone-400 font-medium hover:text-base-content/70 dark:text-stone-300 font-medium ${isRtl ? 'left-0' : 'right-0'}`}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-stone-700 dark:text-stone-300 font-medium pt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
+            <div className="flex items-center justify-between text-xs text-base-content/70 dark:text-stone-300 font-medium pt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none transition-all duration-300 ease-in-out">
                 <input
                   type="checkbox"
                   className="checkbox checkbox-xs rounded border-base-300 checkbox-primary"
                 />
-                <span className="text-stone-700 dark:text-stone-300 font-medium font-semibold">{tLocal('rememberMe')}</span>
+                <span className="text-base-content/70 dark:text-stone-300 font-medium font-semibold">{tLocal('rememberMe')}</span>
               </label>
               <a
                 href="#"
-                className="font-bold text-[#8E1616] hover:underline"
+                className="font-bold text-[#8E1616] hover:underline transition-all duration-300 ease-in-out"
                 onClick={() => alert("Verification email reset simulation triggered.")}
               >
                 {tLocal('forgotPassword')}
@@ -299,7 +299,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="btn bg-[#8E1616] hover:bg-[#701111] border-none btn-block rounded-full text-white font-extrabold text-xs shadow-lg shadow-[#8E1616]/10 mt-6 h-11 flex items-center justify-center gap-2"
+              className="btn bg-[#8E1616] hover:bg-[#701111] border-none btn-block rounded-full text-white font-extrabold text-xs shadow-lg shadow-[#8E1616]/10 mt-6 h-11 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out"
               disabled={loading}
             >
               {loading ? (
@@ -317,7 +317,7 @@ export default function LoginPage() {
             <div className="flex flex-col items-center pt-2">
               <div className="relative flex py-2 items-center w-full">
                 <div className="flex-grow border-t border-base-300"></div>
-                <span className="flex-shrink mx-4 text-[10px] text-stone-600 dark:text-stone-400 font-medium font-bold uppercase tracking-wider">
+                <span className="flex-shrink mx-4 text-[10px] text-base-content/70 dark:text-stone-400 font-medium font-bold uppercase tracking-wider">
                   {tLocal('orOAuth')}
                 </span>
                 <div className="flex-grow border-t border-base-300"></div>
@@ -336,7 +336,7 @@ export default function LoginPage() {
                   google.accounts.id.prompt();
                 }
               }}
-              className="btn btn-circle btn-outline border-base-300 text-red-500 hover:bg-red-50/50 flex items-center justify-center"
+              className="btn btn-circle btn-outline border-base-300 text-red-500 hover:bg-red-50/50 flex items-center justify-center transition-all duration-300 ease-in-out"
               title="Sign in with Google"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -348,9 +348,9 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <p className="text-center text-xs text-stone-700 dark:text-stone-300 font-medium pt-4 font-semibold">
+          <p className="text-center text-xs text-base-content/70 dark:text-stone-300 font-medium pt-4 font-semibold">
             {tLocal('noAccount')}{" "}
-            <Link href="/auth/register" className="text-[#8E1616] font-extrabold hover:underline">
+            <Link href="/auth/register" className="text-[#8E1616] font-extrabold hover:underline transition-all duration-300 ease-in-out">
               {tLocal('signUp')}
             </Link>
           </p>
@@ -360,15 +360,15 @@ export default function LoginPage() {
         <div className="flex justify-between items-center text-xs text-slate-400 font-semibold pt-8 w-full border-t border-base-200">
           <div
             onClick={toggleLocale}
-            className="flex items-center gap-1.5 cursor-pointer text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
+            className="flex items-center gap-1.5 cursor-pointer text-base-content/70 dark:text-stone-300 font-medium hover:text-base-content transition-all duration-300 ease-in-out"
           >
             <span className="text-sm">{locale === "en" ? "🇬🇧" : "🇸🇦"}</span>
             <span>{locale === "en" ? "ENG" : "العربية"}</span>
-            <ChevronDown className="w-3 h-3 text-stone-700 dark:text-stone-300 font-medium" />
+            <ChevronDown className="w-3 h-3 text-base-content/70 dark:text-stone-300 font-medium" />
           </div>
           <div className="flex gap-4">
-            <a href="#" className="hover:underline">{tLocal('faq')}</a>
-            <a href="#" className="hover:underline">{tLocal('support')}</a>
+            <a href="#" className="hover:underline transition-all duration-300 ease-in-out">{tLocal('faq')}</a>
+            <a href="#" className="hover:underline transition-all duration-300 ease-in-out">{tLocal('support')}</a>
           </div>
         </div>
       </motion.div>

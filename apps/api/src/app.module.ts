@@ -41,6 +41,7 @@ import { CheatSheetModule } from './modules/cheat-sheet/cheat-sheet.module';
 import { AudioSummaryModule } from './modules/audio-summary/audio-summary.module';
 import { CommunityModule } from './modules/community/community.module';
 import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
+import { SalaryModule } from './modules/salary/salary.module';
 
 @Module({
   imports: [
@@ -101,6 +102,7 @@ import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
     AudioSummaryModule,
     CommunityModule,
     VoiceAgentModule,
+    SalaryModule,
   ],
   controllers: [AppController],
   providers: [

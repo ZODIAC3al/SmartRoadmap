@@ -156,7 +156,7 @@ export default function AchievementsPage() {
                 <Trophy className="w-6 h-6 text-yellow-400" />
                 {tr("title")}
               </h1>
-              <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-0.5">{tr("subtitle")}</p>
+              <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium mt-0.5">{tr("subtitle")}</p>
             </div>
 
             {/* Achievement celebration visual — shown at top right */}
@@ -173,7 +173,7 @@ export default function AchievementsPage() {
             {progress && (
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">{tr("progress")}</p>
+                  <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">{tr("progress")}</p>
                   <p className="text-sm font-black text-base-content">
                     {progress.unlocked} {tr("of")} {progress.total}
                   </p>
@@ -207,7 +207,7 @@ export default function AchievementsPage() {
               <div key={tier.label} className="flex items-center gap-1.5 bg-base-200 rounded-xl px-3 py-1.5">
                 <Star className={`w-3.5 h-3.5 ${tier.color}`} />
                 <span className={`text-xs font-bold ${tier.color}`}>{tier.label}</span>
-                <span className="text-xs text-stone-600 dark:text-stone-400 font-medium">{tier.count}/{tier.total}</span>
+                <span className="text-xs text-base-content/70 dark:text-stone-400 font-medium">{tier.count}/{tier.total}</span>
               </div>
             ))}
           </div>
@@ -224,7 +224,7 @@ export default function AchievementsPage() {
               className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                 filter === f
                   ? "bg-primary text-primary-content"
-                  : "bg-base-200 text-stone-700 dark:text-stone-300 font-medium hover:bg-base-300"
+                  : "bg-base-200 text-base-content/70 dark:text-stone-300 font-medium hover:bg-base-300"
               }`}
             >
               {f === "all" ? tr("all") : f === "unlocked" ? tr("unlocked") : tr("locked")}
@@ -241,7 +241,7 @@ export default function AchievementsPage() {
                   : t === "silver" ? "bg-slate-400/20 text-slate-300 ring-1 ring-slate-400/40"
                   : t === "bronze" ? "bg-amber-700/20 text-amber-400 ring-1 ring-amber-700/40"
                   : "bg-primary text-primary-content"
-                  : "bg-base-200 text-stone-700 dark:text-stone-300 font-medium hover:bg-base-300"
+                  : "bg-base-200 text-base-content/70 dark:text-stone-300 font-medium hover:bg-base-300"
               }`}
             >
               {t}
@@ -285,7 +285,7 @@ export default function AchievementsPage() {
                   </div>
 
                   <h3 className="font-bold text-sm text-base-content mb-1">{ach.title}</h3>
-                  <p className="text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed">{ach.description}</p>
+                  <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium leading-relaxed">{ach.description}</p>
 
                   {/* Status */}
                   <div className="mt-3 flex items-center gap-1.5">
@@ -300,8 +300,8 @@ export default function AchievementsPage() {
                       </>
                     ) : (
                       <>
-                        <Lock className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400 font-medium" />
-                        <span className="text-[10px] text-stone-500 dark:text-stone-400 font-medium font-semibold">Locked</span>
+                        <Lock className="w-3.5 h-3.5 text-base-content/70 dark:text-stone-400 font-medium" />
+                        <span className="text-[10px] text-base-content/70 dark:text-stone-400 font-medium font-semibold">Locked</span>
                       </>
                     )}
                   </div>

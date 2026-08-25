@@ -26,7 +26,7 @@ export default function CommunityCollabVisual({
           <h3 className="text-xl font-black text-base-content tracking-tight">
             Connect with High-Growth Engineering Teams
           </h3>
-          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium leading-relaxed">
+          <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium leading-relaxed">
             Collaborate on open-source repositories, solve peer code reviews, and get directly matched with hiring managers looking for verified skill scores.
           </p>
         </div>
@@ -37,15 +37,15 @@ export default function CommunityCollabVisual({
             <span className="text-2xl font-black font-mono text-[#8E1616]">
               {memberCount.toLocaleString()}+
             </span>
-            <span className="block text-[10px] font-bold text-stone-600 dark:text-stone-400 mt-0.5">
+            <span className="block text-[10px] font-bold text-base-content/70 dark:text-stone-400 mt-0.5">
               Verified Engineers
             </span>
           </div>
           <div className="px-4 py-3 rounded-2xl bg-base-100 border border-base-300 shadow-sm text-center">
-            <span className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
+            <span className="text-2xl font-black font-mono text-[#701111] dark:text-[#B32424]">
               {activeMatches}
             </span>
-            <span className="block text-[10px] font-bold text-stone-600 dark:text-stone-400 mt-0.5">
+            <span className="block text-[10px] font-bold text-base-content/70 dark:text-stone-400 mt-0.5">
               Active Job Matches
             </span>
           </div>

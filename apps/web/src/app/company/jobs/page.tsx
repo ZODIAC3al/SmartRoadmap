@@ -97,7 +97,7 @@ export default function JobsListPage() {
                         ⚡ BOOSTED
                       </span>
                     ) : (
-                      <button className="btn btn-xs btn-outline btn-warning rounded-lg">
+                      <button className="btn btn-xs btn-outline btn-warning rounded-2xl">
                         ⚡ Boost ($15)
                       </button>
                     )}
@@ -105,7 +105,7 @@ export default function JobsListPage() {
                   <td>
                     <Link
                       href={`/company/jobs/${job.id}`}
-                      className="btn btn-xs btn-primary btn-outline rounded-lg font-bold"
+                      className="btn btn-xs btn-primary btn-outline rounded-2xl font-bold"
                     >
                       Open Kanban Board
                     </Link>

@@ -22,14 +22,14 @@ export default function AchievementCelebrationVisual({
 
   const tierColors = {
     bronze: { bg: "from-amber-700/20 to-amber-900/10", border: "border-amber-700/40", text: "text-amber-700 dark:text-amber-400", badge: "🥉 Bronze" },
-    silver: { bg: "from-slate-400/20 to-slate-600/10", border: "border-slate-400/40", text: "text-slate-600 dark:text-slate-300", badge: "🥈 Silver" },
+    silver: { bg: "from-slate-400/20 to-slate-600/10", border: "border-slate-400/40", text: "text-base-content/70 dark:text-slate-300", badge: "🥈 Silver" },
     gold: { bg: "from-amber-400/20 to-yellow-600/10", border: "border-yellow-500/40", text: "text-amber-600 dark:text-amber-300", badge: "🥇 Gold" },
     diamond: { bg: "from-cyan-400/20 to-blue-600/10", border: "border-cyan-400/40", text: "text-cyan-600 dark:text-cyan-300", badge: "💎 Diamond" },
   }[tier];
 
   return (
     <div
-      className={`bg-base-100 dark:bg-stone-900 border border-base-300 dark:border-stone-800 rounded-3xl p-6 sm:p-8 shadow-xl text-center flex flex-col items-center justify-center relative overflow-hidden select-none max-w-sm w-full ${className}`}
+      className={`bg-base-100 dark:bg-base-300 border border-base-300 dark:border-base-300 rounded-3xl p-6 sm:p-8 shadow-xl text-center flex flex-col items-center justify-center relative overflow-hidden select-none max-w-sm w-full ${className}`}
     >
       {/* Background celebration glow */}
       <div className={`absolute inset-0 bg-gradient-to-b ${tierColors.bg} opacity-50 pointer-events-none`} />
@@ -54,7 +54,7 @@ export default function AchievementCelebrationVisual({
         <h4 className="font-black text-base sm:text-lg text-base-content tracking-tight mt-1">
           {title}
         </h4>
-        <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+        <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">
           {badgeName}
         </p>
       </div>

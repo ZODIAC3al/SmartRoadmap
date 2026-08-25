@@ -223,8 +223,8 @@ export default function AnimatedRoadmapVisual({
 
         {/* Role Selector & Progress Pill */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex items-center gap-2 bg-white/90 dark:bg-base-200/60 border border-stone-300 dark:border-white/15 rounded-full px-3.5 py-1.5 shadow-sm">
-            <span className="text-[11px] font-mono font-bold text-stone-700 dark:text-stone-300">
+          <div className="inline-flex items-center gap-2 bg-base-100/90 dark:bg-base-200/60 border border-base-300 dark:border-white/15 rounded-full px-3.5 py-1.5 shadow-sm">
+            <span className="text-[11px] font-mono font-bold text-base-content/70 dark:text-stone-300">
               Progress:
             </span>
             <div className="w-16 bg-stone-200 dark:bg-stone-700 rounded-full h-2 overflow-hidden">
@@ -241,14 +241,14 @@ export default function AnimatedRoadmapVisual({
           <div className="dropdown dropdown-end">
             <label
               tabIndex={0}
-              className="btn btn-xs sm:btn-sm bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-full font-bold text-xs capitalize gap-1.5 px-4 shadow-sm"
+              className="btn btn-xs sm:btn-sm bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-full font-bold text-xs capitalize gap-1.5 px-4 shadow-sm transition-all duration-300 ease-in-out"
             >
               <span>Target:</span>
               <span className="underline font-black">{currentRole}</span>
             </label>
             <ul
               tabIndex={0}
-              className="dropdown-content menu p-2 shadow-2xl bg-white dark:bg-[#1E1E1E] border border-stone-200 dark:border-white/15 rounded-2xl w-56 text-xs z-50 mt-1 font-semibold"
+              className="dropdown-content menu p-2 shadow-2xl bg-base-100 dark:bg-[#1E1E1E] border border-base-300 dark:border-white/15 rounded-2xl w-56 text-xs z-50 mt-1 font-semibold"
             >
               {rolesList.map((r) => (
                 <li key={r}>
@@ -257,7 +257,7 @@ export default function AnimatedRoadmapVisual({
                     className={`py-2 rounded-xl text-start ${
                       r === currentRole
                         ? "bg-[#8E1616] text-white font-bold"
-                        : "hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-800 dark:text-stone-200"
+                        : "hover:bg-base-200 dark:hover:bg-base-300 text-base-content dark:text-stone-200"
                     }`}
                   >
                     {r === currentRole ? "✓ " : ""} {r}
@@ -439,14 +439,14 @@ export default function AnimatedRoadmapVisual({
                   isCurrent
                     ? "bg-[#8E1616] text-white border-[#8E1616] ring-2 ring-[#8E1616]/40"
                     : isCompleted
-                    ? "bg-white dark:bg-[#1E1E1E] text-stone-900 dark:text-stone-100 border-[#8E1616]/60 hover:border-[#8E1616]"
-                    : "bg-white/95 dark:bg-[#1A1A1A]/95 text-stone-800 dark:text-stone-200 border-stone-300 dark:border-stone-700 hover:border-[#8E1616]/50"
+                    ? "bg-base-100 dark:bg-[#1E1E1E] text-base-content dark:text-stone-100 border-[#8E1616]/60 hover:border-[#8E1616]"
+                    : "bg-base-100/95 dark:bg-[#1A1A1A]/95 text-base-content dark:text-stone-200 border-base-300 dark:border-stone-700 hover:border-[#8E1616]/50"
                 }`}
               >
                 {isCompleted ? (
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#8E1616] dark:text-[#E8C999]" />
                 ) : isCurrent ? (
-                  <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                  <span className="w-2 h-2 rounded-full bg-base-100 animate-ping" />
                 ) : (
                   <span className="w-1.5 h-1.5 rounded-full bg-stone-400" />
                 )}
@@ -465,7 +465,7 @@ export default function AnimatedRoadmapVisual({
             activeHover === "goal" ? "scale-110 z-30" : "z-20"
           }`}
         >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-[#1E1E1E] border-2 border-[#E8C999] shadow-lg text-xs font-black text-stone-900 dark:text-stone-100">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-base-100 dark:bg-[#1E1E1E] border-2 border-[#E8C999] shadow-lg text-xs font-black text-base-content dark:text-stone-100">
             <div className="w-6 h-6 rounded-full bg-[#E8C999]/40 text-[#8E1616] dark:text-[#E8C999] flex items-center justify-center animate-trophy-glow">
               <Trophy className="w-3.5 h-3.5" />
             </div>
@@ -546,18 +546,18 @@ export default function AnimatedRoadmapVisual({
                 isCurrent
                   ? "bg-[#8E1616] text-white border-[#8E1616] shadow-md"
                   : isCompleted
-                  ? "bg-white dark:bg-[#1C1C1C] border-[#8E1616]/40 text-stone-900 dark:text-stone-100 shadow-sm"
-                  : "bg-white/90 dark:bg-[#161616] border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-200"
+                  ? "bg-base-100 dark:bg-[#1C1C1C] border-[#8E1616]/40 text-base-content dark:text-stone-100 shadow-sm"
+                  : "bg-base-100/90 dark:bg-[#161616] border-base-300 dark:border-stone-700 text-base-content dark:text-stone-200"
               }`}
             >
               <div className="flex items-center gap-3">
                 <div
                   className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${
                     isCurrent
-                      ? "bg-white text-[#8E1616]"
+                      ? "bg-base-100 text-[#8E1616]"
                       : isCompleted
                       ? "bg-[#8E1616] text-white"
-                      : "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300"
+                      : "bg-base-200 text-base-content/70 dark:bg-base-300 dark:text-stone-300"
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
@@ -575,7 +575,7 @@ export default function AnimatedRoadmapVisual({
                   </span>
                 )}
                 {isCurrent && (
-                  <span className="badge badge-xs bg-white text-[#8E1616] font-bold">
+                  <span className="badge badge-xs bg-base-100 text-[#8E1616] font-bold">
                     Current
                   </span>
                 )}
@@ -591,10 +591,10 @@ export default function AnimatedRoadmapVisual({
       {/* Interactive Milestone Detail Popover Modal */}
       {selectedMilestone && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-[#1A1A1A] border-2 border-[#E8C999] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-start space-y-4 text-stone-900 dark:text-stone-100">
+          <div className="bg-base-100 dark:bg-[#1A1A1A] border-2 border-[#E8C999] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-start space-y-4 text-base-content dark:text-stone-100">
             <button
               onClick={() => setSelectedMilestone(null)}
-              className="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-stone-700 dark:text-stone-300"
+              className="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 text-base-content/70 dark:text-stone-300"
             >
               <X className="w-5 h-5" />
             </button>
@@ -607,25 +607,25 @@ export default function AnimatedRoadmapVisual({
                 <span className="text-[11px] font-mono font-bold text-[#8E1616] dark:text-[#E8C999] uppercase">
                   {selectedMilestone.badge}
                 </span>
-                <h3 className="text-base font-black text-stone-900 dark:text-white">
+                <h3 className="text-base font-black text-base-content dark:text-white">
                   {selectedMilestone.title}
                 </h3>
               </div>
             </div>
 
-            <p className="text-xs text-stone-700 dark:text-stone-300 leading-relaxed">
+            <p className="text-xs text-base-content/70 dark:text-stone-300 leading-relaxed">
               {selectedMilestone.details.overview}
             </p>
 
             <div className="space-y-1.5">
-              <span className="text-[10px] font-mono font-bold uppercase text-stone-500 dark:text-stone-400">
+              <span className="text-[10px] font-mono font-bold uppercase text-base-content/70 dark:text-stone-400">
                 Key Topics / Focus:
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {selectedMilestone.details.skills.map((s, idx) => (
                   <span
                     key={idx}
-                    className="badge bg-[#8E1616]/10 text-[#8E1616] dark:text-[#E8C999] border-[#8E1616]/20 text-[10px] font-bold py-1.5 px-2 rounded-lg"
+                    className="badge bg-[#8E1616]/10 text-[#8E1616] dark:text-[#E8C999] border-[#8E1616]/20 text-[10px] font-bold py-1.5 px-2 rounded-2xl"
                   >
                     ✓ {s}
                   </span>
@@ -633,8 +633,8 @@ export default function AnimatedRoadmapVisual({
               </div>
             </div>
 
-            <div className="bg-stone-100 dark:bg-[#141414] border border-stone-200 dark:border-stone-800 p-3 rounded-xl flex items-center justify-between text-xs">
-              <span className="font-bold text-stone-700 dark:text-stone-300">Benchmark Status</span>
+            <div className="bg-base-200 dark:bg-[#141414] border border-base-300 dark:border-base-300 p-3 rounded-xl flex items-center justify-between text-xs">
+              <span className="font-bold text-base-content/70 dark:text-stone-300">Benchmark Status</span>
               <span className="font-mono font-black text-[#8E1616] dark:text-[#E8C999]">
                 {selectedMilestone.details.benchmark}
               </span>
@@ -643,14 +643,14 @@ export default function AnimatedRoadmapVisual({
             <div className="flex gap-2.5 pt-1">
               <Link
                 href={selectedMilestone.route}
-                className="btn flex-1 bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl font-bold text-xs h-10 shadow-md shadow-[#8E1616]/20"
+                className="btn flex-1 bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl font-bold text-xs h-10 shadow-md shadow-[#8E1616]/20 transition-all duration-300 ease-in-out"
                 onClick={() => setSelectedMilestone(null)}
               >
                 {selectedMilestone.actionText} <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Link>
               <button
                 onClick={() => setSelectedMilestone(null)}
-                className="btn btn-ghost border border-stone-300 dark:border-stone-700 rounded-xl text-xs h-10 px-4 text-stone-800 dark:text-stone-200"
+                className="btn btn-ghost border border-base-300 dark:border-stone-700 rounded-xl text-xs h-10 px-4 text-base-content dark:text-stone-200"
               >
                 Close
               </button>

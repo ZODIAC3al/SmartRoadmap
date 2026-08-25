@@ -199,10 +199,10 @@ export default function RegisterPage() {
     <div className={`min-h-screen -mt-24 bg-base-100 flex flex-col md:grid md:grid-cols-12 overflow-hidden select-none relative ${isRtl ? 'rtl' : 'ltr'}`}>
 
       {/* Top link bar floating at top left */}
-      <div className={`absolute top-6 z-20 flex items-center gap-1.5 text-xs text-stone-600 dark:text-stone-400 font-medium font-semibold ${isRtl ? 'right-6 md:right-12' : 'left-6 md:left-12'}`}>
+      <div className={`absolute top-6 z-20 flex items-center gap-1.5 text-xs text-base-content/70 dark:text-stone-400 font-medium font-semibold ${isRtl ? 'right-6 md:right-12' : 'left-6 md:left-12'}`}>
         <ArrowRight className={`w-3 h-3 ${isRtl ? 'rotate-180' : ''}`} />
         <span>{tLocal('hasAccount')}</span>
-        <Link href="/auth/login" className="text-[#8E1616] font-bold hover:underline">
+        <Link href="/auth/login" className="text-[#8E1616] font-bold hover:underline transition-all duration-300 ease-in-out">
           {tLocal('signIn')}
         </Link>
       </div>
@@ -219,7 +219,7 @@ export default function RegisterPage() {
           <div className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-wider font-mono text-[#8E1616] text-start">
             <span>{locale === 'en' ? `Step ${step} of 2` : `الخطوة ${step} من 2`}</span>
             <span>•</span>
-            <span className="text-stone-600 dark:text-stone-400 font-medium">
+            <span className="text-base-content/70 dark:text-stone-400 font-medium">
               {step === 1
                 ? (locale === 'en' ? "Credentials Configuration" : "إعداد الحساب")
                 : (locale === 'en' ? "Onboard Profile" : "الملف الشخصي")}
@@ -230,7 +230,7 @@ export default function RegisterPage() {
             <h1 className="text-4xl font-extrabold text-base-content tracking-tight">
               {tLocal('register')}
             </h1>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+            <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">
               {tLocal('subtitle')}
             </p>
           </div>
@@ -246,7 +246,7 @@ export default function RegisterPage() {
           {step === 1 && (
             <div className="space-y-4 text-start">
               <div className="form-control">
-                <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">
+                <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium mb-1">
                   {tLocal('registerAs')}
                 </label>
                 <div className="grid grid-cols-2 gap-4">
@@ -276,9 +276,9 @@ export default function RegisterPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">{tLocal('fullName')}</label>
+                <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium mb-1">{tLocal('fullName')}</label>
                 <div className="relative">
-                  <User className={`w-4 h-4 text-stone-600 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
+                  <User className={`w-4 h-4 text-base-content/70 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
                   <input
                     type="text"
                     placeholder="Daniel Ahmadi"
@@ -294,9 +294,9 @@ export default function RegisterPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">{tLocal('email')}</label>
+                <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium mb-1">{tLocal('email')}</label>
                 <div className="relative">
-                  <Mail className={`w-4 h-4 text-stone-600 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
+                  <Mail className={`w-4 h-4 text-base-content/70 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
                   <input
                     type="email"
                     placeholder={tLocal('emailPlaceholder')}
@@ -312,9 +312,9 @@ export default function RegisterPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">{tLocal('password')}</label>
+                <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium mb-1">{tLocal('password')}</label>
                 <div className="relative">
-                  <Lock className={`w-4 h-4 text-stone-600 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
+                  <Lock className={`w-4 h-4 text-base-content/70 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
                   <input
                     type="password"
                     placeholder="••••••••"
@@ -329,7 +329,7 @@ export default function RegisterPage() {
                   <div className={`h-1 flex-1 rounded-full ${password.length >= 6 ? "bg-[#8E1616]" : "bg-base-300"}`} />
                   <div className={`h-1 flex-1 rounded-full ${password.length >= 8 ? "bg-[#8E1616]" : "bg-base-300"}`} />
                   <div className={`h-1 flex-1 rounded-full ${password.length >= 10 ? "bg-[#8E1616]" : "bg-base-300"}`} />
-                  <span className="text-[9px] font-bold text-stone-600 dark:text-stone-400 font-medium uppercase ml-2 leading-none">
+                  <span className="text-[9px] font-bold text-base-content/70 dark:text-stone-400 font-medium uppercase ml-2 leading-none">
                     {password.length < 6 ? (locale === 'en' ? "Weak" : "ضعيف") : password.length < 9 ? (locale === 'en' ? "Good" : "جيد") : (locale === 'en' ? "Strong" : "قوي")}
                   </span>
                 </div>
@@ -338,7 +338,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={handleNext}
-                className="btn bg-[#8E1616] hover:bg-[#701111] border-none btn-block rounded-full text-white font-extrabold text-xs shadow-lg shadow-[#8E1616]/10 mt-6 h-11 flex items-center justify-center gap-2"
+                className="btn bg-[#8E1616] hover:bg-[#701111] border-none btn-block rounded-full text-white font-extrabold text-xs shadow-lg shadow-[#8E1616]/10 mt-6 h-11 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out"
               >
                 <span>{tLocal('continue')}</span>
                 <ArrowRight className={`w-4 h-4 ${isRtl ? 'rotate-180' : ''}`} />
@@ -352,7 +352,7 @@ export default function RegisterPage() {
               {role === "learner" ? (
                 <>
                   <div className="form-control">
-                    <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">
+                    <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium mb-1">
                       {tLocal('targetGoal')}
                     </label>
                     <select
@@ -368,7 +368,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="form-control">
-                    <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">
+                    <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium mb-1">
                       {tLocal('education')}
                     </label>
                     <select
@@ -386,7 +386,7 @@ export default function RegisterPage() {
               ) : (
                 <>
                   <div className="form-control">
-                    <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">
+                    <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium mb-1">
                       {tLocal('companyName')}
                     </label>
                     <input
@@ -400,7 +400,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="form-control">
-                    <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">
+                    <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium mb-1">
                       {tLocal('industry')}
                     </label>
                     <input
@@ -414,7 +414,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div className="form-control">
-                    <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">
+                    <label className="label text-xs font-extrabold text-base-content/70 dark:text-stone-300 font-medium mb-1">
                       {tLocal('website')}
                     </label>
                     <input
@@ -432,13 +432,13 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="btn btn-outline border-base-300 hover:bg-base-200 flex-1 rounded-full h-11 text-stone-700 dark:text-stone-300 font-medium text-xs font-bold"
+                  className="btn btn-outline border-base-300 hover:bg-base-200 flex-1 rounded-full h-11 text-base-content/70 dark:text-stone-300 font-medium text-xs font-bold transition-all duration-300 ease-in-out"
                 >
                   {isRtl ? 'رجوع ←' : '← Back'}
                 </button>
                 <button
                   type="submit"
-                  className="btn bg-[#8E1616] hover:bg-[#701111] border-none flex-1 rounded-full text-white h-11 text-xs font-extrabold shadow-lg shadow-[#8E1616]/10"
+                  className="btn bg-[#8E1616] hover:bg-[#701111] border-none flex-1 rounded-full text-white h-11 text-xs font-extrabold shadow-lg shadow-[#8E1616]/10 transition-all duration-300 ease-in-out"
                   disabled={loading}
                 >
                   {loading && <span className="loading loading-spinner loading-xs mr-1" />}
@@ -448,9 +448,9 @@ export default function RegisterPage() {
             </form>
           )}
 
-          <p className="text-center text-xs text-stone-700 dark:text-stone-300 font-medium pt-4 font-semibold">
+          <p className="text-center text-xs text-base-content/70 dark:text-stone-300 font-medium pt-4 font-semibold">
             {tLocal('hasAccount')}{" "}
-            <Link href="/auth/login" className="text-[#8E1616] font-extrabold hover:underline">
+            <Link href="/auth/login" className="text-[#8E1616] font-extrabold hover:underline transition-all duration-300 ease-in-out">
               {tLocal('signIn')}
             </Link>
           </p>
@@ -460,15 +460,15 @@ export default function RegisterPage() {
         <div className="flex justify-between items-center text-xs text-slate-400 font-semibold pt-8 w-full border-t border-base-200">
           <div
             onClick={toggleLocale}
-            className="flex items-center gap-1.5 cursor-pointer text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
+            className="flex items-center gap-1.5 cursor-pointer text-base-content/70 dark:text-stone-300 font-medium hover:text-base-content transition-all duration-300 ease-in-out"
           >
             <span className="text-sm">{locale === "en" ? "🇬🇧" : "🇸🇦"}</span>
             <span>{locale === "en" ? "ENG" : "العربية"}</span>
-            <ChevronDown className="w-3 h-3 text-stone-700 dark:text-stone-300 font-medium" />
+            <ChevronDown className="w-3 h-3 text-base-content/70 dark:text-stone-300 font-medium" />
           </div>
           <div className="flex gap-4">
-            <a href="#" className="hover:underline">{tLocal('faq')}</a>
-            <a href="#" className="hover:underline">{tLocal('support')}</a>
+            <a href="#" className="hover:underline transition-all duration-300 ease-in-out">{tLocal('faq')}</a>
+            <a href="#" className="hover:underline transition-all duration-300 ease-in-out">{tLocal('support')}</a>
           </div>
         </div>
       </motion.div>

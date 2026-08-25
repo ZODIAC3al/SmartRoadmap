@@ -140,7 +140,7 @@ export default function PortfolioBuilderPage() {
                 {portfolio.isPublished ? 'Published' : 'Draft (Private)'}
               </span>
               {portfolio.isPublished && (
-                <Link href={publicUrl} target="_blank" className="text-[10px] text-primary hover:underline font-mono">
+                <Link href={publicUrl} target="_blank" className="text-[10px] text-primary hover:underline font-mono transition-all duration-300 ease-in-out">
                   {publicUrl} ↗
                 </Link>
               )}
@@ -151,7 +151,7 @@ export default function PortfolioBuilderPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleTogglePublish}
-            className={`btn btn-xs sm:btn-sm rounded-lg font-bold border-none ${
+            className={`btn btn-xs sm:btn-sm rounded-2xl font-bold border-none ${
               portfolio.isPublished
                 ? 'bg-warning/20 text-warning hover:bg-warning/30'
                 : 'bg-success text-white hover:bg-success/90'
@@ -163,7 +163,7 @@ export default function PortfolioBuilderPage() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="btn bg-primary hover:bg-[#059669] text-white btn-xs sm:btn-sm rounded-lg border-none font-bold px-4"
+            className="btn bg-primary hover:bg-[#701111] text-white btn-xs sm:btn-sm rounded-2xl border-none font-bold px-4 transition-all duration-300 ease-in-out"
           >
             {isSaving && <span className="loading loading-spinner loading-xs mr-1"></span>}
             Save Portfolio
@@ -239,7 +239,7 @@ export default function PortfolioBuilderPage() {
               <button
                 type="button"
                 onClick={openGitHubImport}
-                className="btn btn-xs btn-outline border-primary text-primary hover:bg-primary/10 rounded-lg font-bold"
+                className="btn btn-xs btn-outline border-primary text-primary hover:bg-primary/10 rounded-2xl font-bold transition-all duration-300 ease-in-out"
               >
                 💻 Import GitHub Repos
               </button>
@@ -287,14 +287,14 @@ export default function PortfolioBuilderPage() {
         </section>
 
         {/* RIGHT COLUMN: LIVE RENDERED PREVIEW SHEET */}
-        <section className="col-span-1 lg:col-span-6 flex flex-col bg-slate-900 border border-base-300 rounded-2xl p-4 overflow-hidden max-h-[85vh] shadow-inner">
+        <section className="col-span-1 lg:col-span-6 flex flex-col bg-base-300 border border-base-300 rounded-2xl p-4 overflow-hidden max-h-[85vh] shadow-inner">
           <div className="w-full flex justify-between items-center mb-3">
             <span className="text-[10px] font-bold text-white uppercase tracking-widest font-mono">
               Live Responsive Preview ({portfolio.template})
             </span>
           </div>
 
-          <div className="flex-grow w-full bg-slate-950 rounded-xl overflow-y-auto border border-slate-800">
+          <div className="flex-grow w-full bg-slate-950 rounded-xl overflow-y-auto border border-base-300">
             <PortfolioRenderer portfolio={portfolio} />
           </div>
         </section>

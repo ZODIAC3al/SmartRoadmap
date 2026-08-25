@@ -51,7 +51,7 @@ export function Sidebar() {
           className="w-full py-3 px-4 mb-6 rounded-2xl bg-gradient-to-r from-primary to-secondary text-primary-content font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:opacity-95 transition-all transform active:scale-95 border-none"
         >
           <span>Post New Job</span>
-          <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+          <div className="w-5 h-5 rounded-full bg-base-100/20 flex items-center justify-center">
             <Plus className="w-3.5 h-3.5" />
           </div>
         </Link>

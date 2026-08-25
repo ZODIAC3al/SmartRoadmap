@@ -43,7 +43,7 @@ export default function CareerGrowthVisual({
 
       {/* Progress Bar */}
       <div className="space-y-1.5 mb-6">
-        <div className="flex justify-between text-xs font-bold text-stone-700 dark:text-stone-300">
+        <div className="flex justify-between text-xs font-bold text-base-content/70 dark:text-stone-300">
           <span>Overall Competency Mastery</span>
           <span className="text-[#8E1616] font-mono font-extrabold">{progress}%</span>
         </div>
@@ -62,15 +62,15 @@ export default function CareerGrowthVisual({
             key={idx}
             className={`p-3 rounded-xl border text-center transition-all ${
               step.status === "completed"
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                ? "bg-[#8E1616]/10 border-[#8E1616]/30 text-[#701111] dark:text-[#B32424]"
                 : step.status === "current"
                 ? "bg-[#8E1616]/10 border-[#8E1616] text-[#8E1616] shadow-sm animate-pulse"
-                : "bg-base-100 border-base-300 text-stone-600 dark:text-stone-400 opacity-60"
+                : "bg-base-100 border-base-300 text-base-content/70 dark:text-stone-400 opacity-60"
             }`}
           >
             <div className="text-xl mb-1">{step.icon}</div>
             <div className="text-[11px] font-black leading-tight text-base-content">{step.title}</div>
-            <div className="text-[9px] font-mono uppercase font-bold mt-1 text-stone-600 dark:text-stone-400">
+            <div className="text-[9px] font-mono uppercase font-bold mt-1 text-base-content/70 dark:text-stone-400">
               {step.status === "completed" ? "Verified" : step.status === "current" ? "In Progress" : "Locked"}
             </div>
           </div>

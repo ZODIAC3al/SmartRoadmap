@@ -9,9 +9,9 @@ import CompanyPendingScreen from "@/components/CompanyPendingScreen";
 import { useGetOrCreateThreadMutation } from "@/store/api/messagesApi";
 
 const STATUS_BADGES: Record<string, { bg: string; text: string; icon: string }> = {
-  Applied: { bg: "bg-emerald-500/10 border-emerald-500/20", text: "text-emerald-600", icon: "🚀" },
+  Applied: { bg: "bg-[#8E1616]/10 border-[#8E1616]/20", text: "text-[#701111]", icon: "🚀" },
   Interviewing: { bg: "bg-amber-500/10 border-amber-500/20", text: "text-amber-600", icon: "🎙️" },
-  Accepted: { bg: "bg-green-500/10 border-green-500/30", text: "text-green-600", icon: "🎉" },
+  Accepted: { bg: "bg-[#8E1616]/10 border-[#8E1616]/30", text: "text-[#701111]", icon: "🎉" },
   Rejected: { bg: "bg-red-500/10 border-red-500/20", text: "text-red-600", icon: "❌" },
 };
 
@@ -78,7 +78,7 @@ function CompanyPageContent() {
     return (
       <div className="flex min-h-screen bg-base-100 items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <span className="loading loading-spinner loading-lg text-emerald-500"></span>
+          <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
           <span className="text-sm font-mono text-base-content/50">
             Loading recruitment management system...
           </span>
@@ -91,7 +91,7 @@ function CompanyPageContent() {
     return (
       <div className="flex flex-col min-h-[85vh] items-center justify-center p-8 text-center bg-base-100">
         <div className="max-w-md bg-base-200 border border-base-300 p-8 rounded-2xl shadow-sm space-y-6">
-          <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto text-3xl font-bold">
+          <div className="w-16 h-16 bg-[#8E1616]/10 text-[#8E1616] rounded-full flex items-center justify-center mx-auto text-3xl font-bold">
             💼
           </div>
           <div className="space-y-2">
@@ -105,7 +105,7 @@ function CompanyPageContent() {
           <div className="pt-2">
             <Link
               href="/auth/login"
-              className="btn bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl h-12 w-full font-bold"
+              className="btn bg-[#8E1616] hover:bg-[#701111] text-white rounded-xl h-12 w-full font-bold transition-all duration-300 ease-in-out"
             >
               Sign In with Employer Credentials
             </Link>
@@ -137,12 +137,12 @@ function CompanyPageContent() {
         {/* Top Employer Banner */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center font-black text-lg border border-emerald-500/20">
+            <div className="w-11 h-11 rounded-xl bg-[#8E1616]/15 text-[#701111] flex items-center justify-center font-black text-lg border border-[#8E1616]/20">
               {user.name?.charAt(0) || "C"}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
+                <span className="text-[10px] text-[#8E1616] font-bold uppercase tracking-wider font-mono bg-[#8E1616]/10 px-2 py-0.5 rounded">
                   {user.role === "admin" ? "Platform Administrator" : "Verified Employer"}
                 </span>
               </div>
@@ -154,7 +154,7 @@ function CompanyPageContent() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowAddJobModal(true)}
-              className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold text-xs px-4"
+              className="btn btn-sm bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl font-bold text-xs px-4 transition-all duration-300 ease-in-out"
             >
               + Post New Job
             </button>
@@ -164,7 +164,7 @@ function CompanyPageContent() {
                 setUser(null);
                 toast.info("Logged out from employer session.");
               }}
-              className="btn btn-ghost btn-xs text-base-content/50 hover:bg-base-300 rounded-lg"
+              className="btn btn-ghost btn-xs text-base-content/50 hover:bg-base-300 rounded-2xl transition-all duration-300 ease-in-out"
             >
               Log Out
             </button>
@@ -180,7 +180,7 @@ function CompanyPageContent() {
             <span className="text-3xl font-black font-mono text-base-content">
               {applications.length}
             </span>
-            <span className="text-[10px] text-emerald-600 block font-bold">
+            <span className="text-[10px] text-[#701111] block font-bold">
               ✓ Ready for review & interviewing
             </span>
           </div>
@@ -188,7 +188,7 @@ function CompanyPageContent() {
             <span className="text-[10px] uppercase font-bold text-base-content/50 tracking-wider block font-mono">
               Active Job Listings
             </span>
-            <span className="text-3xl font-black font-mono text-emerald-600">
+            <span className="text-3xl font-black font-mono text-[#701111]">
               {jobs.length}
             </span>
             <span className="text-[10px] text-base-content/60 block font-semibold">
@@ -202,7 +202,7 @@ function CompanyPageContent() {
             <span className="text-3xl font-black font-mono text-base-content">
               {candidates.length}
             </span>
-            <span className="text-[10px] text-emerald-600 block font-bold">
+            <span className="text-[10px] text-[#701111] block font-bold">
               Verified skills & Skill Passports
             </span>
           </div>
@@ -212,8 +212,8 @@ function CompanyPageContent() {
         <div className="flex items-center gap-2 bg-base-200 p-1.5 rounded-xl border border-base-300 self-start">
           <button
             onClick={() => setActiveTab("applications")}
-            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${activeTab === "applications"
-                ? "bg-emerald-500 text-white shadow-sm"
+            className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all ${activeTab === "applications"
+                ? "bg-[#8E1616] text-white shadow-sm"
                 : "text-base-content/60 hover:text-base-content"
               }`}
           >
@@ -221,8 +221,8 @@ function CompanyPageContent() {
           </button>
           <button
             onClick={() => setActiveTab("jobs")}
-            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${activeTab === "jobs"
-                ? "bg-emerald-500 text-white shadow-sm"
+            className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all ${activeTab === "jobs"
+                ? "bg-[#8E1616] text-white shadow-sm"
                 : "text-base-content/60 hover:text-base-content"
               }`}
           >
@@ -230,8 +230,8 @@ function CompanyPageContent() {
           </button>
           <button
             onClick={() => setActiveTab("candidates")}
-            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${activeTab === "candidates"
-                ? "bg-emerald-500 text-white shadow-sm"
+            className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all ${activeTab === "candidates"
+                ? "bg-[#8E1616] text-white shadow-sm"
                 : "text-base-content/60 hover:text-base-content"
               }`}
           >
@@ -298,10 +298,10 @@ function CompanyPageContent() {
                           const badge = STATUS_BADGES[norm] || STATUS_BADGES.Applied;
 
                           return (
-                            <tr key={app._id || app.id} className="border-base-300 hover:bg-base-100/50">
+                            <tr key={app._id || app.id} className="border-base-300 hover:bg-base-100/50 transition-all duration-300 ease-in-out">
                               <td>
                                 <div className="flex items-center gap-2.5">
-                                  <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 font-bold flex items-center justify-center border border-emerald-500/20 text-xs shrink-0">
+                                  <div className="w-8 h-8 rounded-full bg-[#8E1616]/10 text-[#701111] font-bold flex items-center justify-center border border-[#8E1616]/20 text-xs shrink-0">
                                     {candidateName.charAt(0)}
                                   </div>
                                   <div>
@@ -325,7 +325,7 @@ function CompanyPageContent() {
                                 </div>
                               </td>
                               <td>
-                                <span className="font-mono font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                                <span className="font-mono font-bold text-[#701111] bg-[#8E1616]/10 px-2 py-0.5 rounded border border-[#8E1616]/20">
                                   {app.matchScore}%
                                 </span>
                               </td>
@@ -344,7 +344,7 @@ function CompanyPageContent() {
                                 <div className="flex gap-2">
                                   <button
                                     onClick={() => setSelectedApplication(app)}
-                                    className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold text-[10px] px-3"
+                                    className="btn btn-xs bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-2xl font-bold text-[10px] px-3 transition-all duration-300 ease-in-out"
                                   >
                                     Review Candidate
                                   </button>
@@ -364,7 +364,7 @@ function CompanyPageContent() {
                                         cvUploaded: !!app.cvSnapshot,
                                       });
                                     }}
-                                    className="btn btn-xs bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-600 border border-emerald-500/30 rounded-lg font-bold text-[10px] px-3 transition-all"
+                                    className="btn btn-xs bg-[#8E1616]/10 hover:bg-[#8E1616] hover:text-white text-[#701111] border border-[#8E1616]/30 rounded-2xl font-bold text-[10px] px-3 transition-all"
                                   >
                                     ✉️ Invite
                                   </button>
@@ -372,7 +372,7 @@ function CompanyPageContent() {
                                     href={`/passport?userId=${app.userId?._id || app.userId || app.candidateId}`}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="btn btn-xs btn-outline btn-primary rounded-lg font-bold text-[10px] px-3"
+                                    className="btn btn-xs btn-outline btn-primary rounded-2xl font-bold text-[10px] px-3"
                                   >
                                     🛡️ Passport
                                   </a>
@@ -391,7 +391,7 @@ function CompanyPageContent() {
                       <button
                         onClick={() => setAppPage((p) => Math.max(p - 1, 1))}
                         disabled={appPage === 1}
-                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
+                        className="btn btn-xs btn-ghost rounded-2xl border border-base-300 text-[11px] disabled:opacity-40"
                       >
                         Previous
                       </button>
@@ -401,8 +401,8 @@ function CompanyPageContent() {
                           <button
                             key={page}
                             onClick={() => setAppPage(page)}
-                            className={`w-7 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-all ${appPage === page
-                                ? 'bg-emerald-500 text-white shadow-xs'
+                            className={`w-7 h-7 rounded-2xl font-bold text-[11px] flex items-center justify-center transition-all ${appPage === page
+                                ? 'bg-[#8E1616] text-white shadow-xs'
                                 : 'bg-base-200 text-base-content/70 hover:bg-base-300'
                               }`}
                           >
@@ -414,7 +414,7 @@ function CompanyPageContent() {
                       <button
                         onClick={() => setAppPage((p) => Math.min(p + 1, appTotalPages))}
                         disabled={appPage === appTotalPages}
-                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
+                        className="btn btn-xs btn-ghost rounded-2xl border border-base-300 text-[11px] disabled:opacity-40"
                       >
                         Next
                       </button>
@@ -440,7 +440,7 @@ function CompanyPageContent() {
               </div>
               <button
                 onClick={() => setShowAddJobModal(true)}
-                className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold text-xs"
+                className="btn btn-sm bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl font-bold text-xs transition-all duration-300 ease-in-out"
               >
                 + Post Job
               </button>
@@ -491,7 +491,7 @@ function CompanyPageContent() {
                       </span>
                       <button
                         onClick={() => handleDeleteJob(job._id || job.id)}
-                        className="text-red-500 hover:underline font-bold"
+                        className="text-red-500 hover:underline font-bold transition-all duration-300 ease-in-out"
                       >
                         Delete Job
                       </button>
@@ -560,12 +560,12 @@ function CompanyPageContent() {
                     {pageCandidates.map((cand: any) => (
                       <div
                         key={cand.userId}
-                        className="bg-base-200 border border-base-300 rounded-2xl p-5 space-y-4 flex flex-col justify-between hover:border-emerald-500/40 transition-colors"
+                        className="bg-base-200 border border-base-300 rounded-2xl p-5 space-y-4 flex flex-col justify-between hover:border-[#8E1616]/40 transition-colors"
                       >
                         <div>
                           <div className="flex justify-between items-start">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 font-black flex items-center justify-center border border-emerald-500/20 text-sm">
+                              <div className="w-10 h-10 rounded-full bg-[#8E1616]/10 text-[#701111] font-black flex items-center justify-center border border-[#8E1616]/20 text-sm">
                                 {cand.name.charAt(0)}
                               </div>
                               <div>
@@ -577,7 +577,7 @@ function CompanyPageContent() {
                                 </span>
                               </div>
                             </div>
-                            <span className="font-mono font-bold text-xs text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                            <span className="font-mono font-bold text-xs text-[#701111] bg-[#8E1616]/10 px-2 py-0.5 rounded border border-[#8E1616]/20">
                               {cand.matchScore}% Fit
                             </span>
                           </div>
@@ -589,13 +589,13 @@ function CompanyPageContent() {
                             </div>
                             <div className="bg-base-100 p-2 rounded-xl border border-base-300">
                               <span className="text-[9px] uppercase font-mono text-base-content/50 block">Avg Quiz</span>
-                              <span className="font-bold text-xs text-emerald-600">{cand.averageQuizScore}%</span>
+                              <span className="font-bold text-xs text-[#701111]">{cand.averageQuizScore}%</span>
                             </div>
                           </div>
 
                           <div className="flex flex-wrap gap-1 mt-3">
                             {(cand.verifiedSkills || []).slice(0, 4).map((s: string, i: number) => (
-                              <span key={i} className="badge badge-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-mono">
+                              <span key={i} className="badge badge-xs bg-[#8E1616]/10 text-[#701111] border-[#8E1616]/20 text-[9px] font-mono">
                                 ✓ {s}
                               </span>
                             ))}
@@ -605,13 +605,13 @@ function CompanyPageContent() {
                         <div className="flex gap-2 pt-2 border-t border-base-300">
                           <button
                             onClick={() => copyPassportLink(cand.userId)}
-                            className="btn btn-xs btn-outline border-base-300 rounded-lg flex-1 text-[10px] font-bold"
+                            className="btn btn-xs btn-outline border-base-300 rounded-2xl flex-1 text-[10px] font-bold"
                           >
                             🔗 Share Passport
                           </button>
                           <button
                             onClick={() => setContactCandidate(cand)}
-                            className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg flex-1 text-[10px] font-bold"
+                            className="btn btn-xs bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-2xl flex-1 text-[10px] font-bold transition-all duration-300 ease-in-out"
                           >
                             Invite
                           </button>
@@ -626,7 +626,7 @@ function CompanyPageContent() {
                       <button
                         onClick={() => setTalentPage((p) => Math.max(p - 1, 1))}
                         disabled={talentPage === 1}
-                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
+                        className="btn btn-xs btn-ghost rounded-2xl border border-base-300 text-[11px] disabled:opacity-40"
                       >
                         Previous
                       </button>
@@ -636,8 +636,8 @@ function CompanyPageContent() {
                           <button
                             key={page}
                             onClick={() => setTalentPage(page)}
-                            className={`w-7 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-all ${talentPage === page
-                                ? 'bg-emerald-500 text-white shadow-xs'
+                            className={`w-7 h-7 rounded-2xl font-bold text-[11px] flex items-center justify-center transition-all ${talentPage === page
+                                ? 'bg-[#8E1616] text-white shadow-xs'
                                 : 'bg-base-200 text-base-content/70 hover:bg-base-300'
                               }`}
                           >
@@ -649,7 +649,7 @@ function CompanyPageContent() {
                       <button
                         onClick={() => setTalentPage((p) => Math.min(p + 1, totalPages))}
                         disabled={talentPage === totalPages}
-                        className="btn btn-xs btn-ghost rounded-lg border border-base-300 text-[11px] disabled:opacity-40"
+                        className="btn btn-xs btn-ghost rounded-2xl border border-base-300 text-[11px] disabled:opacity-40"
                       >
                         Next
                       </button>
@@ -803,7 +803,7 @@ function CompanyPageContent() {
                 <button
                   type="submit"
                   disabled={creatingJob}
-                  className="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none btn-sm rounded-xl font-bold text-xs px-6"
+                  className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-sm rounded-xl font-bold text-xs px-6 transition-all duration-300 ease-in-out"
                 >
                   {creatingJob ? "Publishing..." : "Publish Job Opening"}
                 </button>
@@ -819,7 +819,7 @@ function CompanyPageContent() {
           <div className="modal-box rounded-2xl bg-base-200 border border-base-300 text-start space-y-5 max-w-3xl max-h-[88vh] overflow-y-auto">
             <div className="flex justify-between items-start border-b border-base-300 pb-4">
               <div>
-                <span className="text-[10px] text-emerald-500 font-mono font-bold uppercase tracking-wider">
+                <span className="text-[10px] text-[#8E1616] font-mono font-bold uppercase tracking-wider">
                   APPLICANT PROFILE REVIEW
                 </span>
                 <div className="flex items-center gap-3 mt-0.5">
@@ -865,21 +865,21 @@ function CompanyPageContent() {
                   <button
                     disabled={updatingStatusId === (selectedApplication._id || selectedApplication.id)}
                     onClick={() => handleUpdateApplicantStatus(selectedApplication._id || selectedApplication.id, "Interviewing", statusNote)}
-                    className="btn btn-xs bg-amber-500 hover:bg-amber-600 text-white border-none rounded-lg font-bold"
+                    className="btn btn-xs bg-amber-500 hover:bg-amber-600 text-white border-none rounded-2xl font-bold transition-all duration-300 ease-in-out"
                   >
                     🎙️ Move to Interviewing
                   </button>
                   <button
                     disabled={updatingStatusId === (selectedApplication._id || selectedApplication.id)}
                     onClick={() => handleUpdateApplicantStatus(selectedApplication._id || selectedApplication.id, "Accepted", statusNote)}
-                    className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold"
+                    className="btn btn-xs bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-2xl font-bold transition-all duration-300 ease-in-out"
                   >
                     🎉 Accept Candidate
                   </button>
                   <button
                     disabled={updatingStatusId === (selectedApplication._id || selectedApplication.id)}
                     onClick={() => handleUpdateApplicantStatus(selectedApplication._id || selectedApplication.id, "Rejected", statusNote)}
-                    className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none rounded-lg font-bold"
+                    className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none rounded-2xl font-bold transition-all duration-300 ease-in-out"
                   >
                     ❌ Reject
                   </button>
@@ -891,7 +891,7 @@ function CompanyPageContent() {
                 <input
                   type="text"
                   placeholder="Optional interview notes or feedback for candidate timeline..."
-                  className="input input-bordered input-xs w-full rounded-lg bg-base-200 text-xs"
+                  className="input input-bordered input-xs w-full rounded-2xl bg-base-200 text-xs"
                   value={statusNote}
                   onChange={(e) => setStatusNote(e.target.value)}
                 />
@@ -907,11 +907,11 @@ function CompanyPageContent() {
                 <div className="bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="font-black text-sm text-base-content">{selectedApplication.cvSnapshot.title || "Resume Snapshot"}</span>
-                    <span className="text-[10px] font-mono text-emerald-500">Transmitted with Application</span>
+                    <span className="text-[10px] font-mono text-[#8E1616]">Transmitted with Application</span>
                   </div>
 
                   {selectedApplication.cvSnapshot.summary && (
-                    <div className="bg-base-200 p-3 rounded-lg text-base-content/80 italic">
+                    <div className="bg-base-200 p-3 rounded-2xl text-base-content/80 italic">
                       &quot;{selectedApplication.cvSnapshot.summary}&quot;
                     </div>
                   )}
@@ -921,7 +921,7 @@ function CompanyPageContent() {
                       <span className="text-[10px] font-bold uppercase font-mono text-base-content/50 block mb-1">Work Experience:</span>
                       <div className="space-y-2">
                         {selectedApplication.cvSnapshot.experience.map((exp: any, i: number) => (
-                          <div key={i} className="border-l-2 border-emerald-500 pl-3 py-0.5">
+                          <div key={i} className="border-l-2 border-[#8E1616] pl-3 py-0.5">
                             <span className="font-bold text-xs block">{exp.role || exp.title} at {exp.company}</span>
                             <span className="text-[10px] text-base-content/50">{exp.startDate} - {exp.endDate || "Present"}</span>
                             {exp.description && <p className="text-[11px] text-base-content/70 mt-1">{exp.description}</p>}
@@ -953,17 +953,17 @@ function CompanyPageContent() {
                 </span>
                 <div className="bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-3">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    <div className="bg-base-200 p-2.5 rounded-lg">
+                    <div className="bg-base-200 p-2.5 rounded-2xl">
                       <span className="text-[9px] uppercase font-mono text-base-content/50 block">Target Role</span>
                       <span className="font-bold text-xs">{selectedApplication.passportSnapshot.targetRole || "Software Developer"}</span>
                     </div>
-                    <div className="bg-base-200 p-2.5 rounded-lg">
+                    <div className="bg-base-200 p-2.5 rounded-2xl">
                       <span className="text-[9px] uppercase font-mono text-base-content/50 block">Roadmap Progress</span>
-                      <span className="font-bold text-xs text-emerald-600">{selectedApplication.passportSnapshot.roadmap?.progressPercentage || 100}%</span>
+                      <span className="font-bold text-xs text-[#701111]">{selectedApplication.passportSnapshot.roadmap?.progressPercentage || 100}%</span>
                     </div>
-                    <div className="bg-base-200 p-2.5 rounded-lg">
+                    <div className="bg-base-200 p-2.5 rounded-2xl">
                       <span className="text-[9px] uppercase font-mono text-base-content/50 block">Quiz Performance</span>
-                      <span className="font-bold text-xs text-emerald-600">{selectedApplication.passportSnapshot.quizPerformance?.averageScore || 90}% avg</span>
+                      <span className="font-bold text-xs text-[#701111]">{selectedApplication.passportSnapshot.quizPerformance?.averageScore || 90}% avg</span>
                     </div>
                   </div>
 
@@ -972,7 +972,7 @@ function CompanyPageContent() {
                       <span className="text-[10px] font-bold uppercase font-mono text-base-content/50 block mb-1">Verified Skills in Passport:</span>
                       <div className="flex flex-wrap gap-1">
                         {selectedApplication.passportSnapshot.verifiedSkills.map((s: string, i: number) => (
-                          <span key={i} className="badge badge-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-mono">
+                          <span key={i} className="badge badge-xs bg-[#8E1616]/10 text-[#701111] border-[#8E1616]/20 text-[9px] font-mono">
                             ✓ {s}
                           </span>
                         ))}
@@ -1007,7 +1007,7 @@ function CompanyPageContent() {
                     cvUploaded: !!selectedApplication.cvSnapshot,
                   });
                 }}
-                className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold"
+                className="btn btn-sm bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl font-bold transition-all duration-300 ease-in-out"
               >
                 ✉️ Send Invite
               </button>
@@ -1066,7 +1066,7 @@ function CompanyPageContent() {
                     toast.error(err?.data?.message || err.message || "Failed to send invitation message.");
                   }
                 }}
-                className="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none btn-sm rounded-xl font-bold text-xs px-6"
+                className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-sm rounded-xl font-bold text-xs px-6 transition-all duration-300 ease-in-out"
               >
                 {sendingInvite ? <span className="loading loading-spinner loading-xs" /> : "Send Invite"}
               </button>
@@ -1082,7 +1082,7 @@ export default function CompanyPage() {
   return (
     <React.Suspense fallback={
       <div className="flex min-h-screen bg-base-100 items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-emerald-500"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     }>
       <CompanyPageContent />

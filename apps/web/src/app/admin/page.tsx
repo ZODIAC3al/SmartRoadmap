@@ -187,7 +187,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex min-h-screen bg-base-100 items-center justify-center">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
@@ -211,13 +211,13 @@ export default function AdminDashboard() {
           <div className="flex flex-col gap-3 pt-2">
             <button
               onClick={handleSimulateAdmin}
-              className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-semibold h-12 w-full transition-all duration-200"
+              className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none rounded-xl font-semibold h-12 w-full transition-all duration-200"
             >
               Simulate Administrator Login (Demo)
             </button>
             <Link
               href="/auth/login"
-              className="btn btn-outline border-base-300 text-base-content hover:bg-base-100 rounded-xl h-12 w-full"
+              className="btn btn-outline border-base-300 text-base-content hover:bg-base-100 rounded-xl h-12 w-full transition-all duration-300 ease-in-out"
             >
               Sign In with Admin Credentials
             </Link>
@@ -250,7 +250,7 @@ export default function AdminDashboard() {
         {/* Navigation Admin Header Banner */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-5 shadow-sm">
           <div>
-            <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
+            <span className="text-[10px] text-[#8E1616] font-bold uppercase tracking-wider font-mono bg-[#8E1616]/10 px-2 py-0.5 rounded">
               {isRtl ? "مدير النظام" : "PLATFORM ADMINISTRATOR"}
             </span>
             <h1 className="text-xl font-extrabold text-base-content mt-1">
@@ -265,13 +265,13 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-3">
             <Link
               href="/admin/users"
-              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "المستخدمين" : "Users"}
             </Link>
             <Link
               href="/admin/certificates"
-              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "الشهادات" : "Certificates"}
             </Link>
@@ -282,7 +282,7 @@ export default function AdminDashboard() {
                 toast.info("Logged out from admin panel.");
                 router.push("/");
               }}
-              className="btn btn-ghost btn-sm text-red-500 hover:bg-red-50 rounded-xl"
+              className="btn btn-ghost btn-sm text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "تسجيل الخروج" : "Logout Admin"}
             </button>
@@ -295,7 +295,7 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab("overview")}
             className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === "overview"
-                ? "border-[#10B981] text-[#10B981]"
+                ? "border-[#8E1616] text-[#8E1616]"
                 : "border-transparent text-base-content/60 hover:text-base-content"
             }`}
           >
@@ -305,7 +305,7 @@ export default function AdminDashboard() {
             onClick={() => setActiveTab("companies")}
             className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === "companies"
-                ? "border-[#10B981] text-[#10B981]"
+                ? "border-[#8E1616] text-[#8E1616]"
                 : "border-transparent text-base-content/60 hover:text-base-content"
             }`}
           >
@@ -338,7 +338,7 @@ export default function AdminDashboard() {
             <span className="text-[9px] uppercase font-bold text-base-content/40 tracking-wider block font-mono">
               {isRtl ? "نسبة اجتياز الاختبارات" : "Quiz Pass Rate"}
             </span>
-            <span className="text-3xl font-black font-mono text-[#059669] block mt-1">
+            <span className="text-3xl font-black font-mono text-[#701111] block mt-1">
               {stats.quizPassRate}
             </span>
             <span className="text-[9px] text-base-content/40 block font-mono">
@@ -350,7 +350,7 @@ export default function AdminDashboard() {
             <span className="text-[9px] uppercase font-bold text-base-content/40 tracking-wider block font-mono">
               {isRtl ? "نشاط المجتمع" : "Community Hub"}
             </span>
-            <span className="text-3xl font-black font-mono text-[#10B981] block mt-1">
+            <span className="text-3xl font-black font-mono text-[#8E1616] block mt-1">
               {stats.activePosts} Posts
             </span>
             <span className="text-[9px] text-base-content/40 block font-mono">
@@ -373,14 +373,14 @@ export default function AdminDashboard() {
 
         {/* Operational brief */}
         <div className="bg-base-200 border border-base-300 shadow-sm rounded-2xl p-6 space-y-4">
-          <div className="flex justify-between items-center border-b border-indigo-500/10 pb-3">
+          <div className="flex justify-between items-center border-b border-primary/10 pb-3">
             <div className="flex items-center gap-2">
-              <span className="text-[9px] bg-indigo-500/10 text-indigo-500 px-2 py-0.5 rounded-full font-bold font-mono">LIVE BRIEF</span>
+              <span className="text-[9px] bg-primary text-primary-content/10 text-primary px-2 py-0.5 rounded-full font-bold font-mono">LIVE BRIEF</span>
               <div>
                 <h3 className="font-extrabold text-sm text-base-content">
                   {isRtl ? "إشارات الأداء والعقبات التشغيلية" : "Operational Signals & Bottlenecks"}
                 </h3>
-                <span className="text-[8px] text-indigo-500 font-bold uppercase font-mono block mt-0.5">
+                <span className="text-[8px] text-primary font-bold uppercase font-mono block mt-0.5">
                   DATABASE-BACKED PERFORMANCE BRIEF
                 </span>
               </div>
@@ -388,7 +388,7 @@ export default function AdminDashboard() {
             <button
               onClick={fetchOperationalInsights}
               disabled={loadingInsights}
-              className="btn btn-sm bg-indigo-500 hover:bg-indigo-600 text-white border-none rounded-xl font-bold px-3"
+              className="btn btn-sm bg-primary text-primary-content hover:bg-primary text-primary-content text-white border-none rounded-xl font-bold px-3 transition-all duration-300 ease-in-out"
             >
               {loadingInsights ? (
                 <span className="loading loading-spinner loading-xs"></span>
@@ -401,19 +401,19 @@ export default function AdminDashboard() {
           {operationalInsights ? (
             <div className="grid md:grid-cols-3 gap-6 text-xs leading-relaxed">
               <div className="space-y-1.5 p-4 bg-base-200 border border-base-300 rounded-xl">
-                <span className="font-black text-indigo-500 block uppercase tracking-wider font-mono text-[9px]">
+                <span className="font-black text-primary block uppercase tracking-wider font-mono text-[9px]">
                   1. LEARNING BOTTLENECKS
                 </span>
                 <p className="text-base-content/80">{operationalInsights.bottlenecks}</p>
               </div>
               <div className="space-y-1.5 p-4 bg-base-200 border border-base-300 rounded-xl">
-                <span className="font-black text-purple-500 block uppercase tracking-wider font-mono text-[9px]">
+                <span className="font-black text-primary block uppercase tracking-wider font-mono text-[9px]">
                   2. MENTORSHIP QUALITY
                 </span>
                 <p className="text-base-content/80">{operationalInsights.mentorshipStatus}</p>
               </div>
               <div className="space-y-1.5 p-4 bg-base-200 border border-base-300 rounded-xl">
-                <span className="font-black text-emerald-500 block uppercase tracking-wider font-mono text-[9px]">
+                <span className="font-black text-[#8E1616] block uppercase tracking-wider font-mono text-[9px]">
                   3. RECOMMENDATIONS
                 </span>
                 <p className="text-base-content/80">{operationalInsights.recommendations}</p>
@@ -428,11 +428,11 @@ export default function AdminDashboard() {
 
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-wider font-mono bg-emerald-500/10 px-2 py-0.5 rounded">REPORTING &amp; ANALYTICS</span>
+            <span className="text-[10px] text-[#8E1616] font-bold uppercase tracking-wider font-mono bg-[#8E1616]/10 px-2 py-0.5 rounded">REPORTING &amp; ANALYTICS</span>
             <h2 className="mt-2 text-xl font-black tracking-tight">Patterns you can act on</h2>
             <p className="mt-1 text-xs text-base-content/50">A focused view of acquisition, learning quality, and platform throughput.</p>
           </div>
-          <span className="text-[9px] bg-indigo-500/10 text-indigo-500 px-2 py-0.5 rounded-full font-bold font-mono">7 DAY WINDOW</span>
+          <span className="text-[9px] bg-primary text-primary-content/10 text-primary px-2 py-0.5 rounded-full font-bold font-mono">7 DAY WINDOW</span>
         </div>
 
         {/* Charts Split Area */}
@@ -444,7 +444,7 @@ export default function AdminDashboard() {
               <h3 className="font-extrabold text-xs text-base-content uppercase tracking-wider font-mono">
                 {isRtl ? "تحليل تسجيلات العضوية اليومية" : "Daily Signup Analytics"}
               </h3>
-              <span className="text-[9px] bg-[#10B981]/15 text-[#059669] px-2 py-0.5 rounded-full font-bold font-mono">
+              <span className="text-[9px] bg-[#8E1616]/15 text-[#701111] px-2 py-0.5 rounded-full font-bold font-mono">
                 WEEKLY INDEX
               </span>
             </div>
@@ -502,7 +502,7 @@ export default function AdminDashboard() {
               <h3 className="font-extrabold text-xs text-base-content uppercase tracking-wider font-mono">
                 {isRtl ? "نسبة نجاح الطلاب بالمهارات" : "Module Quiz Pass Rates"}
               </h3>
-              <span className="text-[9px] bg-[#10B981]/15 text-[#059669] px-2 py-0.5 rounded-full font-bold font-mono">
+              <span className="text-[9px] bg-[#8E1616]/15 text-[#701111] px-2 py-0.5 rounded-full font-bold font-mono">
                 BENCHMARK
               </span>
             </div>
@@ -514,7 +514,7 @@ export default function AdminDashboard() {
                   <div key={idx} className="space-y-1">
                     <div className="flex justify-between text-[10px] font-semibold text-base-content/70">
                       <span>{quiz.topic}</span>
-                      <span className="font-mono text-[#059669] font-bold">
+                      <span className="font-mono text-[#701111] font-bold">
                         {quiz.rate}% Pass
                       </span>
                     </div>
@@ -543,7 +543,7 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-black tracking-tight">Company Registrations</h2>
                 <p className="text-sm text-base-content/60">Review and approve employer accounts.</p>
               </div>
-              <div className="flex gap-2 bg-base-200 p-1 rounded-lg">
+              <div className="flex gap-2 bg-base-200 p-1 rounded-2xl">
                 {(["all", "pending", "accepted", "rejected", "blocked"] as const).map((filter) => (
                   <button
                     key={filter}
@@ -551,7 +551,7 @@ export default function AdminDashboard() {
                       setCompaniesFilter(filter);
                       void fetchCompanies(filter);
                     }}
-                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-colors ${
                       companiesFilter === filter
                         ? "bg-base-100 shadow-sm text-base-content"
                         : "text-base-content/60 hover:text-base-content"
@@ -577,7 +577,7 @@ export default function AdminDashboard() {
                   {loadingCompanies ? (
                     <tr>
                       <td colSpan={4} className="px-6 py-12 text-center text-base-content/50">
-                        <span className="loading loading-spinner text-[#10B981]"></span>
+                        <span className="loading loading-spinner text-[#8E1616]"></span>
                       </td>
                     </tr>
                   ) : companies.length === 0 ? (
@@ -600,11 +600,11 @@ export default function AdminDashboard() {
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                               company.companyStatus === "accepted"
-                                ? "bg-emerald-100 text-emerald-700"
+                                ? "bg-emerald-100 text-[#500A0A]"
                                 : company.companyStatus === "rejected"
                                 ? "bg-red-100 text-red-700"
                                 : company.companyStatus === "blocked"
-                                ? "bg-slate-200 text-slate-700"
+                                ? "bg-slate-200 text-base-content/70"
                                 : "bg-amber-100 text-amber-700"
                             }`}
                           >
@@ -644,7 +644,7 @@ export default function AdminDashboard() {
                                     <button
                                       onClick={() => handleCompanyAction(company._id, "reject")}
                                       disabled={!rejectReason.trim()}
-                                      className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none"
+                                      className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none transition-all duration-300 ease-in-out"
                                     >
                                       Confirm Reject
                                     </button>
@@ -654,20 +654,20 @@ export default function AdminDashboard() {
                                 <>
                                   <button
                                     onClick={() => setRejectingCompanyId(company._id)}
-                                    className="btn btn-xs btn-ghost text-red-500 hover:bg-red-50"
+                                    className="btn btn-xs btn-ghost text-red-500 hover:bg-red-50 transition-all duration-300 ease-in-out"
                                   >
                                     Reject
                                   </button>
                                   <button
                                     onClick={() => handleCompanyAction(company._id, "accept")}
-                                    className="btn btn-xs bg-[#10B981] hover:bg-[#059669] text-white border-none"
+                                    className="btn btn-xs bg-[#8E1616] hover:bg-[#701111] text-white border-none transition-all duration-300 ease-in-out"
                                   >
                                     Accept
                                   </button>
                                   {company.companyStatus !== "pending" && (
                                     <button
                                       onClick={() => handleCompanyAction(company._id, "block")}
-                                      className="btn btn-xs bg-slate-700 hover:bg-slate-800 text-white border-none"
+                                      className="btn btn-xs bg-slate-700 hover:bg-base-300 text-white border-none transition-all duration-300 ease-in-out"
                                     >
                                       Block
                                     </button>

@@ -117,7 +117,7 @@ export const AtsOptimizerModal: React.FC<AtsOptimizerModalProps> = ({
               <button
                 onClick={handleRunCheck}
                 disabled={isAnalyzing}
-                className="btn btn-sm bg-primary hover:bg-[#059669] text-white border-none rounded-lg font-bold w-full flex items-center justify-center gap-2"
+                className="btn btn-sm bg-primary hover:bg-[#701111] text-white border-none rounded-2xl font-bold w-full flex items-center justify-center gap-2 transition-all duration-300 ease-in-out"
               >
                 {isAnalyzing ? <span className="loading loading-spinner loading-xs"></span> : <SparklesIcon />}
                 Run ATS Optimization Analysis
@@ -158,15 +158,15 @@ export const AtsOptimizerModal: React.FC<AtsOptimizerModalProps> = ({
                 </div>
                 <div className="bg-base-200/60 p-2.5 rounded-xl border border-base-300/50">
                   <span className="text-[10px] text-base-content/50 font-bold uppercase block">Formatting</span>
-                  <span className="font-mono font-extrabold text-base text-emerald-600">{analysisResult.formattingScore || 95}%</span>
+                  <span className="font-mono font-extrabold text-base text-[#701111]">{analysisResult.formattingScore || 95}%</span>
                 </div>
                 <div className="bg-base-200/60 p-2.5 rounded-xl border border-base-300/50">
                   <span className="text-[10px] text-base-content/50 font-bold uppercase block">Readability</span>
-                  <span className="font-mono font-extrabold text-base text-blue-600">{analysisResult.readabilityScore || 90}%</span>
+                  <span className="font-mono font-extrabold text-base text-primary">{analysisResult.readabilityScore || 90}%</span>
                 </div>
                 <div className="bg-base-200/60 p-2.5 rounded-xl border border-base-300/50">
                   <span className="text-[10px] text-base-content/50 font-bold uppercase block">Skills Match</span>
-                  <span className="font-mono font-extrabold text-base text-purple-600">88%</span>
+                  <span className="font-mono font-extrabold text-base text-primary">88%</span>
                 </div>
               </div>
 
@@ -204,7 +204,7 @@ export const AtsOptimizerModal: React.FC<AtsOptimizerModalProps> = ({
                 <button
                   onClick={handleRunAutoFix}
                   disabled={isAutoFixing}
-                  className="btn btn-sm bg-primary hover:bg-[#059669] text-white border-none rounded-lg font-bold flex items-center gap-1.5"
+                  className="btn btn-sm bg-primary hover:bg-[#701111] text-white border-none rounded-2xl font-bold flex items-center gap-1.5 transition-all duration-300 ease-in-out"
                 >
                   {isAutoFixing && <span className="loading loading-spinner loading-xs"></span>}
                   <SparklesIcon />

@@ -381,7 +381,7 @@ export default function InterviewAssistant({ roadmapId }: { roadmapId?: string }
       <div className="p-10 bg-base-200 rounded-xl shadow-lg my-8 flex flex-col items-center justify-center space-y-4">
         <span className="loading loading-spinner loading-lg text-primary"></span>
         <h2 className="text-xl font-bold">Evaluating your performance...</h2>
-        <p className="text-stone-700 dark:text-stone-300 font-medium">Please wait while we generate your detailed interview report.</p>
+        <p className="text-base-content/70 dark:text-stone-300 font-medium">Please wait while we generate your detailed interview report.</p>
       </div>
     );
   }
@@ -589,7 +589,7 @@ export default function InterviewAssistant({ roadmapId }: { roadmapId?: string }
           </div>
         </div>
 
-        <div className="p-4 bg-base-100 rounded-lg shadow-sm border border-base-300">
+        <div className="p-4 bg-base-100 rounded-2xl shadow-sm border border-base-300">
           <p className="text-lg font-medium">{question?.text}</p>
         </div>
 
@@ -602,18 +602,18 @@ export default function InterviewAssistant({ roadmapId }: { roadmapId?: string }
                </div>
              </div>
              
-             <div className="p-4 bg-base-100 rounded-lg shadow-sm space-y-3 border border-base-300">
+             <div className="p-4 bg-base-100 rounded-2xl shadow-sm space-y-3 border border-base-300">
                 <div className="flex justify-end items-center">
                   <span className={`badge ${feedbackData.correctness === 'correct' ? 'badge-success' : feedbackData.correctness === 'partial' ? 'badge-warning' : 'badge-error'}`}>
                     {feedbackData.correctness}
                   </span>
                 </div>
                <div>
-                 <p className="text-sm font-semibold text-stone-700 dark:text-stone-300 font-medium">Feedback:</p>
+                 <p className="text-sm font-semibold text-base-content/70 dark:text-stone-300 font-medium">Feedback:</p>
                  <p>{feedbackData.feedback}</p>
                </div>
                {feedbackData.improvementTips && (
-                 <div className="bg-warning/10 p-3 rounded-md">
+                 <div className="bg-warning/10 p-3 rounded-xl">
                    <p className="text-sm font-semibold text-warning-content mb-1">Tips for improvement:</p>
                    <p className="text-sm">{feedbackData.improvementTips}</p>
                  </div>

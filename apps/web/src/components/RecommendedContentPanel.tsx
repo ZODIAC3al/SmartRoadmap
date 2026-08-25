@@ -113,15 +113,15 @@ export function RecommendedContentPanel({ locale = "en" }: RecommendedContentPan
   const getCategoryBadgeClass = (category: string) => {
     switch (category) {
       case "course":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+        return "bg-primary text-primary-content/10 text-primary border-primary/20";
       case "project":
-        return "bg-purple-500/10 text-purple-500 border-purple-500/20";
+        return "bg-primary text-primary-content/10 text-primary border-primary/20";
       case "article":
         return "bg-[#8E1616]/10 text-[#8E1616] border-[#8E1616]/20/20";
       case "certification":
         return "bg-amber-500/10 text-amber-500 border-amber-500/20";
       case "job":
-        return "bg-indigo-500/10 text-indigo-500 border-indigo-500/20";
+        return "bg-primary text-primary-content/10 text-primary border-primary/20";
       default:
         return "bg-primary/10 text-primary border-primary/20";
     }
@@ -147,7 +147,7 @@ export function RecommendedContentPanel({ locale = "en" }: RecommendedContentPan
             </h2>
             <span className="badge badge-primary text-[10px] font-bold font-mono">GEMINI POWERED</span>
           </div>
-          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium max-w-2xl font-medium">
+          <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium max-w-2xl font-medium">
             {aiInsight ||
               (locale === "en"
                 ? "Dynamically matched to your skills, completed roadmaps, quiz scores, and career goals."
@@ -197,7 +197,7 @@ export function RecommendedContentPanel({ locale = "en" }: RecommendedContentPan
             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${
               selectedCategory === tab.id
                 ? "bg-[#7c3aed] text-white border-[#7c3aed] shadow-sm"
-                : "bg-base-200 text-stone-700 dark:text-stone-300 font-medium border-base-300 hover:bg-base-300"
+                : "bg-base-200 text-base-content/70 dark:text-stone-300 font-medium border-base-300 hover:bg-base-300"
             }`}
           >
             {tab.label}
@@ -225,7 +225,7 @@ export function RecommendedContentPanel({ locale = "en" }: RecommendedContentPan
           <h3 className="font-bold text-sm text-base-content">
             {locale === "en" ? "No recommendations in this category yet" : "لا توجد توصيات في هذا القسم حالياً"}
           </h3>
-          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium max-w-md mx-auto">
+          <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium max-w-md mx-auto">
             {locale === "en"
               ? "Click 'Refresh AI Matches' above or explore more roadmaps to trigger new recommendations."
               : "اضغط على 'إعادة تحسين التوصيات' أو أكمل المزيد من الدروس لتوليد اقتراحات جديدة."}
@@ -268,14 +268,14 @@ export function RecommendedContentPanel({ locale = "en" }: RecommendedContentPan
                 </h3>
 
                 {/* Description */}
-                <p className="text-xs text-stone-700 dark:text-stone-300 font-medium line-clamp-3 leading-relaxed">
+                <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium line-clamp-3 leading-relaxed">
                   {item.description}
                 </p>
 
                 {/* AI Reason Badge */}
                 <div className="bg-base-100/60 border border-base-300 rounded-xl p-2.5 flex items-start gap-2">
                   <span className="text-xs text-[#7c3aed]">💡</span>
-                  <p className="text-[11px] font-medium text-stone-800 dark:text-stone-200 font-medium leading-tight">
+                  <p className="text-[11px] font-medium text-base-content dark:text-stone-200 font-medium leading-tight">
                     <span className="font-bold text-[#7c3aed]">Why recommended: </span>
                     {item.reason}
                   </p>
@@ -307,7 +307,7 @@ export function RecommendedContentPanel({ locale = "en" }: RecommendedContentPan
                   href={item.url || "#"}
                   target={item.url?.startsWith("http") ? "_blank" : "_self"}
                   rel="noreferrer"
-                  className="btn btn-primary btn-xs rounded-lg font-bold text-[11px]"
+                  className="btn btn-primary btn-xs rounded-2xl font-bold text-[11px]"
                 >
                   {item.category === "job"
                     ? "View Job"
@@ -323,7 +323,7 @@ export function RecommendedContentPanel({ locale = "en" }: RecommendedContentPan
                     }
                     title="Bookmark Item"
                     className={`btn btn-ghost btn-xs btn-circle ${
-                      item.status === "saved" ? "text-amber-500" : "text-stone-700 dark:text-stone-300 font-medium"
+                      item.status === "saved" ? "text-amber-500" : "text-base-content/70 dark:text-stone-300 font-medium"
                     }`}
                   >
                     ★
@@ -338,7 +338,7 @@ export function RecommendedContentPanel({ locale = "en" }: RecommendedContentPan
                   <button
                     onClick={() => handleStatusChange(item._id, "dismissed")}
                     title="Dismiss Recommendation"
-                    className="btn btn-ghost btn-xs btn-circle text-stone-600 dark:text-stone-400 font-medium hover:text-error"
+                    className="btn btn-ghost btn-xs btn-circle text-base-content/70 dark:text-stone-400 font-medium hover:text-error transition-all duration-300 ease-in-out"
                   >
                     ✕
                   </button>

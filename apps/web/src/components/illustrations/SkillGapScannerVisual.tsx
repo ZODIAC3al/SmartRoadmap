@@ -24,7 +24,7 @@ export default function SkillGapScannerVisual({
 
   return (
     <div
-      className={`bg-base-100 dark:bg-stone-900 border border-base-300 dark:border-stone-800 rounded-3xl p-6 sm:p-7 shadow-xl relative overflow-hidden select-none max-w-md w-full ${className}`}
+      className={`bg-base-100 dark:bg-base-300 border border-base-300 dark:border-base-300 rounded-3xl p-6 sm:p-7 shadow-xl relative overflow-hidden select-none max-w-md w-full ${className}`}
     >
       {/* Scanning light ray if isScanning */}
       {isScanning && (
@@ -36,7 +36,7 @@ export default function SkillGapScannerVisual({
       )}
 
       {/* Top Header info */}
-      <div className="flex justify-between items-start border-b border-base-200 dark:border-stone-800 pb-4 mb-4">
+      <div className="flex justify-between items-start border-b border-base-200 dark:border-base-300 pb-4 mb-4">
         <div>
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase bg-[#8E1616]/10 text-[#8E1616] dark:text-[#E8C999] border border-[#8E1616]/20">
             <span className={`w-1.5 h-1.5 rounded-full bg-[#8E1616] ${isScanning ? "animate-ping" : ""}`} />
@@ -48,7 +48,7 @@ export default function SkillGapScannerVisual({
         </div>
 
         <div className="text-right">
-          <span className="text-[9px] uppercase font-mono font-bold text-stone-600 dark:text-stone-400 block">
+          <span className="text-[9px] uppercase font-mono font-bold text-base-content/70 dark:text-stone-400 block">
             Role Readiness
           </span>
           <span className="text-2xl font-black font-mono text-[#8E1616] dark:text-[#E8C999]">
@@ -59,15 +59,15 @@ export default function SkillGapScannerVisual({
 
       {/* Interactive Telemetry Grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
+        <div className="p-3 rounded-2xl bg-[#8E1616]/10 border border-[#8E1616]/20 flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#8E1616]/20 text-[#701111] dark:text-[#B32424] flex items-center justify-center font-bold text-sm">
             ✓
           </div>
           <div>
-            <span className="text-[9px] uppercase font-mono font-bold text-emerald-700 dark:text-emerald-400 block">
+            <span className="text-[9px] uppercase font-mono font-bold text-[#500A0A] dark:text-[#B32424] block">
               Verified Skills
             </span>
-            <span className="text-sm font-extrabold text-stone-800 dark:text-stone-100">
+            <span className="text-sm font-extrabold text-base-content dark:text-stone-100">
               {verifiedCount} Skills
             </span>
           </div>
@@ -81,7 +81,7 @@ export default function SkillGapScannerVisual({
             <span className="text-[9px] uppercase font-mono font-bold text-amber-700 dark:text-amber-400 block">
               Skill Gaps
             </span>
-            <span className="text-sm font-extrabold text-stone-800 dark:text-stone-100">
+            <span className="text-sm font-extrabold text-base-content dark:text-stone-100">
               {missingCount} to Bridge
             </span>
           </div>
@@ -89,7 +89,7 @@ export default function SkillGapScannerVisual({
       </div>
 
       {/* Animated Radar Pulse Visual Asset */}
-      <div className="relative h-28 bg-base-200/50 dark:bg-stone-800/40 rounded-2xl border border-base-300 dark:border-stone-800 flex items-center justify-center overflow-hidden">
+      <div className="relative h-28 bg-base-200/50 dark:bg-base-300/40 rounded-2xl border border-base-300 dark:border-base-300 flex items-center justify-center overflow-hidden">
         {/* Concentric Radar Rings */}
         <div className="absolute w-24 h-24 rounded-full border border-[#8E1616]/20" />
         <div className="absolute w-44 h-44 rounded-full border border-[#8E1616]/10" />

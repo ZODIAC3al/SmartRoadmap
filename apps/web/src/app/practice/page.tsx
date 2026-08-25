@@ -182,25 +182,25 @@ export default function PracticePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-slate-50 items-center justify-center">
+      <div className="flex min-h-screen bg-base-200 items-center justify-center">
         <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-50 text-slate-800 min-h-screen pb-12 pt-6 px-4 sm:px-8 overflow-y-auto">
+    <div className="bg-base-200 text-base-content min-h-screen pb-12 pt-6 px-4 sm:px-8 overflow-y-auto">
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header */}
         <div className="flex justify-between items-center text-start">
           <div className="space-y-1">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono">Sandbox workspace</span>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Practice Arena</h1>
+            <h1 className="text-3xl font-extrabold text-base-content tracking-tight">Practice Arena</h1>
           </div>
           <div className="flex gap-2">
             <select
-              className="select select-bordered select-sm bg-white font-bold text-xs"
+              className="select select-bordered select-sm bg-base-100 font-bold text-xs"
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
             >
@@ -210,7 +210,7 @@ export default function PracticePage() {
             {selectedChallenge && (
               <button
                 onClick={() => { setSelectedChallenge(null); setTestResults([]); }}
-                className="btn btn-outline border-slate-200 btn-sm rounded-xl font-bold text-xs text-slate-600 hover:bg-slate-100"
+                className="btn btn-outline border-base-300 btn-sm rounded-xl font-bold text-xs text-base-content/70 hover:bg-base-200 transition-all duration-300 ease-in-out"
               >
                 Clear Challenge selection
               </button>
@@ -226,35 +226,35 @@ export default function PracticePage() {
             
             {selectedChallenge ? (
               // Prompt panel
-              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm text-start space-y-4">
+              <div className="bg-base-100 border border-slate-100 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] uppercase font-mono font-bold text-[#8E1616] bg-indigo-50 px-2 py-0.5 rounded">
                     Challenge Prompt
                   </span>
-                  <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200">
+                  <span className="text-[10px] uppercase font-bold text-base-content/70 bg-base-200 px-2.5 py-0.5 rounded border border-base-300">
                     {selectedChallenge.difficulty}
                   </span>
                 </div>
-                <h3 className="font-extrabold text-slate-800 text-lg leading-tight">{selectedChallenge.title}</h3>
+                <h3 className="font-extrabold text-base-content text-lg leading-tight">{selectedChallenge.title}</h3>
                 
-                <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-xs leading-relaxed text-slate-600">
+                <div className="bg-base-200 border border-slate-100 rounded-xl p-4 text-xs leading-relaxed text-base-content/70">
                   <pre className="font-sans whitespace-pre-wrap">{selectedChallenge.prompt}</pre>
                 </div>
               </div>
             ) : (
               // Selection panel
-              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm text-start space-y-4">
-                <h3 className="font-bold text-slate-800 text-sm">Browse Challenges</h3>
+              <div className="bg-base-100 border border-slate-100 rounded-2xl p-6 shadow-sm text-start space-y-4">
+                <h3 className="font-bold text-base-content text-sm">Browse Challenges</h3>
                 <div className="space-y-3">
                   {challenges.map((c) => (
                     <div
                       key={c._id}
                       onClick={() => setSelectedChallenge(c)}
-                      className="border border-slate-100 rounded-xl p-3.5 hover:shadow-md cursor-pointer bg-slate-50 hover:bg-white transition-all flex justify-between items-center"
+                      className="border border-slate-100 rounded-xl p-3.5 hover:shadow-md cursor-pointer bg-base-200 hover:bg-base-100 transition-all flex justify-between items-center"
                     >
                       <div className="space-y-1">
-                        <h4 className="font-bold text-slate-800 text-xs">{c.title}</h4>
-                        <span className="text-[9px] uppercase font-mono font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                        <h4 className="font-bold text-base-content text-xs">{c.title}</h4>
+                        <span className="text-[9px] uppercase font-mono font-bold text-slate-400 bg-base-200 px-2 py-0.5 rounded border border-base-300">
                           {c.difficulty}
                         </span>
                       </div>
@@ -270,11 +270,11 @@ export default function PracticePage() {
             )}
 
             {/* Sandbox input */}
-            <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm text-start space-y-4">
-              <h3 className="font-bold text-slate-800 text-sm">Execution Stdin</h3>
+            <div className="bg-base-100 border border-slate-100 rounded-2xl p-6 shadow-sm text-start space-y-4">
+              <h3 className="font-bold text-base-content text-sm">Execution Stdin</h3>
               <textarea
                 placeholder="Optionally write standard input here..."
-                className="textarea textarea-bordered w-full bg-white border-slate-200 text-slate-800 rounded-xl text-xs h-20"
+                className="textarea textarea-bordered w-full bg-base-100 border-base-300 text-base-content rounded-xl text-xs h-20"
                 value={runStdin}
                 onChange={(e) => setRunStdin(e.target.value)}
               />
@@ -286,7 +286,7 @@ export default function PracticePage() {
           <div className="lg:col-span-8 space-y-6">
             
             {/* Editor Canvas */}
-            <div className="border border-slate-200 rounded-2xl overflow-hidden bg-[#1e1e1e] shadow-lg">
+            <div className="border border-base-300 rounded-2xl overflow-hidden bg-[#1e1e1e] shadow-lg">
               <Editor
                 height="400px"
                 language={language}
@@ -300,11 +300,11 @@ export default function PracticePage() {
                 }}
               />
 
-              <div className="bg-slate-900 border-t border-slate-800 px-6 py-4 flex justify-end gap-2">
+              <div className="bg-base-300 border-t border-base-300 px-6 py-4 flex justify-end gap-2">
                 <button
                   onClick={handleRunCode}
                   disabled={executing}
-                  className="btn btn-outline border-slate-700 text-slate-300 hover:bg-slate-800 btn-sm rounded-xl font-bold text-xs"
+                  className="btn btn-outline border-slate-700 text-slate-300 hover:bg-base-300 btn-sm rounded-xl font-bold text-xs transition-all duration-300 ease-in-out"
                 >
                   {executing ? "Running..." : "Run Code"}
                 </button>
@@ -312,7 +312,7 @@ export default function PracticePage() {
                   <button
                     onClick={handleSubmitCode}
                     disabled={executing}
-                    className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-sm rounded-xl font-bold text-xs"
+                    className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none btn-sm rounded-xl font-bold text-xs transition-all duration-300 ease-in-out"
                   >
                     Submit Challenge
                   </button>
@@ -322,16 +322,16 @@ export default function PracticePage() {
 
             {/* Test Results list */}
             {testResults.length > 0 && (
-              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm text-start space-y-3">
-                <h3 className="font-bold text-slate-800 text-sm">Evaluation Results</h3>
+              <div className="bg-base-100 border border-slate-100 rounded-2xl p-6 shadow-sm text-start space-y-3">
+                <h3 className="font-bold text-base-content text-sm">Evaluation Results</h3>
                 <div className="space-y-2">
                   {testResults.map((tc, idx) => (
-                    <div key={idx} className="flex justify-between items-center bg-slate-50 border border-slate-100 rounded-xl p-3">
+                    <div key={idx} className="flex justify-between items-center bg-base-200 border border-slate-100 rounded-xl p-3">
                       <div className="flex items-center gap-3 text-xs">
                         <span className={tc.passed ? "text-[#8E1616] font-bold" : "text-red-500 font-bold"}>
                           {tc.passed ? "✓" : "✗"}
                         </span>
-                        <span className="font-bold text-slate-700">Test Case {idx + 1}</span>
+                        <span className="font-bold text-base-content/70">Test Case {idx + 1}</span>
                       </div>
                       <span className="text-[10px] text-slate-400 uppercase font-mono">
                         {tc.passed ? "PASSED" : "FAILED"}
@@ -344,12 +344,12 @@ export default function PracticePage() {
 
             {/* Run Output Display */}
             {execResult && (
-              <div className="bg-[#0f172a] text-[#38bdf8] border border-slate-800 rounded-2xl p-6 shadow-md text-start space-y-2 font-mono text-xs">
-                <h3 className="font-bold text-slate-500 uppercase tracking-widest text-[9px] mb-2">Stdout output</h3>
+              <div className="bg-[#0f172a] text-[#38bdf8] border border-base-300 rounded-2xl p-6 shadow-md text-start space-y-2 font-mono text-xs">
+                <h3 className="font-bold text-base-content/70 uppercase tracking-widest text-[9px] mb-2">Stdout output</h3>
                 {execResult.stdout ? (
                   <pre className="whitespace-pre-wrap">{execResult.stdout}</pre>
                 ) : (
-                  <span className="text-slate-500 italic">No output logged.</span>
+                  <span className="text-base-content/70 italic">No output logged.</span>
                 )}
                 {execResult.stderr && (
                   <div className="text-red-400 border-t border-red-950 pt-2 mt-2">

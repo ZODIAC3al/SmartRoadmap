@@ -53,7 +53,7 @@ export default function JobMatchingVisual({
 
   return (
     <div
-      className={`bg-base-100 dark:bg-stone-900 border border-base-300 dark:border-stone-800 rounded-3xl p-6 shadow-xl space-y-5 select-none max-w-md w-full ${className}`}
+      className={`bg-base-100 dark:bg-base-300 border border-base-300 dark:border-base-300 rounded-3xl p-6 shadow-xl space-y-5 select-none max-w-md w-full ${className}`}
     >
       {/* Top Header */}
       <div className="flex justify-between items-start">
@@ -65,7 +65,7 @@ export default function JobMatchingVisual({
             <h4 className="font-extrabold text-sm text-base-content leading-tight">
               {roleTitle}
             </h4>
-            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
+            <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">
               {companyName}
             </p>
           </div>
@@ -82,7 +82,7 @@ export default function JobMatchingVisual({
       <div className="pt-2">
         <div className="grid grid-cols-4 gap-2 relative">
           {/* Connecting line */}
-          <div className="absolute top-4 left-4 right-4 h-1 bg-base-300 dark:bg-stone-800 -z-0" />
+          <div className="absolute top-4 left-4 right-4 h-1 bg-base-300 dark:bg-base-300 -z-0" />
           <div
             className="absolute top-4 left-4 h-1 bg-[#8E1616] transition-all duration-500 -z-0"
             style={{ width: `${(activeIndex / (stages.length - 1)) * 85}%` }}
@@ -99,8 +99,8 @@ export default function JobMatchingVisual({
                     isCurrent
                       ? "bg-[#8E1616] text-white ring-4 ring-[#8E1616]/20"
                       : isCompleted
-                      ? "bg-emerald-600 text-white"
-                      : "bg-base-200 dark:bg-stone-800 text-stone-500"
+                      ? "bg-[#701111] text-white"
+                      : "bg-base-200 dark:bg-base-300 text-base-content/70"
                   }`}
                 >
                   {isCompleted ? "✓" : stg.icon}
@@ -110,8 +110,8 @@ export default function JobMatchingVisual({
                     isCurrent
                       ? "text-[#8E1616] dark:text-[#E8C999]"
                       : isCompleted
-                      ? "text-stone-800 dark:text-stone-200"
-                      : "text-stone-500"
+                      ? "text-base-content dark:text-stone-200"
+                      : "text-base-content/70"
                   }`}
                 >
                   {stg.label}
@@ -123,10 +123,10 @@ export default function JobMatchingVisual({
       </div>
 
       {/* Status description banner */}
-      <div className="bg-base-200/70 dark:bg-stone-800/60 p-3 rounded-2xl border border-base-300 dark:border-stone-800 flex items-center justify-between text-xs">
+      <div className="bg-base-200/70 dark:bg-base-300/60 p-3 rounded-2xl border border-base-300 dark:border-base-300 flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-semibold text-stone-800 dark:text-stone-200">
+          <span className="w-2 h-2 rounded-full bg-[#8E1616] animate-pulse" />
+          <span className="font-semibold text-base-content dark:text-stone-200">
             {status === "interviewing"
               ? "Technical Interview Scheduled"
               : status === "accepted"
@@ -134,7 +134,7 @@ export default function JobMatchingVisual({
               : "Application In Review"}
           </span>
         </div>
-        <span className="text-[10px] font-mono text-stone-600 dark:text-stone-400 font-bold">
+        <span className="text-[10px] font-mono text-base-content/70 dark:text-stone-400 font-bold">
           Verified Match ✓
         </span>
       </div>
