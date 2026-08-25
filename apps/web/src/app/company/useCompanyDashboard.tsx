@@ -27,16 +27,19 @@ type ScoredJob = any;
 type CreateJobPayload = any;
 type ApplicationStatus = any;
 
+import { useGetAiQuotaQuery } from "@/store/api/aiUsageApi";
+
 export function useCompanyDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"applications" | "jobs" | "candidates">("applications");
+  const [activeTab, setActiveTab] = useState<"applications" | "jobs" | "candidates" | "ai_usage">("applications");
   const [user, setUser] = useState<any>(null);
 
   // RTK Query hooks
   const { data: jobsData, isLoading: isLoadingJobs } = useGetMyJobsQuery();
   const { data: candidatesData, isLoading: isLoadingCandidates } = useGetCandidatesQuery({});
   const { data: applicationsData, isLoading: isLoadingApplications } = useGetCompanyApplicationsQuery();
+  const { data: aiQuota } = useGetAiQuotaQuery();
   const [createJobMutation] = useCreateJobMutation();
   const [deleteJobMutation] = useDeleteJobMutation();
   const [updateStageMutation] = useUpdateStageMutation();
@@ -247,6 +250,7 @@ export function useCompanyDashboard() {
     activeCvPreview,
     activePassport,
     activeTab,
+    aiQuota,
     applications,
     candidates,
     contactCandidate,

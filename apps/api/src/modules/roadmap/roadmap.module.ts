@@ -11,8 +11,11 @@ import {
   UserTopicResultSchema,
 } from '../../schemas/user-topic-result.schema';
 
+import { BillingModule } from '../billing/billing.module';
+
 @Module({
   imports: [
+    BillingModule,
     MongooseModule.forFeature([
       { name: Roadmap.name, schema: RoadmapSchema },
       { name: Topic.name, schema: TopicSchema },

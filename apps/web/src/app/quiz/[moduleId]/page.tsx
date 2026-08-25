@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser } from "@/lib/api";
+import { calculateRoadmapProgression } from "@/lib/roadmapProgression";
 
 type QuestionPayload = {
   sessionId: string;
@@ -85,6 +86,8 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
   const [timer, setTimer] = useState<number>(30);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
+  const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [lockReason, setLockReason] = useState<string>("");
   const [moduleTitle, setModuleTitle] = useState<string>("Assessment");
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -96,12 +99,27 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
       try {
         const roadmapRes = await apiFetch("/roadmap/me");
         let moduleTopic = "General Foundations";
+        let modulesList: any[] = [];
+
         if (roadmapRes.ok) {
           const roadmapData = await roadmapRes.json();
-          const activeModule = roadmapData.modules.find((m: any) => m.id === moduleId);
+          modulesList = roadmapData.modules || [];
+          const activeModule = modulesList.find((m: any) => m.id === moduleId);
           if (activeModule) {
             setModuleTitle(activeModule.title);
             moduleTopic = activeModule.title;
+          }
+        }
+
+        // Navigation Guard: Verify progression unlock rules
+        if (modulesList.length > 0) {
+          const progression = calculateRoadmapProgression(modulesList);
+          if (!progression.isNodeUnlocked(moduleId)) {
+            const info = progression.getNodeInfo(moduleId);
+            setIsLocked(true);
+            setLockReason(info?.lockReason || "Complete prerequisite modules first to unlock.");
+            setLoading(false);
+            return;
           }
         }
 
@@ -205,6 +223,25 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
       <div className="flex flex-col min-h-screen bg-base-100 items-center justify-center p-4 gap-6">
         <div className="skeleton h-6 w-40 rounded" />
         <div className="skeleton h-64 w-full max-w-2xl rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (isLocked) {
+    return (
+      <div className="flex flex-col min-h-screen bg-base-100 items-center justify-center p-4 text-center gap-4 select-none">
+        <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-3xl mb-2 animate-bounce border border-amber-500/20">
+          🔒
+        </div>
+        <h2 className="text-2xl font-black uppercase tracking-tight text-base-content">
+          {isAr ? "الموديول مغلق" : "Module Locked"}
+        </h2>
+        <p className="text-sm text-base-content/60 max-w-md leading-relaxed font-medium">
+          {lockReason || (isAr ? "يرجى إكمال الاختبارات السابقة لفتح هذا المسار." : "Please complete the prerequisite node exams first to unlock this module.")}
+        </p>
+        <Link href="/roadmap" className="btn btn-primary font-extrabold px-8 gap-2 mt-3 shadow-lg shadow-primary/20">
+          <i className={isAr ? "lni lni-arrow-right" : "lni lni-arrow-left"} /> {tr("backToRoadmap")}
+        </Link>
       </div>
     );
   }

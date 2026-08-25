@@ -4,6 +4,8 @@ import React from 'react';
 import { useSubscription } from '@/lib/use-subscription';
 import { UsageBar } from '@/components/company/UsageBar';
 import { InvoiceTable } from '@/components/company/InvoiceTable';
+import { AiUsageDashboard } from '@/components/dashboard/AiUsageDashboard';
+import { useGetAiQuotaQuery } from '@/store/api/aiUsageApi';
 import {
   useCreateCheckoutSessionMutation,
   useCreatePortalSessionMutation,
@@ -12,6 +14,7 @@ import { PlanTier } from '@/components/company/UpgradeModal';
 
 export default function BillingPage() {
   const { plan: currentPlan, usage, limits } = useSubscription();
+  const { data: aiQuota } = useGetAiQuotaQuery();
   const [createCheckoutSession, { isLoading: isUpgrading }] = useCreateCheckoutSessionMutation();
   const [createPortalSession] = useCreatePortalSessionMutation();
 
@@ -54,12 +57,15 @@ export default function BillingPage() {
         </button>
       </div>
 
+      {/* Monthly AI Quota & Execution Dashboard */}
+      <AiUsageDashboard />
+
       {/* Usage Bar Metrics */}
       <div className="p-6 rounded-2xl bg-base-100 border border-[#E4E7EC] shadow-xs flex flex-col gap-4">
         <h3 className="font-bold text-sm font-heading text-[#181B23]">
           Monthly Resource Usage
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <UsageBar
             label="Active Job Posts"
             current={usage.jobPostsActive}
@@ -74,6 +80,11 @@ export default function BillingPage() {
             label="In-Platform Messages"
             current={usage.messagesSentThisPeriod}
             limit={limits.messagesIncluded}
+          />
+          <UsageBar
+            label="AI Credits"
+            current={aiQuota?.consumedCredits || 0}
+            limit={aiQuota?.allocatedCredits || 50}
           />
         </div>
       </div>

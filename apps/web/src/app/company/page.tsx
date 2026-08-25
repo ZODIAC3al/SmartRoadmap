@@ -7,6 +7,7 @@ import { logout } from "@/lib/api";
 import { useCompanyDashboard } from "./useCompanyDashboard";
 import CompanyPendingScreen from "@/components/CompanyPendingScreen";
 import { useGetOrCreateThreadMutation } from "@/store/api/messagesApi";
+import { AiUsageDashboard } from "@/components/dashboard/AiUsageDashboard";
 
 const STATUS_BADGES: Record<string, { bg: string; text: string; icon: string }> = {
   Applied: { bg: "bg-[#8E1616]/10 border-[#8E1616]/20", text: "text-[#701111]", icon: "🚀" },
@@ -30,6 +31,7 @@ function CompanyPageContent() {
     activeCvPreview,
     activePassport,
     activeTab,
+    aiQuota,
     applications,
     candidates,
     contactCandidate,
@@ -172,7 +174,7 @@ function CompanyPageContent() {
         </div>
 
         {/* Analytics row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-start">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-start">
           <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm space-y-1">
             <span className="text-[10px] uppercase font-bold text-base-content/50 tracking-wider block font-mono">
               Received Applications
@@ -206,13 +208,27 @@ function CompanyPageContent() {
               Verified skills & Skill Passports
             </span>
           </div>
+          <div className="bg-base-200 border border-base-300 p-5 rounded-2xl shadow-sm space-y-1">
+            <span className="text-[10px] uppercase font-bold text-base-content/50 tracking-wider block font-mono">
+              Monthly AI Credits
+            </span>
+            <span className="text-3xl font-black font-mono text-primary">
+              {aiQuota?.consumedCredits || 0} <span className="text-xs font-normal text-base-content/50">/ {aiQuota?.allocatedCredits || 50}</span>
+            </span>
+            <button
+              onClick={() => setActiveTab("ai_usage")}
+              className="text-[10px] text-[#701111] block font-bold hover:underline cursor-pointer"
+            >
+              ⚡ {aiQuota?.remainingCredits || 0} credits remaining →
+            </button>
+          </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 bg-base-200 p-1.5 rounded-xl border border-base-300 self-start">
+        <div className="flex items-center gap-2 bg-base-200 p-1.5 rounded-xl border border-base-300 self-start overflow-x-auto">
           <button
             onClick={() => setActiveTab("applications")}
-            className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all ${activeTab === "applications"
+            className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap ${activeTab === "applications"
                 ? "bg-[#8E1616] text-white shadow-sm"
                 : "text-base-content/60 hover:text-base-content"
               }`}
@@ -221,7 +237,7 @@ function CompanyPageContent() {
           </button>
           <button
             onClick={() => setActiveTab("jobs")}
-            className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all ${activeTab === "jobs"
+            className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap ${activeTab === "jobs"
                 ? "bg-[#8E1616] text-white shadow-sm"
                 : "text-base-content/60 hover:text-base-content"
               }`}
@@ -230,12 +246,21 @@ function CompanyPageContent() {
           </button>
           <button
             onClick={() => setActiveTab("candidates")}
-            className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all ${activeTab === "candidates"
+            className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap ${activeTab === "candidates"
                 ? "bg-[#8E1616] text-white shadow-sm"
                 : "text-base-content/60 hover:text-base-content"
               }`}
           >
             👥 Talent Directory ({filteredCandidates.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("ai_usage")}
+            className={`px-4 py-2 text-xs font-extrabold rounded-2xl transition-all whitespace-nowrap ${activeTab === "ai_usage"
+                ? "bg-[#8E1616] text-white shadow-sm"
+                : "text-base-content/60 hover:text-base-content"
+              }`}
+          >
+            ⚡ AI Quota & Engine
           </button>
         </div>
 
@@ -658,6 +683,13 @@ function CompanyPageContent() {
                 </div>
               );
             })()}
+          </div>
+        )}
+
+        {/* ── TAB 4: AI QUOTA & ENGINE ── */}
+        {activeTab === "ai_usage" && (
+          <div className="space-y-4 text-start">
+            <AiUsageDashboard />
           </div>
         )}
       </div>

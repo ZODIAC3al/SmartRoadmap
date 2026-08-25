@@ -13,8 +13,11 @@ import {
 import { CheatSheetService } from './cheat-sheet.service';
 import { CheatSheetController } from './cheat-sheet.controller';
 
+import { BillingModule } from '../billing/billing.module';
+
 @Module({
   imports: [
+    BillingModule,
     MongooseModule.forFeature([
       { name: CheatSheet.name, schema: CheatSheetSchema },
       { name: Roadmap.name, schema: RoadmapSchema },

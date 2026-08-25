@@ -31,10 +31,13 @@ import { Roadmap, RoadmapSchema } from '../../schemas/roadmap.schema';
 import { Topic, TopicSchema } from '../../schemas/topic.schema';
 import { AIModule } from '../../ai/ai.module';
 
+import { Company, CompanySchema } from '../../schemas/company.schema';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
+      { name: Company.name, schema: CompanySchema },
       { name: Report.name, schema: ReportSchema },
       { name: AuditLog.name, schema: AuditLogSchema },
       { name: QuizSession.name, schema: QuizSessionSchema },

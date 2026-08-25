@@ -25,6 +25,7 @@ import {
   UpdateApplicationStatusDto,
 } from './dto/hiring.dto';
 import { PlanGuard, RequirePlan } from '../billing/plan-guard.guard';
+import { AIEntitlementGuard, RequireAiFeature } from '../billing/ai-entitlement.guard';
 import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('hiring')
@@ -179,13 +180,16 @@ export class HiringController {
     return this.hiringService.getCandidatePassport(userId);
   }
 
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, AIEntitlementGuard)
+  @RequireAiFeature('AI_CANDIDATE_MATCH')
   @Roles('company', 'admin')
   @Post('candidates/evaluate-ai')
   evaluateCandidateAi(
+    @CurrentUser() user: JwtUser,
     @Body() body: { candidateSkills: string[]; requiredSkills?: string[] },
   ) {
     return this.hiringService.evaluateCandidateWithAi(
+      user,
       body.candidateSkills || [],
       body.requiredSkills,
     );

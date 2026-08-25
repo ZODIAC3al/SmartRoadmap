@@ -31,6 +31,7 @@ import {
   Legend,
 } from "recharts";
 import { useAppUi } from "@/store/hooks/useAppUi";
+import { AiUsageDashboard } from "@/components/dashboard/AiUsageDashboard";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 import {
   Lock,
@@ -1097,6 +1098,9 @@ export default function DashboardPage() {
              </div>
           </div>
         </motion.div>
+
+        {/* AI Entitlement & Usage Dashboard */}
+        <AiUsageDashboard />
 
         {/* Action cards */}
         <motion.div

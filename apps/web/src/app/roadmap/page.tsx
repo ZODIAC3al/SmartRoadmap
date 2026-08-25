@@ -42,7 +42,9 @@ import {
   Layers,
   FileText,
   Download,
+  Lock,
 } from "lucide-react";
+import { calculateRoadmapProgression } from "@/lib/roadmapProgression";
 
 // ─── Module and Roadmap Interfaces ───────────────────────────────────────────
 
@@ -1203,7 +1205,19 @@ export default function RoadmapPage() {
     }
   };
 
+  // Derived game-like progressive unlock state
+  const progression = React.useMemo(() => {
+    return calculateRoadmapProgression(roadmap?.modules || []);
+  }, [roadmap?.modules]);
+
   const handleNodeClick = (node: Module, cat: 'beginner' | 'intermediate' | 'advanced') => {
+    const nodeInfo = progression.getNodeInfo(node.id);
+    if (nodeInfo && !nodeInfo.isUnlocked) {
+      toast.info(`🔒 ${nodeInfo.lockReason || "Complete the previous node first to unlock."}`, {
+        toastId: `locked-${node.id}`,
+      });
+      return;
+    }
     setActiveCategory(cat);
     setSelectedModule(node);
   };
@@ -1441,29 +1455,53 @@ export default function RoadmapPage() {
               const Icon = meta.icon;
               const data = partition[cat] || [];
               const isActiveCat = activeCategory === cat;
+              const catState = progression.moduleStates[cat];
+              const isCatLocked = catState === 'LOCKED';
+              const isCatCompleted = catState === 'COMPLETED';
 
               return (
                 <div key={cat} className="flex flex-col items-center">
                   {/* Category branch node button */}
                   <button
                     onClick={() => {
+                      if (isCatLocked) {
+                        toast.info(`🔒 ${catLabels[cat]} module is locked. Complete all previous module nodes first.`, {
+                          toastId: `cat-locked-${cat}`,
+                        });
+                        return;
+                      }
                       setActiveCategory(cat);
                       setSelectedModule(null);
                     }}
-                    className={`group flex flex-col items-center gap-2 cursor-pointer transition-transform duration-200 ${isActiveCat ? 'scale-105 animate-none' : 'hover:scale-105 hover:animate-none'
-                      }`}
+                    className={`group relative flex flex-col items-center gap-2 cursor-pointer transition-transform duration-200 ${
+                      isCatLocked ? 'opacity-60 blur-[0.5px] cursor-not-allowed' : isActiveCat ? 'scale-105' : 'hover:scale-105'
+                    }`}
                   >
                     <div
-                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.5rem] flex items-center justify-center shadow-md border-2 transition-all duration-200 ${isActiveCat
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.5rem] flex items-center justify-center shadow-md border-2 transition-all duration-200 relative ${
+                        isCatLocked
+                          ? 'bg-base-300 text-base-content/40 border-base-400'
+                          : isActiveCat
                           ? `bg-${meta.color} text-${meta.color}-content border-${meta.color} shadow-lg`
                           : 'bg-base-200 text-base-content/50 border-base-300 group-hover:border-base-content/30'
-                        }`}
+                      }`}
                     >
                       <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
+                      {isCatLocked && (
+                        <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-base-300 border border-base-400 text-base-content/60 flex items-center justify-center shadow-sm">
+                          <Lock className="w-3 h-3 text-base-content/60" />
+                        </div>
+                      )}
+                      {isCatCompleted && (
+                        <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-success text-white flex items-center justify-center shadow-sm">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        </div>
+                      )}
                     </div>
                     <div className="text-center select-none">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-base-content/40 flex items-center justify-center gap-1">
                         {catLabels[cat]}
+                        {isCatLocked && <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400">🔒 LOCKED</span>}
                       </h4>
                       <p className="text-xs sm:text-sm font-extrabold text-base-content mt-0.5 max-w-[160px] leading-snug">
                         {catLabels[cat]} Modules
@@ -1480,31 +1518,59 @@ export default function RoadmapPage() {
 
                     {data.map((node: Module, idx: number) => {
                       const isSelected = selectedModule?.id === node.id;
+                      const nodeInfo = progression.getNodeInfo(node.id);
+                      const isUnlocked = nodeInfo?.isUnlocked ?? false;
+                      const isFirstAvailable = nodeInfo?.isFirstAvailable ?? false;
+                      const isCompleted = node.status === 'completed';
+
                       return (
                         <div key={node.id} className="relative flex items-center">
                           <div className="hidden sm:block absolute left-1/2 -translate-x-full w-3 h-px bg-base-300" />
                           <button
                             onClick={() => handleNodeClick(node, cat)}
-                            className={`w-full p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 group select-none ${isSelected
-                                ? `bg-${meta.color}/10 border-${meta.color} shadow-sm`
-                                : 'bg-base-100 border-base-300 hover:bg-base-200/60 hover:border-base-content/20'
-                              }`}
+                            aria-disabled={!isUnlocked}
+                            className={`w-full p-4 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between gap-3 group select-none ${
+                              !isUnlocked
+                                ? 'opacity-50 blur-[0.8px] cursor-not-allowed bg-base-200/40 border-base-300/80 shadow-none'
+                                : isSelected
+                                ? `bg-${meta.color}/10 border-${meta.color} shadow-md`
+                                : isFirstAvailable
+                                ? 'ring-2 ring-primary/40 shadow-lg shadow-primary/10 bg-primary/5 border-primary cursor-pointer'
+                                : 'bg-base-100 border-base-300 hover:bg-base-200/60 hover:border-base-content/20 cursor-pointer'
+                            }`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <div
-                                className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[10px] font-black ${isSelected
+                                className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[10px] font-black ${
+                                  !isUnlocked
+                                    ? 'bg-base-300 text-base-content/40'
+                                    : isCompleted
+                                    ? 'bg-success/20 text-success border border-success/40'
+                                    : isFirstAvailable
+                                    ? 'bg-primary text-white shadow-sm'
+                                    : isSelected
                                     ? `bg-${meta.color} text-${meta.color}-content`
                                     : 'bg-base-200 text-base-content/60 border border-base-300'
-                                  }`}
+                                }`}
                               >
-                                {idx + 1}
+                                {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5 text-success" /> : idx + 1}
                               </div>
                               <div className="min-w-0">
                                 <h5
-                                  className={`text-xs font-extrabold truncate transition-colors ${isSelected ? `text-${meta.color}` : 'text-base-content group-hover:text-primary'
-                                    }`}
+                                  className={`text-xs font-extrabold truncate transition-colors flex items-center gap-1.5 ${
+                                    !isUnlocked
+                                      ? 'text-base-content/50'
+                                      : isSelected
+                                      ? `text-${meta.color}`
+                                      : 'text-base-content group-hover:text-primary'
+                                  }`}
                                 >
-                                  {node.title}
+                                  <span>{node.title}</span>
+                                  {isFirstAvailable && (
+                                    <span className="px-1.5 py-0.5 rounded bg-primary/20 text-primary text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                      OPEN ✨
+                                    </span>
+                                  )}
                                 </h5>
                                 <span className="text-[9px] text-base-content/45 font-bold flex items-center gap-1 mt-0.5">
                                   <Clock className="w-2.5 h-2.5" />
@@ -1512,7 +1578,13 @@ export default function RoadmapPage() {
                                 </span>
                               </div>
                             </div>
-                            <ArrowRight className="w-3.5 h-3.5 text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+                            {!isUnlocked ? (
+                              <Lock className="w-3.5 h-3.5 text-base-content/40 shrink-0 animate-pulse" />
+                            ) : isCompleted ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
+                            ) : (
+                              <ArrowRight className="w-3.5 h-3.5 text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+                            )}
                           </button>
                         </div>
                       );
@@ -1588,6 +1660,8 @@ export default function RoadmapPage() {
                     {roadmap?.modules.map((m, idx) => {
                       const totalCols = 12;
                       const barWidth = 2; // Each task spans 2 months
+                      const nodeInfo = progression.getNodeInfo(m.id);
+                      const isUnlocked = nodeInfo?.isUnlocked ?? false;
 
                       // Calculate diagonal start column
                       const startCol = Math.min(
@@ -1606,14 +1680,29 @@ export default function RoadmapPage() {
                       return (
                         <div key={m.id} className="grid grid-cols-12 items-center h-10">
                           <button
-                            onClick={() => { setSelectedModule(m); }}
-                            className={`col-span-${barWidth} rounded-xl py-2.5 px-4 text-left font-black text-xs shadow-md border flex items-center justify-between cursor-pointer transition-all hover:scale-[1.03] select-none truncate ${colorClass}`}
+                            onClick={() => {
+                              if (!isUnlocked) {
+                                toast.info(`🔒 ${nodeInfo?.lockReason || "Complete previous modules first."}`, {
+                                  toastId: `gantt-locked-${m.id}`,
+                                });
+                                return;
+                              }
+                              setSelectedModule(m);
+                            }}
+                            className={`col-span-${barWidth} rounded-xl py-2.5 px-4 text-left font-black text-xs shadow-md border flex items-center justify-between transition-all select-none truncate ${
+                              !isUnlocked
+                                ? 'bg-base-300 text-base-content/40 opacity-50 blur-[0.8px] cursor-not-allowed border-dashed'
+                                : `${colorClass} cursor-pointer hover:scale-[1.03]`
+                            }`}
                             style={{
                               gridColumnStart: startCol,
                               gridColumnEnd: startCol + barWidth,
                             }}
                           >
-                            <span className="truncate">{m.title}</span>
+                            <span className="truncate flex items-center gap-1">
+                              {!isUnlocked && <Lock className="w-3 h-3 text-base-content/40 shrink-0" />}
+                              <span>{m.title}</span>
+                            </span>
                             <span className="text-[9px] opacity-75 font-mono ml-1 shrink-0">{m.estimatedHours}h</span>
                           </button>
                         </div>

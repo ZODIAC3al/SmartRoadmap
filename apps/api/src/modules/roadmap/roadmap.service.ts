@@ -7,6 +7,8 @@ import { LLMService } from '../../ai/llm.service';
 import type { JwtUser } from '../../common/decorators/current-user.decorator';
 import { assertSelfOrAdmin } from '../../common/guards/ownership.util';
 
+import { CacheService } from '../cache/cache.service';
+
 @Injectable()
 export class RoadmapService {
   private readonly logger = new Logger(RoadmapService.name);
@@ -15,6 +17,7 @@ export class RoadmapService {
     @InjectModel(Roadmap.name) private readonly roadmapModel: Model<Roadmap>,
     @InjectModel(Topic.name) private readonly topicModel: Model<Topic>,
     private readonly llmService: LLMService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async generateRoadmap(
@@ -126,7 +129,14 @@ export class RoadmapService {
 
     mod.status = status;
     roadmap.markModified('modules');
-    return roadmap.save();
+    const saved = await roadmap.save();
+
+    // Event-driven immediate invalidation of user progress cache
+    const userId = roadmap.userId.toString();
+    const cacheKey = this.cacheService.buildKey('user', 'roadmap', 'progress', `${userId}:${id}`);
+    await this.cacheService.delete(cacheKey);
+
+    return saved;
   }
 
   async extendRoadmap(

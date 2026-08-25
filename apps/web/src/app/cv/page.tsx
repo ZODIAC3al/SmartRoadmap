@@ -857,7 +857,7 @@ export default function CvPage() {
       <AdvancedAiCvModal
         isOpen={showTailorModal}
         onClose={() => setShowTailorModal(false)}
-        onGenerate={handleGenerateTailoredCv}
+        onGenerate={(params) => handleGenerateTailoredCv(params.targetRole, params.jobDescription)}
         isGenerating={isTailoring}
         initialRole={targetJobTitle}
       />

@@ -12,6 +12,9 @@ import { Model, Types } from 'mongoose';
 import axios from 'axios';
 import { Payment } from '../../schemas/payment.schema';
 import { User } from '../../schemas/user.schema';
+import { Subscription, PlanTier } from '../../schemas/subscription.schema';
+import { Company } from '../../schemas/company.schema';
+import { PLAN_CONFIG } from '../billing/plan.config';
 import { PLAN_PRICES } from './dto/payment.dto';
 
 type Plan = 'pro_learner' | 'company_tier';
@@ -25,6 +28,8 @@ export class PaymentService {
   constructor(
     @InjectModel(Payment.name) private readonly paymentModel: Model<Payment>,
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Subscription.name) private readonly subscriptionModel: Model<Subscription>,
+    @InjectModel(Company.name) private readonly companyModel: Model<Company>,
     private readonly config: ConfigService,
   ) {
     const clientId = this.config.get<string>('PAYPAL_CLIENT_ID');
@@ -260,6 +265,8 @@ export class PaymentService {
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + 1);
 
+    const userDoc = await this.userModel.findById(payment.userId);
+
     await this.userModel.updateOne(
       { _id: payment.userId },
       {
@@ -268,8 +275,61 @@ export class PaymentService {
         subscriptionExpiresAt: expiresAt,
       },
     );
+
+    const isCompany = userDoc?.role === 'company' || payment.plan === 'company_tier';
+
+    if (isCompany) {
+      let company = await this.companyModel.findOne({
+        $or: [{ ownerId: payment.userId }, { memberIds: payment.userId }],
+      });
+      if (!company && userDoc) {
+        const name = userDoc.name || 'My Company';
+        const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now().toString(36);
+        company = await this.companyModel.create({
+          name,
+          slug,
+          ownerId: payment.userId,
+          memberIds: [payment.userId],
+        });
+      }
+
+      if (company) {
+        const targetTier: PlanTier = payment.plan === 'company_tier' ? 'growth' : ((payment.plan as any) || 'growth');
+        const planDef = PLAN_CONFIG[targetTier] || PLAN_CONFIG.growth;
+
+        await this.subscriptionModel.updateOne(
+          { companyId: company._id },
+          {
+            $set: {
+              plan: targetTier,
+              status: 'active',
+              seatsIncluded: planDef.seatsIncluded,
+              jobPostLimit: planDef.jobPostLimit,
+              messagesIncluded: planDef.messagesIncluded,
+              boostsIncluded: planDef.boostsIncluded,
+              aiCreditsIncluded: planDef.aiCreditsIncluded,
+            },
+          },
+          { upsert: true },
+        );
+      }
+    } else {
+      const planDef = PLAN_CONFIG.learner_pro;
+      await this.subscriptionModel.updateOne(
+        { userId: payment.userId },
+        {
+          $set: {
+            plan: 'learner_pro',
+            status: 'active',
+            aiCreditsIncluded: planDef.aiCreditsIncluded,
+          },
+        },
+        { upsert: true },
+      );
+    }
+
     this.logger.log(
-      `Activated plan "${payment.plan}" for user ${payment.userId.toString()}`,
+      `Activated plan "${payment.plan}" and updated Subscription model for user ${payment.userId.toString()}`,
     );
   }
 }

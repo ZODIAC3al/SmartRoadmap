@@ -8,11 +8,15 @@ import {
   Param,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CvService } from './cv.service';
+import { AiUsageService } from '../billing/ai-usage.service';
+import { AIEntitlementGuard, RequireAiFeature } from '../billing/ai-entitlement.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import {
   CurrentUser,
   type JwtUser,
@@ -33,8 +37,12 @@ const MAX_CV_BYTES = 15 * 1024 * 1024; // 15MB limit
 @ApiTags('cv')
 @ApiBearerAuth()
 @Controller('cv')
+@UseGuards(JwtAuthGuard)
 export class CvController {
-  constructor(private readonly cvService: CvService) {}
+  constructor(
+    private readonly cvService: CvService,
+    private readonly aiUsageService: AiUsageService,
+  ) {}
 
   @Public()
   @Post('upload')
@@ -81,42 +89,61 @@ export class CvController {
     }
   }
 
-  @Post('enhance')
-  @HttpCode(HttpStatus.OK)
-  async enhance(@Body() dto: EnhanceDto) {
-    return {
-      success: true,
-      text: await this.cvService.enhanceDescription(dto.text),
-    };
-  }
-
+  @UseGuards(AIEntitlementGuard)
+  @RequireAiFeature('AI_CV_ANALYSIS')
   @Post('generate-tailored')
   @HttpCode(HttpStatus.OK)
   async generateTailored(
     @CurrentUser() user: JwtUser,
     @Body() dto: GenerateTailoredCvDto,
   ) {
-    return {
-      success: true,
-      data: await this.cvService.generateTailoredCv(user.sub, dto),
-    };
+    const { reservationId } = await this.aiUsageService.reserve(user, 'AI_CV_ANALYSIS');
+    try {
+      const data = await this.cvService.generateTailoredCv(user.sub, dto);
+      await this.aiUsageService.finalize(reservationId, {
+        provider: 'gemini',
+        model: 'gemini-2.0-flash',
+        inputTokens: 1200,
+        outputTokens: 600,
+        totalTokens: 1800,
+        status: 'success',
+      });
+      return { success: true, data };
+    } catch (err: any) {
+      await this.aiUsageService.release(reservationId, err?.message);
+      throw err;
+    }
   }
 
+  @UseGuards(AIEntitlementGuard)
+  @RequireAiFeature('AI_CV_ANALYSIS')
   @Post('generate-from-profile')
   @HttpCode(HttpStatus.OK)
   async generateFromProfile(
     @CurrentUser() user: JwtUser,
     @Body() dto: GenerateFromProfileDto,
   ) {
-    return {
-      success: true,
-      data: await this.cvService.generateFromProfile(
+    const { reservationId } = await this.aiUsageService.reserve(user, 'AI_CV_ANALYSIS');
+    try {
+      const data = await this.cvService.generateFromProfile(
         user.sub,
         dto?.targetJobTitle,
         dto?.jobDescription,
         dto?.forceRegenerate,
-      ),
-    };
+      );
+      await this.aiUsageService.finalize(reservationId, {
+        provider: 'gemini',
+        model: 'gemini-2.0-flash',
+        inputTokens: 1400,
+        outputTokens: 700,
+        totalTokens: 2100,
+        status: 'success',
+      });
+      return { success: true, data };
+    } catch (err: any) {
+      await this.aiUsageService.release(reservationId, err?.message);
+      throw err;
+    }
   }
 
   @Post('ats-check')

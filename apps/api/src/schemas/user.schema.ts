@@ -88,6 +88,9 @@ export class User extends Document {
   @Prop()
   subscriptionExpiresAt?: Date;
 
+  @Prop()
+  stripeCustomerId?: string;
+
   /** Invalidate all refresh tokens issued before this instant (logout-all / password change). */
   @Prop({ default: () => new Date() })
   tokensValidFrom!: Date;

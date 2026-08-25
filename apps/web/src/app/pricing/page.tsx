@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 
@@ -610,7 +610,7 @@ export default function PricingPage() {
                   </ul>
                 </div>
                 <button
-                  onClick={() => handleInitiateUpgrade("pro")}
+                  onClick={() => handleInitiateUpgrade("growth")}
                   className="w-full btn bg-primary hover:bg-primary/80 border-none text-primary-content rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold transition-all duration-300 ease-in-out"
                 >
                   {tLocal("company_growth.cta")}
@@ -1089,10 +1089,19 @@ export default function PricingPage() {
             <div className="flex justify-between items-center border-b border-base-300 pb-4">
               <div>
                 <h3 className="font-extrabold text-base font-heading text-base-content">
-                  Upgrade to {selectedPlan === "pro" ? "Premium Pro" : "Recruiter Scale"}
+                  Upgrade to{" "}
+                  {selectedPlan === "pro" || selectedPlan === "learner_pro"
+                    ? "Learner Pro"
+                    : selectedPlan === "growth"
+                    ? "Company Growth"
+                    : "Company Scale"}
                 </h3>
                 <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">
-                  {selectedPlan === "pro" ? "$19.99 / month" : "$99.99 / month"}
+                  {selectedPlan === "pro" || selectedPlan === "learner_pro"
+                    ? "$15.00 / month"
+                    : selectedPlan === "growth"
+                    ? "$49.00 / month"
+                    : "$199.00 / month"}
                 </p>
               </div>
               <button

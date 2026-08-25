@@ -8,9 +8,13 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RoadmapService } from './roadmap.service';
+import { AiUsageService } from '../billing/ai-usage.service';
+import { AIEntitlementGuard, RequireAiFeature } from '../billing/ai-entitlement.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import {
   CurrentUser,
   type JwtUser,
@@ -25,17 +29,38 @@ import {
 @ApiTags('roadmap')
 @ApiBearerAuth()
 @Controller('roadmap')
+@UseGuards(JwtAuthGuard)
 export class RoadmapController {
-  constructor(private readonly roadmapService: RoadmapService) {}
+  constructor(
+    private readonly roadmapService: RoadmapService,
+    private readonly aiUsageService: AiUsageService,
+  ) {}
 
+  @UseGuards(AIEntitlementGuard)
+  @RequireAiFeature('AI_ROADMAP')
   @Post('generate')
   @HttpCode(HttpStatus.CREATED)
-  generate(@CurrentUser() user: JwtUser, @Body() dto: GenerateRoadmapDto) {
-    return this.roadmapService.generateRoadmap(
-      user.sub,
-      dto.targetRole,
-      dto.skills ?? [],
-    );
+  async generate(@CurrentUser() user: JwtUser, @Body() dto: GenerateRoadmapDto) {
+    const { reservationId } = await this.aiUsageService.reserve(user, 'AI_ROADMAP');
+    try {
+      const result = await this.roadmapService.generateRoadmap(
+        user.sub,
+        dto.targetRole,
+        dto.skills ?? [],
+      );
+      await this.aiUsageService.finalize(reservationId, {
+        provider: 'gemini',
+        model: 'gemini-2.0-flash',
+        inputTokens: 1500,
+        outputTokens: 800,
+        totalTokens: 2300,
+        status: 'success',
+      });
+      return result;
+    } catch (err: any) {
+      await this.aiUsageService.release(reservationId, err?.message);
+      throw err;
+    }
   }
 
   /** Kept for backwards compatibility, but the id is now authorization-checked. */

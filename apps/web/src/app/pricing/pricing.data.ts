@@ -10,30 +10,30 @@ export const pricingDict = {
   },
 
   // Learner Tiers
-  "free.title": { en: "Starter Free", ar: "الباقة المجانية" },
+  "free.title": { en: "Learner Free", ar: "الباقة المجانية" },
   "free.desc": {
-    en: "Construct your first career roadmap.",
-    ar: "ابنِ خارطة طريقك المهنية الأولى.",
+    en: "50 AI Credits/mo • Basic AI Roadmaps & Quizzes.",
+    ar: "٥٠ رصيد ذكاء اصطناعي شهرياً • خرائط وأسئلة أساسية.",
   },
   "free.price": { en: "$0", ar: "٠ دولار" },
   "free.period": { en: "/ month", ar: " / شهرياً" },
   "free.cta": { en: "Active Plan", ar: "الباقة النشطة" },
 
-  "pro.title": { en: "Premium Pro", ar: "المحترفة Pro" },
+  "pro.title": { en: "Learner Pro", ar: "الباقة المحترفة Pro" },
   "pro.desc": {
-    en: "Unlimited custom roadmaps & RAG guides.",
-    ar: "خرائط طريق غير محدودة وأدلة RAG مخصصة.",
+    en: "500 AI Credits/mo • Voice Interview & Audio Narration.",
+    ar: "٥٠٠ رصيد ذكاء اصطناعي • المقابلات الصوتية والأدلة الشاملة.",
   },
-  "pro.price": { en: "$19.99", ar: "١٩.٩٩ دولار" },
+  "pro.price": { en: "$15", ar: "١٥ دولار" },
   "pro.period": { en: "/ month", ar: " / شهرياً" },
   "pro.cta": { en: "Upgrade to Pro", ar: "الترقية إلى Pro" },
 
   "scale.title": { en: "Recruiter Scale", ar: "الشركات Scale" },
   "scale.desc": {
-    en: "Access pre-vetted candidate list.",
-    ar: "تصفح وفلترة قائمة المرشحين المؤهلين.",
+    en: "5,000 AI Credits/mo • Pre-vetted Candidate Directory.",
+    ar: "٥،٠٠٠ رصيد ذكاء اصطناعي • تصفح وفلترة المرشحين.",
   },
-  "scale.price": { en: "$99.99", ar: "٩٩.٩٩ دولار" },
+  "scale.price": { en: "$199", ar: "١٩٩ دولار" },
   "scale.period": { en: "/ month", ar: " / شهرياً" },
   "scale.cta": { en: "Access Sourcing", ar: "باقة التوظيف" },
 
@@ -47,10 +47,10 @@ export const pricingDict = {
   "ent.cta": { en: "Contact Enterprise", ar: "اتصل بنا للمؤسسات" },
 
   // Company Tiers
-  "company_starter.title": { en: "Company Free", ar: "باقة الشركات المجانية" },
+  "company_starter.title": { en: "Company Starter", ar: "باقة الشركات المجانية" },
   "company_starter.desc": {
-    en: "Post 1 job & search basic candidates.",
-    ar: "انشر وظيفة واحدة وتصفح المواهب.",
+    en: "50 AI Credits/mo • 1 Active Job Post & Candidate Sourcing.",
+    ar: "٥٠ رصيد ذكاء اصطناعي • وظيفة واحدة وتصفح المواهب.",
   },
   "company_starter.price": { en: "$0", ar: "٠ دولار" },
   "company_starter.period": { en: "/ month", ar: " / شهرياً" },
@@ -58,19 +58,19 @@ export const pricingDict = {
 
   "company_growth.title": { en: "Company Growth", ar: "نمو الشركات Growth" },
   "company_growth.desc": {
-    en: "5 jobs, candidate messages, AI match scores.",
-    ar: "٥ وظائف، رسائل مباشرة للمرشحين، نقاط المطابقة بالذكاء الاصطناعي.",
+    en: "1,000 AI Credits/mo • 5 Job Posts & Candidate Match Scores.",
+    ar: "١،٠٠٠ رصيد ذكاء اصطناعي • ٥ وظائف ونقاط المطابقة الذكية.",
   },
-  "company_growth.price": { en: "$49.99", ar: "٤٩.٩٩ دولار" },
+  "company_growth.price": { en: "$49", ar: "٤٩ دولار" },
   "company_growth.period": { en: "/ month", ar: " / شهرياً" },
   "company_growth.cta": { en: "Upgrade to Growth", ar: "الترقية إلى Growth" },
 
   "company_scale.title": { en: "Company Scale", ar: "توسع الشركات Scale" },
   "company_scale.desc": {
-    en: "Unlimited job posts, skill gap analytics, verified badge.",
-    ar: "وظائف غير محدودة، تحليلات الفجوات المهارية، وشارة شريك معتمد.",
+    en: "5,000 AI Credits/mo • Unlimited Jobs & Verified Partner Badge.",
+    ar: "٥،٠٠٠ رصيد ذكاء اصطناعي • وظائف غير محدودة وشارة الشريك المعتمد.",
   },
-  "company_scale.price": { en: "$199.99", ar: "١٩٩.٩٩ دولار" },
+  "company_scale.price": { en: "$199", ar: "١٩٩ دولار" },
   "company_scale.period": { en: "/ month", ar: " / شهرياً" },
   "company_scale.cta": { en: "Upgrade to Scale", ar: "الترقية إلى Scale" },
 
@@ -84,23 +84,23 @@ export const pricingDict = {
   "company_ent.cta": { en: "Contact Sales", ar: "التواصل مع المبيعات" },
 
   // Company Features
-  "company_starter.f1": { en: "1 Active Job Posting", ar: "وظيفة نشطة واحدة" },
-  "company_starter.f2": { en: "1 Recruiter Seat", ar: "حساب توظيف واحد" },
-  "company_starter.f3": { en: "Basic Candidate Directory", ar: "دليل المرشحين الأساسي" },
-  "company_starter.f4": { en: "Basic Applicant Tracking", ar: "متابعة المتقدمين الأساسية" },
+  "company_starter.f1": { en: "50 AI Credits per month", ar: "٥٠ رصيد ذكاء اصطناعي شهرياً" },
+  "company_starter.f2": { en: "1 Active Job Posting", ar: "وظيفة نشطة واحدة" },
+  "company_starter.f3": { en: "1 Recruiter Seat", ar: "حساب توظيف واحد" },
+  "company_starter.f4": { en: "Basic Candidate Directory", ar: "دليل المرشحين الأساسي" },
   "company_starter.f5": { en: "Email Support", ar: "الدعم عبر البريد" },
 
-  "company_growth.f1": { en: "5 Active Job Postings", ar: "٥ وظائف نشطة" },
-  "company_growth.f2": { en: "3 Recruiter Seats", ar: "٣ حسابات توظيف" },
-  "company_growth.f3": { en: "Unlocked AI Match Scores", ar: "درجات المطابقة بالذكاء الاصطناعي" },
-  "company_growth.f4": { en: "50 Candidate Messages/mo", ar: "٥٠ رسالة للمرشحين شهرياً" },
-  "company_growth.f5": { en: "Verified Evidence Filter", ar: "فلتر الشهادات والأدلة المعتمدة" },
+  "company_growth.f1": { en: "1,000 AI Credits per month", ar: "١،٠٠٠ رصيد ذكاء اصطناعي شهرياً" },
+  "company_growth.f2": { en: "5 Active Job Postings", ar: "٥ وظائف نشطة" },
+  "company_growth.f3": { en: "3 Recruiter Seats", ar: "٣ حسابات توظيف" },
+  "company_growth.f4": { en: "Unlocked AI Candidate Match Scores", ar: "درجات المطابقة الذكية للمرشحين" },
+  "company_growth.f5": { en: "50 Candidate Messages/mo", ar: "٥٠ رسالة للمرشحين شهرياً" },
 
-  "company_scale.f1": { en: "Unlimited Active Job Postings", ar: "وظائف نشطة غير محدودة" },
-  "company_scale.f2": { en: "10 Recruiter Seats", ar: "١٠ حسابات توظيف" },
-  "company_scale.f3": { en: "Unlimited Candidate Messaging", ar: "رسائل غير محدودة للمرشحين" },
+  "company_scale.f1": { en: "5,000 AI Credits per month", ar: "٥،٠٠٠ رصيد ذكاء اصطناعي شهرياً" },
+  "company_scale.f2": { en: "Unlimited Active Job Postings", ar: "وظائف نشطة غير محدودة" },
+  "company_scale.f3": { en: "10 Recruiter Seats & Unlimited Messages", ar: "١٠ حسابات توظيف ورسائل غير محدودة" },
   "company_scale.f4": { en: "Aggregate Skill Gap Analytics", ar: "تحليلات فجوات المهارات التجميعية" },
-  "company_scale.f5": { en: "Verified Partner Badge", ar: "شارة شريك توظيف معتمد" },
+  "company_scale.f5": { en: "Verified Partner Recruiter Badge", ar: "شارة شريك توظيف معتمد" },
 
   "company_ent.f1": { en: "Custom ATS Integrations", ar: "تكاملات أنظمة ATS مخصصة" },
   "company_ent.f2": { en: "Dedicated Account Manager", ar: "مدير حساب مخصص" },
@@ -108,25 +108,17 @@ export const pricingDict = {
   "company_ent.f4": { en: "Proctored Skill Exams", ar: "اختبارات مهارات مراقبة" },
 
   // Learner Features list
-  "free.f1": {
-    en: "1 AI Roadmap generation",
-    ar: "خارطة طريق واحدة بالذكاء الاصطناعي",
-  },
-  "free.f2": {
-    en: "Basic adaptive quizzes",
-    ar: "اختبارات تقييم مهارات أساسية",
-  },
-  "free.f3": { en: "1 day data retention", ar: "حفظ سجلات التعلم لمدة يوم" },
-  "free.f4": { en: "Single team member", ar: "عضو مستخدم واحد" },
+  "free.f1": { en: "50 AI Credits per month", ar: "٥٠ رصيد ذكاء اصطناعي شهرياً" },
+  "free.f2": { en: "1 Active AI Roadmap generation", ar: "خارطة طريق واحدة بالذكاء الاصطناعي" },
+  "free.f3": { en: "Basic adaptive quizzes", ar: "اختبارات تقييم مهارات أساسية" },
+  "free.f4": { en: "Community forum access", ar: "الوصول لمنتديات مجتمع التعلم" },
   "free.f5": { en: "Public sharing link", ar: "رابط مشاركة خارجي" },
 
-  "pro.f1": { en: "Unlimited roadmaps", ar: "خرائط طريق غير محدودة" },
-  "pro.f2": { en: "RAG-backed study guides", ar: "أدلة دراسية ذكية (RAG)" },
-  "pro.f3": { en: "30 days data retention", ar: "حفظ السجلات لمدة ٣٠ يوماً" },
-  "pro.f4": {
-    en: "Verified skill badge on passport",
-    ar: "شارة المهارات المعتمدة في الـ Passport",
-  },
+  "pro.f1": { en: "500 AI Credits per month (10x Grant)", ar: "٥٠٠ رصيد ذكاء اصطناعي شهرياً (١٠ أضعاف)" },
+  "pro.f2": { en: "Unlimited AI Roadmaps & RAG Study Guides", ar: "خرائط طريق وأدلة دراسية ذكية غير محدودة" },
+  "pro.f3": { en: "Voice AI Mock Interviews & Audio Narration", ar: "المقابلات الصوتية والتلاوة الصوتية للأدلة" },
+  "pro.f4": { en: "Verified Pro Candidate Badge (✓ Verified Pro)", ar: "شارة الكادر المحترف المعتمد (✓ Verified Pro)" },
+  "pro.f5": { en: "Downloadable AI Usage PDF Statements", ar: "تنزيل بيانات استهلاك الذكاء الاصطناعي كملف PDF" },
 
   "scale.f1": {
     en: "Pre-vetted candidate index",

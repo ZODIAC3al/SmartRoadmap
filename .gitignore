@@ -38,6 +38,7 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
-# Local runtime data (MongoDB dbpath, logs, scratch PDFs) — never commit
+# Local runtime data (MongoDB dbpath, logs, scratch PDFs, audio cache) — never commit
 tmp/
 output/run-check/
+apps/api/public/audio/

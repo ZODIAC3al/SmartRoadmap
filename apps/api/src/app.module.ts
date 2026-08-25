@@ -43,6 +43,8 @@ import { CommunityModule } from './modules/community/community.module';
 import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
 import { SalaryModule } from './modules/salary/salary.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { CacheModule } from './modules/cache/cache.module';
+import { QueueModule } from './modules/queue/queue.module';
 
 @Module({
   imports: [
@@ -105,6 +107,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     VoiceAgentModule,
     SalaryModule,
     DashboardModule,
+    CacheModule,
+    QueueModule,
   ],
   controllers: [AppController],
   providers: [

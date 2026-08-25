@@ -22,12 +22,15 @@ import { Topic } from '../../schemas/topic.schema';
 import { ResolveReportDto, VerifyCertificateDto } from './dto/admin.dto';
 import { LLMService } from '../../ai/llm.service';
 
+import { Company } from '../../schemas/company.schema';
+
 @Injectable()
 export class AdminService {
   private readonly logger = new Logger(AdminService.name);
 
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Company.name) private readonly companyModel: Model<Company>,
     @InjectModel(Report.name) private readonly reportModel: Model<Report>,
     @InjectModel(AuditLog.name) private readonly auditLogModel: Model<AuditLog>,
     @InjectModel(QuizSession.name)
@@ -732,6 +735,13 @@ export class AdminService {
     company.companyReviewedBy = adminId;
     company.companyReviewedAt = new Date();
     await company.save();
+
+    if (company.companyId) {
+      await this.companyModel.updateOne(
+        { _id: company.companyId },
+        { $set: { isVerified: true } },
+      );
+    }
 
     await this.logAction(
       adminId,

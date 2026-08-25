@@ -244,6 +244,19 @@ export async function apiFetch(
       throw err;
     }
 
+    if (response.status === 402 && typeof window !== "undefined") {
+      try {
+        const clone = response.clone();
+        clone.json().then((data) => {
+          window.dispatchEvent(
+            new CustomEvent("ai-quota-exceeded", { detail: data }),
+          );
+        });
+      } catch (e) {
+        // Ignore parse error
+      }
+    }
+
     if (response.status === 401 && !isAuthCall) {
       const fresh = await refreshSession();
       if (fresh) {

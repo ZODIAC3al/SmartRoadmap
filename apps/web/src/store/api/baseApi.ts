@@ -66,6 +66,8 @@ export const baseApi = createApi({
     'CandidatePipeline',
     'QuizSession',
     'Gamification',
+    'AiQuota',
+    'AiHistory',
   ],
   endpoints: () => ({}),
 });

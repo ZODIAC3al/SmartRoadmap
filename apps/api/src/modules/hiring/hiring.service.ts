@@ -34,6 +34,8 @@ import {
   UpdateApplicationStatusDto,
 } from './dto/hiring.dto';
 
+import { AiUsageService } from '../billing/ai-usage.service';
+
 @Injectable()
 export class HiringService implements OnModuleInit {
   private readonly logger = new Logger(HiringService.name);
@@ -63,6 +65,7 @@ export class HiringService implements OnModuleInit {
     private readonly embeddingService: EmbeddingService,
     private readonly cache: AppCacheService,
     private readonly aiGateway: AiGatewayService,
+    private readonly aiUsageService: AiUsageService,
   ) {}
 
   /**
@@ -1020,16 +1023,44 @@ export class HiringService implements OnModuleInit {
     };
   }
 
-  async evaluateCandidateWithAi(candidateSkills: string[], requiredSkills?: string[]): Promise<any> {
-    const reqs = requiredSkills && requiredSkills.length > 0
-      ? requiredSkills
-      : ['React', 'TypeScript', 'Node.js', 'NestJS', 'Docker'];
+  async evaluateCandidateWithAi(
+    user: JwtUser,
+    candidateSkills: string[],
+    requiredSkills?: string[],
+  ): Promise<any> {
+    const reqs =
+      requiredSkills && requiredSkills.length > 0
+        ? requiredSkills
+        : ['React', 'TypeScript', 'Node.js', 'NestJS', 'Docker'];
 
-    const aiResult = await this.aiGateway.run({
-      task: 'skill_match',
-      input: { candidateSkills, requiredSkills: reqs },
-    });
+    let reservation: any;
+    if (user) {
+      reservation = await this.aiUsageService.reserve(user, 'AI_CANDIDATE_MATCH');
+    }
 
-    return aiResult;
+    try {
+      const aiResult = await this.aiGateway.run({
+        task: 'skill_match',
+        input: { candidateSkills, requiredSkills: reqs },
+      });
+
+      if (reservation) {
+        await this.aiUsageService.finalize(reservation.reservationId, {
+          provider: 'groq',
+          model: 'llama-3.3-70b-versatile',
+          inputTokens: 250,
+          outputTokens: 150,
+          totalTokens: 400,
+          status: 'success',
+        });
+      }
+
+      return aiResult;
+    } catch (err: any) {
+      if (reservation) {
+        await this.aiUsageService.release(reservation.reservationId, err.message);
+      }
+      throw err;
+    }
   }
 }
