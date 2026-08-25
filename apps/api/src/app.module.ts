@@ -42,6 +42,7 @@ import { AudioSummaryModule } from './modules/audio-summary/audio-summary.module
 import { CommunityModule } from './modules/community/community.module';
 import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
 import { SalaryModule } from './modules/salary/salary.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -103,6 +104,7 @@ import { SalaryModule } from './modules/salary/salary.module';
     CommunityModule,
     VoiceAgentModule,
     SalaryModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
