@@ -16,6 +16,7 @@ import {
   AtsAutoFixDto,
   AtsCheckDto,
   GenerateTailoredCvDto,
+  GenerateFromProfileDto,
 } from './dto/cv.dto';
 import axios from 'axios';
 import * as _pdfParse from 'pdf-parse';
@@ -62,7 +63,9 @@ export class CvService {
     const userObjId = new Types.ObjectId(userId);
     let cvs = await this.cvModel
       .find({ userId: userObjId })
-      .sort({ updatedAt: -1 });
+      .sort({ updatedAt: -1 })
+      .lean()
+      .exec();
     if (!cvs || cvs.length === 0) {
       const defaultCv = new this.cvModel({
         userId: userObjId,
@@ -71,7 +74,7 @@ export class CvService {
         isDefault: true,
       });
       await defaultCv.save();
-      cvs = [defaultCv];
+      cvs = [defaultCv.toObject()];
     }
     return cvs;
   }
@@ -82,11 +85,34 @@ export class CvService {
   }
 
   async getCvById(cvId: string, userId: string): Promise<Cv> {
-    const cv = await this.cvModel.findById(cvId);
-    if (!cv || cv.userId.toString() !== userId) {
-      throw new NotFoundException(`CV not found or access denied`);
+    const cv = await this.cvModel
+      .findOne({ _id: new Types.ObjectId(cvId), userId: new Types.ObjectId(userId) })
+      .exec();
+    if (!cv) {
+      throw new NotFoundException('CV not found or unauthorized');
     }
     return cv;
+  }
+
+  async makeDefault(cvId: string, userId: string): Promise<Cv> {
+    const userObjId = new Types.ObjectId(userId);
+    const cvObjId = new Types.ObjectId(cvId);
+    
+    // First, unset all defaults for this user
+    await this.cvModel.updateMany({ userId: userObjId }, { $set: { isDefault: false } }).exec();
+    
+    // Then set the specific one to default
+    const updated = await this.cvModel.findOneAndUpdate(
+      { _id: cvObjId, userId: userObjId },
+      { $set: { isDefault: true } },
+      { new: true }
+    ).exec();
+
+    if (!updated) {
+      throw new NotFoundException('CV not found or unauthorized');
+    }
+    
+    return updated;
   }
 
   async createCv(userId: string, data?: any): Promise<Cv> {
@@ -896,28 +922,24 @@ ${plainText}`,
     ).filter((s) => typeof s === 'string' && s.trim().length > 0);
 
     // 3. Gather Projects (real data only)
-    const verifiedProjects =
-      projectsList.length > 0
-        ? projectsList.map((p) => ({
-            name: p.name,
-            description:
-              p.description ||
-              (p.readmeSnippet ? p.readmeSnippet.slice(0, 300) : ''),
-            technologies: p.technologies || Object.keys(p.languages || {}),
-            url: p.demoLink || p.githubUrl || '',
-            githubUrl: p.githubUrl || '',
-            stars: p.stars || 0,
-          }))
-        : existingCv?.projects?.length
-          ? existingCv.projects
-          : [
-              {
-                name: 'SmartRoadmap Core Application',
-                description:
-                  'Engineered full-stack interactive roadmaps and automated skill progress tracker.',
-                url: 'https://github.com/developia/smartroadmap',
-              },
-            ];
+    const dbProjects = projectsList.map((p) => ({
+      name: p.name,
+      description: p.description || (p.readmeSnippet ? p.readmeSnippet.slice(0, 300) : ''),
+      technologies: p.technologies || Object.keys(p.languages || {}),
+      url: p.demoLink || p.githubUrl || '',
+      githubUrl: p.githubUrl || '',
+      stars: p.stars || 0,
+    }));
+
+    const existingProjects = existingCv?.projects || [];
+    const mergedProjects = [...existingProjects];
+    
+    for (const dp of dbProjects) {
+      if (!mergedProjects.some(p => p.name === dp.name)) {
+        mergedProjects.push(dp);
+      }
+    }
+    const verifiedProjects = mergedProjects;
 
 
     // 4. Gather Certifications (real data only: uploaded + platform track certs + linkedin certs)
@@ -926,7 +948,7 @@ ${plainText}`,
     // 4a. Platform Track Certifications (Verified)
     (trackCertsList || []).forEach((tc) => {
       verifiedCertificates.push({
-        title: `${tc.trackTitle} Professional Track Certification`,
+        name: `${tc.trackTitle} Professional Track Certification`,
         organization: 'SmartRoadmap Learning Infrastructure',
         issuedAt: tc.createdAt ? new Date(tc.createdAt).toISOString().split('T')[0] : '',
         credentialUrl: tc.shareableUrl || '',
@@ -936,22 +958,24 @@ ${plainText}`,
 
     // 4b. Uploaded / Imported User Certificates
     (certsList || []).forEach((c) => {
-      verifiedCertificates.push({
-        title: c.title,
-        organization: c.organization || '',
-        issuedAt: c.issueDate || c.issuedAt || '',
-        credentialUrl: c.credentialUrl || '',
-        isVerified: c.status === 'Verified',
-      });
+      if (c.status === 'Verified') {
+        verifiedCertificates.push({
+          name: c.title,
+          organization: c.organization || '',
+          issuedAt: c.issueDate || c.issuedAt || '',
+          credentialUrl: c.fileUrl || c.credentialUrl || '',
+          isVerified: true,
+        });
+      }
     });
 
     // 4c. LinkedIn Certifications
     if (linkedinAccountObj?.profile?.certifications?.length > 0) {
       linkedinAccountObj.profile.certifications.forEach((c: any) => {
         const title = c.name || c.title || '';
-        if (!verifiedCertificates.some((existing) => existing.title === title)) {
+        if (!verifiedCertificates.some((existing) => existing.name === title)) {
           verifiedCertificates.push({
-            title,
+            name: title,
             organization: c.authority || c.organization || '',
             issuedAt: c.issueDate || '',
             credentialUrl: c.credentialUrl || '',
@@ -1052,11 +1076,11 @@ ${plainText}`,
 Generate an industry-leading, ATS-compliant professional software resume in JSON format.
 
 CRITICAL ANTI-HALLUCINATION RULES:
-1. ONLY USE THE CANDIDATE'S ACTUAL PROVIDED DATA BELOW.
-2. NEVER invent fake companies, fake schools, fake degrees, fake phone numbers, or fake certificates.
-3. If a section is empty in the candidate's data, leave it empty.
+1. ONLY USE THE CANDIDATE'S ACTUAL PROVIDED DATA BELOW. DO NOT INVENT OR ADD ANY INFORMATION.
+2. NEVER invent fake companies, fake schools, fake degrees, fake job titles, fake phone numbers, fake projects, or fake certificates.
+3. If a section is empty or missing in the candidate's data, leave it empty.
 4. For the Professional Summary: Write a compelling, tailored 2-4 sentence narrative synthesizing their actual strongest skills, real projects, certifications, and experience for the target role "${targetTitle}". NEVER use generic phrases like "Motivated professional looking for opportunities".
-5. For Experience & Projects: Formulate high-impact, active-voice bullet points (using verbs like Engineered, Architected, Implemented, Deployed, Optimized) highlighting the technologies used and outcomes.
+5. For Experience & Projects: Formulate high-impact, active-voice bullet points (using verbs like Engineered, Architected, Implemented, Deployed, Optimized) highlighting the technologies used and outcomes. DO NOT invent metrics, technologies, or achievements not implied by the provided data.
 
 Candidate Ground Truth Data:
 - Name: "${candidateName}"
@@ -1117,7 +1141,7 @@ Output ONLY valid JSON matching this exact structure:
   ],
   "certifications": [
     {
-      "title": "Certification Title",
+      "name": "Certification Title",
       "organization": "Issuing Organization",
       "issuedAt": "YYYY-MM-DD",
       "credentialUrl": "Credential URL if available"
@@ -1159,12 +1183,15 @@ Output ONLY valid JSON matching this exact structure:
               ? Array.from(new Set([...parsed.skills, ...mergedSkills]))
               : mergedSkills,
             projects: Array.isArray(parsed.projects) && parsed.projects.length > 0
-              ? parsed.projects.map((p: any, i: number) => ({
-                  name: p.name || verifiedProjects[i]?.name || 'Project',
-                  description: p.description || verifiedProjects[i]?.description || '',
-                  technologies: p.technologies || verifiedProjects[i]?.technologies || [],
-                  url: p.url || verifiedProjects[i]?.url || verifiedProjects[i]?.githubUrl || '',
-                }))
+              ? parsed.projects.map((p: any) => {
+                  const originalProject = verifiedProjects.find((vp: any) => vp.name === p.name) || p;
+                  return {
+                    name: p.name || originalProject.name || 'Project',
+                    description: p.description || originalProject.description || '',
+                    technologies: p.technologies || originalProject.technologies || [],
+                    url: p.url || originalProject.url || originalProject.githubUrl || '',
+                  };
+                })
               : verifiedProjects,
             certifications: Array.isArray(parsed.certifications) && parsed.certifications.length > 0
               ? parsed.certifications
@@ -1192,18 +1219,16 @@ Output ONLY valid JSON matching this exact structure:
 
   async generateFromProfile(
     userId: string,
-    targetJobTitle?: string,
-    jobDescription?: string,
-    forceRegenerate = false,
+    dto: GenerateFromProfileDto,
   ): Promise<Cv> {
-    const jobTitle = targetJobTitle || 'Software Engineer';
+    const jobTitle = dto.targetJobTitle || 'Software Engineer';
     const generatedData = await this.generateTailoredCv(
       userId,
       {
+        ...dto,
         targetJobTitle: jobTitle,
-        jobDescription,
       },
-      forceRegenerate,
+      dto.forceRegenerate || false,
     );
 
     return this.saveCv(userId, {

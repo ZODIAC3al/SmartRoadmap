@@ -127,9 +127,7 @@ export class CvController {
     try {
       const data = await this.cvService.generateFromProfile(
         user.sub,
-        dto?.targetJobTitle,
-        dto?.jobDescription,
-        dto?.forceRegenerate,
+        dto,
       );
       await this.aiUsageService.finalize(reservationId, {
         provider: 'gemini',
@@ -194,6 +192,14 @@ export class CvController {
     return {
       success: true,
       data: await this.cvService.getCvById(id, user.sub),
+    };
+  }
+
+  @Post(':id/make-default')
+  async makeDefault(@CurrentUser() user: JwtUser, @Param('id') id: string) {
+    return {
+      success: true,
+      data: await this.cvService.makeDefault(id, user.sub),
     };
   }
 

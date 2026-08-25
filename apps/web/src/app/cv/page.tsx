@@ -38,6 +38,7 @@ export default function CvPage() {
     handleSelectCv,
     handleDuplicateCv,
     handleDeleteCv,
+    handleMakeDefault,
     addCustomSection,
     removeCustomSection,
     updateCustomSectionTitle,
@@ -213,7 +214,7 @@ export default function CvPage() {
             {/* Right Side: AI Assistant Graphic */}
             <div className="hidden md:flex flex-col items-center justify-center relative w-64 shrink-0">
               <div className="absolute -top-4 -left-4 bg-base-100 border border-base-300 shadow-sm rounded-full px-4 py-2 text-[10px] font-bold text-base-content whitespace-nowrap z-10">
-                Targeting a new role? Let's calibrate your CV!
+                Targeting a new role? Let&apos;s calibrate your CV!
               </div>
               <div className="w-32 h-32 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center relative bg-base-100 shadow-sm">
                 <Bot className="w-14 h-14 text-primary" />
@@ -269,6 +270,13 @@ export default function CvPage() {
                           {item.template || 'Modern'}
                         </span>
                         <div className="flex items-center gap-1">
+                          <button
+                            onClick={(e) => handleMakeDefault(item._id || item.id || '', e)}
+                            className={`btn btn-ghost btn-xs btn-square transition-all duration-300 ease-in-out ${item.isDefault ? 'text-warning' : 'text-base-content/30 hover:text-warning'}`}
+                            title={item.isDefault ? "Main CV" : "Mark as Main CV"}
+                          >
+                            {item.isDefault ? '⭐' : '☆'}
+                          </button>
                           <button
                             onClick={(e) => handleDuplicateCv(item._id || item.id || '', e)}
                             className="btn btn-ghost btn-xs btn-square text-base-content/60 hover:text-primary transition-all duration-300 ease-in-out"

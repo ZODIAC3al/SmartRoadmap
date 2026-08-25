@@ -27,9 +27,14 @@ export default function Home() {
   });
 
   const [activeRoadmap, setActiveRoadmap] = useState<any>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (hasSession()) {
+    setMounted(true);
+    const session = hasSession();
+    setLoggedIn(session);
+    if (session) {
       (async () => {
         try {
           const res = await apiFetch("/roadmap/me");
@@ -156,49 +161,71 @@ export default function Home() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <Link
-              href="/onboarding"
-              className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none px-8 rounded-xl font-bold shadow-lg shadow-[#8E1616]/25 transition-all transform hover:-translate-y-0.5"
-            >
-              Start Your Journey
-            </Link>
-            <Link
-              href="/roadmap"
-              className="btn btn-outline border-base-300 hover:border-[#8E1616] hover:bg-[#8E1616]/10 text-base-content px-7 rounded-xl font-bold transition-all"
-            >
-              Explore Roadmap →
-            </Link>
+            {mounted && loggedIn ? (
+              <>
+                <Link
+                  href="/onboarding"
+                  className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none px-8 rounded-xl font-bold shadow-lg shadow-[#8E1616]/25 transition-all transform hover:-translate-y-0.5"
+                >
+                  Start Your Journey
+                </Link>
+                <Link
+                  href="/roadmap"
+                  className="btn btn-outline border-base-300 hover:border-[#8E1616] hover:bg-[#8E1616]/10 text-base-content px-7 rounded-xl font-bold transition-all"
+                >
+                  Explore Roadmap →
+                </Link>
+              </>
+            ) : mounted && !loggedIn ? (
+              <>
+                <Link
+                  href="/auth/login"
+                  className="btn bg-[#8E1616] hover:bg-[#701111] text-white border-none px-8 rounded-xl font-bold shadow-lg shadow-[#8E1616]/25 transition-all transform hover:-translate-y-0.5"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="btn btn-outline border-base-300 hover:border-[#8E1616] hover:bg-[#8E1616]/10 text-base-content px-7 rounded-xl font-bold transition-all"
+                >
+                  Sign Up
+                </Link>
+              </>
+            ) : null}
           </div>
         </div>
 
         {/* Grand Interactive Winding Roadmap Visual Component */}
-        <div className="relative w-full">
-          <AnimatedRoadmapVisual
-            activeRole={activeRoadmap ? activeRoadmap.targetRole : roleInput}
-            score={
-              activeRoadmap
-                ? Math.max(
-                    45,
-                    Math.min(
-                      98,
-                      50 +
-                        Math.round(
-                          ((activeRoadmap.modules?.filter((m: any) => m.status === "completed").length || 0) /
-                            (activeRoadmap.modules?.length || 1)) *
-                            45
-                        )
+        {mounted && loggedIn && (
+          <div className="relative w-full">
+            <AnimatedRoadmapVisual
+              activeRole={activeRoadmap ? activeRoadmap.targetRole : roleInput}
+              score={
+                activeRoadmap
+                  ? Math.max(
+                      45,
+                      Math.min(
+                        98,
+                        50 +
+                          Math.round(
+                            ((activeRoadmap.modules?.filter((m: any) => m.status === "completed").length || 0) /
+                              (activeRoadmap.modules?.length || 1)) *
+                              45
+                          )
+                      )
                     )
-                  )
-                : 82
-            }
-            onRoleChange={(r) => setRoleInput(r)}
-            standalone={true}
-          />
-        </div>
+                  : 82
+              }
+              onRoleChange={(r) => setRoleInput(r)}
+              standalone={true}
+            />
+          </div>
+        )}
       </section>
 
       {/* SECTION 2 — SKILL GAP ANALYZER */}
-      <section className="bg-base-200 border-y border-base-300 py-20 px-4 sm:px-6 lg:px-8">
+      {mounted && loggedIn && (
+        <section className="bg-base-200 border-y border-base-300 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5 text-start space-y-6">
             <h2 className="text-display-md tracking-tight text-base-content font-extrabold">
@@ -299,7 +326,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+        </section>
+      )}
 
       {/* SECTION 3 — HOW IT WORKS */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -356,7 +384,8 @@ export default function Home() {
       </section>
 
       {/* SECTION 4 — SKILL PASSPORT */}
-      <section className="bg-base-200 border-y border-base-300 py-20 px-4 sm:px-6 lg:px-8">
+      {mounted && loggedIn && (
+        <section className="bg-base-200 border-y border-base-300 py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 relative">
             {/* The Skill Passport Core Visual Asset */}
@@ -499,9 +528,11 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+        </section>
+      )}
 
       {/* SECTION 5 — JOB MATCHING */}
+      {mounted && loggedIn && (
       <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 text-start space-y-6">
@@ -604,7 +635,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+        </section>
+      )}
 
       {/* SECTION 6 — SUCCESS STORIES */}
       <section className="bg-base-200 border-t border-base-300 py-24 px-4 sm:px-6 lg:px-8">
@@ -676,7 +708,8 @@ export default function Home() {
       </section>
 
       {/* SECTION 7 — COMPANIES */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      {mounted && loggedIn && (
+        <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5 text-start space-y-6">
             <h2 className="text-display-md tracking-tight font-extrabold text-base-content">
@@ -745,7 +778,8 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

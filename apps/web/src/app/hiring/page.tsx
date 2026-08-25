@@ -66,22 +66,26 @@ export default function HiringPage() {
   useEffect(() => {
     const storedUser = getCachedUser();
     if (storedUser) setUser(storedUser);
-
-    async function loadCvs() {
-      try {
-        const cvRes = await apiFetch("/cv/list");
-        if (cvRes.ok) {
-          const cvData = await cvRes.json();
-          const list = cvData.data || cvData || [];
-          setUserCvs(list);
-          if (list[0]) setSelectedCvId(list[0]._id || list[0].id);
-        }
-      } catch {
-        // Fallback
-      }
-    }
-    loadCvs();
   }, []);
+
+  const loadCvs = async () => {
+    try {
+      const cvRes = await apiFetch("/cv/list", { cache: "no-store" });
+      if (cvRes.ok) {
+        const cvData = await cvRes.json();
+        const list = cvData.data || cvData || [];
+        setUserCvs(list);
+        const defaultCv = list.find((c: any) => c.isDefault);
+        if (defaultCv) {
+          setSelectedCvId(defaultCv._id || defaultCv.id);
+        } else if (list[0]) {
+          setSelectedCvId(list[0]._id || list[0].id);
+        }
+      }
+    } catch {
+      // Fallback
+    }
+  };
 
   useEffect(() => {
     if (jobs.length > 0 && !selectedJob) {
@@ -97,6 +101,7 @@ export default function HiringPage() {
   // Handle Apply button click
   const openApplyModal = (job: any) => {
     setSelectedJob(job);
+    loadCvs();
     setApplyModalOpen(true);
   };
 
