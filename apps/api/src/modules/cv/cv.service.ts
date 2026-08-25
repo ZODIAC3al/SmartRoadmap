@@ -61,11 +61,11 @@ export class CvService {
 
   async listCvsByUserId(userId: string): Promise<Cv[]> {
     const userObjId = new Types.ObjectId(userId);
-    let cvs = await this.cvModel
+    let cvs = (await this.cvModel
       .find({ userId: userObjId })
       .sort({ updatedAt: -1 })
       .lean()
-      .exec();
+      .exec()) as unknown as Cv[];
     if (!cvs || cvs.length === 0) {
       const defaultCv = new this.cvModel({
         userId: userObjId,
@@ -74,7 +74,7 @@ export class CvService {
         isDefault: true,
       });
       await defaultCv.save();
-      cvs = [defaultCv.toObject()];
+      cvs = [defaultCv.toObject() as unknown as Cv];
     }
     return cvs;
   }
