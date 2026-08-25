@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -186,7 +186,7 @@ export default function ResourcesPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
@@ -197,11 +197,11 @@ export default function ResourcesPage() {
   const getResourceTypeIcon = (t: ResourceType) => {
     switch (t) {
       case "video": return <Video className="w-3.5 h-3.5 text-red-500" />;
-      case "article": return <FileText className="w-3.5 h-3.5 text-blue-500" />;
+      case "article": return <FileText className="w-3.5 h-3.5 text-primary" />;
       case "book": return <Book className="w-3.5 h-3.5 text-amber-500" />;
-      case "course": return <GraduationCap className="w-3.5 h-3.5 text-emerald-500" />;
-      case "documentation": return <Layers className="w-3.5 h-3.5 text-purple-500" />;
-      default: return <BookOpen className="w-3.5 h-3.5 text-indigo-500" />;
+      case "course": return <GraduationCap className="w-3.5 h-3.5 text-[#8E1616]" />;
+      case "documentation": return <Layers className="w-3.5 h-3.5 text-primary" />;
+      default: return <BookOpen className="w-3.5 h-3.5 text-primary" />;
     }
   };
 
@@ -212,14 +212,14 @@ export default function ResourcesPage() {
         {/* Header Block */}
         <div className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-5 shadow-xl relative overflow-hidden">
           <div className="space-y-1 z-10">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-extrabold uppercase tracking-widest font-mono border border-blue-500/20">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary text-primary-content/10 text-primary text-[10px] font-extrabold uppercase tracking-widest font-mono border border-primary/20">
               <BookOpen className="w-3.5 h-3.5" />
               {isRtl ? "مصادر تعليمية مقيمة بواسطة الطلاب" : "COMMUNITY VETTED LEARNING MATERIALS"}
             </span>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-base-content mt-2">
               {isRtl ? "تقييم وتصويت مصادر التعلم" : "Resource Library"}
             </h1>
-            <p className="text-xs sm:text-sm text-base-content/60 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-base-content/70 dark:text-stone-300 font-medium max-w-2xl leading-relaxed">
               {isRtl
                 ? "اكتشف واقترح أفضل الدورات، المقالات، التوثيقات التقنية، والفيديوهات المصنفة جودتها عبر تصويت زملائك."
                 : "Find learning material that has earned its place through community review, clear difficulty levels, and practical value."}
@@ -227,7 +227,7 @@ export default function ResourcesPage() {
           </div>
           <button
             onClick={() => setShowSubmitModal(true)}
-            className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-2xl font-bold px-5 text-xs gap-2 shadow-lg shrink-0 z-10"
+            className="btn bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-2xl font-bold px-5 text-xs gap-2 shadow-lg shrink-0 z-10 transition-all duration-300 ease-in-out"
           >
             <Plus className="w-4 h-4" />
             {isRtl ? "اقترح مرجعاً جديداً" : "Share a resource"}
@@ -238,7 +238,7 @@ export default function ResourcesPage() {
         {recommendedResources.length > 0 && (
           <div className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-3xl p-6 space-y-4 shadow-xl">
             <div className="flex items-center gap-2 border-b border-base-300 pb-3">
-              <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-wider font-mono border border-emerald-500/20 flex items-center gap-1">
+              <span className="px-2.5 py-0.5 rounded-xl bg-[#8E1616]/10 text-[#8E1616] text-[10px] font-black uppercase tracking-wider font-mono border border-[#8E1616]/20/20 flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
                 FOR YOUR PATH
               </span>
@@ -246,7 +246,7 @@ export default function ResourcesPage() {
                 <h3 className="font-extrabold text-sm text-base-content">
                   {isRtl ? "توصيات مراجع تكميلية لمسارك" : "Recommended for your learning plan"}
                 </h3>
-                <span className="text-[9px] text-base-content/50 font-bold uppercase font-mono block">
+                <span className="text-[9px] text-base-content/70 dark:text-stone-300 font-medium font-bold uppercase font-mono block">
                   VETTED RESOURCES MATCHING YOUR ROADMAP GOALS
                 </span>
               </div>
@@ -255,32 +255,32 @@ export default function ResourcesPage() {
             {/* Recommended resources cards */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {recommendedResources.map((rec) => (
-                <div key={rec._id} className="bg-base-100 border border-base-300 p-4 rounded-2xl flex flex-col justify-between space-y-3 relative hover:border-[#10B981]/40 transition-all shadow-md">
+                <div key={rec._id} className="bg-base-100 border border-base-300 p-4 rounded-2xl flex flex-col justify-between space-y-3 relative hover:border-[#8E1616]/40 transition-all shadow-md">
                   <div className="space-y-2 text-xs">
                     <div className="flex items-center gap-1.5">
                       {getResourceTypeIcon(rec.type)}
-                      <span className="badge bg-emerald-500/15 text-emerald-600 text-[9px] font-black uppercase tracking-wider border-none rounded-md px-2 font-mono">
+                      <span className="badge bg-[#8E1616]/15 text-[#8E1616] text-[9px] font-black uppercase tracking-wider border-none rounded-xl px-2 font-mono">
                         {rec.type} • {rec.difficulty}
                       </span>
                     </div>
                     <a
                       href={rec.url} target="_blank" rel="noreferrer"
-                      className="font-black text-xs text-base-content leading-tight hover:text-[#10B981] transition-colors block truncate"
+                      className="font-black text-xs text-base-content leading-tight hover:text-[#8E1616] transition-colors block truncate"
                     >
                       {rec.title}
                     </a>
-                    <p className="text-[10px] text-base-content/65 line-clamp-2 leading-relaxed">
+                    <p className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium line-clamp-2 leading-relaxed">
                       {rec.description}
                     </p>
                   </div>
 
                   <div className="flex justify-between items-center border-t border-base-300 pt-2.5">
-                    <span className="text-[9px] font-mono text-base-content/50 font-bold uppercase">
+                    <span className="text-[9px] font-mono text-base-content/70 dark:text-stone-300 font-medium font-bold uppercase">
                       Score: {rec.score}
                     </span>
                     <a
                       href={rec.url} target="_blank" rel="noreferrer"
-                      className="text-[10px] text-[#10B981] font-extrabold hover:underline flex items-center gap-1"
+                      className="text-[10px] text-[#8E1616] font-extrabold hover:underline flex items-center gap-1 transition-all duration-300 ease-in-out"
                     >
                       <span>{isRtl ? "ابدأ الدراسة" : "Start Study"}</span>
                       <ArrowUpRight className="w-3 h-3" />
@@ -303,7 +303,7 @@ export default function ResourcesPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 className="input input-bordered w-full rounded-2xl bg-base-100 text-xs pl-9"
               />
-              <Search className="w-4 h-4 text-base-content/40 absolute left-3 top-3.5" />
+              <Search className="w-4 h-4 text-base-content/70 dark:text-stone-400 font-medium absolute left-3 top-3.5" />
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -338,7 +338,7 @@ export default function ResourcesPage() {
                 <option value="tutorial">{isRtl ? "درس تطبيقي" : "Tutorial"}</option>
               </select>
 
-              <button type="submit" className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-2xl px-5 text-xs h-11 gap-1.5 font-bold shadow-md">
+              <button type="submit" className="btn bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-2xl px-5 text-xs h-11 gap-1.5 font-bold shadow-md transition-all duration-300 ease-in-out">
                 <Filter className="w-3.5 h-3.5" />
                 {isRtl ? "تصفية" : "Filter"}
               </button>
@@ -348,28 +348,28 @@ export default function ResourcesPage() {
           {/* Catalog grid */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
             {resources.length === 0 ? (
-              <p className="text-xs text-base-content/40 text-center py-12 col-span-full font-bold italic">
+              <p className="text-xs text-base-content/70 dark:text-stone-400 font-medium text-center py-12 col-span-full font-bold italic">
                 {isRtl ? "لا توجد نتائج مراجع تطابق البحث." : "No learning resources match current filter."}
               </p>
             ) : (
               resources.map((res) => (
-                <div key={res._id} className="bg-base-100 border border-base-300 p-5 rounded-3xl space-y-4 shadow-xl hover:border-emerald-500/30 transition-all flex flex-col justify-between">
+                <div key={res._id} className="bg-base-100 border border-base-300 p-5 rounded-3xl space-y-4 shadow-xl hover:border-[#8E1616]/20/30 transition-all flex flex-col justify-between">
                   <div className="space-y-3">
                     {/* tag + vote summary */}
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-1.5">
                         {getResourceTypeIcon(res.type)}
-                        <span className="badge bg-base-200 text-base-content/70 text-[9px] font-black uppercase tracking-wider border-none rounded-lg px-2 font-mono py-1">
+                        <span className="badge bg-base-200 text-base-content/70 dark:text-stone-300 font-medium text-[9px] font-black uppercase tracking-wider border-none rounded-2xl px-2 font-mono py-1">
                           {res.type} • {res.difficulty}
                         </span>
                       </div>
 
                       {/* Upvote/Downvote */}
-                      <div className="flex items-center gap-1 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-2 py-1 font-mono text-[10px] shrink-0">
+                      <div className="flex items-center gap-1 rounded-xl border border-[#8E1616]/20/20 bg-[#8E1616]/5 px-2 py-1 font-mono text-[10px] shrink-0">
                         <button
                           onClick={() => handleVote(res._id, "up")}
                           aria-label="Upvote resource"
-                          className={`p-1 rounded-md transition-colors ${currentUserId && res.upvotes?.includes(currentUserId) ? "bg-emerald-500 text-white" : "text-emerald-500 hover:bg-emerald-500/20"}`}
+                          className={`p-1 rounded-xl transition-colors ${currentUserId && res.upvotes?.includes(currentUserId) ? "bg-[#8E1616] text-white" : "text-[#8E1616] hover:bg-[#8E1616]/20"}`}
                         >
                           <ThumbsUp className="w-3 h-3" />
                         </button>
@@ -377,7 +377,7 @@ export default function ResourcesPage() {
                         <button
                           onClick={() => handleVote(res._id, "down")}
                           aria-label="Downvote resource"
-                          className={`p-1 rounded-md transition-colors ${currentUserId && res.downvotes?.includes(currentUserId) ? "bg-red-500 text-white" : "text-red-500 hover:bg-red-500/20"}`}
+                          className={`p-1 rounded-xl transition-colors ${currentUserId && res.downvotes?.includes(currentUserId) ? "bg-red-500 text-white" : "text-red-500 hover:bg-red-500/20"}`}
                         >
                           <ThumbsDown className="w-3 h-3" />
                         </button>
@@ -388,11 +388,11 @@ export default function ResourcesPage() {
                     <div className="space-y-1.5">
                       <a
                         href={res.url} target="_blank" rel="noreferrer"
-                        className="font-black text-xs text-base-content hover:text-[#10B981] transition-colors leading-tight line-clamp-2"
+                        className="font-black text-xs text-base-content hover:text-[#8E1616] transition-colors leading-tight line-clamp-2"
                       >
                         {res.title}
                       </a>
-                      <p className="text-[11px] text-base-content/65 line-clamp-3 leading-relaxed">
+                      <p className="text-[11px] text-base-content/70 dark:text-stone-300 font-medium line-clamp-3 leading-relaxed">
                         {res.description || "-"}
                       </p>
                     </div>
@@ -401,10 +401,10 @@ export default function ResourcesPage() {
                   {/* info footer */}
                   <div className="border-t border-base-300 pt-3 flex justify-between items-center text-[9px]">
                     <div>
-                      <span className="text-base-content/40 block font-mono">SUBMITTED BY:</span>
-                      <span className="font-extrabold text-base-content/85">{res.submittedBy?.name || "Unknown"}</span>
+                      <span className="text-base-content/70 dark:text-stone-400 font-medium block font-mono">SUBMITTED BY:</span>
+                      <span className="font-extrabold text-base-content dark:text-stone-200 font-medium">{res.submittedBy?.name || "Unknown"}</span>
                     </div>
-                    <span className="text-base-content/50 font-mono font-bold uppercase bg-base-200 border border-base-300 px-2 py-0.5 rounded-lg">
+                    <span className="text-base-content/70 dark:text-stone-300 font-medium font-mono font-bold uppercase bg-base-200 border border-base-300 px-2 py-0.5 rounded-2xl">
                       {res.category}
                     </span>
                   </div>
@@ -419,12 +419,12 @@ export default function ResourcesPage() {
           <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-base-200 border border-base-300 w-full max-w-sm p-6 rounded-3xl shadow-2xl space-y-4">
               <h3 className="font-extrabold text-sm text-base-content flex items-center gap-2">
-                <LinkIcon className="w-4 h-4 text-emerald-500" />
+                <LinkIcon className="w-4 h-4 text-[#8E1616]" />
                 <span>{isRtl ? "اقتراح مرجع تعليمي جديد" : "Submit New Study Material"}</span>
               </h3>
               <form onSubmit={handleSubmitResource} className="space-y-3.5 text-xs font-semibold">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "عنوان المرجع" : "Title"}</label>
+                  <label className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium uppercase block">{isRtl ? "عنوان المرجع" : "Title"}</label>
                   <input
                     type="text" required placeholder="e.g. Master Clean Code Principles"
                     value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
@@ -432,7 +432,7 @@ export default function ResourcesPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "الرابط الإلكتروني" : "Resource Link URL"}</label>
+                  <label className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium uppercase block">{isRtl ? "الرابط الإلكتروني" : "Resource Link URL"}</label>
                   <input
                     type="url" required placeholder="https://example.com/course"
                     value={newUrl} onChange={(e) => setNewUrl(e.target.value)}
@@ -440,7 +440,7 @@ export default function ResourcesPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "الوصف" : "Short Description"}</label>
+                  <label className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium uppercase block">{isRtl ? "الوصف" : "Short Description"}</label>
                   <textarea
                     rows={2} placeholder="Explain what topics are covered and why this resource is high-quality..."
                     value={newDesc} onChange={(e) => setNewDesc(e.target.value)}
@@ -450,7 +450,7 @@ export default function ResourcesPage() {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "المجال / التقنية" : "Category / Domain"}</label>
+                    <label className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium uppercase block">{isRtl ? "المجال / التقنية" : "Category / Domain"}</label>
                     <input
                       type="text" required placeholder="e.g. Node.js, NextJS"
                       value={newCategory} onChange={(e) => setNewCategory(e.target.value)}
@@ -458,7 +458,7 @@ export default function ResourcesPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "نوع المرجع" : "Type"}</label>
+                    <label className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium uppercase block">{isRtl ? "نوع المرجع" : "Type"}</label>
                     <select
                       value={newType}
                       onChange={(e) => {
@@ -478,7 +478,7 @@ export default function ResourcesPage() {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "مستوى الصعوبة" : "Difficulty"}</label>
+                    <label className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium uppercase block">{isRtl ? "مستوى الصعوبة" : "Difficulty"}</label>
                     <select
                       value={newDifficulty}
                       onChange={(e) => {
@@ -492,7 +492,7 @@ export default function ResourcesPage() {
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "العلامات (مفصولة بفاصلة)" : "Tags"}</label>
+                    <label className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium uppercase block">{isRtl ? "العلامات (مفصولة بفاصلة)" : "Tags"}</label>
                     <input
                       type="text" placeholder="react, basics"
                       value={newTags} onChange={(e) => setNewTags(e.target.value)}
@@ -511,7 +511,7 @@ export default function ResourcesPage() {
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-xs sm:btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-bold"
+                    className="btn btn-xs sm:btn-sm bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl font-bold transition-all duration-300 ease-in-out"
                   >
                     {isRtl ? "اقتراح المرجع" : "Submit Resource"}
                   </button>

@@ -29,7 +29,7 @@ export function NotificationToast({
   return (
     <div
       onClick={handleClick}
-      className="flex flex-col gap-1 cursor-pointer select-none text-xs"
+      className="flex flex-col gap-1 cursor-pointer select-none text-xs transition-all duration-300 ease-in-out"
     >
       <div className="flex items-center justify-between">
         <span className="font-bold text-sm text-base-content leading-tight">

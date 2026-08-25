@@ -13,6 +13,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { HiringService } from './hiring.service';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { CompanyApprovalGuard } from '../../common/guards/company-approval.guard';
 import {
   CurrentUser,
   type JwtUser,
@@ -24,6 +25,8 @@ import {
   UpdateApplicationStatusDto,
 } from './dto/hiring.dto';
 import { PlanGuard, RequirePlan } from '../billing/plan-guard.guard';
+import { AIEntitlementGuard, RequireAiFeature } from '../billing/ai-entitlement.guard';
+import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('hiring')
 @ApiBearerAuth()
@@ -32,7 +35,7 @@ export class HiringController {
   constructor(private readonly hiringService: HiringService) {}
 
   /** Only companies/admins may post jobs. */
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CompanyApprovalGuard)
   @Roles('company', 'admin')
   @Post('jobs')
   createJob(@CurrentUser() user: JwtUser, @Body() dto: CreateJobDto) {
@@ -44,7 +47,7 @@ export class HiringController {
     return this.hiringService.getJobs(query);
   }
 
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CompanyApprovalGuard)
   @Roles('company', 'admin')
   @Get('jobs/my')
   getMyJobs(@CurrentUser() user: JwtUser) {
@@ -67,7 +70,7 @@ export class HiringController {
     return this.hiringService.getJobById(id);
   }
 
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CompanyApprovalGuard)
   @Roles('company', 'admin')
   @Delete('jobs/:id')
   deleteJob(@CurrentUser() user: JwtUser, @Param('id') id: string) {
@@ -75,7 +78,7 @@ export class HiringController {
   }
 
   @Post('jobs/reindex')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CompanyApprovalGuard)
   @Roles('admin')
   async reindexJobs() {
     const jobs = await this.hiringService.getJobs();
@@ -109,7 +112,7 @@ export class HiringController {
   }
 
   /** List all applications received for company or admin */
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CompanyApprovalGuard)
   @Roles('company', 'admin')
   @Get('applications/company')
   getCompanyApplications(
@@ -164,20 +167,29 @@ export class HiringController {
 
   // ── Company / Admin ────────────────────────────────────────────────────────
 
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, CompanyApprovalGuard)
   @Roles('company', 'admin')
   @Get('candidates')
   getCandidates() {
     return this.hiringService.getCandidates();
   }
 
-  @UseGuards(RolesGuard)
+  @Public()
+  @Get('candidates/:userId')
+  getCandidatePassport(@Param('userId') userId: string) {
+    return this.hiringService.getCandidatePassport(userId);
+  }
+
+  @UseGuards(RolesGuard, AIEntitlementGuard)
+  @RequireAiFeature('AI_CANDIDATE_MATCH')
   @Roles('company', 'admin')
   @Post('candidates/evaluate-ai')
   evaluateCandidateAi(
+    @CurrentUser() user: JwtUser,
     @Body() body: { candidateSkills: string[]; requiredSkills?: string[] },
   ) {
     return this.hiringService.evaluateCandidateWithAi(
+      user,
       body.candidateSkills || [],
       body.requiredSkills,
     );

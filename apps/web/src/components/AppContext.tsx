@@ -625,8 +625,14 @@ export function AppContextProvider({
       setThemeState(savedTheme);
       dispatch(setReduxTheme(savedTheme));
       document.documentElement.setAttribute("data-theme", savedTheme);
+      if (savedTheme === "smartdark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
     } else {
       document.documentElement.setAttribute("data-theme", "smartlight");
+      document.documentElement.classList.remove("dark");
     }
 
     if (savedLocale) {
@@ -693,6 +699,11 @@ export function AppContextProvider({
     dispatch(setReduxTheme(newTheme));
     localStorage.setItem("smart_theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
+    if (newTheme === "smartdark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   };
 
   const toggleTheme = () => {

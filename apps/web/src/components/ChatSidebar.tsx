@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiJson, fetchMe, getErrorMessage } from "@/lib/api";
 import { toast } from "react-toastify";
 
@@ -14,7 +14,7 @@ interface Message {
 
 export default function ChatSidebar() {
   const pathname = usePathname();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isRtl = locale === "ar";
 
   const [isOpen, setIsOpen] = useState(false);
@@ -42,17 +42,17 @@ export default function ChatSidebar() {
 
   const suggestions = isRtl
     ? [
-        "ما هي خطوتي التالية في مساري؟",
-        "اشرح لي مفهوم async/await في JavaScript",
-        "كيف أجد وظائف مناسبة لمهاراتي؟",
-        "ما هي مميزات إطار عمل NestJS؟",
-      ]
+      "ما هي خطوتي التالية في مساري؟",
+      "اشرح لي مفهوم async/await في JavaScript",
+      "كيف أجد وظائف مناسبة لمهاراتي؟",
+      "ما هي مميزات إطار عمل NestJS؟",
+    ]
     : [
-        "What is my next step in the roadmap?",
-        "Explain async/await in JavaScript",
-        "How do I match jobs with my skills?",
-        "What are the benefits of NestJS?",
-      ];
+      "What is my next step in the roadmap?",
+      "Explain async/await in JavaScript",
+      "How do I match jobs with my skills?",
+      "What are the benefits of NestJS?",
+    ];
 
   useEffect(() => {
     if (isAuthPage) return;
@@ -114,7 +114,7 @@ export default function ChatSidebar() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  if (isAuthPage || !isLoggedIn) return null;
+  if (isAuthPage || !isLoggedIn || pathname?.startsWith("/cv") || pathname?.startsWith("/profile")) return null;
 
   return (
     <>
@@ -137,15 +137,14 @@ export default function ChatSidebar() {
 
       {/* Slide-out Sidebar Drawer */}
       <div
-        className={`fixed top-0 left-0 h-full w-80 sm:w-96 z-[999] bg-base-200 border-r border-base-300 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 h-full w-80 sm:w-96 z-[999] bg-base-200 border-r border-base-300 shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
         style={{ direction: isRtl ? "rtl" : "ltr" }}
       >
         {/* Header */}
         <div className="p-4 border-b border-base-300 bg-base-300 flex justify-between items-center">
           <div>
-            <h3 className="font-extrabold text-sm text-[#10B981] flex items-center gap-1.5">
+            <h3 className="font-extrabold text-sm text-[#8E1616] flex items-center gap-1.5">
               {t.title}
             </h3>
             <p className="text-[10px] text-base-content/65 font-medium leading-tight">
@@ -155,14 +154,14 @@ export default function ChatSidebar() {
           <div className="flex items-center gap-1">
             <button
               onClick={handleReset}
-              className="btn btn-ghost btn-xs rounded-lg text-error px-1.5 font-bold"
+              className="btn btn-ghost btn-xs rounded-2xl text-error px-1.5 font-bold"
               title={t.reset}
             >
               🗑️
             </button>
             <button
               onClick={() => setIsOpen(false)}
-              className="btn btn-ghost btn-xs btn-circle rounded-lg font-bold text-xs"
+              className="btn btn-ghost btn-xs btn-circle rounded-2xl font-bold text-xs"
             >
               ✕
             </button>
@@ -179,7 +178,7 @@ export default function ChatSidebar() {
                   ? "مرحباً بك! أنا رفيقك الدراسي. اسألني أي سؤال لمساعدتك في المذاكرة وفهم الأكواد!"
                   : "Welcome! I am your study buddy. Feel free to ask me anything to help you learn and understand code!"}
               </p>
-              
+
               {/* Suggestions */}
               <div className="text-left space-y-2 mt-4 px-2" style={{ direction: isRtl ? "rtl" : "ltr" }}>
                 <span className="text-[10px] font-bold text-base-content/40 uppercase block mb-1">
@@ -190,7 +189,7 @@ export default function ChatSidebar() {
                     <button
                       key={idx}
                       onClick={() => handleSend(text)}
-                      className="btn btn-xs btn-outline border-base-300 rounded-xl hover:bg-base-300 font-bold text-left justify-start py-1.5 h-auto text-[11px]"
+                      className="btn btn-xs btn-outline border-base-300 rounded-xl hover:bg-base-300 font-bold text-left justify-start py-1.5 h-auto text-[11px] transition-all duration-300 ease-in-out"
                     >
                       💡 {text}
                     </button>
@@ -206,11 +205,10 @@ export default function ChatSidebar() {
               className={`chat ${msg.role === "user" ? "chat-end" : "chat-start"}`}
             >
               <div
-                className={`chat-bubble text-xs rounded-2xl py-2 px-3.5 leading-relaxed font-medium ${
-                  msg.role === "user"
+                className={`chat-bubble text-xs rounded-2xl py-2 px-3.5 leading-relaxed font-medium ${msg.role === "user"
                     ? "chat-bubble-primary text-white"
                     : "chat-bubble-secondary bg-base-300 text-base-content border border-base-300"
-                }`}
+                  }`}
                 style={{ whiteSpace: "pre-wrap" }}
               >
                 {msg.content}

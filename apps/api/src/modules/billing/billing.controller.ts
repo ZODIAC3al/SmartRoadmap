@@ -13,6 +13,7 @@ import {
 import type { Request } from 'express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { BillingService } from './billing.service';
+import { AiUsageService } from './ai-usage.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -22,11 +23,14 @@ import { CreateCheckoutSessionDto } from './dto/billing.dto';
 @ApiTags('billing')
 @Controller()
 export class BillingController {
-  constructor(private readonly billingService: BillingService) {}
+  constructor(
+    private readonly billingService: BillingService,
+    private readonly aiUsageService: AiUsageService,
+  ) {}
 
   @ApiBearerAuth()
   @UseGuards(RolesGuard)
-  @Roles('company', 'admin')
+  @Roles('learner', 'company', 'admin', 'mentor')
   @Get('billing/subscription')
   getSubscription(@CurrentUser() user: JwtUser) {
     return this.billingService.getSubscriptionForUser(user);
@@ -34,7 +38,23 @@ export class BillingController {
 
   @ApiBearerAuth()
   @UseGuards(RolesGuard)
-  @Roles('company', 'admin')
+  @Roles('learner', 'company', 'admin', 'mentor')
+  @Get('billing/ai-quota')
+  getAiQuota(@CurrentUser() user: JwtUser) {
+    return this.aiUsageService.getQuotaStatus(user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(RolesGuard)
+  @Roles('learner', 'company', 'admin', 'mentor')
+  @Get('billing/ai-history')
+  getAiHistory(@CurrentUser() user: JwtUser) {
+    return this.aiUsageService.getUsageHistory(user);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(RolesGuard)
+  @Roles('learner', 'company', 'admin')
   @Post('billing/checkout-session')
   @HttpCode(HttpStatus.OK)
   createCheckoutSession(
@@ -77,3 +97,4 @@ export class BillingController {
     return this.billingService.handleWebhook(rawBody, signature);
   }
 }
+

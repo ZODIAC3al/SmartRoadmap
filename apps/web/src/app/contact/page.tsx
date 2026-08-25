@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { useApp } from "@/components/AppContext";
@@ -72,13 +72,13 @@ export default function ContactPage() {
       {/* Breadcrumb + Hero */}
       <section className="pb-12 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-xs text-base-content/40 font-bold mb-4 tracking-wide">
+          <p className="text-xs text-base-content/70 dark:text-stone-400 font-medium font-bold mb-4 tracking-wide">
             {t("contact.subtitle")}
           </p>
           <h1 className="font-serif text-5xl sm:text-6xl text-base-content font-bold mb-5">
             {t("contact.title")}
           </h1>
-          <p className="text-sm sm:text-base text-base-content/60 max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-base-content/70 dark:text-stone-300 font-medium max-w-xl mx-auto leading-relaxed">
             {t("contact.desc")}
           </p>
         </div>
@@ -183,9 +183,9 @@ export default function ContactPage() {
                       onChange={(e) =>
                         setForm({ ...form, name: e.target.value })
                       }
-                      className="input input-bordered w-full bg-base-200 border-base-300 rounded-lg h-12 text-sm focus:border-primary focus:outline-none"
+                      className="input input-bordered w-full bg-base-200 border-base-300 rounded-2xl h-12 text-sm focus:border-primary focus:outline-none"
                     />
-                    <span className="absolute top-3 right-4 text-base-content/40 text-xs">
+                    <span className="absolute top-3 right-4 text-base-content/70 dark:text-stone-400 font-medium text-xs">
                       *
                     </span>
                   </div>
@@ -198,9 +198,9 @@ export default function ContactPage() {
                       onChange={(e) =>
                         setForm({ ...form, email: e.target.value })
                       }
-                      className="input input-bordered w-full bg-base-200 border-base-300 rounded-lg h-12 text-sm focus:border-primary focus:outline-none"
+                      className="input input-bordered w-full bg-base-200 border-base-300 rounded-2xl h-12 text-sm focus:border-primary focus:outline-none"
                     />
-                    <span className="absolute top-3 right-4 text-base-content/40 text-xs">
+                    <span className="absolute top-3 right-4 text-base-content/70 dark:text-stone-400 font-medium text-xs">
                       *
                     </span>
                   </div>
@@ -213,7 +213,7 @@ export default function ContactPage() {
                       onChange={(e) =>
                         setForm({ ...form, countryCode: e.target.value })
                       }
-                      className="select select-bordered bg-base-200 border-base-300 rounded-lg h-12 text-sm w-24 focus:border-primary focus:outline-none"
+                      className="select select-bordered bg-base-200 border-base-300 rounded-2xl h-12 text-sm w-24 focus:border-primary focus:outline-none"
                     >
                       <option value="+20">🇪🇬 +20</option>
                       <option value="+1">🇺🇸 +1</option>
@@ -229,7 +229,7 @@ export default function ContactPage() {
                       onChange={(e) =>
                         setForm({ ...form, phone: e.target.value })
                       }
-                      className="input input-bordered w-full bg-base-200 border-base-300 rounded-lg h-12 text-sm focus:border-primary focus:outline-none"
+                      className="input input-bordered w-full bg-base-200 border-base-300 rounded-2xl h-12 text-sm focus:border-primary focus:outline-none"
                     />
                   </div>
                   <div className="relative">
@@ -239,7 +239,7 @@ export default function ContactPage() {
                       onChange={(e) =>
                         setForm({ ...form, interest: e.target.value })
                       }
-                      className="select select-bordered w-full bg-base-200 border-base-300 rounded-lg h-12 text-sm focus:border-primary focus:outline-none"
+                      className="select select-bordered w-full bg-base-200 border-base-300 rounded-2xl h-12 text-sm focus:border-primary focus:outline-none"
                     >
                       <option value="" disabled>
                         {t("contact.interest")}
@@ -250,7 +250,7 @@ export default function ContactPage() {
                         </option>
                       ))}
                     </select>
-                    <span className="absolute top-3 right-9 text-base-content/40 text-xs">
+                    <span className="absolute top-3 right-9 text-base-content/70 dark:text-stone-400 font-medium text-xs">
                       *
                     </span>
                   </div>
@@ -264,9 +264,9 @@ export default function ContactPage() {
                     onChange={(e) =>
                       setForm({ ...form, message: e.target.value })
                     }
-                    className="textarea textarea-bordered w-full bg-base-200 border-base-300 rounded-lg h-36 text-sm focus:border-primary focus:outline-none resize-none"
+                    className="textarea textarea-bordered w-full bg-base-200 border-base-300 rounded-2xl h-36 text-sm focus:border-primary focus:outline-none resize-none"
                   />
-                  <span className="absolute top-3 right-4 text-base-content/40 text-xs">
+                  <span className="absolute top-3 right-4 text-base-content/70 dark:text-stone-400 font-medium text-xs">
                     *
                   </span>
                 </div>
@@ -282,7 +282,7 @@ export default function ContactPage() {
                     )}
                     {t("contact.btn")}
                   </button>
-                  <p className="text-[11px] text-base-content/40 mt-3 text-center leading-relaxed">
+                  <p className="text-[11px] text-base-content/70 dark:text-stone-400 font-medium mt-3 text-center leading-relaxed">
                     {t("contact.terms_warning")}
                   </p>
                 </div>
@@ -295,7 +295,7 @@ export default function ContactPage() {
                 <h3 className="font-bold text-lg text-base-content mb-2">
                   {t("contact.success_title")}
                 </h3>
-                <p className="text-sm text-base-content/60">
+                <p className="text-sm text-base-content/70 dark:text-stone-300 font-medium">
                   {t("contact.success_desc")}
                 </p>
               </div>
@@ -388,7 +388,7 @@ export default function ContactPage() {
       {/* Map + address section */}
       <section className="px-4 pb-20">
         <div className="max-w-5xl mx-auto text-center mb-10">
-          <p className="text-xs text-base-content/40 font-bold mb-3 tracking-wide uppercase">
+          <p className="text-xs text-base-content/70 dark:text-stone-400 font-medium font-bold mb-3 tracking-wide uppercase">
             {tLocal("contact.egypt")}
           </p>
           <h2 className="font-serif text-3xl sm:text-4xl text-base-content font-bold">
@@ -412,7 +412,7 @@ export default function ContactPage() {
           {/* Address card */}
           <div className="bg-base-200 border border-base-300 rounded-2xl p-7 flex flex-col gap-6">
             <div>
-              <p className="text-xs text-base-content/50 uppercase tracking-wide mb-1.5">
+              <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wide mb-1.5">
                 {t("contact.address")}
               </p>
               <p className="text-sm font-bold text-base-content">
@@ -420,23 +420,23 @@ export default function ContactPage() {
               </p>
             </div>
             <div>
-              <p className="text-xs text-base-content/50 uppercase tracking-wide mb-1.5">
+              <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wide mb-1.5">
                 {t("nav.contact")}
               </p>
               <a
                 href="mailto:hi@smartroadmap.dev"
-                className="text-sm font-bold text-primary hover:underline"
+                className="text-sm font-bold text-primary hover:underline transition-all duration-300 ease-in-out"
               >
                 hi@smartroadmap.dev
               </a>
             </div>
             <div>
-              <p className="text-xs text-base-content/50 uppercase tracking-wide mb-1.5">
+              <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wide mb-1.5">
                 {locale === "en" ? "Phone" : "الهاتف"}
               </p>
               <a
                 href="tel:+20100000000"
-                className="text-sm font-bold text-primary hover:underline"
+                className="text-sm font-bold text-primary hover:underline transition-all duration-300 ease-in-out"
               >
                 +20 100 000 0000
               </a>
@@ -454,7 +454,7 @@ export default function ContactPage() {
                   key={s}
                   href="#"
                   aria-label={s}
-                  className="w-9 h-9 rounded-full bg-base-100 border border-base-300 flex items-center justify-center text-base-content/70 hover:border-primary hover:text-primary transition-colors text-xs"
+                  className="w-9 h-9 rounded-full bg-base-100 border border-base-300 flex items-center justify-center text-base-content/70 dark:text-stone-300 font-medium hover:border-primary hover:text-primary transition-colors text-xs"
                 >
                   {s[0].toUpperCase()}
                 </a>

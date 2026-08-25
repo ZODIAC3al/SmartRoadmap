@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
@@ -46,7 +46,7 @@ function VerifyEmail() {
       <h1 className="text-2xl font-bold">
         {state === "ok" ? "Email verified 🎉" : "Verification failed"}
       </h1>
-      <p className="text-sm text-base-content/60">
+      <p className="text-sm text-base-content/70 dark:text-stone-300 font-medium">
         {state === "ok" ? "Your account is now fully activated." : message}
       </p>
       <Link

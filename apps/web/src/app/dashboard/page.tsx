@@ -30,7 +30,8 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
+import { AiUsageDashboard } from "@/components/dashboard/AiUsageDashboard";
 import { apiFetch, getCachedUser, hasSession } from "@/lib/api";
 import {
   Lock,
@@ -206,7 +207,7 @@ function DevotopiaShieldBadge({
   const themeColors = {
     gold: { border: "#f59e0b", banner: "#d97706" },
     blue: { border: "#3b82f6", banner: "#2563eb" },
-    emerald: { border: "#10b981", banner: "#059669" },
+    emerald: { border: "#8E1616", banner: "#701111" },
     purple: { border: "#8b5cf6", banner: "#7c3aed" },
     pink: { border: "#ec4899", banner: "#db2777" },
     cyan: { border: "#06b6d4", banner: "#0891b2" },
@@ -299,7 +300,7 @@ function DevotopiaShieldBadge({
         <button
           onClick={handleExportSVG}
           title="Export Badge SVG"
-          className="absolute -bottom-1 right-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          className="absolute -bottom-1 right-1 bg-primary text-primary-content hover:bg-primary text-primary-content text-white rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
         >
           <Download className="w-3 h-3" />
         </button>
@@ -310,7 +311,7 @@ function DevotopiaShieldBadge({
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isAr = locale === "ar";
   const tr = (key: DictKey, vars?: Record<string, string>) => {
     let str = dict[key][isAr ? "ar" : "en"];
@@ -943,13 +944,13 @@ export default function DashboardPage() {
   if (!user) {
     return (
       <div className="flex flex-col min-h-[80vh] items-center justify-center p-8 text-center bg-base-100">
-        <div className="w-16 h-16 rounded-full bg-indigo-600/10 text-indigo-600 flex items-center justify-center mb-4">
-          <Lock className="w-8 h-8 text-indigo-600" />
+        <div className="w-16 h-16 rounded-full bg-primary text-primary-content/10 text-primary flex items-center justify-center mb-4">
+          <Lock className="w-8 h-8 text-primary" />
         </div>
         <h2 className="text-2xl font-black text-base-content tracking-tight">{tr("restricted")}</h2>
         <p className="text-sm text-base-content/50 max-w-sm mb-6">{tr("restrictedBody")}</p>
         <div className="flex gap-4">
-          <Link href="/auth/login" className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none rounded-xl">
+          <Link href="/auth/login" className="btn bg-primary text-primary-content hover:bg-indigo-700 text-white border-none rounded-xl transition-all duration-300 ease-in-out">
             {tr("logIn")}
           </Link>
           <Link href="/auth/register" className="btn btn-outline border-base-300 text-base-content rounded-xl">
@@ -960,7 +961,13 @@ export default function DashboardPage() {
     );
   }
 
+  if (user?.role === "admin") {
+    router.push("/admin");
+    return null;
+  }
+
   if (user?.role === "company") {
+    router.push("/company");
     return null;
   }
 
@@ -1011,7 +1018,7 @@ export default function DashboardPage() {
 
   const topicDistributionData = [
     { name: "Frontend & UI", value: 40, color: "#6366f1" },
-    { name: "Backend APIs", value: 30, color: "#10b981" },
+    { name: "Backend APIs", value: 30, color: "#8E1616" },
     { name: "Database & Models", value: 18, color: "#f59e0b" },
     { name: "DevOps & Deploy", value: 12, color: "#ec4899" },
   ];
@@ -1032,13 +1039,68 @@ export default function DashboardPage() {
   return (
     <div dir={isAr ? "rtl" : "ltr"} className="bg-base-100 text-base-content min-h-screen pb-12 pt-6 px-4 sm:px-8 overflow-x-hidden">
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* Greeting */}
-        <motion.div {...fadeUp} transition={{ duration: 0.4 }} className="space-y-2 text-start">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-base-content">
-            {tr("greeting", { name: user.name })}
-          </h1>
-          <p className="text-sm text-base-content/45 max-w-xl">{tr("intro")}</p>
+        {/* Greeting Hero Card */}
+        <motion.div {...fadeUp} transition={{ duration: 0.4 }} className="bg-gradient-to-br from-[#E8C999]/30 to-[#F8EEDF] border border-[#E8C999]/50 rounded-[2rem] p-6 sm:p-10 flex flex-col md:flex-row justify-between items-center gap-8 shadow-sm">
+          {/* Left Side: Text */}
+          <div className="space-y-4 text-start flex-1 max-w-xl">
+            <span className="text-[10px] uppercase font-mono font-extrabold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20 tracking-wider inline-flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              ADAPTIVE ROADMAP IN-SYNC
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-base-content leading-tight">
+              {tr("greeting", { name: user.name })}
+            </h1>
+            <p className="text-sm text-base-content/60 leading-relaxed font-medium">
+              {tr("intro")}
+            </p>
+          </div>
+
+          {/* Right Side: Career Progression Card */}
+          <div className="bg-base-100 rounded-2xl p-5 shadow-sm border border-base-300 flex-1 max-w-sm w-full space-y-4 text-start relative overflow-hidden">
+             <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-[#E8C999]/20 blur-xl"></div>
+             <div>
+               <p className="text-[10px] uppercase font-bold text-base-content/50 tracking-wider">Career Progression Journey</p>
+               <div className="flex items-center justify-between mt-1">
+                 <h4 className="font-extrabold text-sm text-base-content">
+                   Software Engineer <span className="text-base-content/50 mx-1">→</span> <span className="text-primary">Senior Architect</span>
+                 </h4>
+                 <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 font-bold px-2 py-0.5 rounded-full">Junior</span>
+               </div>
+             </div>
+             
+             <div className="space-y-1.5">
+               <div className="flex justify-between items-center text-[10px] font-bold">
+                 <span className="text-base-content/70">Overall Competency Mastery</span>
+                 <span className="text-primary">45%</span>
+               </div>
+               <div className="w-full bg-base-300 rounded-full h-2 overflow-hidden">
+                  <div className="bg-gradient-to-r from-amber-500 to-primary h-full rounded-full" style={{ width: '45%' }}></div>
+               </div>
+             </div>
+
+             <div className="grid grid-cols-4 gap-2 pt-2">
+                <div className="bg-[#8E1616]/10 border border-[#8E1616]/20 rounded-xl p-2 flex flex-col items-center justify-center gap-1">
+                  <span className="text-lg">🌱</span>
+                  <span className="text-[8px] font-extrabold text-[#8E1616] uppercase text-center leading-none">Foundation<br/><span className="text-[#8E1616]/60 mt-0.5 block">VERIFIED</span></span>
+                </div>
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2 flex flex-col items-center justify-center gap-1">
+                  <span className="text-lg">⚡</span>
+                  <span className="text-[8px] font-extrabold text-amber-600 uppercase text-center leading-none">Core Skills<br/><span className="text-amber-600/60 mt-0.5 block">VERIFIED</span></span>
+                </div>
+                <div className="bg-primary/5 border border-primary/20 rounded-xl p-2 flex flex-col items-center justify-center gap-1">
+                  <span className="text-lg">🏛️</span>
+                  <span className="text-[8px] font-extrabold text-primary uppercase text-center leading-none">Architecture<br/><span className="text-primary/60 mt-0.5 block">IN PROGRESS</span></span>
+                </div>
+                <div className="bg-base-200 border border-base-300 rounded-xl p-2 flex flex-col items-center justify-center gap-1">
+                  <span className="text-lg opacity-40">👑</span>
+                  <span className="text-[8px] font-extrabold text-base-content/40 uppercase text-center leading-none">Mastery<br/><span className="mt-0.5 block">LOCKED</span></span>
+                </div>
+             </div>
+          </div>
         </motion.div>
+
+        {/* AI Entitlement & Usage Dashboard */}
+        <AiUsageDashboard />
 
         {/* Action cards */}
         <motion.div
@@ -1048,9 +1110,9 @@ export default function DashboardPage() {
           className="grid grid-cols-1 md:grid-cols-3 gap-6"
         >
           {[
-            { icon: <Layout className="w-5 h-5" />, title: tr("card1Title"), body: tr("card1Body"), color: "bg-indigo-600/10 text-indigo-600" },
-            { icon: <Zap className="w-5 h-5" />, title: tr("card2Title"), body: tr("card2Body"), color: "bg-emerald-600/10 text-emerald-600" },
-            { icon: <Users className="w-5 h-5" />, title: tr("card3Title"), body: tr("card3Body"), color: "bg-purple-600/10 text-purple-600" },
+            { icon: <Layout className="w-5 h-5" />, title: tr("card1Title"), body: tr("card1Body"), color: "bg-primary text-primary-content/10 text-primary" },
+            { icon: <Zap className="w-5 h-5" />, title: tr("card2Title"), body: tr("card2Body"), color: "bg-[#701111]/10 text-[#701111]" },
+            { icon: <Users className="w-5 h-5" />, title: tr("card3Title"), body: tr("card3Body"), color: "bg-primary text-primary-content/10 text-primary" },
           ].map((c, i) => (
             <motion.div
               key={i}
@@ -1074,7 +1136,7 @@ export default function DashboardPage() {
             onClick={() => setActiveTab("overview")}
             className={`pb-3 relative transition-all ${
               activeTab === "overview"
-                ? "text-indigo-600 font-extrabold border-b-2 border-indigo-600"
+                ? "text-primary font-extrabold border-b-2 border-primary"
                 : "text-base-content/60 hover:text-base-content"
             }`}
           >
@@ -1084,7 +1146,7 @@ export default function DashboardPage() {
             onClick={() => setActiveTab("activity")}
             className={`pb-3 relative transition-all ${
               activeTab === "activity"
-                ? "text-indigo-600 font-extrabold border-b-2 border-indigo-600"
+                ? "text-primary font-extrabold border-b-2 border-primary"
                 : "text-base-content/60 hover:text-base-content"
             }`}
           >
@@ -1119,7 +1181,7 @@ export default function DashboardPage() {
                       </RadialBarChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-2xl font-black text-indigo-600">{summary.roadmapProgress}%</span>
+                      <span className="text-2xl font-black text-primary">{summary.roadmapProgress}%</span>
                     </div>
                   </div>
                 </div>
@@ -1156,7 +1218,7 @@ export default function DashboardPage() {
                 {/* LineChart for Quiz Performance */}
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start">
                   <h3 className="font-bold text-base-content text-sm mb-4 flex items-center gap-1.5">
-                    <Activity className="w-4 h-4 text-indigo-500" /> Assessment History
+                    <Activity className="w-4 h-4 text-primary" /> Assessment History
                   </h3>
                   <div className="h-40">
                     <ResponsiveContainer width="100%" height="100%">
@@ -1174,22 +1236,22 @@ export default function DashboardPage() {
                 {/* AreaChart for Study Time Trend */}
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start">
                   <h3 className="font-bold text-base-content text-sm mb-4 flex items-center gap-1.5">
-                    <i className="lni lni-timer text-emerald-500" /> Study Activity
+                    <i className="lni lni-timer text-[#8E1616]" /> Study Activity
                   </h3>
                   <div className="h-40">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={studyTimeData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="colorMinutes" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="#8E1616" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#8E1616" stopOpacity={0}/>
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.15} />
                         <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                         <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-                        <Area type="monotone" dataKey="minutes" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorMinutes)" />
+                        <Area type="monotone" dataKey="minutes" stroke="#8E1616" strokeWidth={2} fillOpacity={1} fill="url(#colorMinutes)" />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
@@ -1201,7 +1263,7 @@ export default function DashboardPage() {
                 {/* RadarChart for Skill Mastery Matrix */}
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start">
                   <h3 className="font-bold text-base-content text-sm mb-2 flex items-center gap-1.5">
-                    <Target className="w-4 h-4 text-indigo-600" />
+                    <Target className="w-4 h-4 text-primary" />
                     <span>Skill Mastery Matrix 🎯</span>
                   </h3>
                   <div className="h-44">
@@ -1218,7 +1280,7 @@ export default function DashboardPage() {
                 {/* PieChart / Donut for Topic Distribution */}
                 <div className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start">
                   <h3 className="font-bold text-base-content text-sm mb-2 flex items-center gap-1.5">
-                    <PieChartIcon className="w-4 h-4 text-emerald-500" />
+                    <PieChartIcon className="w-4 h-4 text-[#8E1616]" />
                     <span>Study Time Allocation 📊</span>
                   </h3>
                   <div className="h-44 flex items-center justify-center">
@@ -1249,7 +1311,7 @@ export default function DashboardPage() {
               <motion.div {...fadeUp} transition={{ duration: 0.4, delay: 0.08 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-base-content text-sm">{tr("notifTitle")}</h3>
-                  <Link href="/notifications" className="text-xs text-indigo-600 hover:underline font-bold">
+                  <Link href="/notifications" className="text-xs text-primary hover:underline font-bold transition-all duration-300 ease-in-out">
                     {tr("clearAll")}
                   </Link>
                 </div>
@@ -1258,13 +1320,13 @@ export default function DashboardPage() {
                     notifications.slice(0, 2).map((n, i) => (
                       <div key={i} className="bg-base-100 border border-base-300 rounded-xl p-4 flex justify-between items-center gap-3">
                         <div>
-                          <span className="text-[9px] uppercase font-mono font-bold text-indigo-600 bg-indigo-600/10 px-2 py-0.5 rounded">
+                          <span className="text-[9px] uppercase font-mono font-bold text-primary bg-primary text-primary-content/10 px-2 py-0.5 rounded">
                             {n.type}
                           </span>
                           <h4 className="font-bold text-base-content text-xs mt-1.5">{n.titleEn}</h4>
                           <p className="text-[11px] text-base-content/45 mt-0.5">{n.contentEn}</p>
                         </div>
-                        {!n.read && <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0" />}
+                        {!n.read && <span className="w-2 h-2 rounded-full bg-primary text-primary-content shrink-0" />}
                       </div>
                     ))
                   ) : (
@@ -1286,7 +1348,7 @@ export default function DashboardPage() {
                   <div className="border border-base-300 rounded-xl p-4 bg-base-100 space-y-4">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-[9px] text-indigo-600 font-extrabold uppercase font-mono tracking-wider block">
+                        <span className="text-[9px] text-primary font-extrabold uppercase font-mono tracking-wider block">
                           {tr("roadmapModule")}
                         </span>
                         <h4 className="font-bold text-base-content text-sm mt-0.5">{summary.nextModule.title}</h4>
@@ -1297,10 +1359,10 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="flex gap-2 justify-end pt-2">
-                      <Link href="/roadmap" className="btn btn-outline btn-xs rounded text-base-content/70 border-base-300 hover:bg-base-200 gap-1">
+                      <Link href="/roadmap" className="btn btn-outline btn-xs rounded text-base-content/70 border-base-300 hover:bg-base-200 gap-1 transition-all duration-300 ease-in-out">
                         <MapPin className="w-3.5 h-3.5" /> {tr("openCanvas")}
                       </Link>
-                      <Link href={`/quiz/${summary.nextModule.id}`} className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-xs rounded font-bold px-4 gap-1">
+                      <Link href={`/quiz/${summary.nextModule.id}`} className="btn bg-primary text-primary-content hover:bg-indigo-700 text-white border-none btn-xs rounded font-bold px-4 gap-1 transition-all duration-300 ease-in-out">
                         <Zap className="w-3.5 h-3.5" /> {tr("proveMastery")}
                       </Link>
                     </div>
@@ -1323,13 +1385,13 @@ export default function DashboardPage() {
                     summary.nextModule.topics.map((topic: string, i: number) => (
                       <div key={i} className="flex justify-between items-center bg-base-100 border border-base-300 rounded-xl p-3.5">
                         <div className="flex items-center gap-3">
-                          <span className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-primary text-primary-content" />
                           <span className="text-xs font-bold text-base-content/80">{topic}</span>
                         </div>
                         <div className="flex items-center gap-4">
                           <span className="text-[11px] text-base-content/40">{tr("estimated")}: 1h</span>
                           <div className="w-16 bg-base-300 rounded-full h-1.5 overflow-hidden">
-                            <div className="bg-indigo-600 h-full" style={{ width: i === 0 ? "90%" : i === 1 ? "50%" : "10%" }} />
+                            <div className="bg-primary text-primary-content h-full" style={{ width: i === 0 ? "90%" : i === 1 ? "50%" : "10%" }} />
                           </div>
                         </div>
                       </div>
@@ -1345,14 +1407,14 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-center border-b border-base-300 pb-3">
                   <div>
                     <h3 className="font-extrabold text-base-content text-sm flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-indigo-600" />
+                      <BookOpen className="w-4 h-4 text-primary" />
                       <span>{isAr ? "خزينة الدراسة الذكية والأوراق الإرشادية 📚" : "AI Study Vault & Stored Cheatsheets 📚"}</span>
                     </h3>
                     <p className="text-[11px] text-base-content/50 mt-0.5">
                       {isAr ? "جميع المواضيع والملاحظات والمساعد الصوتي المتاحة لحسابك" : "Instant access to your module topics, AI speech notes, PDF exports, and AI Voice Tutor."}
                     </p>
                   </div>
-                  <span className="text-[10px] bg-indigo-600/10 text-indigo-600 font-mono font-bold px-2.5 py-1 rounded-lg">
+                  <span className="text-[10px] bg-primary text-primary-content/10 text-primary font-mono font-bold px-2.5 py-1 rounded-2xl">
                     {summary.activeRoadmap?.modules?.length || summary.storedCheatSheets?.length || 0} Modules
                   </span>
                 </div>
@@ -1372,14 +1434,14 @@ export default function DashboardPage() {
                     const storedCs = summary.storedCheatSheets?.find(c => c.moduleId === mod.id);
 
                     return (
-                      <div key={mod.id} className="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-3 shadow-xs hover:border-indigo-600/40 transition-all flex flex-col justify-between">
+                      <div key={mod.id} className="bg-base-100 border border-base-300 rounded-2xl p-4 space-y-3 shadow-xs hover:border-primary/40 transition-all flex flex-col justify-between">
                         <div className="space-y-1.5">
                           <div className="flex justify-between items-center">
-                            <span className="text-[9px] uppercase font-mono font-extrabold text-indigo-600 bg-indigo-600/10 px-2 py-0.5 rounded">
+                            <span className="text-[9px] uppercase font-mono font-extrabold text-primary bg-primary text-primary-content/10 px-2 py-0.5 rounded">
                               {mod.difficulty || "module"}
                             </span>
                             <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase ${
-                              mod.status === 'completed' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
+                              mod.status === 'completed' ? 'bg-[#8E1616]/10 text-[#701111]' : 'bg-amber-500/10 text-amber-600'
                             }`}>
                               {mod.status || 'active'}
                             </span>
@@ -1410,9 +1472,9 @@ export default function DashboardPage() {
                                 content: storedCs?.content || `### Speech Notes & Cheatsheet for ${mod.title}\n\n**Topics:** ${(mod.topics || []).join(', ')}\n\n${mod.description}`,
                               });
                             }}
-                            className="btn btn-outline btn-xs border-base-300 text-base-content hover:bg-indigo-600 hover:text-white btn-block rounded-xl font-bold h-8 flex items-center justify-center gap-1 text-[10px]"
+                            className="btn btn-outline btn-xs border-base-300 text-base-content hover:bg-primary text-primary-content hover:text-white btn-block rounded-xl font-bold h-8 flex items-center justify-center gap-1 text-[10px] transition-all duration-300 ease-in-out"
                           >
-                            <FileText className="w-3 h-3 text-indigo-600" />
+                            <FileText className="w-3 h-3 text-primary" />
                             <span>{isAr ? "عرض الملاحظات 📄" : "Speech Notes 📄"}</span>
                           </button>
 
@@ -1424,7 +1486,7 @@ export default function DashboardPage() {
                                   storedCs?.content || `Master Study Guide for ${mod.title}\n\nTopics: ${(mod.topics || []).join(', ')}\n\n${mod.description}`
                                 );
                               }}
-                              className="btn btn-outline border-base-300 btn-xs text-[9px] font-bold rounded-lg h-7 flex items-center justify-center gap-1"
+                              className="btn btn-outline border-base-300 btn-xs text-[9px] font-bold rounded-2xl h-7 flex items-center justify-center gap-1"
                             >
                               <Download className="w-2.5 h-2.5" />
                               <span>PDF</span>
@@ -1435,7 +1497,7 @@ export default function DashboardPage() {
                                 setActiveTutorModule(mod);
                                 setShowVoiceTutorModal(true);
                               }}
-                              className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-xs text-[9px] font-bold rounded-lg h-7 flex items-center justify-center gap-1"
+                              className="btn bg-primary text-primary-content hover:bg-indigo-700 text-white border-none btn-xs text-[9px] font-bold rounded-2xl h-7 flex items-center justify-center gap-1 transition-all duration-300 ease-in-out"
                             >
                               <Mic className="w-2.5 h-2.5" />
                               <span>Voice Tutor 🎙️</span>
@@ -1453,14 +1515,14 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-center border-b border-base-300 pb-3">
                   <div>
                     <h3 className="font-extrabold text-base-content text-sm flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-indigo-600" />
+                      <Clock className="w-4 h-4 text-primary" />
                       <span>{isAr ? "سجل الدراسة ومتتبع النشاط ⏱️" : "Study History & Activity Tracker ⏱️"}</span>
                     </h3>
                     <p className="text-[11px] text-base-content/50 mt-0.5">
                       {isAr ? "سجل جلسات الدراسة والاختبارات المكتملة والدقائق المسجلة" : "Detailed log of your recent study sessions, quiz submissions, and active milestones."}
                     </p>
                   </div>
-                  <span className="text-[10px] bg-emerald-500/10 text-emerald-600 font-mono font-bold px-2.5 py-1 rounded-lg">
+                  <span className="text-[10px] bg-[#8E1616]/10 text-[#701111] font-mono font-bold px-2.5 py-1 rounded-2xl">
                     Live Syncing
                   </span>
                 </div>
@@ -1472,10 +1534,10 @@ export default function DashboardPage() {
                     { event: "Mastered NestJS Microservices Module", score: 95, timeSpentMinutes: 60, createdAt: new Date(Date.now() - 172800000).toISOString() },
                     { event: "Reviewed Adaptive Remedial Node Graph", score: 88, timeSpentMinutes: 40, createdAt: new Date(Date.now() - 259200000).toISOString() },
                   ]).slice(0, 5).map((log: any, idx: number) => (
-                    <div key={idx} className="bg-base-100 border border-base-300 rounded-xl p-3.5 flex items-center justify-between gap-3 hover:border-indigo-600/30 transition-all">
+                    <div key={idx} className="bg-base-100 border border-base-300 rounded-xl p-3.5 flex items-center justify-between gap-3 hover:border-primary/30 transition-all">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-indigo-600/10 border border-indigo-600/20 text-indigo-600 flex items-center justify-center shrink-0">
-                          <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                        <div className="w-8 h-8 rounded-xl bg-primary text-primary-content/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+                          <CheckCircle2 className="w-4 h-4 text-primary" />
                         </div>
                         <div>
                           <h5 className="font-bold text-xs text-base-content">{log.event || `Study Session ${idx + 1}`}</h5>
@@ -1487,7 +1549,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       {log.score > 0 && (
-                        <div className="bg-indigo-600/10 text-indigo-600 font-extrabold text-[10px] px-2.5 py-1 rounded-lg border border-indigo-600/20">
+                        <div className="bg-primary text-primary-content/10 text-primary font-extrabold text-[10px] px-2.5 py-1 rounded-2xl border border-primary/20">
                           Score: {log.score}%
                         </div>
                       )}
@@ -1503,7 +1565,7 @@ export default function DashboardPage() {
               <motion.div {...fadeUp} transition={{ duration: 0.4 }} className="bg-base-200 border border-base-300 rounded-2xl p-6 shadow-sm text-start space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="font-bold text-base-content text-sm">{tr("scheduleSummary")}</h3>
-                  <Link href="/calendar" className="text-xs text-indigo-600 hover:underline font-bold">
+                  <Link href="/calendar" className="text-xs text-primary hover:underline font-bold transition-all duration-300 ease-in-out">
                     {tr("openFull")}
                   </Link>
                 </div>
@@ -1512,10 +1574,10 @@ export default function DashboardPage() {
                     summary.upcomingEvents.slice(0, 4).map((ev, i) => (
                       <div key={i} className="text-[11px] font-semibold text-base-content/60 flex justify-between items-center border-t border-base-300 pt-2">
                         <span className="truncate max-w-[150px] flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-indigo-600" />
+                          <Calendar className="w-3.5 h-3.5 text-primary" />
                           {ev.title}
                         </span>
-                        <span className="text-indigo-600 font-bold">
+                        <span className="text-primary font-bold">
                           {new Date(ev.startAt).toLocaleTimeString(isAr ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
@@ -1530,16 +1592,16 @@ export default function DashboardPage() {
               <motion.div
                 {...fadeUp}
                 transition={{ duration: 0.4, delay: 0.05 }}
-                className="bg-indigo-600 text-white rounded-2xl p-6 shadow-md text-start space-y-4 relative overflow-hidden"
+                className="bg-primary text-primary-content text-white rounded-2xl p-6 shadow-md text-start space-y-4 relative overflow-hidden"
               >
-                <div className="absolute -top-12 -end-12 w-28 h-28 rounded-full bg-white/10" />
+                <div className="absolute -top-12 -end-12 w-28 h-28 rounded-full bg-base-100/10" />
                 <div className="space-y-1 relative z-10">
                   <h3 className="font-extrabold text-lg flex items-center gap-2">
                     <Crown className="w-5 h-5 text-yellow-300 fill-yellow-300" /> {tr("goPremium")}
                   </h3>
                   <p className="text-xs text-indigo-100 leading-relaxed">{tr("premiumBody")}</p>
                 </div>
-                <Link href="/pricing" className="btn bg-white hover:bg-base-100 text-indigo-600 border-none btn-sm rounded-xl font-bold w-full relative z-10">
+                <Link href="/pricing" className="btn bg-base-100 hover:bg-base-100 text-primary border-none btn-sm rounded-xl font-bold w-full relative z-10 transition-all duration-300 ease-in-out">
                   {tr("findOutMore")}
                 </Link>
               </motion.div>
@@ -1548,10 +1610,10 @@ export default function DashboardPage() {
               <motion.div
                 {...fadeUp}
                 transition={{ duration: 0.4, delay: 0.08 }}
-                className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 text-white border border-indigo-500/30 rounded-2xl p-6 shadow-xl text-start space-y-4 relative overflow-hidden"
+                className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 text-white border border-primary/30 rounded-2xl p-6 shadow-xl text-start space-y-4 relative overflow-hidden"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-mono font-bold tracking-widest text-indigo-300 bg-indigo-500/20 px-2.5 py-1 rounded-full border border-indigo-400/30">
+                  <span className="text-[10px] uppercase font-mono font-bold tracking-widest text-indigo-300 bg-primary text-primary-content/20 px-2.5 py-1 rounded-full border border-indigo-400/30">
                     {isAr ? "اعتماد رسمي" : "Official Credential"}
                   </span>
                   <Award className="w-6 h-6 text-amber-400" />
@@ -1569,7 +1631,7 @@ export default function DashboardPage() {
                 <button
                   onClick={handleExportCert}
                   disabled={certLoading}
-                  className="btn bg-indigo-600 hover:bg-indigo-500 text-white border-none btn-sm rounded-xl font-bold w-full gap-2 shadow-lg"
+                  className="btn bg-primary text-primary-content hover:bg-primary text-primary-content text-white border-none btn-sm rounded-xl font-bold w-full gap-2 shadow-lg transition-all duration-300 ease-in-out"
                 >
                   {certLoading ? (
                     <span className="loading loading-spinner loading-xs" />
@@ -1650,8 +1712,8 @@ export default function DashboardPage() {
                   <button
                     key={p}
                     onClick={() => setPeriod(p)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      period === p ? "bg-white text-indigo-600 shadow-sm" : "text-base-content/60 hover:text-base-content"
+                    className={`px-3 py-1.5 rounded-2xl text-xs font-bold transition-all ${
+                      period === p ? "bg-base-100 text-primary shadow-sm" : "text-base-content/60 hover:text-base-content"
                     }`}
                   >
                     {p === "7d" ? (isAr ? "٧ أيام" : "7 Days") : p === "30d" ? (isAr ? "٣٠ يوم" : "30 Days") : (isAr ? "٩٠ يوم" : "90 Days")}
@@ -1662,7 +1724,7 @@ export default function DashboardPage() {
 
             {activityLoading ? (
               <div className="h-64 flex items-center justify-center">
-                <span className="loading loading-spinner loading-lg text-indigo-600" />
+                <span className="loading loading-spinner loading-lg text-primary" />
               </div>
             ) : activityData ? (
               <div className="space-y-6">
@@ -1672,7 +1734,7 @@ export default function DashboardPage() {
                     <span className="text-[10px] uppercase font-bold text-base-content/40 block">
                       {isAr ? "إجمالي وقت الدراسة" : "Total Time Spent"}
                     </span>
-                    <span className="text-2xl font-black text-indigo-600 block mt-1">
+                    <span className="text-2xl font-black text-primary block mt-1">
                       {activityData.summary.totalMinutes} {isAr ? "دقائق" : "mins"}
                     </span>
                     <span className="text-[9px] text-base-content/50 block mt-1">
@@ -1684,7 +1746,7 @@ export default function DashboardPage() {
                     <span className="text-[10px] uppercase font-bold text-base-content/40 block">
                       {isAr ? "مجموع الاختبارات" : "Quizzes Completed"}
                     </span>
-                    <span className="text-2xl font-black text-emerald-500 block mt-1">
+                    <span className="text-2xl font-black text-[#8E1616] block mt-1">
                       {activityData.summary.totalQuizzes}
                     </span>
                     <span className="text-[9px] text-base-content/50 block mt-1">
@@ -1708,7 +1770,7 @@ export default function DashboardPage() {
                     <span className="text-[10px] uppercase font-bold text-base-content/40 block">
                       {isAr ? "معدل الأيام النشطة" : "Active Days Ratio"}
                     </span>
-                    <span className="text-2xl font-black text-purple-600 block mt-1">
+                    <span className="text-2xl font-black text-primary block mt-1">
                       {Math.round(
                         (activityData.days.filter((d: any) => d.minutesStudied > 0 || d.quizzes > 0).length /
                           activityData.days.length) *
@@ -1726,7 +1788,7 @@ export default function DashboardPage() {
                 {/* AreaChart: Study Minutes */}
                 <div className="bg-base-200 border border-base-300 p-6 rounded-2xl">
                   <h4 className="font-extrabold text-sm text-base-content mb-4 flex items-center gap-1.5">
-                    <Timer className="w-4 h-4 text-indigo-500" />
+                    <Timer className="w-4 h-4 text-primary" />
                     {isAr ? "وقت الدراسة اليومي بالدقائق" : "Daily Study Time Trend"}
                   </h4>
                   <div className="h-64">
@@ -1754,7 +1816,7 @@ export default function DashboardPage() {
                 {/* BarChart: Quizzes Taken & Average Score */}
                 <div className="bg-base-200 border border-base-300 p-6 rounded-2xl">
                   <h4 className="font-extrabold text-sm text-base-content mb-4 flex items-center gap-1.5">
-                    <Zap className="w-4 h-4 text-emerald-500" />
+                    <Zap className="w-4 h-4 text-[#8E1616]" />
                     {isAr ? "الاختبارات المنجزة ومتوسط النتائج" : "Quizzes Completed & Average Score"}
                   </h4>
                   <div className="h-64">
@@ -1765,7 +1827,7 @@ export default function DashboardPage() {
                         <YAxis yAxisId="left" orientation="left" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} allowDecimals={false} label={{ value: "Quizzes", angle: -90, position: "insideLeft", fontSize: 10 }} />
                         <YAxis yAxisId="right" orientation="right" domain={[0, 100]} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} label={{ value: "Avg Score %", angle: 90, position: "insideRight", fontSize: 10 }} />
                         <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, background: "rgba(15, 23, 42, 0.9)", border: "none", color: "#fff" }} />
-                        <Bar yAxisId="left" dataKey="quizzes" name="Quizzes" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                        <Bar yAxisId="left" dataKey="quizzes" name="Quizzes" fill="#8E1616" radius={[4, 4, 0, 0]} maxBarSize={30} />
                         <Line yAxisId="right" type="monotone" dataKey="avgScore" name="Avg Score %" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 3 }} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -1791,7 +1853,7 @@ export default function DashboardPage() {
           >
             <button
               onClick={() => setCertModalOpen(false)}
-              className="btn btn-sm btn-circle btn-ghost absolute top-4 right-4 text-base-content/60 hover:text-base-content"
+              className="btn btn-sm btn-circle btn-ghost absolute top-4 right-4 text-base-content/60 hover:text-base-content transition-all duration-300 ease-in-out"
             >
               <X className="w-4 h-4" />
             </button>
@@ -1802,7 +1864,7 @@ export default function DashboardPage() {
                 <Award className="w-7 h-7" />
               </div>
               <div>
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-indigo-600">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary">
                   {certData.certificateId}
                 </span>
                 <h3 className="font-extrabold text-lg text-base-content mt-0.5">
@@ -1812,8 +1874,8 @@ export default function DashboardPage() {
             </div>
 
             {/* AWS-Styled Devotopia Certified Verification Certificate (Matching Image 1) */}
-            <div className="bg-white p-2.5 rounded-2xl shadow-2xl">
-              <div className="bg-slate-900 border border-slate-700/60 rounded-xl p-8 text-white space-y-6 select-none font-sans relative overflow-hidden text-start">
+            <div className="bg-base-100 p-2.5 rounded-2xl shadow-2xl">
+              <div className="bg-base-300 border border-slate-700/60 rounded-xl p-8 text-white space-y-6 select-none font-sans relative overflow-hidden text-start">
                 {/* Header Logo */}
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
@@ -1838,7 +1900,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Validation Border Container (Golden Orange Box matching Image 1) */}
-                <div className="border-2 border-amber-500 rounded-lg p-4 bg-slate-900/90 space-y-2 text-start">
+                <div className="border-2 border-amber-500 rounded-2xl p-4 bg-base-300/90 space-y-2 text-start">
                   <div className="flex flex-wrap gap-2 text-xs font-mono">
                     <span className="font-extrabold text-white">VALIDATION NUMBER:</span>
                     <span className="font-bold text-amber-400">{certData.certificateId || "16G7H3J16EE4QG3N"}</span>
@@ -1849,7 +1911,7 @@ export default function DashboardPage() {
                       href={certData.shareableUrl || "https://smartroadmap.dev/verification"}
                       target="_blank"
                       rel="noreferrer"
-                      className="font-bold text-amber-500 hover:underline"
+                      className="font-bold text-amber-500 hover:underline transition-all duration-300 ease-in-out"
                     >
                       {certData.shareableUrl || "https://smartroadmap.dev/verification"}
                     </a>
@@ -1857,7 +1919,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Footer Dates */}
-                <div className="flex justify-between items-center text-xs font-mono text-slate-400 pt-2 border-t border-slate-800">
+                <div className="flex justify-between items-center text-xs font-mono text-slate-400 pt-2 border-t border-base-300">
                   <div>
                     <span className="font-bold text-slate-300">Issue Date: </span>
                     <span>{new Date(certData.issuedAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
@@ -1911,7 +1973,7 @@ export default function DashboardPage() {
                     toast.error("Failed to generate PDF certification document stream.");
                   }
                 }}
-                className="btn bg-amber-500 hover:bg-amber-600 text-slate-900 border-none btn-sm rounded-xl gap-2 font-black px-5 shadow-lg"
+                className="btn bg-amber-500 hover:bg-amber-600 text-base-content border-none btn-sm rounded-xl gap-2 font-black px-5 shadow-lg transition-all duration-300 ease-in-out"
               >
                 <Download className="w-4 h-4" />
                 {isAr ? "تصدير شهادة (PDF)" : "Export Official PDF"}
@@ -1927,7 +1989,7 @@ export default function DashboardPage() {
                   a.click();
                   toast.success(isAr ? "تم تحميل ملف الاعتماد الرقمي!" : "Digital credential JSON downloaded!");
                 }}
-                className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none btn-sm rounded-xl gap-2 font-bold px-5"
+                className="btn bg-primary text-primary-content hover:bg-indigo-700 text-white border-none btn-sm rounded-xl gap-2 font-bold px-5 transition-all duration-300 ease-in-out"
               >
                 <FileText className="w-4 h-4" />
                 {isAr ? "تحميل الشهادة (JSON)" : "Download Credential"}
@@ -1943,7 +2005,7 @@ export default function DashboardPage() {
           <div className="w-full max-w-2xl bg-base-200 border border-base-300 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col text-start">
             <div className="flex justify-between items-center pb-2 border-b border-base-300">
               <h3 className="font-extrabold text-sm text-base-content flex items-center gap-2">
-                <FileText className="w-4 h-4 text-indigo-600" />
+                <FileText className="w-4 h-4 text-primary" />
                 <span>{selectedCheatsheet.title} — Speech Notes</span>
               </h3>
               <button onClick={() => setSelectedCheatsheet(null)} className="btn btn-ghost btn-circle btn-xs">
@@ -1958,7 +2020,7 @@ export default function DashboardPage() {
             <div className="flex justify-end gap-3 pt-2 border-t border-base-300">
               <button
                 onClick={() => handleDownloadCheatsheetPDF(selectedCheatsheet.title, selectedCheatsheet.content)}
-                className="btn bg-indigo-600 hover:bg-indigo-700 text-white border-none rounded-xl text-xs font-bold gap-1.5"
+                className="btn bg-primary text-primary-content hover:bg-indigo-700 text-white border-none rounded-xl text-xs font-bold gap-1.5 transition-all duration-300 ease-in-out"
               >
                 <Download className="w-4 h-4" />
                 Download PDF 📄

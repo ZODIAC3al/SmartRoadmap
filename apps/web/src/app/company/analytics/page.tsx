@@ -28,30 +28,6 @@ import {
   Line,
 } from 'recharts';
 
-const DEFAULT_BAR_DATA = [
-  { month: 'Oct', applied: 140, interviewed: 45 },
-  { month: 'Nov', applied: 180, interviewed: 62 },
-  { month: 'Dec', applied: 220, interviewed: 78 },
-  { month: 'Jan', applied: 190, interviewed: 65 },
-  { month: 'Feb', applied: 250, interviewed: 90 },
-  { month: 'Mar', applied: 310, interviewed: 115 },
-];
-
-const DEFAULT_ROLE_DATA = [
-  { name: 'Frontend Engineers', value: 42, color: '#F97316' },
-  { name: 'Backend Architects', value: 38, color: '#8B5CF6' },
-  { name: 'AI & Data Specialists', value: 20, color: '#10B981' },
-];
-
-const LINE_DATA = [
-  { time: '07 am', value: 40 },
-  { time: '08 am', value: 113 },
-  { time: '09 am', value: 70 },
-  { time: '10 am', value: 130 },
-  { time: '11 am', value: 95 },
-  { time: '12 pm', value: 100 },
-];
-
 export default function HiringAnalyticsPage() {
   const { data: overview, isLoading: overviewLoading } = useGetCompanyOverviewQuery();
   const { data: candidatesData, isLoading: candidatesLoading } = useGetCandidatesQuery({});
@@ -64,14 +40,14 @@ export default function HiringAnalyticsPage() {
   }, [candidatesData]);
 
   const metrics = overview?.metrics || {
-    totalApplicants: candidatesList.length || 28,
-    availableStaff: 156,
-    avgMatchScore: 92,
-    activeJobs: 3,
+    totalApplicants: 0,
+    availableStaff: 0,
+    avgMatchScore: 0,
+    activeJobs: 0,
   };
 
-  const barData = overview?.barTrend || DEFAULT_BAR_DATA;
-  const roleData = overview?.roleDistribution || DEFAULT_ROLE_DATA;
+  const barData = overview?.barTrend || [];
+  const roleData = overview?.roleDistribution || [];
   const divisionStats = overview?.divisionStats || [
     { name: 'Full Stack & Web Apps', count: metrics.totalApplicants, icon: 'Activity' },
     { name: 'Cloud & DevOps Pipelines', count: metrics.activeJobs, icon: 'Brain' },
@@ -79,15 +55,15 @@ export default function HiringAnalyticsPage() {
   ];
 
   const funnelStats = useMemo(() => {
-    const total = candidatesList.length || 28;
-    const appliedCount = candidatesList.filter((c: any) => c.stage === 'applied').length || 15;
-    const screeningCount = candidatesList.filter((c: any) => c.stage === 'screening').length || 7;
-    const interviewCount = candidatesList.filter((c: any) => c.stage === 'interview').length || 4;
-    const offerCount = candidatesList.filter((c: any) => c.stage === 'offer' || c.stage === 'hired').length || 2;
+    const total = candidatesList.length;
+    const appliedCount = candidatesList.filter((c: any) => c.stage === 'applied').length;
+    const screeningCount = candidatesList.filter((c: any) => c.stage === 'screening').length;
+    const interviewCount = candidatesList.filter((c: any) => c.stage === 'interview').length;
+    const offerCount = candidatesList.filter((c: any) => c.stage === 'offer' || c.stage === 'hired').length;
 
-    const appliedToScreening = Math.round(((screeningCount + interviewCount + offerCount) / Math.max(total, 1)) * 100);
-    const screeningToInterview = Math.round(((interviewCount + offerCount) / Math.max(screeningCount + interviewCount + offerCount, 1)) * 100);
-    const interviewToOffer = Math.round((offerCount / Math.max(interviewCount + offerCount, 1)) * 100);
+    const appliedToScreening = total > 0 ? Math.round(((screeningCount + interviewCount + offerCount) / total) * 100) : 0;
+    const screeningToInterview = (screeningCount + interviewCount + offerCount) > 0 ? Math.round(((interviewCount + offerCount) / (screeningCount + interviewCount + offerCount)) * 100) : 0;
+    const interviewToOffer = (interviewCount + offerCount) > 0 ? Math.round((offerCount / (interviewCount + offerCount)) * 100) : 0;
 
     return {
       appliedToScreening,
@@ -103,7 +79,7 @@ export default function HiringAnalyticsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12 bg-base-100 rounded-3xl border border-base-300">
-        <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-[#8E1616]" />
         <span className="ml-2 text-xs font-semibold text-base-content/70">Loading hiring analytics & interactive charts...</span>
       </div>
     );
@@ -122,7 +98,7 @@ export default function HiringAnalyticsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-[#8E1616]/10 text-[#8E1616] flex items-center justify-center font-bold">
               <Users className="w-6 h-6" />
             </div>
             <div>
@@ -164,7 +140,7 @@ export default function HiringAnalyticsPage() {
 
         <div className="p-5 rounded-3xl bg-base-100 border border-base-300 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-primary text-primary-content/10 text-primary flex items-center justify-center font-bold">
               <TrendingUp className="w-6 h-6" />
             </div>
             <div>
@@ -197,7 +173,7 @@ export default function HiringAnalyticsPage() {
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'currentColor' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: 'currentColor' }} axisLine={false} tickLine={false} />
                   <Tooltip contentStyle={{ backgroundColor: 'var(--fallback-b1,oklch(var(--b1)))', borderColor: 'var(--fallback-b3,oklch(var(--b3)))', borderRadius: '12px', color: 'currentColor' }} />
-                  <Bar dataKey="applied" fill="#10B981" radius={[4, 4, 0, 0]} barSize={12} />
+                  <Bar dataKey="applied" fill="#8E1616" radius={[4, 4, 0, 0]} barSize={12} />
                   <Bar dataKey="interviewed" fill="#8B5CF6" radius={[4, 4, 0, 0]} barSize={12} />
                 </BarChart>
               </ResponsiveContainer>
@@ -216,7 +192,7 @@ export default function HiringAnalyticsPage() {
                       endAngle={-270}
                       dataKey="value"
                     >
-                      <Cell fill="#10B981" />
+                      <Cell fill="#8E1616" />
                       <Cell fill="#8B5CF6" />
                     </Pie>
                   </PieChart>
@@ -230,7 +206,7 @@ export default function HiringAnalyticsPage() {
 
               <div className="flex gap-4 mt-3 text-xs font-semibold">
                 <span className="flex items-center gap-1.5 text-base-content">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]" /> Applied
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#8E1616]" /> Applied
                 </span>
                 <span className="flex items-center gap-1.5 text-base-content">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]" /> Interviewed
@@ -285,14 +261,14 @@ export default function HiringAnalyticsPage() {
             <div>
               <div className="flex justify-between text-xs mb-1 font-semibold">
                 <span>Applied → Screening</span>
-                <span className="font-bold font-mono text-emerald-500">{funnelStats.appliedToScreening}% ({funnelStats.screeningCount}/{funnelStats.total})</span>
+                <span className="font-bold font-mono text-[#8E1616]">{funnelStats.appliedToScreening}% ({funnelStats.screeningCount}/{funnelStats.total})</span>
               </div>
               <progress className="progress progress-emerald w-full h-2.5" value={funnelStats.appliedToScreening} max="100" />
             </div>
             <div>
               <div className="flex justify-between text-xs mb-1 font-semibold">
                 <span>Screening → Interview</span>
-                <span className="font-bold font-mono text-purple-500">{funnelStats.screeningToInterview}% ({funnelStats.interviewCount}/{Math.max(funnelStats.screeningCount, 1)})</span>
+                <span className="font-bold font-mono text-primary">{funnelStats.screeningToInterview}% ({funnelStats.interviewCount}/{Math.max(funnelStats.screeningCount, 1)})</span>
               </div>
               <progress className="progress progress-purple w-full h-2.5" value={funnelStats.screeningToInterview} max="100" />
             </div>
@@ -324,7 +300,7 @@ export default function HiringAnalyticsPage() {
             {divisionStats.map((item: any) => (
               <div key={item.name} className="flex justify-between items-center">
                 <span className="flex items-center gap-2 font-medium text-base-content">
-                  <Activity className="w-4 h-4 text-emerald-500" /> {item.name}
+                  <Activity className="w-4 h-4 text-[#8E1616]" /> {item.name}
                 </span>
                 <span className="font-mono font-bold text-base-content">{item.count}</span>
               </div>

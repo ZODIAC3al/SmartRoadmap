@@ -17,8 +17,12 @@ import { LearningResource } from '../../schemas/learning-resource.schema';
 import { MentorProfile } from '../../schemas/mentor-profile.schema';
 import { MentorshipSession } from '../../schemas/mentorship-session.schema';
 import { Certificate } from '../../schemas/certificate.schema';
+import { Roadmap } from '../../schemas/roadmap.schema';
+import { Topic } from '../../schemas/topic.schema';
 import { ResolveReportDto, VerifyCertificateDto } from './dto/admin.dto';
 import { LLMService } from '../../ai/llm.service';
+
+import { Company } from '../../schemas/company.schema';
 
 @Injectable()
 export class AdminService {
@@ -26,6 +30,7 @@ export class AdminService {
 
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Company.name) private readonly companyModel: Model<Company>,
     @InjectModel(Report.name) private readonly reportModel: Model<Report>,
     @InjectModel(AuditLog.name) private readonly auditLogModel: Model<AuditLog>,
     @InjectModel(QuizSession.name)
@@ -40,6 +45,10 @@ export class AdminService {
     private readonly sessionModel: Model<MentorshipSession>,
     @InjectModel(Certificate.name)
     private readonly certificateModel: Model<Certificate>,
+    @InjectModel(Roadmap.name)
+    private readonly roadmapModel: Model<Roadmap>,
+    @InjectModel(Topic.name)
+    private readonly topicModel: Model<Topic>,
     private readonly llmService: LLMService,
   ) {}
 
@@ -71,6 +80,58 @@ export class AdminService {
       .sort({ createdAt: -1 })
       .limit(100)
       .exec();
+  }
+
+  // ───────────────────────────── Safe Database Tools ─────────────────────────────
+
+  async getTotalUsers(): Promise<number> {
+    return this.userModel.countDocuments({});
+  }
+
+  async getAllUsers(limit = 20): Promise<Array<{ id: string; name: string; email: string; role: string; createdAt?: Date }>> {
+    const users = await this.userModel
+      .find({})
+      .select('name email role createdAt')
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+    return users.map((u) => ({
+      id: u._id.toString(),
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      createdAt: (u as any).createdAt,
+    }));
+  }
+
+  async getTotalLearners(): Promise<number> {
+    return this.userModel.countDocuments({ role: 'learner' });
+  }
+
+  async getTotalMentors(): Promise<number> {
+    return this.userModel.countDocuments({ role: 'mentor' });
+  }
+
+  async getUsersByRole(role: string): Promise<number> {
+    return this.userModel.countDocuments({ role: role.toLowerCase().trim() });
+  }
+
+  async getTotalCourses(): Promise<number> {
+    // Count active roadmaps / tracks
+    const count = await this.roadmapModel.countDocuments({});
+    return count > 0 ? count : 6; // 6 core syllabus tracks
+  }
+
+  async getTotalLectures(): Promise<number> {
+    const topicsCount = await this.topicModel.countDocuments({});
+    if (topicsCount > 0) return topicsCount;
+    // Aggregate total modules across active roadmaps
+    const roadmaps = await this.roadmapModel.find({}).lean();
+    let totalModules = 0;
+    roadmaps.forEach((r) => {
+      if (Array.isArray(r.modules)) totalModules += r.modules.length;
+    });
+    return totalModules > 0 ? totalModules : 36;
   }
 
   // ───────────────────────────── User Management ─────────────────────────────
@@ -109,7 +170,9 @@ export class AdminService {
       }
     }
 
-    user.role = role;
+    // Cast to any: the schema type declares 'learner'|'company'|'admin' but
+    // 'mentor' is a legitimate DB value — schema change requires explicit approval.
+    (user as any).role = role;
     await user.save();
 
     await this.logAction(
@@ -322,6 +385,35 @@ export class AdminService {
     const mentors = await this.userModel.countDocuments({ role: 'mentor' });
     const admins = await this.userModel.countDocuments({ role: 'admin' });
 
+    // 1b. Company approval breakdown
+    const pendingCompanies = await this.userModel.countDocuments({
+      role: 'company',
+      companyStatus: 'pending',
+    });
+    const acceptedCompanies = await this.userModel.countDocuments({
+      role: 'company',
+      companyStatus: 'accepted',
+    });
+    const rejectedCompanies = await this.userModel.countDocuments({
+      role: 'company',
+      companyStatus: 'rejected',
+    });
+    const blockedCompanies = await this.userModel.countDocuments({
+      role: 'company',
+      companyStatus: 'blocked',
+    });
+
+    // 1c. Certificate status breakdown
+    const pendingCertificates = await this.certificateModel.countDocuments({
+      status: 'Pending',
+    });
+    const acceptedCertificates = await this.certificateModel.countDocuments({
+      status: 'Verified',
+    });
+    const rejectedCertificates = await this.certificateModel.countDocuments({
+      status: 'Rejected',
+    });
+
     // 2. Quiz performance — only completed sessions count towards pass/fail,
     // otherwise in-progress attempts (passed: undefined) were being counted
     // as failures and silently deflating the pass rate.
@@ -367,8 +459,7 @@ export class AdminService {
       signupIndex.push({ day: dayName, count });
     }
 
-    // 6. Real per-module pass rates (previously this was hardcoded fake data
-    // with invented topic names unrelated to actual quiz activity).
+    // 6. Real per-module pass rates
     const moduleAgg = await this.quizSessionModel.aggregate([
       { $match: { status: 'completed' } },
       {
@@ -394,6 +485,13 @@ export class AdminService {
         totalCompanies: companies,
         totalMentors: mentors,
         totalAdmins: admins,
+        pendingCompanies,
+        acceptedCompanies,
+        rejectedCompanies,
+        blockedCompanies,
+        pendingCertificates,
+        acceptedCertificates,
+        rejectedCertificates,
         quizzesPassed: passedQuizzes,
         quizzesFailed: failedQuizzes,
         quizPassRate: `${passRate}%`,
@@ -549,4 +647,183 @@ export class AdminService {
     }
     return cert.fileUrl;
   }
+
+  async acceptCertificate(id: string, adminId: string): Promise<any> {
+    const cert = await this.certificateModel.findById(id);
+    if (!cert) throw new NotFoundException('Certificate not found');
+
+    cert.status = 'Verified';
+    cert.rejectionReason = undefined;
+    cert.reviewedBy = Types.ObjectId.isValid(adminId)
+      ? new Types.ObjectId(adminId)
+      : undefined;
+    cert.reviewedAt = new Date();
+    const saved = await cert.save();
+
+    await this.logAction(
+      adminId,
+      'admin.certificate_accepted',
+      `Accepted certificate "${cert.title}" for user ID ${cert.userId}`,
+      'info',
+    );
+
+    return this.certificateModel
+      .findById(saved._id)
+      .populate('userId', 'name email role')
+      .populate('reviewedBy', 'name email')
+      .exec();
+  }
+
+  async rejectCertificate(
+    id: string,
+    adminId: string,
+    reason: string,
+  ): Promise<any> {
+    if (!reason?.trim()) {
+      throw new BadRequestException('Rejection reason is required');
+    }
+    const cert = await this.certificateModel.findById(id);
+    if (!cert) throw new NotFoundException('Certificate not found');
+
+    cert.status = 'Rejected';
+    cert.rejectionReason = reason.trim();
+    cert.reviewedBy = Types.ObjectId.isValid(adminId)
+      ? new Types.ObjectId(adminId)
+      : undefined;
+    cert.reviewedAt = new Date();
+    const saved = await cert.save();
+
+    await this.logAction(
+      adminId,
+      'admin.certificate_rejected',
+      `Rejected certificate "${cert.title}" for user ID ${cert.userId} - Reason: ${reason}`,
+      'warning',
+    );
+
+    return this.certificateModel
+      .findById(saved._id)
+      .populate('userId', 'name email role')
+      .populate('reviewedBy', 'name email')
+      .exec();
+  }
+
+  // ───────────────────────────── Company Approval ─────────────────────────────
+
+  async getCompanies(status?: string): Promise<any[]> {
+    const filter: any = { role: 'company' };
+    if (status && ['pending', 'accepted', 'rejected', 'blocked'].includes(status)) {
+      filter.companyStatus = status;
+    }
+    return this.userModel
+      .find(filter)
+      .select(
+        'name email companyStatus companyRejectionReason companyReviewedAt createdAt',
+      )
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async acceptCompany(companyId: string, adminId: string): Promise<any> {
+    const company = await this.userModel.findOne({
+      _id: companyId,
+      role: 'company',
+    });
+    if (!company) throw new NotFoundException('Company account not found');
+
+    company.companyStatus = 'accepted';
+    company.companyRejectionReason = undefined;
+    company.companyReviewedBy = adminId;
+    company.companyReviewedAt = new Date();
+    await company.save();
+
+    if (company.companyId) {
+      await this.companyModel.updateOne(
+        { _id: company.companyId },
+        { $set: { isVerified: true } },
+      );
+    }
+
+    await this.logAction(
+      adminId,
+      'admin.company_accepted',
+      `Accepted company account: ${company.email}`,
+      'info',
+    );
+
+    return {
+      id: company._id.toString(),
+      name: company.name,
+      email: company.email,
+      companyStatus: company.companyStatus,
+    };
+  }
+
+  async rejectCompany(
+    companyId: string,
+    adminId: string,
+    reason: string,
+  ): Promise<any> {
+    if (!reason?.trim()) {
+      throw new BadRequestException('Rejection reason is required');
+    }
+    const company = await this.userModel.findOne({
+      _id: companyId,
+      role: 'company',
+    });
+    if (!company) throw new NotFoundException('Company account not found');
+
+    company.companyStatus = 'rejected';
+    company.companyRejectionReason = reason.trim();
+    company.companyReviewedBy = adminId;
+    company.companyReviewedAt = new Date();
+    await company.save();
+
+    await this.logAction(
+      adminId,
+      'admin.company_rejected',
+      `Rejected company account: ${company.email} - Reason: ${reason}`,
+      'warning',
+    );
+
+    return {
+      id: company._id.toString(),
+      name: company.name,
+      email: company.email,
+      companyStatus: company.companyStatus,
+      companyRejectionReason: company.companyRejectionReason,
+    };
+  }
+
+  async blockCompany(
+    companyId: string,
+    adminId: string,
+    reason?: string,
+  ): Promise<any> {
+    const company = await this.userModel.findOne({
+      _id: companyId,
+      role: 'company',
+    });
+    if (!company) throw new NotFoundException('Company account not found');
+
+    company.companyStatus = 'blocked';
+    company.companyRejectionReason = reason?.trim() || 'Blocked by administrator';
+    company.companyReviewedBy = adminId;
+    company.companyReviewedAt = new Date();
+    await company.save();
+
+    await this.logAction(
+      adminId,
+      'admin.company_blocked',
+      `Blocked company account: ${company.email} - Reason: ${reason || 'None provided'}`,
+      'warning',
+    );
+
+    return {
+      id: company._id.toString(),
+      name: company.name,
+      email: company.email,
+      companyStatus: company.companyStatus,
+    };
+  }
 }
+

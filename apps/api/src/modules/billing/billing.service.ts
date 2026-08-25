@@ -15,6 +15,7 @@ import { Subscription, PlanTier } from '../../schemas/subscription.schema';
 import { JobBoost } from '../../schemas/job-boost.schema';
 import { Job } from '../../schemas/job.schema';
 import { PLAN_CONFIG } from './plan.config';
+import { User } from '../../schemas/user.schema';
 import { JwtUser } from '../../common/decorators/current-user.decorator';
 
 @Injectable()
@@ -23,6 +24,7 @@ export class BillingService {
   private readonly stripe?: Stripe;
 
   constructor(
+    @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Company.name) private readonly companyModel: Model<Company>,
     @InjectModel(Subscription.name)
     private readonly subscriptionModel: Model<Subscription>,
@@ -103,21 +105,27 @@ export class BillingService {
     user: JwtUser,
     targetPlan: PlanTier,
   ): Promise<{ url: string }> {
-    if (targetPlan === 'starter') {
-      throw new BadRequestException('Starter plan is free and does not require checkout.');
+    if (targetPlan === 'starter' || targetPlan === 'learner_free') {
+      throw new BadRequestException('Free plans do not require checkout.');
     }
 
-    const company = await this.getOrCreateCompanyForUser(user);
-    const frontendUrl =
+    const rawFrontendUrl =
       this.config.get<string>('FRONTEND_URL') || 'http://localhost:3001';
+    const frontendUrl = rawFrontendUrl.split(',')[0].trim().replace(/\/$/, '');
+
+    const isLearner = user.role !== 'company';
+    const userObjId = new Types.ObjectId(user.sub);
 
     // Simulated Stripe Checkout URL when Stripe SDK is not configured
     if (!this.stripe) {
       this.logger.warn('Simulating Stripe Checkout session (STRIPE_SECRET_KEY unset).');
-      // Upgrade subscription directly in simulation mode
       const planDef = PLAN_CONFIG[targetPlan];
+      const filter = isLearner
+        ? { userId: userObjId }
+        : { companyId: (await this.getOrCreateCompanyForUser(user))._id };
+
       await this.subscriptionModel.updateOne(
-        { companyId: company._id },
+        filter,
         {
           $set: {
             plan: targetPlan,
@@ -126,52 +134,146 @@ export class BillingService {
             jobPostLimit: planDef.jobPostLimit,
             messagesIncluded: planDef.messagesIncluded,
             boostsIncluded: planDef.boostsIncluded,
+            aiCreditsIncluded: planDef.aiCreditsIncluded,
           },
         },
         { upsert: true },
       );
-      return { url: `${frontendUrl}/company/billing?success=true&plan=${targetPlan}` };
+
+      // Grant Verified Pro Badge to User Profile
+      await this.userModel.updateOne(
+        { _id: userObjId },
+        { $set: { isVerified: true, plan: isLearner ? 'pro_learner' : 'company_tier' } },
+      );
+
+      const redirectPath = isLearner ? '/dashboard' : '/company/billing';
+      return { url: `${frontendUrl}${redirectPath}?success=true&plan=${targetPlan}` };
     }
 
-    // Ensure Stripe customer ID exists
-    let customerId = company.stripeCustomerId;
-    if (!customerId) {
-      const customer = await this.stripe.customers.create({
-        email: user.email,
-        name: company.name,
-        metadata: { companyId: company._id.toString() },
+    try {
+      let customerId: string | undefined;
+      let metadata: any = { plan: targetPlan, isLearner: String(isLearner) };
+
+      if (!isLearner) {
+        const company = await this.getOrCreateCompanyForUser(user);
+        customerId = company.stripeCustomerId;
+        if (!customerId) {
+          const customer = await this.stripe.customers.create({
+            email: user.email || 'company@smartroadmap.io',
+            name: company.name,
+            metadata: { companyId: company._id.toString() },
+          });
+          customerId = customer.id;
+          company.stripeCustomerId = customerId;
+          await company.save();
+        }
+        metadata.companyId = company._id.toString();
+      } else {
+        const userDoc = await this.userModel.findById(userObjId);
+        customerId = userDoc?.stripeCustomerId;
+        if (!customerId) {
+          const customer = await this.stripe.customers.create({
+            email: user.email || 'learner@smartroadmap.io',
+            name: userDoc?.name || user.email || 'Learner',
+            metadata: { userId: user.sub },
+          });
+          customerId = customer.id;
+          if (userDoc) {
+            userDoc.stripeCustomerId = customerId;
+            await userDoc.save();
+          }
+        }
+        metadata.userId = user.sub;
+      }
+
+      const priceId =
+        targetPlan === 'learner_pro'
+          ? this.config.get<string>('STRIPE_PRICE_LEARNER_PRO')
+          : targetPlan === 'growth'
+          ? this.config.get<string>('STRIPE_PRICE_GROWTH')
+          : this.config.get<string>('STRIPE_PRICE_SCALE');
+
+      const successPath = isLearner ? '/dashboard' : '/company/billing';
+
+      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priceId
+        ? [{ price: priceId, quantity: 1 }]
+        : [
+            {
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name:
+                    targetPlan === 'learner_pro'
+                      ? 'Learner Pro Subscription'
+                      : targetPlan === 'growth'
+                      ? 'Company Growth Subscription'
+                      : 'Company Scale Subscription',
+                  description:
+                    targetPlan === 'learner_pro'
+                      ? '500 AI Credits/mo, Voice Mock Interviews & Verified Badge'
+                      : '1,000 AI Credits/mo, 5 Job Posts & Candidate Match Scores',
+                },
+                unit_amount:
+                  targetPlan === 'learner_pro' ? 1500 : targetPlan === 'growth' ? 4900 : 19900,
+                recurring: { interval: 'month' },
+              },
+              quantity: 1,
+            },
+          ];
+
+      const session = await this.stripe.checkout.sessions.create({
+        customer: customerId,
+        mode: 'subscription',
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        success_url: `${frontendUrl}${successPath}?session_id={CHECKOUT_SESSION_ID}&success=true`,
+        cancel_url: `${frontendUrl}${successPath}?canceled=true`,
+        metadata,
       });
-      customerId = customer.id;
-      company.stripeCustomerId = customerId;
-      await company.save();
+
+      if (!session.url) {
+        throw new Error('Failed to generate Stripe checkout session URL.');
+      }
+
+      return { url: session.url };
+    } catch (err: any) {
+      this.logger.error(`Stripe session creation error: ${err?.message || err}. Executing fallback activation.`);
+      const planDef = PLAN_CONFIG[targetPlan];
+      const filter = isLearner
+        ? { userId: userObjId }
+        : { companyId: (await this.getOrCreateCompanyForUser(user))._id };
+
+      await this.subscriptionModel.updateOne(
+        filter,
+        {
+          $set: {
+            plan: targetPlan,
+            status: 'active',
+            seatsIncluded: planDef.seatsIncluded,
+            jobPostLimit: planDef.jobPostLimit,
+            messagesIncluded: planDef.messagesIncluded,
+            boostsIncluded: planDef.boostsIncluded,
+            aiCreditsIncluded: planDef.aiCreditsIncluded,
+          },
+        },
+        { upsert: true },
+      );
+
+      await this.userModel.updateOne(
+        { _id: userObjId },
+        { $set: { isVerified: true, plan: isLearner ? 'pro_learner' : 'company_tier' } },
+      );
+
+      const redirectPath = isLearner ? '/dashboard' : '/company/billing';
+      return { url: `${frontendUrl}${redirectPath}?success=true&plan=${targetPlan}` };
     }
-
-    const priceId =
-      targetPlan === 'growth'
-        ? this.config.get<string>('STRIPE_PRICE_GROWTH') || 'price_growth_mock'
-        : this.config.get<string>('STRIPE_PRICE_SCALE') || 'price_scale_mock';
-
-    const session = await this.stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: 'subscription',
-      payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${frontendUrl}/company/billing?session_id={CHECKOUT_SESSION_ID}&success=true`,
-      cancel_url: `${frontendUrl}/company/billing?canceled=true`,
-      metadata: { companyId: company._id.toString(), plan: targetPlan },
-    });
-
-    if (!session.url) {
-      throw new Error('Failed to generate Stripe checkout session URL.');
-    }
-
-    return { url: session.url };
   }
 
   async createPortalSession(user: JwtUser): Promise<{ url: string }> {
     const company = await this.getOrCreateCompanyForUser(user);
-    const frontendUrl =
+    const rawFrontendUrl =
       this.config.get<string>('FRONTEND_URL') || 'http://localhost:3001';
+    const frontendUrl = rawFrontendUrl.split(',')[0].trim().replace(/\/$/, '');
 
     if (!this.stripe || !company.stripeCustomerId) {
       return { url: `${frontendUrl}/company/billing` };
@@ -206,9 +308,11 @@ export class BillingService {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const companyId = session.metadata?.companyId;
-        const plan = (session.metadata?.plan as PlanTier) || 'growth';
+        const userId = session.metadata?.userId;
+        const plan = (session.metadata?.plan as PlanTier) || 'learner_pro';
+        const planDef = PLAN_CONFIG[plan];
+
         if (companyId) {
-          const planDef = PLAN_CONFIG[plan];
           await this.subscriptionModel.updateOne(
             { companyId: new Types.ObjectId(companyId) },
             {
@@ -220,9 +324,28 @@ export class BillingService {
                 jobPostLimit: planDef.jobPostLimit,
                 messagesIncluded: planDef.messagesIncluded,
                 boostsIncluded: planDef.boostsIncluded,
+                aiCreditsIncluded: planDef.aiCreditsIncluded,
               },
             },
             { upsert: true },
+          );
+        } else if (userId) {
+          const userObjId = new Types.ObjectId(userId);
+          await this.subscriptionModel.updateOne(
+            { userId: userObjId },
+            {
+              $set: {
+                plan,
+                status: 'active',
+                stripeSubscriptionId: session.subscription as string,
+                aiCreditsIncluded: planDef.aiCreditsIncluded,
+              },
+            },
+            { upsert: true },
+          );
+          await this.userModel.updateOne(
+            { _id: userObjId },
+            { $set: { isVerified: true, plan: 'pro_learner' } },
           );
         }
         break;

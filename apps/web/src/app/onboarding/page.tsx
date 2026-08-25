@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Stepper from "@/components/Stepper";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser } from "@/lib/api";
 
 const PRESET_ROLES = [
@@ -47,7 +47,7 @@ const PRESET_SKILLS = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { t, locale } = useApp();
+  const { t, locale } = useAppUi();
   const [step, setStep] = useState(1);
   const [targetRole, setTargetRole] = useState("");
   const [isCustomRole, setIsCustomRole] = useState(false);
@@ -58,6 +58,7 @@ export default function OnboardingPage() {
 
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const [userId, setUserId] = useState("654321098765432109876543");
 
@@ -129,8 +130,21 @@ export default function OnboardingPage() {
   };
 
   const handleSubmit = async () => {
+    if (isGenerating) return; // duplicate-request guard
+    setIsGenerating(true);
     setStep(4);
     const finalRole = isCustomRole ? customRoleInput : targetRole;
+
+    // 45-second client-side timeout
+    const timeoutId = setTimeout(() => {
+      setIsGenerating(false);
+      setStep(3);
+      alert(
+        locale === "en"
+          ? "Roadmap generation timed out. Please try again or check your connection."
+          : "انتهت مهلة إنشاء خارطة الطريق. يرجى المحاولة مجدداً.",
+      );
+    }, 45_000);
 
     try {
       const response = await apiFetch("/roadmap/generate", {
@@ -148,10 +162,13 @@ export default function OnboardingPage() {
         throw new Error("Roadmap generation failed");
       }
 
+      clearTimeout(timeoutId);
       setTimeout(() => {
         router.push("/roadmap");
       }, 1000);
     } catch (error) {
+      clearTimeout(timeoutId);
+      setIsGenerating(false);
       console.error(error);
       alert(
         locale === "en"
@@ -422,9 +439,14 @@ export default function OnboardingPage() {
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="btn btn-success px-8 text-white font-bold"
+                  disabled={isGenerating}
+                  className="btn btn-success px-8 text-white font-bold disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {t("onboard.btn_submit")}
+                  {isGenerating ? (
+                    <span className="loading loading-spinner loading-sm" />
+                  ) : (
+                    t("onboard.btn_submit")
+                  )}
                 </button>
               </div>
             </div>

@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { fetchMe, getErrorMessage, logout, type SessionUser } from "@/lib/api";
 import {
   Certificate,
@@ -15,7 +15,7 @@ import {
 
 export default function AdminCertificatesPage() {
   const router = useRouter();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isRtl = locale === "ar";
   const L = useCallback((en: string, ar: string) => (locale === "ar" ? ar : en), [locale]);
 
@@ -109,17 +109,17 @@ export default function AdminCertificatesPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
 
   return (
-    <div className={`sr-console min-h-screen text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
-      <div className="sr-shell max-w-7xl mx-auto space-y-8">
+    <div className={`min-h-screen bg-base-100 text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
+      <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Navigation Admin Header Banner */}
-        <div className="sr-stage sr-signal flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 rounded-3xl p-6 sm:p-8 bg-base-200 border border-base-300 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-6 sm:p-8 shadow-sm">
           <div>
             <span className="text-xs uppercase font-extrabold text-[#7c3aed] tracking-wider block">
               {L("VERIFICATION GATEWAY", "بوابة التحقق والتوثيق")}
@@ -151,7 +151,7 @@ export default function AdminCertificatesPage() {
                 toast.info("Logged out from admin panel.");
                 router.push("/");
               }}
-              className="btn btn-xs sm:btn-sm btn-ghost text-red-500 rounded-xl hover:bg-red-50"
+              className="btn btn-xs sm:btn-sm btn-ghost text-red-500 rounded-xl hover:bg-red-50 transition-all duration-300 ease-in-out"
             >
               {L("Logout", "تسجيل الخروج")}
             </button>
@@ -197,14 +197,14 @@ export default function AdminCertificatesPage() {
             onClick={() => setStatusFilter("Verified")}
             className={`p-4 rounded-2xl border text-start transition-all ${
               statusFilter === "Verified"
-                ? "bg-emerald-500/10 border-emerald-500 shadow-sm"
+                ? "bg-[#8E1616]/10 border-[#8E1616] shadow-sm"
                 : "bg-base-200 border-base-300 hover:border-base-400"
             }`}
           >
-            <span className="text-[10px] uppercase font-bold text-emerald-600 block">
+            <span className="text-[10px] uppercase font-bold text-[#701111] block">
               {L("Verified", "موثقة ومعتمدة")}
             </span>
-            <span className="text-2xl font-black text-emerald-600 block mt-1">
+            <span className="text-2xl font-black text-[#701111] block mt-1">
               {verifiedCount}
             </span>
           </button>
@@ -318,7 +318,7 @@ export default function AdminCertificatesPage() {
                               href={cert.credentialUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-[10px] text-info hover:underline inline-block mt-0.5"
+                              className="text-[10px] text-info hover:underline inline-block mt-0.5 transition-all duration-300 ease-in-out"
                             >
                               🔗 {L("Verification Link", "رابط التحقق")} ↗
                             </a>
@@ -346,11 +346,11 @@ export default function AdminCertificatesPage() {
                         <td className="align-top py-3.5">
                           {status === "Verified" ? (
                             <div className="space-y-1">
-                              <span className="badge bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 text-[10px] font-bold py-1 px-2">
+                              <span className="badge bg-[#8E1616]/15 text-[#701111] border border-[#8E1616]/30 text-[10px] font-bold py-1 px-2">
                                 ✓ {L("Verified", "موثقة")}
                               </span>
                               {cert.reviewedAt && (
-                                <p className="text-[9px] text-emerald-600/70">
+                                <p className="text-[9px] text-[#701111]/70">
                                   {new Date(cert.reviewedAt).toLocaleDateString()}
                                 </p>
                               )}
@@ -378,13 +378,13 @@ export default function AdminCertificatesPage() {
                           <div className="flex flex-col gap-1">
                             <button
                               onClick={() => openFile(cert, false)}
-                              className="btn btn-xs btn-outline border-base-300 rounded-lg text-[10px] font-bold gap-1"
+                              className="btn btn-xs btn-outline border-base-300 rounded-2xl text-[10px] font-bold gap-1"
                             >
                               👁️ {L("View File", "عرض الملف")}
                             </button>
                             <button
                               onClick={() => openFile(cert, true)}
-                              className="btn btn-xs btn-ghost text-base-content/70 rounded-lg text-[10px] gap-1"
+                              className="btn btn-xs btn-ghost text-base-content/70 rounded-2xl text-[10px] gap-1"
                             >
                               ⬇️ {L("Download", "تحميل")}
                             </button>
@@ -398,7 +398,7 @@ export default function AdminCertificatesPage() {
                               <button
                                 onClick={() => handleApprove(cert)}
                                 disabled={isBusy}
-                                className="btn btn-xs bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-xl font-bold gap-1 shadow-sm"
+                                className="btn btn-xs bg-[#701111] hover:bg-[#500A0A] text-white border-none rounded-xl font-bold gap-1 shadow-sm transition-all duration-300 ease-in-out"
                               >
                                 {isBusy ? <span className="loading loading-spinner loading-xs" /> : "✓ " + L("Approve", "توثيق")}
                               </button>
@@ -411,14 +411,14 @@ export default function AdminCertificatesPage() {
                                   setRejectReason("");
                                 }}
                                 disabled={isBusy}
-                                className="btn btn-xs btn-outline border-error/50 text-error hover:bg-error hover:text-white rounded-xl font-bold gap-1"
+                                className="btn btn-xs btn-outline border-error/50 text-error hover:bg-error hover:text-white rounded-xl font-bold gap-1 transition-all duration-300 ease-in-out"
                               >
                                 ✕ {L("Reject", "رفض")}
                               </button>
                             )}
 
                             {status === "Verified" && (
-                              <span className="text-[10px] text-emerald-600 font-bold">
+                              <span className="text-[10px] text-[#701111] font-bold">
                                 {L("Approved", "معتمد")}
                               </span>
                             )}
@@ -475,7 +475,7 @@ export default function AdminCertificatesPage() {
                   <button
                     type="submit"
                     disabled={Boolean(actionBusy)}
-                    className="btn btn-sm bg-error hover:bg-red-700 text-white border-none rounded-xl text-xs font-bold"
+                    className="btn btn-sm bg-error hover:bg-red-700 text-white border-none rounded-xl text-xs font-bold transition-all duration-300 ease-in-out"
                   >
                     {actionBusy ? <span className="loading loading-spinner loading-xs" /> : L("Confirm Rejection", "تأكيد الرفض")}
                   </button>

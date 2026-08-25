@@ -18,7 +18,7 @@ export class Streak extends Document {
   @Prop({ default: 0 })
   longestStreak!: number;
 
-  @Prop({ required: true, default: '' })
+  @Prop({ default: '' })
   lastActivityDate!: string; // 'YYYY-MM-DD' in user's timezone
 
   @Prop({ default: 2 })

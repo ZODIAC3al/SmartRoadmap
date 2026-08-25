@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import {
   apiFetch,
@@ -11,12 +11,13 @@ import {
   logout,
 } from "@/lib/api";
 import {
-  useGetJobsQuery,
+  useGetMyJobsQuery,
   useCreateJobMutation,
   useDeleteJobMutation,
 } from "@/store/api/jobsApi";
 import {
   useGetCandidatesQuery,
+  useGetCompanyApplicationsQuery,
   useUpdateStageMutation,
 } from "@/store/api/pipelineApi";
 import type { Candidate } from "./types";
@@ -26,19 +27,24 @@ type ScoredJob = any;
 type CreateJobPayload = any;
 type ApplicationStatus = any;
 
+import { useGetAiQuotaQuery } from "@/store/api/aiUsageApi";
+
 export function useCompanyDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"applications" | "jobs" | "candidates">("applications");
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<"applications" | "jobs" | "candidates" | "ai_usage">("applications");
   const [user, setUser] = useState<any>(null);
 
   // RTK Query hooks
-  const { data: jobsData, isLoading: isLoadingJobs } = useGetJobsQuery();
+  const { data: jobsData, isLoading: isLoadingJobs } = useGetMyJobsQuery();
   const { data: candidatesData, isLoading: isLoadingCandidates } = useGetCandidatesQuery({});
+  const { data: applicationsData, isLoading: isLoadingApplications } = useGetCompanyApplicationsQuery();
+  const { data: aiQuota } = useGetAiQuotaQuery();
   const [createJobMutation] = useCreateJobMutation();
   const [deleteJobMutation] = useDeleteJobMutation();
   const [updateStageMutation] = useUpdateStageMutation();
 
-  const loading = isLoadingJobs || isLoadingCandidates;
+  const loading = isLoadingJobs || isLoadingCandidates || isLoadingApplications;
 
   // Derive jobs array from RTK Query store
   const jobs = useMemo(() => {
@@ -71,11 +77,11 @@ export function useCompanyDashboard() {
     }));
   }, [candidatesData]);
 
-  // Derive applications array
+  // Real received job applications from /hiring/applications/company
   const applications = useMemo(() => {
-    if (!candidatesData) return [];
-    return Object.values(candidatesData.entities || {}).filter(Boolean);
-  }, [candidatesData]);
+    if (!applicationsData) return [];
+    return Object.values(applicationsData.entities || {}).filter(Boolean);
+  }, [applicationsData]);
 
   // Applications state
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
@@ -118,6 +124,12 @@ export function useCompanyDashboard() {
     const cached = getCachedUser();
     if (cached) setUser(cached);
   }, []);
+
+  useEffect(() => {
+    if (searchParams && searchParams.get("action") === "new") {
+      setShowAddJobModal(true);
+    }
+  }, [searchParams]);
 
   const fetchApplications = useCallback(async () => {}, []);
   const fetchJobs = useCallback(async () => {}, []);
@@ -238,6 +250,7 @@ export function useCompanyDashboard() {
     activeCvPreview,
     activePassport,
     activeTab,
+    aiQuota,
     applications,
     candidates,
     contactCandidate,

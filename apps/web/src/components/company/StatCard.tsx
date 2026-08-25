@@ -17,7 +17,7 @@ export function StatCard({ label, value, trend, icon }: StatCardProps) {
       <div className="flex justify-between items-start">
         <span className="text-xs text-base-content/60 font-medium">{label}</span>
         {icon && (
-          <span className="p-2 rounded-lg bg-primary/10 text-primary text-sm">
+          <span className="p-2 rounded-2xl bg-primary/10 text-primary text-sm">
             {icon}
           </span>
         )}

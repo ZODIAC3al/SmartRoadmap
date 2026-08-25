@@ -132,29 +132,32 @@ export class CompanyService {
     const companyId = company._id as Types.ObjectId;
 
     // Real DB Queries across Jobs, Pipeline, and Users
-    const myJobs = await this.jobModel
+    const jobs = await this.jobModel
       .find({
         $or: [{ companyId }, { createdBy: userObjId }],
       })
       .exec();
 
-    // If company hasn't posted custom jobs yet, query all system jobs for platform overview
-    const jobs = myJobs.length > 0 ? myJobs : await this.jobModel.find().exec();
     const activeJobsCount = jobs.filter((j: any) => j.status === 'published' || j.isActive !== false).length;
 
-    const jobIdsStr = jobs.map((j) => j._id.toString());
-    const totalApplicants = await this.pipelineModel.countDocuments(
-      jobIdsStr.length ? { jobId: { $in: jobIdsStr } } : {},
-    );
+    const jobIdsObj = jobs.map((j) => j._id as Types.ObjectId);
+    const totalApplicants = jobIdsObj.length
+      ? await this.pipelineModel.countDocuments({ jobId: { $in: jobIdsObj } })
+      : 0;
 
     const availableStaff = await this.userModel.countDocuments({ role: 'learner' });
 
     // Calculate real average match score from applications
-    const matchAgg = await this.pipelineModel.aggregate([
-      ...(jobIdsStr.length ? [{ $match: { jobId: { $in: jobIdsStr } } }] : []),
-      { $group: { _id: null, avgScore: { $avg: '$matchScore' } } },
-    ]);
-    const avgMatchScore = matchAgg[0]?.avgScore ? Math.round(matchAgg[0].avgScore) : 88;
+    let avgMatchScore = 0;
+    if (jobIdsObj.length) {
+      const matchAgg = await this.pipelineModel.aggregate([
+        { $match: { jobId: { $in: jobIdsObj } } },
+        { $group: { _id: null, avgScore: { $avg: '$matchScore' } } },
+      ]);
+      if (matchAgg.length > 0 && matchAgg[0].avgScore) {
+        avgMatchScore = Math.round(matchAgg[0].avgScore);
+      }
+    }
 
     // Dynamic 6-Month Bar Trend Aggregation from MongoDB
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -166,23 +169,25 @@ export class CompanyService {
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
       const monthLabel = monthNames[startOfMonth.getMonth()];
 
-      const matchQuery: any = {
-        createdAt: { $gte: startOfMonth, $lt: endOfMonth },
-      };
-      if (jobIdsStr.length) {
-        matchQuery.jobId = { $in: jobIdsStr };
-      }
+      let applied = 0;
+      let interviewed = 0;
 
-      const applied = await this.pipelineModel.countDocuments(matchQuery);
-      const interviewed = await this.pipelineModel.countDocuments({
-        ...matchQuery,
-        stage: { $in: ['Interviewing', 'interview', 'Accepted', 'offer', 'hired'] },
-      });
+      if (jobIdsObj.length) {
+        const matchQuery: any = {
+          createdAt: { $gte: startOfMonth, $lt: endOfMonth },
+          jobId: { $in: jobIdsObj },
+        };
+        applied = await this.pipelineModel.countDocuments(matchQuery);
+        interviewed = await this.pipelineModel.countDocuments({
+          ...matchQuery,
+          stage: { $in: ['interview', 'screening', 'offer', 'hired'] },
+        });
+      }
 
       barTrend.push({
         month: monthLabel,
-        applied: applied || Math.floor(Math.random() * 15) + 5,
-        interviewed: interviewed || Math.floor(Math.random() * 5) + 1,
+        applied,
+        interviewed,
       });
     }
 
@@ -208,12 +213,12 @@ export class CompanyService {
       }
     }
 
-    const totalLearners = learners.length || 1;
+    const totalLearners = learners.length;
     const roleDistribution = [
-      { name: 'Frontend Engineers', value: Math.max(15, Math.round((roleCounts['Frontend Engineers'] / totalLearners) * 100)), color: '#F97316' },
-      { name: 'Backend Architects', value: Math.max(20, Math.round((roleCounts['Backend Architects'] / totalLearners) * 100)), color: '#8B5CF6' },
-      { name: 'AI & Data Specialists', value: Math.max(15, Math.round((roleCounts['AI & Data Specialists'] / totalLearners) * 100)), color: '#10B981' },
-      { name: 'Full Stack Engineers', value: Math.max(25, Math.round((roleCounts['Full Stack Engineers'] / totalLearners) * 100)), color: '#06B6D4' },
+      { name: 'Frontend Engineers', value: totalLearners > 0 ? Math.round((roleCounts['Frontend Engineers'] / totalLearners) * 100) : 0, color: '#F97316' },
+      { name: 'Backend Architects', value: totalLearners > 0 ? Math.round((roleCounts['Backend Architects'] / totalLearners) * 100) : 0, color: '#8B5CF6' },
+      { name: 'AI & Data Specialists', value: totalLearners > 0 ? Math.round((roleCounts['AI & Data Specialists'] / totalLearners) * 100) : 0, color: '#10B981' },
+      { name: 'Full Stack Engineers', value: totalLearners > 0 ? Math.round((roleCounts['Full Stack Engineers'] / totalLearners) * 100) : 0, color: '#06B6D4' },
     ];
 
     return {

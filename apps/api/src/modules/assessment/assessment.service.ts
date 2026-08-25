@@ -89,21 +89,10 @@ export class AssessmentService {
     user?: JwtUser,
   ): Promise<any> {
     const session = await this.sessionModel.findById(sessionId);
-    if (!session) {
-      throw new BadRequestException('Active session not found.');
-    }
-    if (session.status === 'completed') {
-      return {
-        correct: true,
-        explanation: 'Quiz session already completed.',
-        isFinished: true,
-        results: {
-          score: session.score || 100,
-          passed: session.passed ?? true,
-          correctAnswers: session.answers.filter((a) => a.correct).length,
-          totalQuestions: this.TOTAL_QUESTIONS,
-        },
-      };
+    if (!session || session.status === 'completed') {
+      throw new BadRequestException(
+        'Active session not found or already completed.',
+      );
     }
     if (user) assertSelfOrAdmin(user, session.userId.toString());
 
@@ -244,20 +233,6 @@ export class AssessmentService {
           session.userId.toString(),
           session.moduleId,
         );
-        // Auto-issue track certification if ALL modules are now completed
-        const issuedCert = await this.certService.checkAndIssueCertification(
-          session.userId.toString(),
-        );
-        if (issuedCert) {
-          this.eventEmitter.emit('track.completed', {
-            userId: session.userId.toString(),
-            certificateId: issuedCert.certificateId,
-            trackTitle: issuedCert.trackTitle,
-          });
-          this.logger.log(
-            `🎓 Track completed & cert issued for user ${session.userId}: ${issuedCert.certificateId}`,
-          );
-        }
       } else {
         await this.addRemedialModule(
           session.userId.toString(),

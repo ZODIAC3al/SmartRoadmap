@@ -7,6 +7,8 @@ import { LLMService } from '../../ai/llm.service';
 import type { JwtUser } from '../../common/decorators/current-user.decorator';
 import { assertSelfOrAdmin } from '../../common/guards/ownership.util';
 
+import { CacheService } from '../cache/cache.service';
+
 @Injectable()
 export class RoadmapService {
   private readonly logger = new Logger(RoadmapService.name);
@@ -15,37 +17,8 @@ export class RoadmapService {
     @InjectModel(Roadmap.name) private readonly roadmapModel: Model<Roadmap>,
     @InjectModel(Topic.name) private readonly topicModel: Model<Topic>,
     private readonly llmService: LLMService,
+    private readonly cacheService: CacheService,
   ) {}
-
-  private safeUserObjectId(userId: string): Types.ObjectId {
-    return Types.ObjectId.isValid(userId)
-      ? new Types.ObjectId(userId)
-      : new Types.ObjectId();
-  }
-
-  private sanitizeDifficulty(
-    val: string,
-  ): 'beginner' | 'intermediate' | 'advanced' {
-    if (!val) return 'intermediate';
-    const lower = val.toLowerCase();
-    if (lower === 'easy' || lower === 'beginner') return 'beginner';
-    if (lower === 'hard' || lower === 'advanced') return 'advanced';
-    if (lower === 'medium' || lower === 'intermediate') return 'intermediate';
-    return 'intermediate';
-  }
-
-  private sanitizeStatus(
-    val: string,
-    isFirst: boolean,
-  ): 'locked' | 'in_progress' | 'completed' | 'failed' {
-    if (!val) return isFirst ? 'in_progress' : 'locked';
-    const lower = val.toLowerCase();
-    if (lower === 'completed' || lower === 'done') return 'completed';
-    if (lower === 'failed') return 'failed';
-    if (lower === 'in_progress' || lower === 'active' || lower === 'current')
-      return 'in_progress';
-    return isFirst ? 'in_progress' : 'locked';
-  }
 
   async generateRoadmap(
     userId: string,
@@ -56,18 +29,17 @@ export class RoadmapService {
       `Generating roadmap for user: ${userId}, target role: "${targetRole}"`,
     );
 
-    const userObjId = this.safeUserObjectId(userId);
-
     // 1. Call AI service (falls back to mock if API key is not in .env)
     const generated = await this.llmService.generateRoadmap(targetRole, skills);
 
     // 2. Mark any existing roadmaps as archived
     await this.roadmapModel.updateMany(
-      { userId: userObjId, status: 'active' },
+      { userId: new Types.ObjectId(userId), status: 'active' },
       { status: 'archived' },
     );
 
     const modules = Array.isArray(generated?.modules) ? generated.modules : [];
+    const userObjId = this.safeUserObjectId(userId);
 
     // 3. Save new roadmap to MongoDB
     const roadmap = new this.roadmapModel({
@@ -103,15 +75,9 @@ export class RoadmapService {
     });
 
     if (!roadmap) {
-      this.logger.log(
-        `No active roadmap found for user ID ${userId}. Auto-generating default initial roadmap.`,
+      throw new NotFoundException(
+        `No active roadmap found for user ID: ${userId}`,
       );
-      roadmap = await this.generateRoadmap(userId, 'Fullstack Web Developer', [
-        'JavaScript',
-        'TypeScript',
-        'React',
-        'Node.js',
-      ]);
     }
 
     return roadmap;
@@ -163,7 +129,14 @@ export class RoadmapService {
 
     mod.status = status;
     roadmap.markModified('modules');
-    return roadmap.save();
+    const saved = await roadmap.save();
+
+    // Event-driven immediate invalidation of user progress cache
+    const userId = roadmap.userId.toString();
+    const cacheKey = this.cacheService.buildKey('user', 'roadmap', 'progress', `${userId}:${id}`);
+    await this.cacheService.delete(cacheKey);
+
+    return saved;
   }
 
   async extendRoadmap(
@@ -255,5 +228,44 @@ export class RoadmapService {
         },
       },
     ]);
+  }
+
+  // ── Private helpers ─────────────────────────────────────────────────────────
+
+  /**
+   * Safely converts a string userId to a Mongoose ObjectId.
+   * Falls back to a new ObjectId if the string is invalid.
+   */
+  private safeUserObjectId(userId: string): Types.ObjectId {
+    return Types.ObjectId.isValid(userId)
+      ? new Types.ObjectId(userId)
+      : new Types.ObjectId();
+  }
+
+  /**
+   * Ensures difficulty is one of the allowed enum values.
+   */
+  private sanitizeDifficulty(
+    d: unknown,
+  ): 'beginner' | 'intermediate' | 'advanced' {
+    const allowed = ['beginner', 'intermediate', 'advanced'];
+    return allowed.includes(d as string)
+      ? (d as 'beginner' | 'intermediate' | 'advanced')
+      : 'intermediate';
+  }
+
+  /**
+   * Ensures status is a valid module status.
+   * The first module defaults to 'in_progress' if not specified.
+   */
+  private sanitizeStatus(
+    s: unknown,
+    isFirst: boolean,
+  ): 'locked' | 'in_progress' | 'completed' | 'failed' {
+    const allowed = ['locked', 'in_progress', 'completed', 'failed'];
+    if (allowed.includes(s as string)) {
+      return s as 'locked' | 'in_progress' | 'completed' | 'failed';
+    }
+    return isFirst ? 'in_progress' : 'locked';
   }
 }

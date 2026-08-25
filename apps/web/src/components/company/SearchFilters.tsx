@@ -9,7 +9,7 @@ interface SearchFiltersProps {
 
 export function SearchFilters({ onSearch }: SearchFiltersProps) {
   return (
-    <div className="p-4 rounded-xl bg-white border border-[#E4E7EC] shadow-xs flex flex-col gap-4">
+    <div className="p-4 rounded-xl bg-base-100 border border-[#E4E7EC] shadow-xs flex flex-col gap-4">
       <h3 className="font-bold text-xs uppercase tracking-wider text-[#181B23]">
         Talent Search Filters
       </h3>
@@ -25,7 +25,7 @@ export function SearchFilters({ onSearch }: SearchFiltersProps) {
 
       {/* Growth Gated Verified Evidence Toggle */}
       <PlanGate requiredPlan="growth" fallbackText="Upgrade to Growth for verified evidence filter">
-        <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
+        <label className="flex items-center gap-2 text-xs font-medium cursor-pointer transition-all duration-300 ease-in-out">
           <input type="checkbox" className="checkbox checkbox-xs checkbox-primary" />
           <span>Show Verified Certificate Evidence Only</span>
         </label>

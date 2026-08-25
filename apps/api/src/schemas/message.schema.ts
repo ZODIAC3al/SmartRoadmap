@@ -18,6 +18,15 @@ export class Message extends Document {
   attachmentUrl?: string;
 
   @Prop()
+  attachmentName?: string;
+
+  @Prop()
+  attachmentType?: string;
+
+  @Prop()
+  attachmentSize?: number;
+
+  @Prop()
   readAt?: Date;
 
   @Prop({

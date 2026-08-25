@@ -4,6 +4,8 @@ import React from 'react';
 import { useSubscription } from '@/lib/use-subscription';
 import { UsageBar } from '@/components/company/UsageBar';
 import { InvoiceTable } from '@/components/company/InvoiceTable';
+import { AiUsageDashboard } from '@/components/dashboard/AiUsageDashboard';
+import { useGetAiQuotaQuery } from '@/store/api/aiUsageApi';
 import {
   useCreateCheckoutSessionMutation,
   useCreatePortalSessionMutation,
@@ -12,6 +14,7 @@ import { PlanTier } from '@/components/company/UpgradeModal';
 
 export default function BillingPage() {
   const { plan: currentPlan, usage, limits } = useSubscription();
+  const { data: aiQuota } = useGetAiQuotaQuery();
   const [createCheckoutSession, { isLoading: isUpgrading }] = useCreateCheckoutSessionMutation();
   const [createPortalSession] = useCreatePortalSessionMutation();
 
@@ -54,12 +57,15 @@ export default function BillingPage() {
         </button>
       </div>
 
+      {/* Monthly AI Quota & Execution Dashboard */}
+      <AiUsageDashboard />
+
       {/* Usage Bar Metrics */}
-      <div className="p-6 rounded-2xl bg-white border border-[#E4E7EC] shadow-xs flex flex-col gap-4">
+      <div className="p-6 rounded-2xl bg-base-100 border border-[#E4E7EC] shadow-xs flex flex-col gap-4">
         <h3 className="font-bold text-sm font-heading text-[#181B23]">
           Monthly Resource Usage
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <UsageBar
             label="Active Job Posts"
             current={usage.jobPostsActive}
@@ -75,6 +81,11 @@ export default function BillingPage() {
             current={usage.messagesSentThisPeriod}
             limit={limits.messagesIncluded}
           />
+          <UsageBar
+            label="AI Credits"
+            current={aiQuota?.consumedCredits || 0}
+            limit={aiQuota?.allocatedCredits || 50}
+          />
         </div>
       </div>
 
@@ -82,7 +93,7 @@ export default function BillingPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Starter Plan Card */}
         <div
-          className={`p-6 rounded-2xl bg-white border flex flex-col justify-between ${
+          className={`p-6 rounded-2xl bg-base-100 border flex flex-col justify-between ${
             currentPlan === 'starter'
               ? 'border-[#4F46E5] ring-2 ring-[#4F46E5]/20 shadow-md'
               : 'border-[#E4E7EC]'
@@ -115,7 +126,7 @@ export default function BillingPage() {
 
         {/* Growth Plan Card */}
         <div
-          className={`p-6 rounded-2xl bg-white border flex flex-col justify-between ${
+          className={`p-6 rounded-2xl bg-base-100 border flex flex-col justify-between ${
             currentPlan === 'growth'
               ? 'border-[#4F46E5] ring-2 ring-[#4F46E5]/20 shadow-md'
               : 'border-[#D97706]/40 bg-[#D97706]/5'
@@ -150,14 +161,14 @@ export default function BillingPage() {
 
         {/* Scale Plan Card */}
         <div
-          className={`p-6 rounded-2xl bg-white border flex flex-col justify-between ${
+          className={`p-6 rounded-2xl bg-base-100 border flex flex-col justify-between ${
             currentPlan === 'scale'
               ? 'border-[#4F46E5] ring-2 ring-[#4F46E5]/20 shadow-md'
-              : 'border-purple-500/40 bg-purple-500/5'
+              : 'border-primary/40 bg-primary text-primary-content/5'
           }`}
         >
           <div>
-            <span className="text-xs uppercase font-bold text-purple-600">Scale Plan</span>
+            <span className="text-xs uppercase font-bold text-primary">Scale Plan</span>
             <h2 className="text-3xl font-extrabold font-mono mt-1 text-[#181B23]">
               $199 <span className="text-xs text-[#6B7280] font-normal font-sans">/ mo</span>
             </h2>

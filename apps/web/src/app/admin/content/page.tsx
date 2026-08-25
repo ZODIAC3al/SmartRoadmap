@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiJson, fetchMe, getErrorMessage } from "@/lib/api";
 
 interface Report {
@@ -27,7 +27,7 @@ function isResolutionStatus(value: string): value is ResolutionStatus {
 }
 
 export default function AdminContentPage() {
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const [loading, setLoading] = useState(true);
 
   // States
@@ -83,7 +83,7 @@ export default function AdminContentPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
@@ -91,38 +91,38 @@ export default function AdminContentPage() {
   const isRtl = locale === "ar";
 
   return (
-    <div className={`sr-console min-h-screen text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
-      <div className="sr-shell max-w-6xl mx-auto space-y-8">
+    <div className={`min-h-screen bg-base-100 text-base-content pb-16 px-4 sm:px-6 lg:px-8 font-sans ${isRtl ? "text-right" : "text-left"}`}>
+      <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Navigation Admin Header Banner */}
-        <div className="sr-stage sr-signal flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 rounded-3xl p-6 sm:p-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-base-200 border border-base-300 rounded-2xl p-6 sm:p-8 shadow-sm">
           <div>
-            <span className="sr-kicker">
+            <span className="text-[10px] text-[#8E1616] font-bold uppercase tracking-wider font-mono bg-[#8E1616]/10 px-2 py-0.5 rounded">
               {isRtl ? "إشراف ومراقبة المحتوى" : "MODERATION GATEWAY"}
             </span>
-            <h1 className="text-2xl font-black tracking-tight mt-1">
+            <h1 className="text-xl font-extrabold text-base-content mt-1">
               {isRtl ? "مركز بلاغات وإشراف المحتوى" : "Reports & Decisions"}
             </h1>
-            <p className="text-xs text-base-content/50 mt-0.5">
+            <p className="text-sm text-base-content/60 mt-0.5">
               {isRtl ? "مراجعة المشاريع والمقالات والمصادر التقنية المبلغ عنها وإزالتها لحفظ أمن المنصة." : "Audit flags filed against community posts, comment threads, resources, or mentor profiles."}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-3">
             <Link
               href="/admin/certificates"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "مراجعة الشهادات" : "Certificates"}
             </Link>
             <Link
               href="/admin/users"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "إدارة الأعضاء" : "Manage users"}
             </Link>
             <Link
               href="/admin"
-              className="sr-button-secondary btn btn-xs sm:btn-sm"
+              className="btn btn-sm bg-base-100 border border-base-300 text-base-content hover:bg-base-300 rounded-xl transition-all duration-300 ease-in-out"
             >
               {isRtl ? "لوحة التحليلات" : "Back to analytics"}
             </Link>
@@ -133,7 +133,7 @@ export default function AdminContentPage() {
         <div className="grid md:grid-cols-3 gap-6">
           
           {/* Moderation table list */}
-          <div className="sr-panel md:col-span-2 rounded-2xl p-5 space-y-4">
+          <div className="bg-base-200 border border-base-300 shadow-sm md:col-span-2 rounded-2xl p-5 space-y-4">
             <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
               {isRtl ? "قائمة البلاغات المعلقة" : "Report Queue Index"}
             </h3>
@@ -171,7 +171,7 @@ export default function AdminContentPage() {
                         <td>
                           <span className={`badge border-none font-bold text-[8px] uppercase px-1.5 py-0.5 rounded font-mono ${
                             rep.status === "pending" ? "bg-yellow-500/10 text-yellow-500" :
-                            rep.status === "resolved" ? "bg-green-500/10 text-green-500" : "bg-neutral-content/10 text-neutral-content/40"
+                            rep.status === "resolved" ? "bg-[#8E1616]/10 text-[#8E1616]" : "bg-neutral-content/10 text-neutral-content/40"
                           }`}>
                             {rep.status}
                           </span>
@@ -180,7 +180,7 @@ export default function AdminContentPage() {
                           {rep.status === "pending" && (
                             <button
                               onClick={() => setSelectedReport(rep)}
-                              className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none rounded-lg px-2 font-bold"
+                              className="btn btn-xs bg-red-500 hover:bg-red-600 text-white border-none rounded-2xl px-2 font-bold transition-all duration-300 ease-in-out"
                             >
                               {isRtl ? "معالجة" : "Handle"}
                             </button>
@@ -197,12 +197,12 @@ export default function AdminContentPage() {
           {/* Handler sidebar modal form */}
           <div className="md:col-span-1">
             {selectedReport ? (
-              <div className="sr-panel rounded-2xl p-5 space-y-4 animate-in fade-in duration-200">
+              <div className="bg-base-200 border border-base-300 shadow-sm rounded-2xl p-5 space-y-4 animate-in fade-in duration-200">
                 <div className="flex justify-between items-center border-b border-base-300 pb-2">
                   <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/40">
                     {isRtl ? "معالجة بلاغ" : "Report Handler Action"}
                   </h3>
-                  <button onClick={() => setSelectedReport(null)} className="text-[11px] font-bold hover:underline">
+                  <button onClick={() => setSelectedReport(null)} className="text-[11px] font-bold hover:underline transition-all duration-300 ease-in-out">
                     ✕
                   </button>
                 </div>
@@ -214,7 +214,7 @@ export default function AdminContentPage() {
                   </div>
                   <div>
                     <span className="font-bold text-[10px] text-base-content/40 block font-mono">CONTENT KEY ID</span>
-                    <span className="font-mono text-[10px] text-base-content block bg-base-100 p-1.5 rounded-lg truncate">{selectedReport.contentId}</span>
+                    <span className="font-mono text-[10px] text-base-content block bg-base-100 p-1.5 rounded-2xl truncate">{selectedReport.contentId}</span>
                   </div>
                   <div>
                     <span className="font-bold text-[10px] text-base-content/40 block font-mono">VIOLATION DETAILS</span>
@@ -251,14 +251,14 @@ export default function AdminContentPage() {
                   </div>
                   <button
                     type="submit"
-                    className="sr-button btn btn-sm w-full"
+                    className="btn btn-primary text-white btn-sm w-full"
                   >
                     {isRtl ? "حفظ التغييرات" : "Submit Moderation Change"}
                   </button>
                 </form>
               </div>
             ) : (
-              <div className="sr-panel p-8 rounded-2xl text-center space-y-2 text-base-content/40">
+              <div className="bg-base-200 border border-base-300 shadow-sm p-8 rounded-2xl text-center space-y-2 text-base-content/40">
                 <span className="text-2xl">🛡️</span>
                 <h4 className="font-extrabold text-xs uppercase tracking-wider font-mono">Moderation Detail Box</h4>
                 <p className="text-[10px] leading-relaxed max-w-[200px] mx-auto">

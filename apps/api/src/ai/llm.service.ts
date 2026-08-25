@@ -1,25 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type OpenAI from 'openai';
-import { createOpenAIClient } from './openai.client';
 import { AiProviderFactory } from './ai-provider.factory';
 import { AppCacheService } from '../common/cache/app-cache.service';
+import { RAGService } from './rag.service';
 
 @Injectable()
 export class LLMService {
   private readonly logger = new Logger(LLMService.name);
-  private readonly isMockMode: boolean;
-  private readonly client: OpenAI | null;
 
   constructor(
     private readonly config: ConfigService,
     private readonly aiProviderFactory: AiProviderFactory,
     private readonly cache: AppCacheService,
-  ) {
-    const { isMockMode, client } = createOpenAIClient(config, this.logger);
-    this.isMockMode = isMockMode;
-    this.client = client;
-  }
+    private readonly ragService: RAGService,
+  ) {}
 
   // ───────────────────────────── Mock builders ─────────────────────────────
 
@@ -300,9 +294,23 @@ export class LLMService {
         return mock;
       }
       try {
-        const prompt = `Generate a targeted remedial sub-topic for a student struggling with "${topicTitle}" (Fail Rate: ${failPercentage}%).`;
+        // Retrieve targeted remedial Sentence Window RAG context
+        let ragContext = '';
+        try {
+          const { formattedContext } = await this.ragService.retrieveContext({
+            domain: 'resources',
+            query: topicTitle,
+            strategy: 'sentence_window',
+            limit: 3,
+          });
+          ragContext = formattedContext;
+        } catch {
+          // RAG optional fallback
+        }
+
+        const prompt = `Generate a targeted remedial sub-topic for a student struggling with "${topicTitle}" (Fail Rate: ${failPercentage}%).\n${ragContext}`;
         const system =
-          'Reply with ONLY a JSON object of shape {"title": string, "description": string}.';
+          'Reply with ONLY a JSON object of shape {"title": string, "description": string}. Use the provided RAG knowledge context to make the title and description specifically targeted at weak concepts.';
 
         const result = await provider.generateJSON<{
           title: string;

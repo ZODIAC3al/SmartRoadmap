@@ -26,6 +26,8 @@ import { useCvEditor } from './useCvEditor';
 import { CvRenderer } from './_components/CvRenderer';
 import { GitHubRepoImportModal } from './_components/GitHubRepoImportModal';
 import { AtsOptimizerModal } from './_components/AtsOptimizerModal';
+import { AdvancedAiCvModal } from './_components/AdvancedAiCvModal';
+import { Bot, Globe } from 'lucide-react';
 
 export default function CvPage() {
   const {
@@ -62,11 +64,13 @@ export default function CvPage() {
     handleCancel,
     handleEnhanceDescription,
     handleExportPDF,
+    handleFileUpload,
     handleGenerateFromProfile,
     handlePhotoUpload,
     handleSaveCv,
     isParsing,
     isSaving,
+    isTailoring,
     lastName,
     locale,
     mobileView,
@@ -86,7 +90,11 @@ export default function CvPage() {
     setProfessionalTitle,
     setSelectedTemplate,
     t,
+    targetJobTitle,
     updateCombinedName,
+    showTailorModal,
+    setShowTailorModal,
+    handleGenerateTailoredCv,
   } = useCvEditor();
 
   return (
@@ -100,7 +108,7 @@ export default function CvPage() {
           <div>
             <h1 className="font-extrabold text-base leading-none">CV Studio</h1>
             <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
-              Professional AI Resume Generator & ATS Optimizer
+              Professional Resume Builder & ATS Optimizer
             </p>
           </div>
         </div>
@@ -110,7 +118,7 @@ export default function CvPage() {
           {currentView !== 'dashboard' && (
             <button
               onClick={() => setCurrentView('dashboard')}
-              className="btn btn-outline border-base-300 btn-xs sm:btn-sm rounded-lg font-bold"
+              className="btn btn-outline border-base-300 btn-xs sm:btn-sm rounded-2xl font-bold"
             >
               ← My CVs
             </button>
@@ -120,7 +128,7 @@ export default function CvPage() {
             <>
               <button
                 onClick={() => setIsAtsOptimizerOpen(true)}
-                className="btn btn-outline border-primary text-primary hover:bg-primary/10 btn-xs sm:btn-sm rounded-lg font-bold flex items-center gap-1"
+                className="btn btn-outline border-primary text-primary hover:bg-primary/10 btn-xs sm:btn-sm rounded-2xl font-bold flex items-center gap-1 transition-all duration-300 ease-in-out"
               >
                 <SparklesIcon />
                 ATS Optimizer
@@ -128,18 +136,24 @@ export default function CvPage() {
 
               <button
                 type="button"
-                onClick={() => handleGenerateFromProfile()}
-                disabled={isParsing}
-                className="btn bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 btn-xs sm:btn-sm rounded-lg font-bold flex items-center gap-1 border-none shadow-sm"
+                onClick={() => document.getElementById('resumeFileUploadTrigger')?.click()}
+                className="btn btn-outline border-base-300 text-base-content btn-xs sm:btn-sm rounded-2xl flex items-center gap-1"
               >
-                {isParsing ? <span className="loading loading-spinner loading-xs mr-1"></span> : <SparklesIcon />}
-                Generate My CV with AI
+                <UploadIcon />
+                Upload PDF
               </button>
+              <input
+                type="file"
+                id="resumeFileUploadTrigger"
+                accept=".pdf,.doc,.docx"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
 
               <button
                 onClick={handleSaveCv}
                 disabled={isSaving}
-                className="btn bg-primary hover:bg-[#059669] text-white btn-xs sm:btn-sm rounded-lg border-none font-bold px-4"
+                className="btn bg-primary hover:bg-[#701111] text-white btn-xs sm:btn-sm rounded-2xl border-none font-bold px-4 transition-all duration-300 ease-in-out"
               >
                 {isSaving && <span className="loading loading-spinner loading-xs mr-1"></span>}
                 Save CV
@@ -149,7 +163,7 @@ export default function CvPage() {
 
           <button
             onClick={handleCreateNewCv}
-            className="btn bg-primary hover:bg-[#059669] text-white btn-xs sm:btn-sm rounded-lg border-none font-bold flex items-center gap-1"
+            className="btn bg-primary hover:bg-[#701111] text-white btn-xs sm:btn-sm rounded-2xl border-none font-bold flex items-center gap-1 transition-all duration-300 ease-in-out"
           >
             <PlusIcon />
             New CV
@@ -161,36 +175,59 @@ export default function CvPage() {
       {currentView === 'dashboard' && (
         <main className="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-8 space-y-8">
           {/* Welcome Banner */}
-          <div className="bg-gradient-to-r from-primary/10 via-emerald-500/10 to-teal-500/10 border border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
-            <div>
-              <h2 className="text-xl font-extrabold text-base-content">
-                Create & Optimize Job-Ready Resumes with AI
-              </h2>
-              <p className="text-xs text-base-content/70 mt-1 max-w-xl">
-                Automatically assemble your skills, roadmap milestones, certificates, and projects into an ATS-optimized professional resume.
+          <div className="bg-[#E8C999]/20 border border-[#E8C999]/40 rounded-[2rem] p-8 sm:p-10 flex flex-col md:flex-row justify-between items-center gap-8 shadow-sm select-none">
+            {/* Left Side */}
+            <div className="space-y-4 text-start flex-1 max-w-xl">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full border border-primary/20">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+                NEXT-GEN CAREER ENGINE
+              </span>
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-base-content leading-tight">
+                Role-Specific AI Resume Studio & ATS Calibration
+              </h1>
+              <p className="text-sm font-semibold text-base-content/60 leading-relaxed max-w-md">
+                Automatically organize and format your verified technical skills, GitHub repositories, online courses, and track certificates into multi-section ATS-friendly resumes.
               </p>
+              <div className="flex flex-wrap gap-3 pt-2">
+                <button
+                  onClick={() => setShowTailorModal(true)}
+                  className="btn bg-primary hover:bg-[#701111] text-white btn-sm rounded-xl font-bold border-none shadow transition-all duration-300 ease-in-out"
+                >
+                  <SparklesIcon /> Launch AI CV Generator
+                </button>
+                <button
+                  onClick={handleCreateNewCv}
+                  className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-sm rounded-xl font-bold transition-all duration-300 ease-in-out"
+                >
+                  + Blank Resume
+                </button>
+                <Link
+                  href="/portfolio/builder"
+                  className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-sm rounded-xl font-bold transition-all duration-300 ease-in-out flex items-center gap-1.5"
+                >
+                  <Globe className="w-4 h-4" /> Portfolio Builder
+                </Link>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => handleGenerateFromProfile()}
-                disabled={isParsing}
-                className="btn bg-emerald-600 hover:bg-emerald-700 text-white btn-sm rounded-xl font-bold border-none shadow flex items-center gap-1.5"
-              >
-                {isParsing ? <span className="loading loading-spinner loading-xs"></span> : <SparklesIcon />}
-                Generate My CV with AI
-              </button>
-              <button
-                onClick={handleCreateNewCv}
-                className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-sm rounded-xl font-bold"
-              >
-                + Blank CV
-              </button>
-              <Link
-                href="/portfolio/builder"
-                className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-sm rounded-xl font-bold"
-              >
-                🌐 Build Portfolio
-              </Link>
+
+            {/* Right Side: AI Assistant Graphic */}
+            <div className="hidden md:flex flex-col items-center justify-center relative w-64 shrink-0">
+              <div className="absolute -top-4 -left-4 bg-base-100 border border-base-300 shadow-sm rounded-full px-4 py-2 text-[10px] font-bold text-base-content whitespace-nowrap z-10">
+                Targeting a new role? Let's calibrate your CV!
+              </div>
+              <div className="w-32 h-32 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center relative bg-base-100 shadow-sm">
+                <Bot className="w-14 h-14 text-primary" />
+                <div className="absolute -left-3 top-12 w-6 h-6 rounded-full bg-[#F8EEDF] border border-base-300 shadow-sm flex items-center justify-center">
+                  <span className="w-2 h-2 rounded-full bg-primary/50"></span>
+                </div>
+                <div className="absolute -right-3 top-12 w-6 h-6 rounded-full bg-[#F8EEDF] border border-base-300 shadow-sm flex items-center justify-center">
+                  <span className="w-2 h-2 rounded-full bg-primary/50"></span>
+                </div>
+              </div>
+              <span className="mt-4 px-3 py-1 bg-base-100 border border-[#8E1616]/30 text-[#8E1616] text-[9px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 shadow-sm">
+                <span className="w-1.5 h-1.5 bg-[#8E1616] rounded-full"></span>
+                ATS Ready
+              </span>
             </div>
           </div>
 
@@ -213,7 +250,7 @@ export default function CvPage() {
                 </p>
                 <button
                   onClick={handleCreateNewCv}
-                  className="btn bg-primary hover:bg-[#059669] text-white btn-sm rounded-xl font-bold border-none mt-2"
+                  className="btn bg-primary hover:bg-[#701111] text-white btn-sm rounded-xl font-bold border-none mt-2 transition-all duration-300 ease-in-out"
                 >
                   Create Your First CV
                 </button>
@@ -234,7 +271,7 @@ export default function CvPage() {
                         <div className="flex items-center gap-1">
                           <button
                             onClick={(e) => handleDuplicateCv(item._id || item.id || '', e)}
-                            className="btn btn-ghost btn-xs btn-square text-base-content/60 hover:text-primary"
+                            className="btn btn-ghost btn-xs btn-square text-base-content/60 hover:text-primary transition-all duration-300 ease-in-out"
                             title="Duplicate CV"
                           >
                             📋
@@ -262,7 +299,7 @@ export default function CvPage() {
                         Updated {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'recently'}
                       </span>
                       <div className="flex gap-2">
-                        <button className="btn btn-xs bg-primary/10 text-primary hover:bg-primary hover:text-white border-none font-bold rounded-lg">
+                        <button className="btn btn-xs bg-primary/10 text-primary hover:bg-primary hover:text-white border-none font-bold rounded-2xl transition-all duration-300 ease-in-out">
                           Edit →
                         </button>
                       </div>
@@ -295,7 +332,7 @@ export default function CvPage() {
               <p className="text-xs text-base-content/70">
                 Convert your profile & GitHub repositories into a published personal portfolio website at /portfolio/[username].
               </p>
-              <Link href="/portfolio/builder" className="text-xs text-primary font-bold hover:underline block pt-1">
+              <Link href="/portfolio/builder" className="text-xs text-primary font-bold hover:underline block pt-1 transition-all duration-300 ease-in-out">
                 Open Portfolio Builder →
               </Link>
             </div>
@@ -315,7 +352,7 @@ export default function CvPage() {
                   type="text"
                   value={cv.title || 'My Resume'}
                   onChange={(e) => setCv({ ...cv, title: e.target.value })}
-                  className="input input-sm font-extrabold text-sm bg-base-200 text-base-content focus:border-primary border-base-300 rounded-lg flex-grow"
+                  className="input input-sm font-extrabold text-sm bg-base-200 text-base-content focus:border-primary border-base-300 rounded-2xl flex-grow"
                   placeholder="Resume Title (e.g. Frontend Developer CV)"
                 />
               </div>
@@ -355,15 +392,15 @@ export default function CvPage() {
                     </div>
                     <div className="collapse-content space-y-4 pt-1">
                       {/* Photo upload card */}
-                      <div className="flex flex-col sm:flex-row items-center gap-4 bg-base-200 border border-dashed border-base-300 p-3 rounded-lg w-full">
+                      <div className="flex flex-col sm:flex-row items-center gap-4 bg-base-200 border border-dashed border-base-300 p-3 rounded-2xl w-full">
                         {cv.personal?.photoUrl ? (
                           <img
                             src={cv.personal.photoUrl}
                             alt="Avatar"
-                            className="w-14 h-14 rounded-lg object-cover border border-base-300 shrink-0"
+                            className="w-14 h-14 rounded-2xl object-cover border border-base-300 shrink-0"
                           />
                         ) : (
-                          <div className="w-14 h-14 bg-base-300 rounded-lg flex items-center justify-center text-base-content/50 shrink-0">
+                          <div className="w-14 h-14 bg-base-300 rounded-2xl flex items-center justify-center text-base-content/50 shrink-0">
                             <CameraIcon className="w-6 h-6" />
                           </div>
                         )}
@@ -372,7 +409,7 @@ export default function CvPage() {
                           <button
                             type="button"
                             onClick={() => document.getElementById('cvPhotoFileInput')?.click()}
-                            className="btn btn-xs bg-primary hover:bg-[#059669] border-none text-white rounded mt-1 px-3 font-bold"
+                            className="btn btn-xs bg-primary hover:bg-[#701111] border-none text-white rounded mt-1 px-3 font-bold transition-all duration-300 ease-in-out"
                           >
                             Upload Photo
                           </button>
@@ -503,11 +540,11 @@ export default function CvPage() {
                         <button
                           type="button"
                           onClick={() => setIsGitHubImportOpen(true)}
-                          className="btn btn-xs btn-outline border-primary text-primary hover:bg-primary/10 rounded-lg font-bold flex items-center gap-1"
+                          className="btn btn-xs btn-outline border-primary text-primary hover:bg-primary/10 rounded-2xl font-bold flex items-center gap-1 transition-all duration-300 ease-in-out"
                         >
                           💻 Import from GitHub
                         </button>
-                        <button type="button" onClick={addProject} className="btn bg-primary hover:bg-[#059669] text-white border-none btn-xs rounded-lg font-bold">
+                        <button type="button" onClick={addProject} className="btn bg-primary hover:bg-[#701111] text-white border-none btn-xs rounded-2xl font-bold transition-all duration-300 ease-in-out">
                           + Add Project
                         </button>
                       </div>
@@ -579,7 +616,7 @@ export default function CvPage() {
                     </div>
                     <div className="collapse-content space-y-4 pt-1">
                       <div className="flex justify-end">
-                        <button type="button" onClick={addExperience} className="btn bg-primary hover:bg-[#059669] text-white border-none btn-xs rounded-lg font-bold">
+                        <button type="button" onClick={addExperience} className="btn bg-primary hover:bg-[#701111] text-white border-none btn-xs rounded-2xl font-bold transition-all duration-300 ease-in-out">
                           + Add Experience
                         </button>
                       </div>
@@ -649,7 +686,7 @@ export default function CvPage() {
                     <div className="collapse-content space-y-4 pt-1">
                       <div className="flex justify-between items-center">
                         <p className="text-[10px] text-base-content/50 font-medium">Add free-form sections like Hackathons, Research, or Volunteering.</p>
-                        <button type="button" onClick={addCustomSection} className="btn bg-primary hover:bg-[#059669] text-white border-none btn-xs rounded-lg font-bold">
+                        <button type="button" onClick={addCustomSection} className="btn bg-primary hover:bg-[#701111] text-white border-none btn-xs rounded-2xl font-bold transition-all duration-300 ease-in-out">
                           + Add Section
                         </button>
                       </div>
@@ -767,11 +804,10 @@ export default function CvPage() {
                           setSelectedTemplate(tpl.id as any);
                           setCv({ ...cv, template: tpl.id as any });
                         }}
-                        className={`p-4 rounded-2xl border cursor-pointer transition-all space-y-2 ${
-                          (cv.template || 'modern') === tpl.id
+                        className={`p-4 rounded-2xl border cursor-pointer transition-all space-y-2 ${(cv.template || 'modern') === tpl.id
                             ? 'bg-primary/10 border-primary ring-2 ring-primary/20'
                             : 'bg-base-100 border-base-300 hover:border-base-400'
-                        }`}
+                          }`}
                       >
                         <h4 className="font-extrabold text-xs text-base-content">{tpl.title}</h4>
                         <p className="text-[10px] text-base-content/60 leading-normal">{tpl.desc}</p>
@@ -791,13 +827,13 @@ export default function CvPage() {
               </span>
               <button
                 onClick={handleExportPDF}
-                className="btn btn-xs bg-primary hover:bg-[#059669] text-white rounded font-bold"
+                className="btn btn-xs bg-primary hover:bg-[#701111] text-white rounded font-bold transition-all duration-300 ease-in-out"
               >
                 Export PDF
               </button>
             </div>
 
-            <div id="cv-preview-sheet" className="flex-grow w-full max-w-[595px] bg-white text-gray-800 shadow-2xl rounded border border-gray-300 overflow-y-auto relative flex flex-col select-text">
+            <div id="cv-preview-sheet" className="flex-grow w-full max-w-[595px] bg-base-100 text-base-content shadow-2xl rounded border border-base-300 overflow-y-auto relative flex flex-col select-text">
               <CvRenderer cv={cv} />
             </div>
           </section>
@@ -816,6 +852,14 @@ export default function CvPage() {
         onClose={() => setIsAtsOptimizerOpen(false)}
         cv={cv}
         onApplyAtsAnalysis={(analysis) => setCv({ ...cv, atsAnalysis: analysis })}
+      />
+
+      <AdvancedAiCvModal
+        isOpen={showTailorModal}
+        onClose={() => setShowTailorModal(false)}
+        onGenerate={(params) => handleGenerateTailoredCv(params.targetRole, params.jobDescription)}
+        isGenerating={isTailoring}
+        initialRole={targetJobTitle}
       />
     </div>
   );

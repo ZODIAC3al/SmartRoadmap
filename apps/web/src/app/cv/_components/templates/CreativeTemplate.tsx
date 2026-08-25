@@ -9,7 +9,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ cv }) => {
   const { personal, experience, education, skills, projects, certifications, customSections } = cv;
 
   return (
-    <div className="w-full bg-white text-slate-800 flex flex-col font-sans select-text">
+    <div className="w-full bg-base-100 text-base-content flex flex-col font-sans select-text">
       {/* Creative Gradient Header */}
       <div className="bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 text-white p-6 rounded-t shadow-md">
         <div className="flex items-center gap-4 flex-wrap">
@@ -37,7 +37,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ cv }) => {
       <div className="p-6 space-y-5">
         {/* Summary */}
         {personal?.summary && (
-          <div className="bg-indigo-50/60 border-l-4 border-indigo-600 p-3 rounded-r">
+          <div className="bg-indigo-50/60 border-l-4 border-primary p-3 rounded-r">
             <h2 className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-900 mb-1">About Me</h2>
             <p className="text-[9px] text-indigo-950 leading-relaxed font-medium">{personal.summary}</p>
           </div>
@@ -67,13 +67,13 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ cv }) => {
             </h2>
             <div className="space-y-3">
               {experience.map((exp, idx) => (
-                <div key={idx} className="bg-slate-50 border border-slate-200 p-3 rounded-lg space-y-1">
+                <div key={idx} className="bg-base-200 border border-base-300 p-3 rounded-2xl space-y-1">
                   <div className="flex justify-between items-baseline">
                     <span className="font-extrabold text-[9.5px] text-indigo-950">{exp.role}</span>
                     <span className="text-[8px] text-purple-700 font-mono font-bold">{exp.startDate} – {exp.endDate}</span>
                   </div>
-                  <p className="text-[8.5px] text-purple-600 font-bold">{exp.company}</p>
-                  <p className="text-[8.5px] text-slate-600 leading-relaxed">{exp.description}</p>
+                  <p className="text-[8.5px] text-primary font-bold">{exp.company}</p>
+                  <p className="text-[8.5px] text-base-content/70 leading-relaxed">{exp.description}</p>
                 </div>
               ))}
             </div>
@@ -88,9 +88,9 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ cv }) => {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {projects.map((proj, idx) => (
-                <div key={idx} className="bg-slate-50 border border-slate-200 p-2.5 rounded-lg space-y-1">
-                  <span className="font-extrabold text-[9px] text-slate-900 block">{proj.name}</span>
-                  <p className="text-[8px] text-slate-600 leading-normal">{proj.description}</p>
+                <div key={idx} className="bg-base-200 border border-base-300 p-2.5 rounded-2xl space-y-1">
+                  <span className="font-extrabold text-[9px] text-base-content block">{proj.name}</span>
+                  <p className="text-[8px] text-base-content/70 leading-normal">{proj.description}</p>
                   {(proj.url || proj.githubUrl) && (
                     <a href={proj.url || proj.githubUrl} target="_blank" rel="noreferrer" className="text-[7.5px] text-pink-600 font-mono underline block truncate">
                       {proj.url || proj.githubUrl}
@@ -112,7 +112,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ cv }) => {
               <div className="space-y-1.5">
                 {education.map((edu, idx) => (
                   <div key={idx} className="text-[8.5px]">
-                    <p className="font-bold text-slate-900">{edu.degree}</p>
+                    <p className="font-bold text-base-content">{edu.degree}</p>
                     <p className="text-purple-700">{edu.school}</p>
                     <p className="text-[7.5px] text-slate-400 font-mono">{edu.graduateDate}</p>
                   </div>
@@ -129,7 +129,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ cv }) => {
               <div className="space-y-1.5 text-[8.5px]">
                 {certifications.map((c, idx) => (
                   <div key={idx}>
-                    <p className="font-bold text-slate-900">{c.name}</p>
+                    <p className="font-bold text-base-content">{c.name}</p>
                     <p className="text-pink-600">{c.organization}</p>
                   </div>
                 ))}
@@ -146,7 +146,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ cv }) => {
                 <h2 className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-900 border-b border-indigo-100 pb-1 mb-1.5">
                   {sec.title}
                 </h2>
-                <ul className="list-disc list-inside space-y-0.5 text-[8.5px] text-slate-700">
+                <ul className="list-disc list-inside space-y-0.5 text-[8.5px] text-base-content/70">
                   {sec.items.map((item, idx) => (
                     <li key={idx}>{item}</li>
                   ))}

@@ -35,8 +35,11 @@ import {
 } from '../../schemas/achievement-definition.schema';
 import { ProfileImportModule } from '../profile-import/profile-import.module';
 
+import { BillingModule } from '../billing/billing.module';
+
 @Module({
   imports: [
+    BillingModule,
     MongooseModule.forFeature([
       { name: Cv.name, schema: CvSchema },
       { name: User.name, schema: UserSchema },

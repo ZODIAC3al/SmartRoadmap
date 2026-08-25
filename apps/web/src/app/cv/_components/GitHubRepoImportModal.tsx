@@ -150,13 +150,13 @@ export const GitHubRepoImportModal: React.FC<GitHubRepoImportModalProps> = ({
                 {selectedIds.length} repository selected
               </span>
               <div className="flex gap-2">
-                <button onClick={onClose} className="btn btn-xs sm:btn-sm btn-ghost rounded-lg font-bold">
+                <button onClick={onClose} className="btn btn-xs sm:btn-sm btn-ghost rounded-2xl font-bold">
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirm}
                   disabled={selectedIds.length === 0}
-                  className="btn btn-xs sm:btn-sm bg-primary hover:bg-[#059669] text-white border-none rounded-lg font-bold px-4"
+                  className="btn btn-xs sm:btn-sm bg-primary hover:bg-[#701111] text-white border-none rounded-2xl font-bold px-4 transition-all duration-300 ease-in-out"
                 >
                   Import Selected
                 </button>

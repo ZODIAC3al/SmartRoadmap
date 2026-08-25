@@ -64,6 +64,7 @@ import ChatSidebar from "@/components/ChatSidebar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "lineicons/dist/lineicons.css";
+import { QuotaExceededModal } from "@/components/common/QuotaExceededModal";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
 export default function RootLayout({
@@ -94,6 +95,7 @@ export default function RootLayout({
               draggable
             />
             <ChatSidebar />
+            <QuotaExceededModal />
           </AppContextProvider>
         </StoreProvider>
       </body>

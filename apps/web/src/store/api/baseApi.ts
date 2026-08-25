@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
 import type { RootState } from '../index';
 import { logout, setCredentials } from '../slices/authSlice';
-import { getToken, fetchMe, clearSession } from '@/lib/api';
+import { getToken, fetchMe, clearSession, hasSession } from '@/lib/api';
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
@@ -21,6 +21,16 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
   api,
   extraOptions,
 ) => {
+  // If session cookie exists but in-memory access token is null (e.g. reload),
+  // proactively refresh session first so the very first call has the authorization header.
+  if (hasSession() && !getToken()) {
+    const me = await fetchMe();
+    const freshToken = getToken();
+    if (me && freshToken) {
+      api.dispatch(setCredentials({ user: me, token: freshToken }));
+    }
+  }
+
   let result = await rawBaseQuery(args, api, extraOptions);
   if (result.error && result.error.status === 401) {
     // Try silently fetching current session token
@@ -56,6 +66,8 @@ export const baseApi = createApi({
     'CandidatePipeline',
     'QuizSession',
     'Gamification',
+    'AiQuota',
+    'AiHistory',
   ],
   endpoints: () => ({}),
 });

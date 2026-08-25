@@ -40,13 +40,25 @@ export const jobsApi = baseApi.injectEndpoints({
             ]
           : [{ type: 'Job', id: 'LIST' }],
     }),
+    getMyJobs: builder.query<EntityState<JobPostingItem, string>, void>({
+      query: () => '/hiring/jobs/my',
+      transformResponse: (response: JobPostingItem[]) =>
+        jobsAdapter.setAll(jobsAdapter.getInitialState(), response),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.ids.map((id) => ({ type: 'Job' as const, id })),
+              { type: 'Job', id: 'MY_LIST' },
+            ]
+          : [{ type: 'Job', id: 'MY_LIST' }],
+    }),
     createJob: builder.mutation<JobPostingItem, Partial<JobPostingItem>>({
       query: (body) => ({
         url: '/hiring/jobs',
         method: 'POST',
         body,
       }),
-      invalidatesTags: [{ type: 'Job', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Job', id: 'LIST' }, { type: 'Job', id: 'MY_LIST' }],
     }),
     updateJobStatus: builder.mutation<JobPostingItem, { id: string; status: JobPostingItem['status'] }>({
       query: ({ id, status }) => ({
@@ -77,13 +89,14 @@ export const jobsApi = baseApi.injectEndpoints({
         url: `/hiring/jobs/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: [{ type: 'Job', id: 'LIST' }],
+      invalidatesTags: [{ type: 'Job', id: 'LIST' }, { type: 'Job', id: 'MY_LIST' }],
     }),
   }),
 });
 
 export const {
   useGetJobsQuery,
+  useGetMyJobsQuery,
   useCreateJobMutation,
   useUpdateJobStatusMutation,
   useGetMatchedJobsQuery,

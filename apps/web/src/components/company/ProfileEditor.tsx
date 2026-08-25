@@ -126,7 +126,7 @@ export function ProfileEditor() {
             </div>
           )}
 
-          <label className="absolute top-3 right-3 bg-base-100/90 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-base-300 text-xs font-bold text-base-content cursor-pointer hover:bg-base-100 flex items-center gap-1.5 shadow-xs">
+          <label className="absolute top-3 right-3 bg-base-100/90 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-base-300 text-xs font-bold text-base-content cursor-pointer hover:bg-base-100 flex items-center gap-1.5 shadow-xs transition-all duration-300 ease-in-out">
             {isUploadingCover ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
             ) : (
@@ -222,7 +222,7 @@ export function ProfileEditor() {
           </h3>
           <Link
             href={`/companies/${slug}`}
-            className="text-xs text-primary font-bold hover:underline"
+            className="text-xs text-primary font-bold hover:underline transition-all duration-300 ease-in-out"
           >
             Open Public Page →
           </Link>
