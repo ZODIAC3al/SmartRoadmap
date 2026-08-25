@@ -28,30 +28,6 @@ import {
   Line,
 } from 'recharts';
 
-const DEFAULT_BAR_DATA = [
-  { month: 'Oct', applied: 140, interviewed: 45 },
-  { month: 'Nov', applied: 180, interviewed: 62 },
-  { month: 'Dec', applied: 220, interviewed: 78 },
-  { month: 'Jan', applied: 190, interviewed: 65 },
-  { month: 'Feb', applied: 250, interviewed: 90 },
-  { month: 'Mar', applied: 310, interviewed: 115 },
-];
-
-const DEFAULT_ROLE_DATA = [
-  { name: 'Frontend Engineers', value: 42, color: '#F97316' },
-  { name: 'Backend Architects', value: 38, color: '#8B5CF6' },
-  { name: 'AI & Data Specialists', value: 20, color: '#10B981' },
-];
-
-const LINE_DATA = [
-  { time: '07 am', value: 40 },
-  { time: '08 am', value: 113 },
-  { time: '09 am', value: 70 },
-  { time: '10 am', value: 130 },
-  { time: '11 am', value: 95 },
-  { time: '12 pm', value: 100 },
-];
-
 export default function HiringAnalyticsPage() {
   const { data: overview, isLoading: overviewLoading } = useGetCompanyOverviewQuery();
   const { data: candidatesData, isLoading: candidatesLoading } = useGetCandidatesQuery({});
@@ -64,14 +40,14 @@ export default function HiringAnalyticsPage() {
   }, [candidatesData]);
 
   const metrics = overview?.metrics || {
-    totalApplicants: candidatesList.length || 28,
-    availableStaff: 156,
-    avgMatchScore: 92,
-    activeJobs: 3,
+    totalApplicants: 0,
+    availableStaff: 0,
+    avgMatchScore: 0,
+    activeJobs: 0,
   };
 
-  const barData = overview?.barTrend || DEFAULT_BAR_DATA;
-  const roleData = overview?.roleDistribution || DEFAULT_ROLE_DATA;
+  const barData = overview?.barTrend || [];
+  const roleData = overview?.roleDistribution || [];
   const divisionStats = overview?.divisionStats || [
     { name: 'Full Stack & Web Apps', count: metrics.totalApplicants, icon: 'Activity' },
     { name: 'Cloud & DevOps Pipelines', count: metrics.activeJobs, icon: 'Brain' },
@@ -79,15 +55,15 @@ export default function HiringAnalyticsPage() {
   ];
 
   const funnelStats = useMemo(() => {
-    const total = candidatesList.length || 28;
-    const appliedCount = candidatesList.filter((c: any) => c.stage === 'applied').length || 15;
-    const screeningCount = candidatesList.filter((c: any) => c.stage === 'screening').length || 7;
-    const interviewCount = candidatesList.filter((c: any) => c.stage === 'interview').length || 4;
-    const offerCount = candidatesList.filter((c: any) => c.stage === 'offer' || c.stage === 'hired').length || 2;
+    const total = candidatesList.length;
+    const appliedCount = candidatesList.filter((c: any) => c.stage === 'applied').length;
+    const screeningCount = candidatesList.filter((c: any) => c.stage === 'screening').length;
+    const interviewCount = candidatesList.filter((c: any) => c.stage === 'interview').length;
+    const offerCount = candidatesList.filter((c: any) => c.stage === 'offer' || c.stage === 'hired').length;
 
-    const appliedToScreening = Math.round(((screeningCount + interviewCount + offerCount) / Math.max(total, 1)) * 100);
-    const screeningToInterview = Math.round(((interviewCount + offerCount) / Math.max(screeningCount + interviewCount + offerCount, 1)) * 100);
-    const interviewToOffer = Math.round((offerCount / Math.max(interviewCount + offerCount, 1)) * 100);
+    const appliedToScreening = total > 0 ? Math.round(((screeningCount + interviewCount + offerCount) / total) * 100) : 0;
+    const screeningToInterview = (screeningCount + interviewCount + offerCount) > 0 ? Math.round(((interviewCount + offerCount) / (screeningCount + interviewCount + offerCount)) * 100) : 0;
+    const interviewToOffer = (interviewCount + offerCount) > 0 ? Math.round((offerCount / (interviewCount + offerCount)) * 100) : 0;
 
     return {
       appliedToScreening,

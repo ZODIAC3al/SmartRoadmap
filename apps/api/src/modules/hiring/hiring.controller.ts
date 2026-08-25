@@ -25,6 +25,7 @@ import {
   UpdateApplicationStatusDto,
 } from './dto/hiring.dto';
 import { PlanGuard, RequirePlan } from '../billing/plan-guard.guard';
+import { Public } from '../../common/decorators/public.decorator';
 
 @ApiTags('hiring')
 @ApiBearerAuth()
@@ -170,6 +171,12 @@ export class HiringController {
   @Get('candidates')
   getCandidates() {
     return this.hiringService.getCandidates();
+  }
+
+  @Public()
+  @Get('candidates/:userId')
+  getCandidatePassport(@Param('userId') userId: string) {
+    return this.hiringService.getCandidatePassport(userId);
   }
 
   @UseGuards(RolesGuard)

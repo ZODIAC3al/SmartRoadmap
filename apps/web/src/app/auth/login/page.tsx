@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, extractErrorMessage, storeSession } from "@/lib/api";
 import { motion } from "framer-motion";
-import { useAppUi } from "@/store/hooks/useAppUi";
+import { useApp } from "@/components/AppContext";
 import {
   Mail,
   Lock,
@@ -19,6 +19,7 @@ import {
   EyeOff,
   CheckCircle2,
 } from "lucide-react";
+import AuthVisualBanner from "@/components/illustrations/AuthVisualBanner";
 
 const localDict = {
   title: {
@@ -80,7 +81,7 @@ const GOOGLE_CLIENT_ID =
   "1076361672222-a6506ek6hc3b6tgu2q9b9ubsm53k46fq.apps.googleusercontent.com";
 
 export default function LoginPage() {
-  const { locale, toggleLocale } = useAppUi();
+  const { locale, toggleLocale } = useApp();
   const tLocal = (key: keyof typeof localDict) => {
     const loc = locale as "en" | "ar";
     return localDict[key][loc] || localDict[key]["en"];
@@ -115,7 +116,7 @@ export default function LoginPage() {
       }
 
       storeSession(data);
-      router.push(data.user?.role === "admin" ? "/admin" : data.user?.role === "company" ? "/company" : "/dashboard");
+      router.push(data.user?.role === "company" ? "/company" : "/dashboard");
     } catch (err: any) {
       setErrorMsg(err.message || "Invalid credentials");
     } finally {
@@ -144,7 +145,7 @@ export default function LoginPage() {
         throw new Error(data.message || "Google authentication failed");
 
       storeSession(data);
-      router.push(data.user?.role === "admin" ? "/admin" : data.user?.role === "company" ? "/company" : "/dashboard");
+      router.push(data.user?.role === "company" ? "/company" : "/dashboard");
     } catch (err: any) {
       setErrorMsg(err.message || "Google authentication failed");
     } finally {
@@ -203,10 +204,10 @@ export default function LoginPage() {
     <div className={`min-h-screen -mt-24 bg-base-100 flex flex-col md:grid md:grid-cols-12 overflow-hidden select-none relative ${isRtl ? 'rtl' : 'ltr'}`}>
 
       {/* Top link bar floating at top left */}
-      <div className={`absolute top-32 z-20 flex items-center gap-1.5 text-xs text-base-content/40 font-semibold ${isRtl ? 'right-6 md:right-12' : 'left-6 md:left-12'}`}>
+      <div className={`absolute top-32 z-20 flex items-center gap-1.5 text-xs text-stone-600 dark:text-stone-400 font-medium font-semibold ${isRtl ? 'right-6 md:right-12' : 'left-6 md:left-12'}`}>
         <ArrowRight className={`w-3 h-3 ${isRtl ? 'rotate-180' : ''}`} />
         <span>{locale === 'en' ? 'New here?' : 'جديد هنا؟'}</span>
-        <Link href="/auth/register" className="text-indigo-600 font-bold hover:underline">
+        <Link href="/auth/register" className="text-[#8E1616] font-bold hover:underline">
           {tLocal('signUp')}
         </Link>
       </div>
@@ -224,7 +225,7 @@ export default function LoginPage() {
             <h1 className="text-4xl font-extrabold text-base-content tracking-tight">
               {tLocal('signIn')}
             </h1>
-            <p className="text-xs text-base-content/50">
+            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium">
               {tLocal('subtitle')}
             </p>
           </div>
@@ -238,33 +239,33 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-4 text-start">
             <div className="form-control">
-              <label className="label text-xs font-extrabold text-base-content/60 mb-1">{tLocal('email')}</label>
+              <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium mb-1">{tLocal('email')}</label>
               <div className="relative">
-                <Mail className={`w-4 h-4 text-base-content/40 absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
+                <Mail className={`w-4 h-4 text-stone-600 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
                 <input
                   type="email"
                   placeholder={tLocal('emailPlaceholder')}
-                  className={`input input-bordered w-full bg-transparent border-base-300 text-base-content rounded-xl focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 h-11 text-sm ${isRtl ? 'pr-10 pl-10 text-right' : 'pl-10 pr-10 text-left'}`}
+                  className={`input input-bordered w-full bg-transparent border-base-300 text-base-content rounded-xl focus:border-[#8E1616] focus:ring-1 focus:ring-[#8E1616] h-11 text-sm ${isRtl ? 'pr-10 pl-10 text-right' : 'pl-10 pr-10 text-left'}`}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
                 {email.includes("@") && (
-                  <CheckCircle2 className={`text-emerald-500 absolute top-1/2 -translate-y-1/2 w-4 h-4 ${isRtl ? 'left-3.5' : 'right-3.5'}`} />
+                  <CheckCircle2 className={`text-[#8E1616] absolute top-1/2 -translate-y-1/2 w-4 h-4 ${isRtl ? 'left-3.5' : 'right-3.5'}`} />
                 )}
               </div>
             </div>
 
             <div className="form-control">
               <div className="flex justify-between items-center mb-1">
-                <label className="label text-xs font-extrabold text-base-content/60 p-0">{tLocal('password')}</label>
+                <label className="label text-xs font-extrabold text-stone-700 dark:text-stone-300 font-medium p-0">{tLocal('password')}</label>
               </div>
               <div className="relative">
-                <Lock className={`w-4 h-4 text-base-content/40 absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
+                <Lock className={`w-4 h-4 text-stone-600 dark:text-stone-400 font-medium absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-3.5' : 'left-3.5'}`} />
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className={`input input-bordered w-full bg-transparent border-base-300 text-base-content rounded-xl focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 h-11 text-sm ${isRtl ? 'pr-10 pl-10 text-right' : 'pl-10 pr-10 text-left'}`}
+                  className={`input input-bordered w-full bg-transparent border-base-300 text-base-content rounded-xl focus:border-[#8E1616] focus:ring-1 focus:ring-[#8E1616] h-11 text-sm ${isRtl ? 'pr-10 pl-10 text-right' : 'pl-10 pr-10 text-left'}`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -272,24 +273,24 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute inset-y-0 pr-3.5 flex items-center text-base-content/40 hover:text-base-content/70 ${isRtl ? 'left-0' : 'right-0'}`}
+                  className={`absolute inset-y-0 pr-3.5 flex items-center text-stone-600 dark:text-stone-400 font-medium hover:text-stone-700 dark:text-stone-300 font-medium ${isRtl ? 'left-0' : 'right-0'}`}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-base-content/50 pt-1">
+            <div className="flex items-center justify-between text-xs text-stone-700 dark:text-stone-300 font-medium pt-1">
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   className="checkbox checkbox-xs rounded border-base-300 checkbox-primary"
                 />
-                <span className="text-base-content/50 font-semibold">{tLocal('rememberMe')}</span>
+                <span className="text-stone-700 dark:text-stone-300 font-medium font-semibold">{tLocal('rememberMe')}</span>
               </label>
               <a
                 href="#"
-                className="font-bold text-indigo-600 hover:underline"
+                className="font-bold text-[#8E1616] hover:underline"
                 onClick={() => alert("Verification email reset simulation triggered.")}
               >
                 {tLocal('forgotPassword')}
@@ -298,7 +299,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="btn bg-indigo-600 hover:bg-indigo-700 border-none btn-block rounded-full text-white font-extrabold text-xs shadow-lg shadow-indigo-500/10 mt-6 h-11 flex items-center justify-center gap-2"
+              className="btn bg-[#8E1616] hover:bg-[#701111] border-none btn-block rounded-full text-white font-extrabold text-xs shadow-lg shadow-[#8E1616]/10 mt-6 h-11 flex items-center justify-center gap-2"
               disabled={loading}
             >
               {loading ? (
@@ -316,7 +317,7 @@ export default function LoginPage() {
             <div className="flex flex-col items-center pt-2">
               <div className="relative flex py-2 items-center w-full">
                 <div className="flex-grow border-t border-base-300"></div>
-                <span className="flex-shrink mx-4 text-[10px] text-base-content/40 font-bold uppercase tracking-wider">
+                <span className="flex-shrink mx-4 text-[10px] text-stone-600 dark:text-stone-400 font-medium font-bold uppercase tracking-wider">
                   {tLocal('orOAuth')}
                 </span>
                 <div className="flex-grow border-t border-base-300"></div>
@@ -347,9 +348,9 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <p className="text-center text-xs text-base-content/60 pt-4 font-semibold">
+          <p className="text-center text-xs text-stone-700 dark:text-stone-300 font-medium pt-4 font-semibold">
             {tLocal('noAccount')}{" "}
-            <Link href="/auth/register" className="text-indigo-600 font-extrabold hover:underline">
+            <Link href="/auth/register" className="text-[#8E1616] font-extrabold hover:underline">
               {tLocal('signUp')}
             </Link>
           </p>
@@ -359,11 +360,11 @@ export default function LoginPage() {
         <div className="flex justify-between items-center text-xs text-slate-400 font-semibold pt-8 w-full border-t border-base-200">
           <div
             onClick={toggleLocale}
-            className="flex items-center gap-1.5 cursor-pointer text-base-content/60 hover:text-base-content"
+            className="flex items-center gap-1.5 cursor-pointer text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
           >
             <span className="text-sm">{locale === "en" ? "🇬🇧" : "🇸🇦"}</span>
             <span>{locale === "en" ? "ENG" : "العربية"}</span>
-            <ChevronDown className="w-3 h-3 text-base-content/60" />
+            <ChevronDown className="w-3 h-3 text-stone-700 dark:text-stone-300 font-medium" />
           </div>
           <div className="flex gap-4">
             <a href="#" className="hover:underline">{tLocal('faq')}</a>
@@ -372,87 +373,9 @@ export default function LoginPage() {
         </div>
       </motion.div>
 
-      {/* RIGHT SIDE PANEL: BEAUTIFUL CURVED BLUE VECTOR PANEL WITH FLOATING WIDGETS */}
-      <div className="col-span-12 md:col-span-7 hidden md:flex flex-col justify-between bg-gradient-to-tr from-indigo-700 via-indigo-600 to-indigo-500 text-white p-16 relative overflow-hidden">
-        {/* Curving separation SVG absolute overlay mimicking the mockup */}
-        <div className="absolute top-0 bottom-0 left-0 w-24 h-full pointer-events-none -ml-px z-10">
-          <svg className="w-full h-full text-base-100 fill-current" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path d="M0 0 C60 20, 20 80, 0 100 Z" />
-          </svg>
-        </div>
-
-        {/* Decorative background grid paths */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0c_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0c_1px,transparent_1px)] bg-[size:3rem_3rem]" />
-
-        {/* Floating Widgets container */}
-        <div className="relative w-full h-full flex flex-col justify-center items-center z-10 max-w-lg mx-auto">
-          {/* Animated Blob Background inside panel */}
-          <div className="absolute w-72 h-72 rounded-full bg-white/10 blur-3xl animate-pulse" />
-
-          {/* Widget 1: Sparkline Chart Box (matches Daniel Ahmadi mockup) */}
-          <motion.div
-            initial={{ y: -30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="bg-white text-slate-800 rounded-3xl p-6 shadow-xl border border-slate-100 w-64 absolute top-10 left-12 flex flex-col text-start space-y-4 hover:scale-105 transition-transform duration-300"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Activity</span>
-                <h3 className="text-2xl font-extrabold text-slate-900 mt-1">176,18</h3>
-              </div>
-              <span className="bg-slate-900 text-white font-extrabold text-xs w-8 h-8 rounded-full flex items-center justify-center">45</span>
-            </div>
-
-            {/* Sparkline curve mockup */}
-            <svg className="w-full h-12 stroke-indigo-500 fill-none" viewBox="0 0 100 20">
-              <path d="M 0 18 Q 15 2 30 15 T 60 4 T 90 12" strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
-          </motion.div>
-
-          {/* Social Badges floating outside */}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.5, type: "spring" }}
-            className="w-12 h-12 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 absolute top-20 right-10 shadow-lg flex items-center justify-center text-white text-lg hover:rotate-12 transition-transform cursor-pointer"
-          >
-            <Code className="w-5 h-5 text-white" />
-          </motion.div>
-
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.6, type: "spring" }}
-            className="w-12 h-12 rounded-full bg-slate-950 absolute top-56 right-4 shadow-lg flex items-center justify-center text-white text-lg hover:rotate-12 transition-transform cursor-pointer border border-white/20"
-          >
-            <Globe className="w-5 h-5 text-white" />
-          </motion.div>
-
-          {/* Widget 2: Key card "Your data, your rules" */}
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="bg-white text-slate-800 rounded-3xl p-6 shadow-xl border border-slate-100 w-72 absolute bottom-12 right-6 flex flex-col text-start space-y-4 hover:scale-105 transition-transform duration-300"
-          >
-            <div className="flex items-center gap-3">
-              <span className="bg-amber-100 text-amber-600 p-2.5 rounded-2xl text-xl flex items-center justify-center">
-                <Key className="w-5 h-5" />
-              </span>
-              <div>
-                <h4 className="font-extrabold text-sm text-slate-900">Your data, your rules</h4>
-                <p className="text-[10px] text-slate-400">Everything is strictly encrypted.</p>
-              </div>
-            </div>
-            {/* Skeletal detail rows */}
-            <div className="space-y-2">
-              <div className="h-1.5 bg-slate-100 rounded-full w-full" />
-              <div className="h-1.5 bg-slate-100 rounded-full w-5/6" />
-              <div className="h-1.5 bg-slate-100 rounded-full w-4/6" />
-            </div>
-          </motion.div>
-        </div>
+      {/* RIGHT SIDE PANEL: AuthVisualBanner */}
+      <div className="col-span-12 md:col-span-7 hidden md:flex items-center justify-center p-10 relative overflow-hidden">
+        <AuthVisualBanner mode="login" className="w-full max-w-xl" />
       </div>
 
     </div>

@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useAppUi } from "@/store/hooks/useAppUi";
+import { useApp } from "@/components/AppContext";
 import {
   apiFetch,
   cacheUser,
@@ -15,7 +15,7 @@ import { pricingDict } from "./pricing.data";
  * component stays presentational (and this logic becomes unit-testable).
  */
 export function usePricing() {
-  const { locale } = useAppUi();
+  const { locale } = useApp();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // Role Audience State ('learner' | 'company')
@@ -153,13 +153,13 @@ export function usePricing() {
   const translateFeatureVal = (value: boolean | string) => {
     if (value === true) {
       return (
-        <span className="inline-flex w-5 h-5 rounded-full bg-[#10B981]/15 text-[#059669] items-center justify-center text-xs font-bold font-mono">
+        <span className="inline-flex w-5 h-5 rounded-full bg-[#8E1616]/15 text-[#8E1616] items-center justify-center text-xs font-bold font-mono">
           ✓
         </span>
       );
     }
     if (value === false) {
-      return <span className="text-base-content/30 text-xs font-mono">–</span>;
+      return <span className="text-stone-500 dark:text-stone-400 font-medium text-xs font-mono">–</span>;
     }
     if (value === "No limit") {
       return locale === "ar" ? "بدون حد" : "No limit";

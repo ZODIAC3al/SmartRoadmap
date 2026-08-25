@@ -31,6 +31,7 @@ import {
   File,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   useGetThreadsQuery,
   useGetThreadMessagesQuery,
@@ -320,6 +321,8 @@ interface SharedInboxProps {
 
 export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
   const { plan, usage, limits } = useSubscription();
+  const searchParams = useSearchParams();
+  const threadParam = searchParams?.get('threadId');
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'learner' | 'company'>('all');
@@ -347,10 +350,12 @@ export function SharedInbox({ currentRole, currentUserId }: SharedInboxProps) {
   );
 
   useEffect(() => {
-    if (threads.length > 0 && !activeThreadId) {
+    if (threadParam) {
+      setActiveThreadId(threadParam);
+    } else if (threads.length > 0 && !activeThreadId) {
       setActiveThreadId(threads[0].id);
     }
-  }, [threads, activeThreadId]);
+  }, [threads, activeThreadId, threadParam]);
 
   const {
     data: messagesData,

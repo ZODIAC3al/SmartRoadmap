@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useAppUi } from '@/store/hooks/useAppUi';
+import { useApp } from '@/components/AppContext';
 import { toast } from 'react-toastify';
 import {
   Certificate,
@@ -98,7 +98,7 @@ interface RepoRow extends GitHubRepo {
 }
 
 export default function ProfileImportPage() {
-  const { locale, t } = useAppUi();
+  const { locale, t } = useApp();
   const L = useCallback((en: string, ar: string) => (locale === 'ar' ? ar : en), [locale]);
 
   const [loading, setLoading] = useState(true);
@@ -562,7 +562,7 @@ export default function ProfileImportPage() {
         <div className="flex items-center justify-between pt-4">
           <div>
             <h1 className="font-extrabold text-xl text-base-content">{L('Import Profile', 'استيراد الملف الشخصي')}</h1>
-            <p className="text-xs text-base-content/50 mt-1">
+            <p className="text-xs text-stone-700 dark:text-stone-300 font-medium mt-1">
               {L('Connect GitHub, LinkedIn and upload certificates to build your profile.', 'اربط GitHub و LinkedIn وارفع الشهادات لبناء ملفك الشخصي.')}
             </p>
           </div>
@@ -580,7 +580,7 @@ export default function ProfileImportPage() {
               </span>
               <div>
                 <h2 className="font-extrabold text-sm">{L('GitHub', 'GitHub')}</h2>
-                <p className="text-[11px] text-base-content/50">
+                <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">
                   {ghAccount
                     ? `@${ghAccount.username || ghAccount.githubId}`
                     : L('Import repositories as portfolio projects.', 'استورد المستودعات كمشاريع في معرض أعمالك.')}
@@ -618,13 +618,13 @@ export default function ProfileImportPage() {
                       </a>
                     )}
                   </div>
-                  <p className="text-base-content/55">
+                  <p className="text-stone-700 dark:text-stone-300 font-medium">
                     {ghAccount.followers ?? 0} {L('followers', 'متابع')} · {ghAccount.following ?? 0} {L('following', 'يتابع')}
                     {ghAccount.totalStars ? ` · ★ ${ghAccount.totalStars}` : ''}
                     {ghAccount.location ? ` · ${ghAccount.location}` : ''}
                   </p>
                   {ghAccount.lastSyncedAt && (
-                    <p className="text-[10px] text-base-content/40 mt-0.5">
+                    <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium mt-0.5">
                       {L('Last synced:', 'آخر مزامنة:')} {formatDate(ghAccount.lastSyncedAt)}
                     </p>
                   )}
@@ -640,7 +640,7 @@ export default function ProfileImportPage() {
               </div>
               {ghAccount.languagesSummary && Object.keys(ghAccount.languagesSummary).length > 0 && (
                 <div className="flex items-center gap-1.5 flex-wrap pt-2 border-t border-base-200">
-                  <span className="text-[11px] font-semibold text-base-content/60 mr-1">{L('Top Languages:', 'أبرز اللغات:')}</span>
+                  <span className="text-[11px] font-semibold text-stone-700 dark:text-stone-300 font-medium mr-1">{L('Top Languages:', 'أبرز اللغات:')}</span>
                   {Object.entries(ghAccount.languagesSummary).slice(0, 6).map(([lang]) => (
                     <span key={lang} className="badge badge-sm badge-secondary font-medium text-[10px]">
                       {lang}
@@ -652,7 +652,7 @@ export default function ProfileImportPage() {
           )}
 
           {ghAccount && repos.length === 0 && (
-            <div className="mt-4 p-4 rounded-xl bg-base-100 border border-base-300 text-center text-xs text-base-content/60">
+            <div className="mt-4 p-4 rounded-xl bg-base-100 border border-base-300 text-center text-xs text-stone-700 dark:text-stone-300 font-medium">
               <p>{L('No repositories loaded yet. Click "Load Repositories" to fetch your GitHub projects.', 'لم يتم تحميل أي مستودعات بعد. انقر على "تحميل المستودعات" لجلب مشاريع GitHub الخاصة بك.')}</p>
               <button onClick={() => fetchRepos(true)} disabled={ghBusy} className={PRIMARY + ' btn-sm rounded-xl mt-2'}>
                 {ghBusy ? <Spinner /> : L('Load Repositories', 'تحميل المستودعات')}
@@ -687,7 +687,7 @@ export default function ProfileImportPage() {
                         </td>
                         <td>
                           <p className="font-bold">{r.name}</p>
-                          {r.description && <p className="text-[10px] text-base-content/55 line-clamp-1">{r.description}</p>}
+                          {r.description && <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium line-clamp-1">{r.description}</p>}
                         </td>
                         <td>{r.language || '—'}</td>
                         <td>{r.stargazers_count ?? 0}</td>
@@ -716,7 +716,7 @@ export default function ProfileImportPage() {
               </span>
               <div>
                 <h2 className="font-extrabold text-sm">{L('LinkedIn', 'LinkedIn')}</h2>
-                <p className="text-[11px] text-base-content/50">{L('Connect or import your profile.', 'اربط أو استورد ملفك الشخصي.')}</p>
+                <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">{L('Connect or import your profile.', 'اربط أو استورد ملفك الشخصي.')}</p>
               </div>
             </div>
             {liAccount ? (
@@ -747,8 +747,8 @@ export default function ProfileImportPage() {
                       <CheckIcon /> {L('Identity Verified', 'تم توثيق الهوية')}
                     </span>
                   </div>
-                  {liAccount.email && <p className="text-base-content/60">{liAccount.email}</p>}
-                  <p className="text-[10px] text-base-content/40">
+                  {liAccount.email && <p className="text-stone-700 dark:text-stone-300 font-medium">{liAccount.email}</p>}
+                  <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium">
                     {L('Connected via Sign In with LinkedIn (OpenID Connect)', 'متصل عبر تسجيل الدخول بـ LinkedIn')}
                     {liAccount.connectedAt ? ` · ${formatDate(liAccount.connectedAt)}` : ''}
                   </p>
@@ -757,7 +757,7 @@ export default function ProfileImportPage() {
             </div>
           )}
 
-          <div className="mt-4 bg-info/10 border border-info/30 rounded-xl p-3 text-[11px] text-base-content/80">
+          <div className="mt-4 bg-info/10 border border-info/30 rounded-xl p-3 text-[11px] text-stone-800 dark:text-stone-200 font-medium">
             <p className="font-bold text-info flex items-center gap-1.5">
               <span>ℹ️</span> {L('LinkedIn API Notice', 'تنبيه حول API LinkedIn')}
             </p>
@@ -809,7 +809,7 @@ export default function ProfileImportPage() {
             {/* Alternative: PDF upload */}
             <div className="bg-base-100 border border-base-300 rounded-xl p-4 space-y-3">
               <h3 className="font-bold text-xs">{L('Upload LinkedIn PDF', 'رفع ملف LinkedIn PDF')}</h3>
-              <p className="text-[11px] text-base-content/55">{L('Export your LinkedIn profile as PDF and upload it. We extract the text so you can complete the fields above.', 'صدّر ملف LinkedIn كـ PDF وارفعه. نستخرج النص لإكمال الحقول أعلاه.')}</p>
+              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">{L('Export your LinkedIn profile as PDF and upload it. We extract the text so you can complete the fields above.', 'صدّر ملف LinkedIn كـ PDF وارفعه. نستخرج النص لإكمال الحقول أعلاه.')}</p>
               <input
                 type="file"
                 accept="application/pdf"
@@ -818,7 +818,7 @@ export default function ProfileImportPage() {
                 onChange={(e) => e.target.files?.[0] && onLinkedInPdf(e.target.files[0])}
               />
               {liForm && (
-                <div className="text-[11px] text-base-content/55">
+                <div className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">
                   {liAccount?.importMethod === 'pdf' && L('PDF imported — review the manual fields and save.', 'تم استيراد الـ PDF — راجع الحقول اليدوية واحفظ.')}
                 </div>
               )}
@@ -828,8 +828,8 @@ export default function ProfileImportPage() {
           {liAccount?.profile && (
             <div className="mt-4 bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-2 text-start">
               <h3 className="font-bold">{L('Imported profile preview', 'معاينة الملف المستورد')}</h3>
-              {liAccount.profile.headline && <p className="text-base-content/70">{liAccount.profile.headline}</p>}
-              {liAccount.profile.about && <p className="text-base-content/60">{liAccount.profile.about}</p>}
+              {liAccount.profile.headline && <p className="text-stone-700 dark:text-stone-300 font-medium">{liAccount.profile.headline}</p>}
+              {liAccount.profile.about && <p className="text-stone-700 dark:text-stone-300 font-medium">{liAccount.profile.about}</p>}
               {liAccount.profile.skills && liAccount.profile.skills.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {liAccount.profile.skills.map((s) => (
@@ -849,7 +849,7 @@ export default function ProfileImportPage() {
             </span>
             <div>
               <h2 className="font-extrabold text-sm">{L('Certificates', 'الشهادات')}</h2>
-              <p className="text-[11px] text-base-content/50">{L('Upload and manage your professional certifications with official verification.', 'ارفع وأدر شهاداتك المهنية مع التحقق والتوثيق الرسمي.')}</p>
+              <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">{L('Upload and manage your professional certifications with official verification.', 'ارفع وأدر شهاداتك المهنية مع التحقق والتوثيق الرسمي.')}</p>
             </div>
           </div>
 
@@ -884,18 +884,18 @@ export default function ProfileImportPage() {
                   onChange={(e) => e.target.files?.[0] && onCertFileChange(e.target.files[0])}
                 />
                 <div className="flex flex-col items-center justify-center space-y-2">
-                  <span className={`w-8 h-8 rounded-full bg-base-100 flex items-center justify-center border border-base-300 ${certFile ? 'text-success' : 'text-base-content/40'}`}>
+                  <span className={`w-8 h-8 rounded-full bg-base-100 flex items-center justify-center border border-base-300 ${certFile ? 'text-success' : 'text-stone-600 dark:text-stone-400 font-medium'}`}>
                     {certFile ? <CheckIcon /> : <UploadIcon />}
                   </span>
                   {certFile ? (
                     <div className="text-xs">
                       <p className="font-bold truncate max-w-[200px]">{certFile.name}</p>
-                      <p className="text-[10px] text-base-content/50">{(certFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                      <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium">{(certFile.size / 1024 / 1024).toFixed(2)} MB</p>
                     </div>
                   ) : (
-                    <div className="text-[11px] text-base-content/60">
+                    <div className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">
                       <p className="font-bold">{L('Drag & drop your certificate', 'اسحب وأفلت شهادتك هنا')}</p>
-                      <p className="text-[10px] text-base-content/40 mt-1">{L('Supports PDF, JPG, JPEG, PNG up to 5MB', 'يدعم صيغ PDF, JPG, JPEG, PNG حتى 5 ميجابايت')}</p>
+                      <p className="text-[10px] text-stone-600 dark:text-stone-400 font-medium mt-1">{L('Supports PDF, JPG, JPEG, PNG up to 5MB', 'يدعم صيغ PDF, JPG, JPEG, PNG حتى 5 ميجابايت')}</p>
                     </div>
                   )}
                 </div>
@@ -925,7 +925,7 @@ export default function ProfileImportPage() {
 
               {certs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-8 bg-base-100/50 border border-base-300 rounded-xl text-center">
-                  <p className="text-xs text-base-content/40">{L('No certificates uploaded yet.', 'لم يتم رفع أي شهادات بعد.')}</p>
+                  <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">{L('No certificates uploaded yet.', 'لم يتم رفع أي شهادات بعد.')}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -937,7 +937,7 @@ export default function ProfileImportPage() {
                           <div className="flex justify-between items-start gap-2">
                             <div className="min-w-0">
                               <h4 className="font-extrabold text-xs text-base-content line-clamp-1">{c.title}</h4>
-                              {c.organization && <p className="text-[10px] text-base-content/60 font-semibold">{c.organization}</p>}
+                              {c.organization && <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium font-semibold">{c.organization}</p>}
                             </div>
                             <div className="flex gap-1 flex-shrink-0">
                               <button
@@ -960,7 +960,7 @@ export default function ProfileImportPage() {
                           {/* Verification Status Badge */}
                           <div className="flex items-center gap-2 flex-wrap">
                             {status === 'Verified' ? (
-                              <span className="badge bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 text-[10px] font-bold gap-1 py-1 px-2.5">
+                              <span className="badge bg-[#8E1616]/15 text-[#8E1616] border border-[#8E1616]/20/30 text-[10px] font-bold gap-1 py-1 px-2.5">
                                 <CheckIcon /> {L('Verified', 'موثقة ومصدقة')}
                               </span>
                             ) : status === 'Rejected' ? (
@@ -973,7 +973,7 @@ export default function ProfileImportPage() {
                               </span>
                             )}
                             {status === 'Verified' && c.reviewedAt && (
-                              <span className="text-[9px] text-emerald-600/80 font-medium">
+                              <span className="text-[9px] text-[#8E1616]/80 font-medium">
                                 {formatDate(c.reviewedAt)}
                               </span>
                             )}
@@ -987,7 +987,7 @@ export default function ProfileImportPage() {
                             </div>
                           )}
 
-                          <div className="text-[10px] text-base-content/50 space-y-1 bg-base-200/50 rounded-lg p-2">
+                          <div className="text-[10px] text-stone-700 dark:text-stone-300 font-medium space-y-1 bg-base-200/50 rounded-lg p-2">
                             <p>
                               <span className="font-bold">{L('Issue Date: ', 'تاريخ الإصدار: ')}</span>
                               {formatDate(c.issueDate)}
@@ -1041,14 +1041,14 @@ export default function ProfileImportPage() {
               </span>
               <div>
                 <h2 className="font-extrabold text-sm">{L('Imported Projects', 'المشاريع المستوردة')}</h2>
-                <p className="text-[11px] text-base-content/50">{L('Manage the projects that have been imported into your profile.', 'أدر المشاريع التي تم استيرادها إلى ملفك الشخصي.')}</p>
+                <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium">{L('Manage the projects that have been imported into your profile.', 'أدر المشاريع التي تم استيرادها إلى ملفك الشخصي.')}</p>
               </div>
             </div>
           </div>
 
           {projects.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 bg-base-100/50 border border-base-300 rounded-xl text-center">
-              <p className="text-xs text-base-content/40">{L('No portfolio projects imported yet.', 'لم يتم استيراد أي مشاريع في معرض الأعمال بعد.')}</p>
+              <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">{L('No portfolio projects imported yet.', 'لم يتم استيراد أي مشاريع في معرض الأعمال بعد.')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1063,7 +1063,7 @@ export default function ProfileImportPage() {
                             {p.source}
                           </span>
                         </div>
-                        {p.lastUpdated && <p className="text-[9px] text-base-content/40 mt-0.5">{L('Updated: ', 'تحديث: ')}{formatDate(p.lastUpdated)}</p>}
+                        {p.lastUpdated && <p className="text-[9px] text-stone-600 dark:text-stone-400 font-medium mt-0.5">{L('Updated: ', 'تحديث: ')}{formatDate(p.lastUpdated)}</p>}
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
                         <button
@@ -1081,12 +1081,12 @@ export default function ProfileImportPage() {
                       </div>
                     </div>
 
-                    {p.description && <p className="text-[11px] text-base-content/60 line-clamp-2 leading-relaxed">{p.description}</p>}
+                    {p.description && <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium line-clamp-2 leading-relaxed">{p.description}</p>}
 
                     {p.technologies && p.technologies.length > 0 && (
                       <div className="flex flex-wrap gap-1 pt-1">
                         {p.technologies.map((t) => (
-                          <span key={t} className="badge badge-sm font-semibold bg-base-200 border-none text-base-content/70 text-[9px] px-1.5 py-0.5 rounded">
+                          <span key={t} className="badge badge-sm font-semibold bg-base-200 border-none text-stone-700 dark:text-stone-300 font-medium text-[9px] px-1.5 py-0.5 rounded">
                             {t}
                           </span>
                         ))}
@@ -1119,14 +1119,14 @@ export default function ProfileImportPage() {
           <div className="modal-box bg-base-200 border border-base-300 rounded-2xl max-w-md p-6">
             <div className="flex justify-between items-center border-b border-base-300 pb-3 mb-4">
               <h3 className="font-extrabold text-sm text-base-content">{L('Edit Certificate', 'تعديل الشهادة')}</h3>
-              <button onClick={() => setEditingCert(null)} className="btn btn-ghost btn-circle btn-xs text-base-content/60">
+              <button onClick={() => setEditingCert(null)} className="btn btn-ghost btn-circle btn-xs text-stone-700 dark:text-stone-300 font-medium">
                 <CloseIcon />
               </button>
             </div>
 
             <div className="space-y-3 text-start">
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Title *', 'العنوان *')}</label>
+                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Title *', 'العنوان *')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingCert.title || ''}
@@ -1135,7 +1135,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Issuing Organization', 'الجهة المانحة')}</label>
+                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Issuing Organization', 'الجهة المانحة')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingCert.organization || ''}
@@ -1145,7 +1145,7 @@ export default function ProfileImportPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="form-control">
-                  <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Issue Date', 'تاريخ الإصدار')}</label>
+                  <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Issue Date', 'تاريخ الإصدار')}</label>
                   <input
                     type="date"
                     className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
@@ -1154,7 +1154,7 @@ export default function ProfileImportPage() {
                   />
                 </div>
                 <div className="form-control">
-                  <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Expiration Date', 'تاريخ الانتهاء')}</label>
+                  <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Expiration Date', 'تاريخ الانتهاء')}</label>
                   <input
                     type="date"
                     className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
@@ -1165,7 +1165,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Credential ID', 'معرّف الشهادة')}</label>
+                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Credential ID', 'معرّف الشهادة')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingCert.credentialId || ''}
@@ -1174,7 +1174,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Credential URL', 'رابط الشهادة')}</label>
+                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Credential URL', 'رابط الشهادة')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingCert.credentialUrl || ''}
@@ -1201,14 +1201,14 @@ export default function ProfileImportPage() {
           <div className="modal-box bg-base-200 border border-base-300 rounded-2xl max-w-md p-6">
             <div className="flex justify-between items-center border-b border-base-300 pb-3 mb-4">
               <h3 className="font-extrabold text-sm text-base-content">{L('Edit Project', 'تعديل المشروع')}</h3>
-              <button onClick={() => setEditingProject(null)} className="btn btn-ghost btn-circle btn-xs text-base-content/60">
+              <button onClick={() => setEditingProject(null)} className="btn btn-ghost btn-circle btn-xs text-stone-700 dark:text-stone-300 font-medium">
                 <CloseIcon />
               </button>
             </div>
 
             <div className="space-y-3 text-start">
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Name *', 'الاسم *')}</label>
+                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Name *', 'الاسم *')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingProject.name || ''}
@@ -1217,7 +1217,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Description', 'الوصف')}</label>
+                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Description', 'الوصف')}</label>
                 <textarea
                   className="textarea textarea-bordered textarea-sm w-full bg-base-100 text-xs rounded-xl h-20 resize-none"
                   value={editingProject.description || ''}
@@ -1226,7 +1226,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Demo Link', 'رابط الديمو')}</label>
+                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Demo Link', 'رابط الديمو')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingProject.demoLink || ''}
@@ -1235,7 +1235,7 @@ export default function ProfileImportPage() {
               </div>
 
               <div className="form-control">
-                <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono block mb-1">{L('Technologies (comma separated)', 'التقنيات (مفصولة بفاصلة)')}</label>
+                <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono block mb-1">{L('Technologies (comma separated)', 'التقنيات (مفصولة بفاصلة)')}</label>
                 <input
                   className="input input-bordered input-sm w-full bg-base-100 text-xs rounded-xl"
                   value={editingProject.technologies ? editingProject.technologies.join(', ') : ''}

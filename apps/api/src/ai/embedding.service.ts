@@ -145,49 +145,86 @@ export class EmbeddingService {
 
   private async embedBatchUncached(texts: string[]): Promise<number[][]> {
     if (texts.length === 0) return [];
-    if (!this.isMockMode && this.client) {
-      try {
-        const response = await this.client.embeddings.create({
-          model: this.config.get<string>(
-            'OPENAI_EMBEDDING_MODEL',
-            'text-embedding-3-small',
-          ),
-          input: texts,
-        });
-        return response.data.map((d) => d.embedding);
-      } catch (error: any) {
-        this.logger.error(`OpenAI batch embedding failed: ${error.message}`);
-      }
-    }
 
-    if (this.geminiApiKey) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:batchEmbedContents?key=${this.geminiApiKey}`;
-        const requests = texts.map((t) => ({
-          model: 'models/text-embedding-004',
-          content: { parts: [{ text: t }] },
-        }));
-        const response = await axios.post(
-          url,
-          { requests },
-          {
-            headers: { 'Content-Type': 'application/json' },
-          },
-        );
-        const embeddings = response.data?.embeddings;
-        if (Array.isArray(embeddings)) {
-          return embeddings.map((e: any) => {
-            const vector = e.values;
-            const padded = [...vector];
-            while (padded.length < 1536) {
-              padded.push(0);
-            }
-            return padded;
+    if (!this.isMockMode) {
+      // 1. Try OpenAI if client is available
+      if (this.client) {
+        try {
+          const response = await this.client.embeddings.create({
+            model: this.config.get<string>(
+              'OPENAI_EMBEDDING_MODEL',
+              'text-embedding-3-small',
+            ),
+            input: texts,
           });
+          return response.data.map((d) => d.embedding);
+        } catch (error: any) {
+          this.logger.warn(`OpenAI batch embedding failed: ${error.message}. Trying Gemini fallback...`);
         }
-      } catch (error: any) {
-        const errMsg = error.response?.data?.error?.message || error.message;
-        this.logger.error(`Gemini batch embedding failed: ${errMsg}`);
+      }
+
+      // 2. Try Gemini
+      if (this.geminiApiKey) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:batchEmbedContents?key=${this.geminiApiKey}`;
+          const requests = texts.map((t) => ({
+            model: 'models/gemini-embedding-2',
+            content: { parts: [{ text: t }] },
+            outputDimensionality: 1536,
+          }));
+          const response = await axios.post(
+            url,
+            { requests },
+            {
+              headers: { 'Content-Type': 'application/json' },
+            },
+          );
+          const embeddings = response.data?.embeddings;
+          if (Array.isArray(embeddings)) {
+            return embeddings.map((e: any) => {
+              const vector = e.values;
+              const processed = vector.slice(0, 1536);
+              while (processed.length < 1536) {
+                processed.push(0);
+              }
+              return processed;
+            });
+          }
+        } catch (error: any) {
+          const errMsg = error.response?.data?.error?.message || error.message;
+          this.logger.warn(`Gemini batch embedding gemini-embedding-2 failed: ${errMsg}. Retrying with gemini-embedding-001...`);
+          try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents?key=${this.geminiApiKey}`;
+            const requests = texts.map((t) => ({
+              model: 'models/gemini-embedding-001',
+              content: { parts: [{ text: t }] },
+            }));
+            const response = await axios.post(
+              url,
+              { requests },
+              {
+                headers: { 'Content-Type': 'application/json' },
+              },
+            );
+            const embeddings = response.data?.embeddings;
+            if (Array.isArray(embeddings)) {
+              return embeddings.map((e: any) => {
+                const vector = e.values;
+                const processed = vector.slice(0, 1536);
+                while (processed.length < 1536) {
+                  processed.push(0);
+                }
+                return processed;
+              });
+            }
+          } catch (retryError: any) {
+            const retryMsg = retryError.response?.data?.error?.message || retryError.message;
+            this.logger.error(`Gemini batch embedding gemini-embedding-001 also failed: ${retryMsg}`);
+            throw new Error(`Embedding failed. OpenAI and Gemini both failed. Gemini root: ${retryMsg}`);
+          }
+        }
+      } else {
+        throw new Error('No valid embedding client or API Key configured in production/live mode.');
       }
     }
 

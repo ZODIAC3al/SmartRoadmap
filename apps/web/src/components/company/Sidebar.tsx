@@ -18,7 +18,6 @@ import {
 const NAV_ITEMS = [
   { label: 'Overview', href: '/company', icon: LayoutDashboard },
   { label: 'Jobs & Pipeline', href: '/company/jobs', icon: Briefcase },
-  { label: 'Talent Pool', href: '/company/talent', icon: Target },
   { label: 'Messages', href: '/company/messages', icon: MessageSquare },
   { label: 'Analytics', href: '/company/analytics', icon: BarChart3 },
   { label: 'Company Profile', href: '/company/profile', icon: Building2 },

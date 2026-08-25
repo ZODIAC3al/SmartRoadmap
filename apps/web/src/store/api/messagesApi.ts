@@ -120,6 +120,17 @@ export const messagesApi = baseApi.injectEndpoints({
       query: ({ q, role }) =>
         `/messaging/users/search?q=${encodeURIComponent(q)}${role ? `&role=${role}` : ''}`,
     }),
+    getOrCreateThread: builder.mutation<
+      any,
+      { otherUserId: string; context?: string; relatedJobId?: string; initialMessage?: string }
+    >({
+      query: (body) => ({
+        url: '/messaging/threads',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [{ type: 'MessageThread', id: 'LIST' }],
+    }),
   }),
 });
 
@@ -130,5 +141,6 @@ export const {
   useMarkThreadReadMutation,
   useUploadAttachmentMutation,
   useSearchMessagingUsersQuery,
+  useGetOrCreateThreadMutation,
 } = messagesApi;
 export const { selectAll: selectAllThreads, selectById: selectThreadById } = threadsAdapter.getSelectors();

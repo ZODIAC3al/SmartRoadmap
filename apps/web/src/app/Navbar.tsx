@@ -800,13 +800,13 @@ export default function Navbar() {
             <>
               <Link
                 href="/auth/login"
-                className="hidden sm:inline text-xs font-bold text-base-content/75 hover:text-[#10B981] transition-colors"
+                className="hidden sm:inline text-xs font-bold text-base-content/75 hover:text-[#8E1616] transition-colors"
               >
                 {t("nav.login")}
               </Link>
               <Link
                 href="/auth/register"
-                className="btn btn-xs rounded-full bg-[#10B981] hover:bg-[#059669] text-white border-none px-3 sm:px-4 font-bold text-xs shadow-sm transition-all"
+                className="btn btn-xs rounded-full bg-[#8E1616] hover:bg-[#8E1616]/80 text-white border-none px-3 sm:px-4 font-bold text-xs shadow-sm transition-all"
               >
                 {t("nav.signup")}
               </Link>
@@ -837,7 +837,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-1.5 block text-sm font-bold transition-all ${isLinkActive(link.href) ? "text-[#10B981]" : "text-base-content/75"}`}
+                className={`flex items-center gap-1.5 block text-sm font-bold transition-all ${isLinkActive(link.href) ? "text-[#8E1616] dark:text-[#E8C999]" : "text-base-content/75"}`}
               >
                 <span>{link.label}</span>
                 {link.hasBadge && <UnreadMessageBadge />}

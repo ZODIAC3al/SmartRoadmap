@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { logout } from "@/lib/api";
 import { useCompanyDashboard } from "./useCompanyDashboard";
 import CompanyPendingScreen from "@/components/CompanyPendingScreen";
+import { useGetOrCreateThreadMutation } from "@/store/api/messagesApi";
 
 const STATUS_BADGES: Record<string, { bg: string; text: string; icon: string }> = {
   Applied: { bg: "bg-emerald-500/10 border-emerald-500/20", text: "text-emerald-600", icon: "🚀" },
@@ -71,6 +72,7 @@ function CompanyPageContent() {
   } = useCompanyDashboard();
   const [talentPage, setTalentPage] = React.useState(1);
   const [appPage, setAppPage] = React.useState(1);
+  const [getOrCreateThread, { isLoading: sendingInvite }] = useGetOrCreateThreadMutation();
 
   if (loading) {
     return (
@@ -210,31 +212,28 @@ function CompanyPageContent() {
         <div className="flex items-center gap-2 bg-base-200 p-1.5 rounded-xl border border-base-300 self-start">
           <button
             onClick={() => setActiveTab("applications")}
-            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
-              activeTab === "applications"
+            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${activeTab === "applications"
                 ? "bg-emerald-500 text-white shadow-sm"
                 : "text-base-content/60 hover:text-base-content"
-            }`}
+              }`}
           >
             📋 Candidate Applications ({applications.length})
           </button>
           <button
             onClick={() => setActiveTab("jobs")}
-            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
-              activeTab === "jobs"
+            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${activeTab === "jobs"
                 ? "bg-emerald-500 text-white shadow-sm"
                 : "text-base-content/60 hover:text-base-content"
-            }`}
+              }`}
           >
             💼 My Job Postings ({jobs.length})
           </button>
           <button
             onClick={() => setActiveTab("candidates")}
-            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${
-              activeTab === "candidates"
+            className={`px-4 py-2 text-xs font-extrabold rounded-lg transition-all ${activeTab === "candidates"
                 ? "bg-emerald-500 text-white shadow-sm"
                 : "text-base-content/60 hover:text-base-content"
-            }`}
+              }`}
           >
             👥 Talent Directory ({filteredCandidates.length})
           </button>
@@ -342,12 +341,42 @@ function CompanyPageContent() {
                                 </span>
                               </td>
                               <td>
-                                <button
-                                  onClick={() => setSelectedApplication(app)}
-                                  className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold text-[10px] px-3"
-                                >
-                                  Review Candidate
-                                </button>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => setSelectedApplication(app)}
+                                    className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg font-bold text-[10px] px-3"
+                                  >
+                                    Review Candidate
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      const userId = app.userId?._id || app.userId || app.candidateId;
+                                      setContactCandidate({
+                                        userId,
+                                        name: candidateName,
+                                        email: candidateEmail,
+                                        targetRole: app.passportSnapshot?.targetRole || "",
+                                        progress: app.passportSnapshot?.roadmap?.progressPercentage || 0,
+                                        completedMilestones: 0,
+                                        verifiedSkills: app.passportSnapshot?.verifiedSkills || [],
+                                        averageQuizScore: app.passportSnapshot?.quizPerformance?.averageScore || null,
+                                        quizzesPassed: 0,
+                                        cvUploaded: !!app.cvSnapshot,
+                                      });
+                                    }}
+                                    className="btn btn-xs bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-600 border border-emerald-500/30 rounded-lg font-bold text-[10px] px-3 transition-all"
+                                  >
+                                    ✉️ Invite
+                                  </button>
+                                  <a
+                                    href={`/passport?userId=${app.userId?._id || app.userId || app.candidateId}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="btn btn-xs btn-outline btn-primary rounded-lg font-bold text-[10px] px-3"
+                                  >
+                                    🛡️ Passport
+                                  </a>
+                                </div>
                               </td>
                             </tr>
                           );
@@ -372,11 +401,10 @@ function CompanyPageContent() {
                           <button
                             key={page}
                             onClick={() => setAppPage(page)}
-                            className={`w-7 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-all ${
-                              appPage === page
+                            className={`w-7 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-all ${appPage === page
                                 ? 'bg-emerald-500 text-white shadow-xs'
                                 : 'bg-base-200 text-base-content/70 hover:bg-base-300'
-                            }`}
+                              }`}
                           >
                             {page}
                           </button>
@@ -608,11 +636,10 @@ function CompanyPageContent() {
                           <button
                             key={page}
                             onClick={() => setTalentPage(page)}
-                            className={`w-7 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-all ${
-                              talentPage === page
+                            className={`w-7 h-7 rounded-lg font-bold text-[11px] flex items-center justify-center transition-all ${talentPage === page
                                 ? 'bg-emerald-500 text-white shadow-xs'
                                 : 'bg-base-200 text-base-content/70 hover:bg-base-300'
-                            }`}
+                              }`}
                           >
                             {page}
                           </button>
@@ -795,11 +822,21 @@ function CompanyPageContent() {
                 <span className="text-[10px] text-emerald-500 font-mono font-bold uppercase tracking-wider">
                   APPLICANT PROFILE REVIEW
                 </span>
-                <h3 className="font-black text-xl text-base-content mt-0.5">
-                  {typeof selectedApplication.userId === "object" && selectedApplication.userId !== null
-                    ? (selectedApplication.userId as any).name
-                    : selectedApplication.passportSnapshot?.name || "Candidate"}
-                </h3>
+                <div className="flex items-center gap-3 mt-0.5">
+                  <h3 className="font-black text-xl text-base-content">
+                    {typeof selectedApplication.userId === "object" && selectedApplication.userId !== null
+                      ? (selectedApplication.userId as any).name
+                      : selectedApplication.passportSnapshot?.name || "Candidate"}
+                  </h3>
+                  <a
+                    href={`/passport?userId=${selectedApplication.userId?._id || selectedApplication.userId || selectedApplication.candidateId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-[10px] font-bold transition-all"
+                  >
+                    🛡️ View Live Passport
+                  </a>
+                </div>
                 <p className="text-xs text-base-content/60">
                   Applied for: <span className="font-bold text-base-content">{selectedApplication.jobTitle}</span> ({selectedApplication.company})
                 </p>
@@ -816,9 +853,8 @@ function CompanyPageContent() {
                   <span className="text-[10px] font-mono uppercase font-bold text-base-content/50 block">
                     Current Hiring Status
                   </span>
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold font-mono mt-1 ${
-                    STATUS_BADGES[normalizeStatus(selectedApplication.status)]?.bg || "bg-base-200"
-                  } ${STATUS_BADGES[normalizeStatus(selectedApplication.status)]?.text || ""}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold font-mono mt-1 ${STATUS_BADGES[normalizeStatus(selectedApplication.status)]?.bg || "bg-base-200"
+                    } ${STATUS_BADGES[normalizeStatus(selectedApplication.status)]?.text || ""}`}>
                     <span>{STATUS_BADGES[normalizeStatus(selectedApplication.status)]?.icon || "📋"}</span>
                     <span>{selectedApplication.status}</span>
                   </span>
@@ -948,6 +984,33 @@ function CompanyPageContent() {
             )}
 
             <div className="modal-action">
+              <button
+                onClick={() => {
+                  const appUserId = selectedApplication.userId?._id || selectedApplication.userId || selectedApplication.candidateId;
+                  const appName = typeof selectedApplication.userId === "object" && selectedApplication.userId !== null
+                    ? (selectedApplication.userId as any).name
+                    : selectedApplication.passportSnapshot?.name || "Candidate";
+                  const appEmail = typeof selectedApplication.userId === "object" && selectedApplication.userId !== null
+                    ? (selectedApplication.userId as any).email
+                    : selectedApplication.passportSnapshot?.email || "";
+                  setSelectedApplication(null);
+                  setContactCandidate({
+                    userId: appUserId,
+                    name: appName,
+                    email: appEmail,
+                    targetRole: selectedApplication.passportSnapshot?.targetRole || "",
+                    progress: selectedApplication.passportSnapshot?.roadmap?.progressPercentage || 0,
+                    completedMilestones: 0,
+                    verifiedSkills: selectedApplication.passportSnapshot?.verifiedSkills || [],
+                    averageQuizScore: selectedApplication.passportSnapshot?.quizPerformance?.averageScore || null,
+                    quizzesPassed: 0,
+                    cvUploaded: !!selectedApplication.cvSnapshot,
+                  });
+                }}
+                className="btn btn-sm bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl font-bold"
+              >
+                ✉️ Send Invite
+              </button>
               <button onClick={() => setSelectedApplication(null)} className="btn btn-sm btn-ghost rounded-xl">
                 Close Review
               </button>
@@ -986,13 +1049,26 @@ function CompanyPageContent() {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  toast.success(`Interview invitation sent to ${contactCandidate.name}!`);
-                  setContactCandidate(null);
+                disabled={sendingInvite}
+                onClick={async () => {
+                  try {
+                    const otherUserId = contactCandidate.userId;
+                    const res = await getOrCreateThread({
+                      otherUserId,
+                      context: 'hiring',
+                      initialMessage: interviewNote,
+                    }).unwrap();
+                    toast.success(`Interview invitation sent to ${contactCandidate.name}!`);
+                    const threadId = res._id || res.id;
+                    setContactCandidate(null);
+                    router.push(`/company/messages?threadId=${threadId}`);
+                  } catch (err: any) {
+                    toast.error(err?.data?.message || err.message || "Failed to send invitation message.");
+                  }
                 }}
                 className="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none btn-sm rounded-xl font-bold text-xs px-6"
               >
-                Send Invite
+                {sendingInvite ? <span className="loading loading-spinner loading-xs" /> : "Send Invite"}
               </button>
             </div>
           </div>

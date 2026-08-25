@@ -35,6 +35,8 @@ import { PipelineModule } from './modules/pipeline/pipeline.module';
 import { MessagingModule } from './modules/messaging/messaging.module';
 import { EventsModule } from './modules/events/events.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { MentorModule } from './modules/mentor/mentor.module';
+import { RecommendationModule } from './modules/recommendation/recommendation.module';
 
 @Module({
   imports: [
@@ -89,6 +91,8 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     ResourceModule,
     ChatbotModule,
     SearchModule,
+    MentorModule,
+    RecommendationModule,
   ],
   controllers: [AppController],
   providers: [

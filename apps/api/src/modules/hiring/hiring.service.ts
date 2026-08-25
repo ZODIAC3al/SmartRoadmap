@@ -520,6 +520,52 @@ export class HiringService implements OnModuleInit {
     };
   }
 
+  async getCandidatePassport(userId: string): Promise<any> {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user ID');
+    }
+    const pool = await this.collectLearnerSkillsPool(userId);
+    if (!pool.user) {
+      throw new NotFoundException('Candidate user not found');
+    }
+
+    const completedCount = pool.roadmap?.modules
+      ? pool.roadmap.modules.filter((m: any) => m.status === 'completed').length
+      : 0;
+    const totalCount = pool.roadmap?.modules?.length || 0;
+
+    let totalQuizScore = 0;
+    pool.quizSessions.forEach((q) => {
+      if (q.score !== null && q.score !== undefined) totalQuizScore += q.score;
+    });
+
+    const averageScore =
+      pool.quizSessions.length > 0
+        ? Math.round(totalQuizScore / pool.quizSessions.length)
+        : null;
+
+    return {
+      userId,
+      name: pool.user.name,
+      email: pool.user.email,
+      avatarUrl: pool.user.avatarUrl,
+      targetRole: pool.roadmap?.targetRole || 'Software Professional',
+      progress: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
+      completedMilestones: completedCount,
+      verifiedSkills: pool.verifiedSkills,
+      averageQuizScore: averageScore,
+      quizzesPassed: pool.quizSessions.filter((q) => q.passed).length,
+      cvUploaded: !!pool.cv,
+      projects: pool.projects.map((p) => ({
+        name: p.name || p.title || 'Verified Project',
+        description: p.description || '',
+        githubUrl: p.githubUrl || p.repositoryUrl || '',
+        auditPassed: p.auditPassed !== false,
+      })),
+      roadmap: pool.roadmap,
+    };
+  }
+
   async getCandidates(): Promise<any[]> {
     this.logger.log(
       'Fetching pre-vetted candidates pipeline for company portal',

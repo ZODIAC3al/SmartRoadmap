@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { useAppUi } from "@/store/hooks/useAppUi";
+import { useApp } from "@/components/AppContext";
 import {
   apiJson,
   getCachedUser,
@@ -82,7 +82,7 @@ const DAYS_AR = ["الأحد", "الإثنين", "الثلاثاء", "الأرب
 
 export default function MentorsPage() {
   const router = useRouter();
-  const { locale } = useAppUi();
+  const { locale } = useApp();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -282,7 +282,7 @@ export default function MentorsPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-base-100">
-        <span className="loading loading-spinner loading-lg text-[#10B981]"></span>
+        <span className="loading loading-spinner loading-lg text-[#8E1616]"></span>
       </div>
     );
   }
@@ -297,14 +297,14 @@ export default function MentorsPage() {
         {/* Header Block */}
         <div className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-5 shadow-xl relative overflow-hidden">
           <div className="space-y-1 z-10">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-extrabold uppercase tracking-widest font-mono border border-emerald-500/20">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#8E1616]/10 text-[#8E1616] text-[10px] font-extrabold uppercase tracking-widest font-mono border border-[#8E1616]/20/20">
               <Users className="w-3.5 h-3.5" />
               {isRtl ? "توجيه مهني وفني مباشر" : "DIRECT CAREER & TECHNICAL MENTORING"}
             </span>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-base-content mt-2">
               {isRtl ? "شبكة الموجهين والخبراء" : "Mentor Network"}
             </h1>
-            <p className="text-xs sm:text-sm text-base-content/60 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 font-medium max-w-2xl leading-relaxed">
               {isRtl
                 ? "احجز جلسات توجيه فردية مع خبراء الصناعة لتسريع خارطة طريقك وتجاوز التحديات."
                 : "Work directly with experienced practitioners, unblock difficult decisions, and keep your learning plan moving."}
@@ -312,7 +312,7 @@ export default function MentorsPage() {
           </div>
           <button
             onClick={() => setShowProfileEdit(true)}
-            className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-2xl font-bold px-5 text-xs gap-2 shadow-lg shrink-0 z-10"
+            className="btn bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-2xl font-bold px-5 text-xs gap-2 shadow-lg shrink-0 z-10"
           >
             {userIsMentor ? (
               <>
@@ -341,7 +341,7 @@ export default function MentorsPage() {
                   <h3 className="font-extrabold text-sm text-base-content">
                     {isRtl ? "موجهون مناسبون لمسارك الحالي" : "Recommended for your current path"}
                   </h3>
-                  <span className="text-[9px] text-base-content/50 font-bold uppercase font-mono block">
+                  <span className="text-[9px] text-stone-700 dark:text-stone-300 font-medium font-bold uppercase font-mono block">
                     MATCHED BY SKILLS, AVAILABILITY, AND LEARNER GOALS
                   </span>
                 </div>
@@ -351,8 +351,8 @@ export default function MentorsPage() {
             {/* Recommended mentors grid */}
             <div className="grid md:grid-cols-2 gap-4">
               {recommendedMentors.slice(0, 2).map((rec) => (
-                <div key={rec._id} className="bg-base-100 border border-base-300 p-4 rounded-2xl flex gap-3 relative overflow-hidden hover:border-[#10B981]/40 transition-all shadow-md">
-                  <div className="absolute top-0 right-0 bg-[#10B981] text-white font-mono text-[9px] font-black px-2.5 py-0.5 rounded-bl-xl shadow-sm">
+                <div key={rec._id} className="bg-base-100 border border-base-300 p-4 rounded-2xl flex gap-3 relative overflow-hidden hover:border-[#8E1616]/40 transition-all shadow-md">
+                  <div className="absolute top-0 right-0 bg-[#8E1616] text-white font-mono text-[9px] font-black px-2.5 py-0.5 rounded-bl-xl shadow-sm">
                     {rec.matchScore}% Match
                   </div>
                   {rec.userId.avatarUrl ? (
@@ -362,22 +362,22 @@ export default function MentorsPage() {
                       className="w-12 h-12 rounded-full object-cover shrink-0 border border-base-300"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0 font-sans shadow-sm">
+                    <div className="w-12 h-12 rounded-full bg-[#8E1616]/10 text-white flex items-center justify-center font-bold text-sm shrink-0 font-sans shadow-sm">
                       {rec.userId.name.split(" ").map((n) => n[0]).join("")}
                     </div>
                   )}
                   <div className="space-y-1.5 flex-1 min-w-0">
                     <h4 className="font-black text-xs text-base-content truncate">{rec.userId.name}</h4>
-                    <span className="text-[9px] text-base-content/50 font-bold block uppercase leading-none font-mono">
+                    <span className="text-[9px] text-stone-700 dark:text-stone-300 font-medium font-bold block uppercase leading-none font-mono">
                       {rec.industry} • {rec.experienceYears} Years Exp
                     </span>
-                    <p className="text-[10px] text-[#10B981] leading-normal italic font-semibold flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-[#10B981] shrink-0" />
+                    <p className="text-[10px] text-[#8E1616] leading-normal italic font-semibold flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-[#8E1616] shrink-0" />
                       <span>{rec.matchReason}</span>
                     </p>
                     <button
                       onClick={() => setSelectedMentor(rec)}
-                      className="btn btn-xs bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl px-3.5 mt-1 font-bold gap-1"
+                      className="btn btn-xs bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl px-3.5 mt-1 font-bold gap-1"
                     >
                       <Calendar className="w-3 h-3" />
                       {isRtl ? "احجز جلسة" : "Book session"}
@@ -391,20 +391,20 @@ export default function MentorsPage() {
 
         {/* Sessions Manager */}
         <div className="bg-base-200/80 backdrop-blur-md border border-base-300 rounded-3xl p-6 space-y-4 shadow-xl">
-          <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-base-content/50 flex items-center gap-1.5">
-            <Calendar className="w-4 h-4 text-emerald-500" />
+          <h3 className="font-extrabold text-xs uppercase tracking-wider font-mono text-stone-700 dark:text-stone-300 font-medium flex items-center gap-1.5">
+            <Calendar className="w-4 h-4 text-[#8E1616]" />
             {isRtl ? "جدول الجلسات الخاص بك" : "Your Booked Mentorship Sessions"}
           </h3>
 
           <div className="overflow-x-auto">
             {sessions.length === 0 ? (
-              <p className="text-xs text-base-content/40 text-center py-8 italic font-semibold">
+              <p className="text-xs text-stone-600 dark:text-stone-400 font-medium text-center py-8 italic font-semibold">
                 {isRtl ? "لا توجد جلسات مجدولة حالياً." : "No scheduled sessions found."}
               </p>
             ) : (
               <table className="table w-full text-xs">
                 <thead>
-                  <tr className="border-b border-base-300 uppercase font-mono text-[9px] text-base-content/50">
+                  <tr className="border-b border-base-300 uppercase font-mono text-[9px] text-stone-700 dark:text-stone-300 font-medium">
                     <th>{isRtl ? "المشارك" : "Participant"}</th>
                     <th>{isRtl ? "التاريخ والوقت" : "Date & Time"}</th>
                     <th>{isRtl ? "ملاحظات" : "Notes"}</th>
@@ -423,13 +423,13 @@ export default function MentorsPage() {
                             {counterpart.avatarUrl ? (
                               <img src={counterpart.avatarUrl} alt="" className="w-7 h-7 rounded-full object-cover border border-base-300" />
                             ) : (
-                              <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[10px] font-sans">
+                              <div className="w-7 h-7 rounded-full bg-[#8E1616]/10 text-white flex items-center justify-center font-bold text-[10px] font-sans">
                                 {counterpart.name.split(" ").map((n) => n[0]).join("")}
                               </div>
                             )}
                             <div>
                               <span className="font-extrabold block text-xs">{counterpart.name}</span>
-                              <span className="text-[9px] text-base-content/40 block font-mono">
+                              <span className="text-[9px] text-stone-600 dark:text-stone-400 font-medium block font-mono">
                                 {isLearnerSession ? (isRtl ? "موجه" : "MENTOR") : (isRtl ? "طالب" : "LEARNER")}
                               </span>
                             </div>
@@ -441,18 +441,18 @@ export default function MentorsPage() {
                             timeStyle: "short",
                           })}
                         </td>
-                        <td className="max-w-[150px] truncate text-base-content/70">{sess.notes || "-"}</td>
+                        <td className="max-w-[150px] truncate text-stone-700 dark:text-stone-300 font-medium">{sess.notes || "-"}</td>
                         <td>
                           <span className={`badge border-none font-extrabold text-[9px] uppercase px-2.5 py-1 rounded-lg font-mono ${
-                            sess.status === "accepted" ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30" :
+                            sess.status === "accepted" ? "bg-[#8E1616]/15 text-[#8E1616] border border-[#8E1616]/20/30" :
                             sess.status === "pending" ? "bg-amber-500/15 text-amber-500 border border-amber-500/30" :
                             sess.status === "rejected" ? "bg-red-500/15 text-red-500 border border-red-500/30" :
-                            sess.status === "completed" ? "bg-blue-500/15 text-blue-500 border border-blue-500/30" : "bg-base-300 text-base-content/50"
+                            sess.status === "completed" ? "bg-blue-500/15 text-blue-500 border border-blue-500/30" : "bg-base-300 text-stone-700 dark:text-stone-300 font-medium"
                           }`}>
                             {sess.status}
                           </span>
                           {sess.feedback && (
-                            <p className="text-[10px] text-base-content/60 italic mt-1 block">
+                            <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium italic mt-1 block">
                               📝 Feed: {sess.feedback}
                             </p>
                           )}
@@ -463,7 +463,7 @@ export default function MentorsPage() {
                               <>
                                 <button
                                   onClick={() => handleUpdateStatus(sess._id, "accepted")}
-                                  className="btn btn-xs bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-lg p-1"
+                                  className="btn btn-xs bg-[#8E1616] hover:bg-[#8E1616]/10 text-white border-none rounded-lg p-1"
                                   title="Accept"
                                 >
                                   <Check className="w-3.5 h-3.5" />
@@ -529,7 +529,7 @@ export default function MentorsPage() {
               onChange={(e) => setSearch(e.target.value)}
               className="input input-bordered w-full rounded-xl bg-base-100 text-xs"
             />
-            <button type="submit" className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl text-xs px-4 gap-1.5">
+            <button type="submit" className="btn bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl text-xs px-4 gap-1.5">
               <Search className="w-3.5 h-3.5" />
               {isRtl ? "بحث" : "Search"}
             </button>
@@ -538,25 +538,25 @@ export default function MentorsPage() {
           {/* Mentors grid catalog */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {mentors.length === 0 ? (
-              <p className="text-xs text-base-content/40 text-center py-12 col-span-full font-bold">
+              <p className="text-xs text-stone-600 dark:text-stone-400 font-medium text-center py-12 col-span-full font-bold">
                 {isRtl ? "لا توجد نتائج مطابقة لفلتر البحث." : "No mentors matched search filters."}
               </p>
             ) : (
               mentors.map((mentor) => (
-                <div key={mentor._id} className="bg-base-200/80 backdrop-blur-md border border-base-300 p-5 rounded-3xl space-y-4 shadow-xl hover:border-emerald-500/30 transition-all flex flex-col justify-between">
+                <div key={mentor._id} className="bg-base-200/80 backdrop-blur-md border border-base-300 p-5 rounded-3xl space-y-4 shadow-xl hover:border-[#8E1616]/20/30 transition-all flex flex-col justify-between">
                   <div className="space-y-4">
                     {/* Profile Head */}
                     <div className="flex gap-3 items-center">
                       {mentor.userId.avatarUrl ? (
                         <img src={mentor.userId.avatarUrl} alt="" className="w-11 h-11 rounded-full object-cover border border-base-300" />
                       ) : (
-                        <div className="w-11 h-11 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs font-sans shadow-md">
+                        <div className="w-11 h-11 rounded-full bg-[#8E1616]/10 text-white flex items-center justify-center font-bold text-xs font-sans shadow-md">
                           {mentor.userId.name.split(" ").map((n) => n[0]).join("")}
                         </div>
                       )}
                       <div>
                         <h4 className="font-black text-xs text-base-content leading-tight">{mentor.userId.name}</h4>
-                        <span className="text-[10px] text-[#10B981] font-extrabold uppercase font-mono mt-0.5 flex items-center gap-1">
+                        <span className="text-[10px] text-[#8E1616] font-extrabold uppercase font-mono mt-0.5 flex items-center gap-1">
                           <Star className="w-3 h-3 fill-current" />
                           <span>{mentor.rating} ({mentor.ratingCount} Reviews)</span>
                         </span>
@@ -565,15 +565,15 @@ export default function MentorsPage() {
 
                     {/* Details */}
                     <div className="space-y-1.5 text-xs">
-                      <div className="flex justify-between font-mono text-[9px] text-base-content/50">
+                      <div className="flex justify-between font-mono text-[9px] text-stone-700 dark:text-stone-300 font-medium">
                         <span>INDUSTRY:</span>
                         <span className="font-extrabold text-base-content">{mentor.industry}</span>
                       </div>
-                      <div className="flex justify-between font-mono text-[9px] text-base-content/50">
+                      <div className="flex justify-between font-mono text-[9px] text-stone-700 dark:text-stone-300 font-medium">
                         <span>EXPERIENCE:</span>
                         <span className="font-extrabold text-base-content">{mentor.experienceYears} Years</span>
                       </div>
-                      <p className="text-[11px] text-base-content/75 leading-normal line-clamp-3 pt-1">
+                      <p className="text-[11px] text-stone-700 dark:text-stone-300 font-medium leading-normal line-clamp-3 pt-1">
                         {mentor.bio}
                       </p>
                     </div>
@@ -581,7 +581,7 @@ export default function MentorsPage() {
                     {/* Expertise tags */}
                     <div className="flex flex-wrap gap-1">
                       {mentor.expertise.map((exp) => (
-                        <span key={exp} className="text-[9px] bg-base-100 text-base-content/70 font-mono px-2.5 py-0.5 rounded-lg border border-base-300 font-bold">
+                        <span key={exp} className="text-[9px] bg-base-100 text-stone-700 dark:text-stone-300 font-medium font-mono px-2.5 py-0.5 rounded-lg border border-base-300 font-bold">
                           {exp}
                         </span>
                       ))}
@@ -592,7 +592,7 @@ export default function MentorsPage() {
                   {!userIsMentor && (
                     <button
                       onClick={() => setSelectedMentor(mentor)}
-                      className="btn btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-2xl font-bold w-full gap-2 shadow-md mt-2"
+                      className="btn btn-sm bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-2xl font-bold w-full gap-2 shadow-md mt-2"
                     >
                       <Calendar className="w-4 h-4" />
                       {isRtl ? "احجز موعداً" : "Schedule Meeting"}
@@ -609,15 +609,15 @@ export default function MentorsPage() {
           <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-base-200 border border-base-300 w-full max-w-sm p-6 rounded-3xl shadow-2xl space-y-4">
               <h3 className="font-extrabold text-sm text-base-content flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-emerald-500" />
+                <Calendar className="w-4 h-4 text-[#8E1616]" />
                 <span>{isRtl ? "جدولة موعد مع" : "Schedule session with"} {selectedMentor.userId.name}</span>
               </h3>
 
-              <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl space-y-1.5">
-                <span className="text-[9px] font-mono font-bold text-emerald-500 block uppercase">
+              <div className="bg-[#8E1616]/10 border border-[#8E1616]/20/20 p-3 rounded-2xl space-y-1.5">
+                <span className="text-[9px] font-mono font-bold text-[#8E1616] block uppercase">
                   {isRtl ? "مواعيد توافر الموجه الأسبوعية" : "Mentor Availability Schedule"}
                 </span>
-                <div className="space-y-0.5 text-[10px] text-base-content/70">
+                <div className="space-y-0.5 text-[10px] text-stone-700 dark:text-stone-300 font-medium">
                   {selectedMentor.availability.map((slot, i) => (
                     <div key={i} className="font-mono">
                       • {isRtl ? DAYS_AR[slot.dayOfWeek] : DAYS[slot.dayOfWeek]}: {slot.startTime} - {slot.endTime}
@@ -629,7 +629,7 @@ export default function MentorsPage() {
               <form onSubmit={handleBookSession} className="space-y-4 text-xs font-semibold">
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "التاريخ" : "Date"}</label>
+                    <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "التاريخ" : "Date"}</label>
                     <input
                       type="date"
                       required
@@ -639,7 +639,7 @@ export default function MentorsPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "الوقت" : "Time"}</label>
+                    <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "الوقت" : "Time"}</label>
                     <input
                       type="time"
                       required
@@ -650,7 +650,7 @@ export default function MentorsPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "ملاحظات وأهداف الجلسة" : "Session goals"}</label>
+                  <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "ملاحظات وأهداف الجلسة" : "Session goals"}</label>
                   <textarea
                     rows={2}
                     placeholder={isRtl ? "ما الذي ترغب بمناقشته مع الموجه؟..." : "Describe what you want to study..."}
@@ -669,7 +669,7 @@ export default function MentorsPage() {
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-xs sm:btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-bold"
+                    className="btn btn-xs sm:btn-sm bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl font-bold"
                   >
                     {isRtl ? "تأكيد الطلب" : "Confirm Request"}
                   </button>
@@ -684,12 +684,12 @@ export default function MentorsPage() {
           <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-base-200 border border-base-300 w-full max-w-md p-6 rounded-3xl shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
               <h3 className="font-extrabold text-sm text-base-content flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 text-emerald-500" />
+                <GraduationCap className="w-4 h-4 text-[#8E1616]" />
                 <span>{isRtl ? "إعداد الملف المهني للموجه" : "Set up Mentor Profile"}</span>
               </h3>
               <form onSubmit={handleSetupProfile} className="space-y-4 text-xs font-semibold">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "مجالات الخبرة (مفصولة بفاصلة)" : "Expertise tags (comma separated)"}</label>
+                  <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "مجالات الخبرة (مفصولة بفاصلة)" : "Expertise tags (comma separated)"}</label>
                   <input
                     type="text"
                     required
@@ -701,7 +701,7 @@ export default function MentorsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "سنوات الخبرة" : "Years of Experience"}</label>
+                    <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "سنوات الخبرة" : "Years of Experience"}</label>
                     <input
                       type="number"
                       required
@@ -711,7 +711,7 @@ export default function MentorsPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "مجال الصناعة" : "Industry Segment"}</label>
+                    <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "مجال الصناعة" : "Industry Segment"}</label>
                     <input
                       type="text"
                       required
@@ -723,7 +723,7 @@ export default function MentorsPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "النبذة التعريفية" : "Professional Bio"}</label>
+                  <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "النبذة التعريفية" : "Professional Bio"}</label>
                   <textarea
                     required
                     rows={3}
@@ -734,7 +734,7 @@ export default function MentorsPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "الشهادات المهنية (مفصولة بفاصلة)" : "Certifications"}</label>
+                  <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "الشهادات المهنية (مفصولة بفاصلة)" : "Certifications"}</label>
                   <input
                     type="text"
                     placeholder="AWS Solutions Architect, PMP"
@@ -746,7 +746,7 @@ export default function MentorsPage() {
 
                 {/* Slots Availability Schedule */}
                 <div className="space-y-2">
-                  <label className="text-[10px] text-base-content/50 uppercase block">{isRtl ? "أوقات التوافر الأسبوعية" : "Weekly Availability Slots"}</label>
+                  <label className="text-[10px] text-stone-700 dark:text-stone-300 font-medium uppercase block">{isRtl ? "أوقات التوافر الأسبوعية" : "Weekly Availability Slots"}</label>
                   {slotsInput.map((slot, index) => (
                     <div key={index} className="flex gap-1.5 items-center">
                       <select
@@ -775,7 +775,7 @@ export default function MentorsPage() {
                         }}
                         className="input input-bordered bg-base-100 rounded-xl input-xs font-mono w-24"
                       />
-                      <span className="text-[10px] text-base-content/40 font-bold font-mono">-</span>
+                      <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium font-bold font-mono">-</span>
                       <input
                         type="time"
                         value={slot.endTime}
@@ -819,7 +819,7 @@ export default function MentorsPage() {
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-xs sm:btn-sm bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl font-bold"
+                    className="btn btn-xs sm:btn-sm bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl font-bold"
                   >
                     {isRtl ? "حفظ وتنشيط الحساب" : "Save Profile"}
                   </button>

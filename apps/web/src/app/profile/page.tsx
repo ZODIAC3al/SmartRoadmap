@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
-import { useAppUi } from "@/store/hooks/useAppUi";
+import { useApp } from "@/components/AppContext";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -200,7 +200,7 @@ const CaretDownIcon = () => (
 );
 
 function ProfileContent() {
-  const { theme, setTheme, locale, setLocale, t } = useAppUi();
+  const { theme, setTheme, locale, setLocale, t } = useApp();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -615,9 +615,7 @@ function ProfileContent() {
     active?: boolean;
     onClick?: () => void;
   };
-  const isAdmin = role === "admin";
-
-  const allSidebarLinks: SidebarLink[] = [
+  const sidebarLinks: SidebarLink[] = [
     {
       label: t("profile.sidebar.home"),
       href: "/dashboard",
@@ -651,11 +649,6 @@ function ProfileContent() {
     },
   ];
 
-  // Admins only see the Settings entry in the sidebar
-  const sidebarLinks = isAdmin
-    ? allSidebarLinks.filter((l) => l.label === t("profile.sidebar.settings"))
-    : allSidebarLinks;
-
   return (
     <div className="bg-base-100 text-base-content min-h-screen pb-12 px-4 sm:px-6 lg:px-8 text-start select-none">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -671,14 +664,14 @@ function ProfileContent() {
               <span className="font-extrabold text-sm tracking-tight text-base-content block">
                 deep creationz
               </span>
-              <span className="text-[9px] text-base-content/40 uppercase font-bold font-mono tracking-widest leading-none">
+              <span className="text-[9px] text-stone-600 dark:text-stone-400 font-medium uppercase font-bold font-mono tracking-widest leading-none">
                 smartroadmap
               </span>
             </div>
           </div>
 
           <div className="relative w-full sm:w-64 max-w-xs">
-            <span className="absolute inset-y-0 left-3 flex items-center text-base-content/40 text-xs">
+            <span className="absolute inset-y-0 left-3 flex items-center text-stone-600 dark:text-stone-400 font-medium text-xs">
               <SearchIcon />
             </span>
             <input
@@ -690,7 +683,7 @@ function ProfileContent() {
 
           <div className="flex items-center gap-4">
             {/* Notification bell */}
-            <Link href="/notifications" className="btn btn-ghost btn-circle btn-xs text-base-content/60 relative flex items-center justify-center">
+            <Link href="/notifications" className="btn btn-ghost btn-circle btn-xs text-stone-700 dark:text-stone-300 font-medium relative flex items-center justify-center">
               <BellIcon />
               {unreadCount > 0 && (
                 <span className="absolute top-0 right-0 w-2 h-2 bg-[#7c3aed] rounded-full"></span>
@@ -711,14 +704,14 @@ function ProfileContent() {
                 </div>
               )}
               <div className="hidden md:block text-left">
-                <span className="text-[10px] text-base-content/50 block font-semibold leading-none">
+                <span className="text-[10px] text-stone-700 dark:text-stone-300 font-medium block font-semibold leading-none">
                   {t("profile.header.welcome")}
                 </span>
                 <span className="text-xs font-bold text-base-content mt-1 block leading-none">
                   {name || "Christine Brown"}
                 </span>
               </div>
-              <span className="text-base-content/40 text-[9px] cursor-pointer">
+              <span className="text-stone-600 dark:text-stone-400 font-medium text-[9px] cursor-pointer">
                 <CaretDownIcon />
               </span>
             </div>
@@ -739,7 +732,7 @@ function ProfileContent() {
                       className={`flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-xs transition-all relative ${
                         link.active
                           ? "bg-base-200 text-[#7c3aed] shadow-sm border border-base-300"
-                          : "text-base-content/75 hover:bg-base-300 hover:text-base-content"
+                          : "text-stone-700 dark:text-stone-300 font-medium hover:bg-base-300 hover:text-base-content"
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -757,7 +750,7 @@ function ProfileContent() {
                       className={`w-full text-left flex items-center justify-between px-4 py-2.5 rounded-xl font-bold text-xs transition-all relative ${
                         link.active
                           ? "bg-base-200 text-[#7c3aed] shadow-sm border border-base-300"
-                          : "text-base-content/75 hover:bg-base-300 hover:text-base-content"
+                          : "text-stone-700 dark:text-stone-300 font-medium hover:bg-base-300 hover:text-base-content"
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -790,10 +783,8 @@ function ProfileContent() {
             <div className="flex border-b border-base-300 overflow-x-auto pb-px gap-6 text-xs font-semibold scrollbar-none">
               {[
                 { id: "account", label: t("profile.tabs.account") },
-                ...(!isAdmin ? [
-                  { id: "recommendations", label: locale === "en" ? "Recommended Content" : "التوصيات المحتوى" },
-                  { id: "salary", label: t("profile.tabs.salary") },
-                ] : []),
+                { id: "recommendations", label: locale === "en" ? "Recommended Content" : "التوصيات المحتوى" },
+                { id: "salary", label: t("profile.tabs.salary") },
                 { id: "security", label: t("profile.tabs.security") },
                 { id: "notifications", label: t("profile.tabs.notifications") },
                 { id: "interface", label: t("profile.tabs.interface") },
@@ -805,7 +796,7 @@ function ProfileContent() {
                   className={`pb-4 px-1 whitespace-nowrap transition-all border-b-2 text-[11px] font-bold tracking-wide uppercase ${
                     activeTab === tab.id
                       ? "border-[#7c3aed] text-[#7c3aed]"
-                      : "border-transparent text-base-content/55 hover:text-base-content"
+                      : "border-transparent text-stone-700 dark:text-stone-300 font-medium hover:text-base-content"
                   }`}
                 >
                   {tab.label}
@@ -819,28 +810,26 @@ function ProfileContent() {
               {activeTab === 'account' && (
                 <form onSubmit={handleSaveProfile} className="bg-base-200 border border-base-300 rounded-2xl p-6 md:p-8 space-y-6 shadow-sm">
                   
-                  {/* Profile Import CTA Card — hidden for admin */}
-                  {!isAdmin && (
-                    <div className="bg-[#7c3aed]/10 border border-[#7c3aed]/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="text-start">
-                        <h4 className="font-extrabold text-xs text-[#7c3aed]">
-                          {locale === 'en' ? 'Quick Profile Import & Certificate Upload' : 'استيراد سريع للملف الشخصي ورفع الشهادات'}
-                        </h4>
-                        <p className="text-[10px] text-base-content/70 mt-1 leading-relaxed">
-                          {locale === 'en'
-                            ? 'Populate your profile instantly from GitHub, LinkedIn, or manage your certificates.'
-                            : 'املأ ملفك المهني فوراً من GitHub أو LinkedIn أو أدر شهاداتك المهنية.'}
-                        </p>
-                      </div>
-                      <Link href="/profile/import" className="btn bg-[#7c3aed] hover:bg-[#6d28d9] border-none text-white btn-xs h-8 rounded-xl font-bold whitespace-nowrap px-4 flex items-center justify-center">
-                        {locale === 'en' ? 'Get Started' : 'ابدأ الآن'}
-                      </Link>
+                  {/* Profile Import CTA Card */}
+                  <div className="bg-[#7c3aed]/10 border border-[#7c3aed]/20 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="text-start">
+                      <h4 className="font-extrabold text-xs text-[#7c3aed]">
+                        {locale === 'en' ? 'Quick Profile Import & Certificate Upload' : 'استيراد سريع للملف الشخصي ورفع الشهادات'}
+                      </h4>
+                      <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium mt-1 leading-relaxed">
+                        {locale === 'en'
+                          ? 'Populate your profile instantly from GitHub, LinkedIn, or manage your certificates.'
+                          : 'املأ ملفك المهني فوراً من GitHub أو LinkedIn أو أدر شهاداتك المهنية.'}
+                      </p>
                     </div>
-                  )}
+                    <Link href="/profile/import" className="btn bg-[#7c3aed] hover:bg-[#6d28d9] border-none text-white btn-xs h-8 rounded-xl font-bold whitespace-nowrap px-4 flex items-center justify-center">
+                      {locale === 'en' ? 'Get Started' : 'ابدأ الآن'}
+                    </Link>
+                  </div>
 
                   {/* Profile Picture Upload row */}
                   <div className="space-y-3 text-start">
-                    <span className="text-[10px] font-bold text-base-content/40 uppercase tracking-wider block font-mono">
+                    <span className="text-[10px] font-bold text-stone-600 dark:text-stone-400 font-medium uppercase tracking-wider block font-mono">
                       {t("profile.form.avatar")}
                     </span>
 
@@ -892,7 +881,7 @@ function ProfileContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-start">
                     {/* Full Name */}
                     <div className="form-control">
-                      <label className="label text-[10px] font-bold uppercase text-base-content/40 block font-mono">
+                      <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium block font-mono">
                         {t("profile.form.name")}
                       </label>
                       <input
@@ -907,7 +896,7 @@ function ProfileContent() {
                     {/* Email address */}
                     <div className="form-control">
                       <div className="flex justify-between items-center">
-                        <label className="label text-[10px] font-bold uppercase text-base-content/40 block font-mono">
+                        <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium block font-mono">
                           {t("profile.form.email")}
                         </label>
                         <span className="text-[9px] bg-success/10 text-success border border-success/20 px-1.5 py-0.5 rounded font-bold uppercase font-mono tracking-tighter">
@@ -925,7 +914,7 @@ function ProfileContent() {
 
                     {/* Username */}
                     <div className="form-control">
-                      <label className="label text-[10px] font-bold uppercase text-base-content/40 block font-mono">
+                      <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium block font-mono">
                         {t("profile.form.username")}
                       </label>
                       <input
@@ -940,7 +929,7 @@ function ProfileContent() {
                     {/* Phone number */}
                     <div className="form-control">
                       <div className="flex justify-between items-center">
-                        <label className="label text-[10px] font-bold uppercase text-base-content/40 block font-mono">
+                        <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium block font-mono">
                           {t("profile.form.phone")}
                         </label>
                         <span className="text-[9px] bg-success/10 text-success border border-success/20 px-1.5 py-0.5 rounded font-bold uppercase font-mono tracking-tighter">
@@ -959,7 +948,7 @@ function ProfileContent() {
 
                   {/* Bio text area */}
                   <div className="form-control text-start">
-                    <label className="label text-[10px] font-bold uppercase text-base-content/40 block font-mono">
+                    <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium block font-mono">
                       {t("profile.form.bio")}
                     </label>
                     <textarea
@@ -992,26 +981,26 @@ function ProfileContent() {
                   {/* Profile context strip — shows what data drives the insights */}
                   {salaryInsights && (
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-5 px-1">
-                      <span className="text-[10px] font-bold uppercase text-base-content/35 font-mono tracking-wider">
+                      <span className="text-[10px] font-bold uppercase text-stone-500 dark:text-stone-400 font-medium font-mono tracking-wider">
                         Analysing profile:
                       </span>
                       {currentRole && (
-                        <span className="text-[10px] font-semibold text-base-content/60">
+                        <span className="text-[10px] font-semibold text-stone-700 dark:text-stone-300 font-medium">
                           {currentRole}
                         </span>
                       )}
                       {location && (
-                        <span className="text-[10px] text-base-content/40">
+                        <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium">
                           · {location}
                         </span>
                       )}
                       {experienceYears > 0 && (
-                        <span className="text-[10px] text-base-content/40">
+                        <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium">
                           · {experienceYears} yr{experienceYears !== 1 ? "s" : ""} exp
                         </span>
                       )}
                       {skillsStr && (
-                        <span className="text-[10px] text-base-content/40 truncate max-w-[220px]">
+                        <span className="text-[10px] text-stone-600 dark:text-stone-400 font-medium truncate max-w-[220px]">
                           · {skillsStr}
                         </span>
                       )}
@@ -1046,7 +1035,7 @@ function ProfileContent() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="form-control">
-                      <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono">
+                      <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono">
                         Current Password
                       </label>
                       <input
@@ -1058,7 +1047,7 @@ function ProfileContent() {
                       />
                     </div>
                     <div className="form-control">
-                      <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono">
+                      <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono">
                         New Password
                       </label>
                       <input
@@ -1069,7 +1058,7 @@ function ProfileContent() {
                       />
                     </div>
                     <div className="form-control">
-                      <label className="label text-[10px] font-bold uppercase text-base-content/40 font-mono">
+                      <label className="label text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium font-mono">
                         Confirm Password
                       </label>
                       <input
@@ -1107,7 +1096,7 @@ function ProfileContent() {
                     <div className="flex items-center justify-between p-3 bg-base-100 border border-base-300 rounded-xl">
                       <div>
                         <p className="font-bold text-xs">Job Match Alerts</p>
-                        <p className="text-[10px] text-base-content/55 mt-0.5">
+                        <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium mt-0.5">
                           Receive immediate notification when your CV matches
                           new job openings.
                         </p>
@@ -1123,7 +1112,7 @@ function ProfileContent() {
                     <div className="flex items-center justify-between p-3 bg-base-100 border border-base-300 rounded-xl">
                       <div>
                         <p className="font-bold text-xs">Quiz Reminders</p>
-                        <p className="text-[10px] text-base-content/55 mt-0.5">
+                        <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium mt-0.5">
                           Weekly notifications for unlocked roadmap milestone
                           challenges.
                         </p>
@@ -1141,7 +1130,7 @@ function ProfileContent() {
                         <p className="font-bold text-xs">
                           Newsletter & Updates
                         </p>
-                        <p className="text-[10px] text-base-content/55 mt-0.5">
+                        <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium mt-0.5">
                           Receive digests of candidate verified metrics and
                           hiring trends.
                         </p>
@@ -1178,7 +1167,7 @@ function ProfileContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {/* Theme Selector */}
                     <div className="form-control space-y-2">
-                      <label className="text-[10px] font-bold uppercase text-base-content/40 block font-mono">
+                      <label className="text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium block font-mono">
                         {locale === "en"
                           ? "Visual Theme Mode"
                           : "وضع المظهر المرئي"}
@@ -1213,7 +1202,7 @@ function ProfileContent() {
 
                     {/* Language Selector */}
                     <div className="form-control space-y-2">
-                      <label className="text-[10px] font-bold uppercase text-base-content/40 block font-mono">
+                      <label className="text-[10px] font-bold uppercase text-stone-600 dark:text-stone-400 font-medium block font-mono">
                         {locale === "en"
                           ? "Application Language"
                           : "لغة التطبيق الافتراضية"}
@@ -1259,7 +1248,7 @@ function ProfileContent() {
                       <h4 className="font-bold text-xs text-error">
                         Delete Workspace Account
                       </h4>
-                      <p className="text-[10px] text-base-content/60 mt-1">
+                      <p className="text-[10px] text-stone-700 dark:text-stone-300 font-medium mt-1">
                         Once confirmed, all completed learning paths, roadmap
                         quiz records, and matching indices will be permanently
                         scrubbed from MongoDB.
