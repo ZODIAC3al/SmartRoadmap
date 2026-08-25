@@ -115,7 +115,7 @@ export const envSchema = z
       });
     }
     const requiredInProd: Array<[string, unknown]> = [
-      ['OPENAI_API_KEY', env.OPENAI_API_KEY],
+      ['GEMINI_API_KEY', env.GEMINI_API_KEY],
       ['PAYPAL_CLIENT_ID', env.PAYPAL_CLIENT_ID],
       ['PAYPAL_CLIENT_SECRET', env.PAYPAL_CLIENT_SECRET],
       ['PAYPAL_WEBHOOK_ID', env.PAYPAL_WEBHOOK_ID],

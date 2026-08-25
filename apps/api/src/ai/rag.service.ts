@@ -114,11 +114,13 @@ export class RAGService implements OnModuleInit {
     collection: string,
     text: string,
     limit: number,
+    filter?: any,
   ): Promise<any[]> {
     const vector = await this.embeddingService.embed(text);
     const results = await this.client!.search(collection, {
       vector,
       limit,
+      filter,
       with_payload: true,
     });
     return results.map((r) => ({
@@ -138,8 +140,11 @@ export class RAGService implements OnModuleInit {
     query: string,
     limit = 5,
   ): Promise<any[]> {
+    const filter = {
+      must: [{ key: 'nodeType', match: { value: 'sentence' } }],
+    };
     const hits = this.client
-      ? await this.search(collection, query, limit)
+      ? await this.search(collection, query, limit, filter)
       : this.mockResources(query, limit);
 
     return hits.map((hit) => {
@@ -164,8 +169,11 @@ export class RAGService implements OnModuleInit {
     query: string,
     limit = 5,
   ): Promise<any[]> {
+    const filter = {
+      must: [{ key: 'nodeType', match: { value: 'child_chunk' } }],
+    };
     const hits = this.client
-      ? await this.search(collection, query, limit * 2)
+      ? await this.search(collection, query, limit * 2, filter)
       : this.mockResources(query, limit);
 
     // Group hits by parentId or title
@@ -180,12 +188,38 @@ export class RAGService implements OnModuleInit {
 
     const mergedResults: any[] = [];
     for (const [parentId, childHits] of parentGroups.entries()) {
+      // 50% threshold: since each parent has ~4 children, 2 hits means 50%.
       if (childHits.length >= 2) {
-        // Auto-merge child hits into full document view
-        const mergedTitle = childHits[0].title || childHits[0].parentTitle || parentId;
-        const mergedContent = childHits
-          .map((c) => c.contextWindow || c.text || c.content || c.description || c.title)
-          .join('\n\n');
+        let mergedContent = '';
+        let mergedTitle = childHits[0].title || childHits[0].parentTitle || parentId;
+
+        // Fetch the full parent chunk from Qdrant
+        if (this.client) {
+          try {
+             const parentRes = await this.client.scroll(collection, {
+               filter: {
+                 must: [{ key: 'chunkId', match: { value: parentId } }]
+               },
+               limit: 1,
+               with_payload: true,
+             });
+             if (parentRes.points && parentRes.points.length > 0) {
+                const parentPayload = parentRes.points[0].payload as any;
+                if (parentPayload.text) {
+                   mergedContent = parentPayload.text;
+                   mergedTitle = parentPayload.title || mergedTitle;
+                }
+             }
+          } catch (e: any) {
+             this.logger.error(`Failed to fetch parent chunk: ${e.message}`);
+          }
+        }
+
+        if (!mergedContent) {
+           mergedContent = childHits
+            .map((c) => c.contextWindow || c.text || c.content || c.description || c.title)
+            .join('\n\n');
+        }
 
         mergedResults.push({
           ...childHits[0],
@@ -220,7 +254,11 @@ export class RAGService implements OnModuleInit {
     const limit = options.limit || 5;
 
     let hits: any[];
-    if (strategy === 'auto_merging') {
+    if (options.domain === 'jobs') {
+      hits = this.client
+        ? await this.search(collection, options.query, limit)
+        : this.mockJobs([options.query], limit);
+    } else if (strategy === 'auto_merging') {
       hits = await this.autoMergingSearch(collection, options.query, limit);
     } else {
       hits = await this.sentenceWindowSearch(collection, options.query, limit);

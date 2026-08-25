@@ -9,6 +9,7 @@ import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, apiJson, getCachedUser, hasSession, API_BASE } from "@/lib/api";
 import InterviewAssistant from "@/components/InterviewAssistant";
 import VoiceTutorModal from "@/components/VoiceTutorModal";
+import AiSpinner from "@/components/AiSpinner";
 import {
   Sparkles,
   Compass,
@@ -142,9 +143,9 @@ const MOCK_DATABASE_MODULES: Module[] = [
 
 const dict = {
   interactiveMindmap: { en: "Interactive Learning Mindmap", ar: "خريطة التعلم التفاعلية" },
-  subtitle: { 
-    en: "Select a track and toggle views to explore your custom learning modules, AI speech notes, assessments, and voice-narrated audio summaries.", 
-    ar: "اختر مساراً وبدل طرق العرض لاستكشاف وحدات التعلم المخصصة وملاحظات الكلام والتقييمات والملخصات الصوتية بصوت المعلم." 
+  subtitle: {
+    en: "Select a track and toggle views to explore your custom learning modules, AI speech notes, assessments, and voice-narrated audio summaries.",
+    ar: "اختر مساراً وبدل طرق العرض لاستكشاف وحدات التعلم المخصصة وملاحظات الكلام والتقييمات والملخصات الصوتية بصوت المعلم."
   },
   trackWeb: { en: "Web Development", ar: "تطوير الويب" },
   trackMobile: { en: "Mobile App Development", ar: "تطوير تطبيقات الهواتف" },
@@ -218,6 +219,10 @@ export default function RoadmapPage() {
   const [activeTrack, setActiveTrack] = useState<'web' | 'mobile' | 'ai' | 'backend' | 'devops' | 'database'>('web');
   const [activeCategory, setActiveCategory] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
   const [viewMode, setViewMode] = useState<'tree' | 'timeline'>('tree');
+
+  // Prevent duplicate AI generation requests while one is already in-flight
+  const trackChangingRef = useRef(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Slide-over Details states
   const [cheatSheet, setCheatSheet] = useState<any>(null);
@@ -303,7 +308,7 @@ export default function RoadmapPage() {
       if (res.ok) {
         const data: Roadmap = await res.json();
         setRoadmap(data);
-        
+
         // Auto-detect track from targetRole description
         const role = data.targetRole.toLowerCase();
         if (role.includes("mobile") || role.includes("ios") || role.includes("flutter") || role.includes("android")) {
@@ -345,10 +350,13 @@ export default function RoadmapPage() {
 
   // Triggers backend AI roadmap generation on track tab switch (if logged in)
   const handleTrackChange = async (track: 'web' | 'mobile' | 'ai' | 'backend' | 'devops' | 'database') => {
+    // Prevent duplicate requests while a generation is already running
+    if (trackChangingRef.current) return;
+
     setActiveTrack(track);
     setSelectedModule(null);
     setIsPlaying(false);
-    
+
     // Map track keys to backend generator role requests
     const roleMap = {
       web: "Fullstack Web Developer",
@@ -385,7 +393,27 @@ export default function RoadmapPage() {
       return;
     }
 
+    trackChangingRef.current = true;
     setLoading(true);
+    setAiLoading(true);
+
+    // 30-second client-side timeout guard
+    const timeoutId = setTimeout(() => {
+      if (trackChangingRef.current) {
+        trackChangingRef.current = false;
+        setLoading(false);
+        setAiLoading(false);
+        toast.error("Roadmap generation timed out. Falling back to preview.");
+        setRoadmap({
+          _id: `mock-${track}-id`,
+          title: roleMap[track],
+          targetRole,
+          totalEstimatedHours: 180,
+          modules: getMockModules(track)
+        });
+      }
+    }, 30_000);
+
     try {
       const res = await apiFetch("/roadmap/generate", {
         method: "POST",
@@ -395,7 +423,7 @@ export default function RoadmapPage() {
       if (res.ok) {
         const data = await res.json();
         setRoadmap(data);
-        toast.success(`Generated dynamic AI learning path for: ${targetRole}`);
+        toast.success(`Generated AI learning path for: ${targetRole}`);
       } else {
         throw new Error();
       }
@@ -409,7 +437,10 @@ export default function RoadmapPage() {
         modules: getMockModules(track)
       });
     } finally {
+      clearTimeout(timeoutId);
+      trackChangingRef.current = false;
       setLoading(false);
+      setAiLoading(false);
     }
   };
 
@@ -422,7 +453,7 @@ export default function RoadmapPage() {
       playPromiseRef.current.then(() => {
         el.pause();
         el.currentTime = 0;
-      }).catch(() => {});
+      }).catch(() => { });
       playPromiseRef.current = null;
     } else {
       el.pause();
@@ -452,7 +483,7 @@ export default function RoadmapPage() {
     setCheatSheetHistory([]);
     setSelectedHistoryVersion(null);
     setAudioSummary(null);
-    
+
     // Skip db queries if we are playing mock items
     if (!user || selectedModule.id.startsWith("web-") || selectedModule.id.startsWith("mob-") || selectedModule.id.startsWith("ai-") || selectedModule.id.startsWith("backend-") || selectedModule.id.startsWith("devops-") || selectedModule.id.startsWith("db-")) {
       return;
@@ -468,33 +499,48 @@ export default function RoadmapPage() {
         if (sr.ok) { const d = await sr.json(); setCheatSheet(d.data); }
         if (hr.ok) { const d = await hr.json(); setCheatSheetHistory(d.data || []); }
         if (ar.ok) { const d = await ar.json(); setAudioSummary(d.data); }
-      } catch {}
+      } catch { }
     })();
   }, [selectedModule]);
 
   // Audio summary synthesis trigger
   const generateAudioSummary = async () => {
     if (!selectedModule) return;
+    if (generatingAudio) return; // duplicate-request guard
     if (!user) {
       toast.warn("Please log in to generate dynamic AI audio narrations.");
       return;
     }
     setGeneratingAudio(true);
+
+    // 60-second client-side timeout guard for audio synthesis
+    const timeoutId = setTimeout(() => {
+      setGeneratingAudio(false);
+      toast.error("Audio synthesis timed out. Please try again.");
+    }, 60_000);
+
     try {
       const res = await apiFetch(`/audio-summaries/${selectedModule.id}/generate`, { method: "POST" });
       if (res.ok) {
         const d = await res.json();
         setAudioSummary(d.data);
         toast.info("Synthesising audio summary...");
-        pollAudio(selectedModule.id);
+        pollAudio(selectedModule.id, timeoutId);
+      } else {
+        clearTimeout(timeoutId);
+        setGeneratingAudio(false);
+        toast.error("Audio synthesis generation failed.");
       }
     } catch {
+      clearTimeout(timeoutId);
       toast.error("Audio synthesis generation failed.");
       setGeneratingAudio(false);
     }
   };
 
-  const pollAudio = (mid: string) => {
+
+
+  const pollAudio = (mid: string, timeoutId?: ReturnType<typeof setTimeout>) => {
     const timer = setInterval(async () => {
       try {
         const res = await apiFetch(`/audio-summaries/${mid}`);
@@ -504,16 +550,19 @@ export default function RoadmapPage() {
             setAudioSummary(d.data);
             setGeneratingAudio(false);
             clearInterval(timer);
+            if (timeoutId) clearTimeout(timeoutId);
             toast.success("AI voice summary ready!");
           }
           if (d.data?.status === "failed") {
             setGeneratingAudio(false);
             clearInterval(timer);
+            if (timeoutId) clearTimeout(timeoutId);
             toast.error("AI audio generation failed.");
           }
         }
       } catch {
         clearInterval(timer);
+        if (timeoutId) clearTimeout(timeoutId);
         setGeneratingAudio(false);
       }
     }, 2500);
@@ -579,8 +628,8 @@ export default function RoadmapPage() {
     const contentText = selectedHistoryVersion
       ? selectedHistoryVersion.content
       : typeof cheatSheet === 'string'
-      ? cheatSheet
-      : cheatSheet.content || '';
+        ? cheatSheet
+        : cheatSheet.content || '';
 
     const formattedHTML = formatMarkdownToExecutiveHTML(contentText);
 
@@ -995,11 +1044,19 @@ export default function RoadmapPage() {
   // Cheat sheet dynamic generation trigger
   const generateReferenceGuide = async () => {
     if (!selectedModule) return;
+    if (generatingSheet) return; // duplicate-request guard
     if (!user) {
       toast.warn("Please log in to generate AI speech notes.");
       return;
     }
     setGeneratingSheet(true);
+
+    // 120-second client-side timeout
+    const timeoutId = setTimeout(() => {
+      setGeneratingSheet(false);
+      toast.error("Speech notes generation timed out. Please try again.");
+    }, 120_000);
+
     try {
       const res = await apiFetch(`/cheat-sheets/${selectedModule.id}/generate`, {
         method: "POST",
@@ -1024,17 +1081,26 @@ export default function RoadmapPage() {
     } catch {
       toast.error("Failed to generate AI speech notes.");
     } finally {
+      clearTimeout(timeoutId);
       setGeneratingSheet(false);
     }
   };
 
   const regenerateReferenceGuide = async () => {
     if (!selectedModule) return;
+    if (generatingSheet) return; // duplicate-request guard
     if (!user) {
       toast.warn("Please log in to regenerate AI speech notes.");
       return;
     }
     setGeneratingSheet(true);
+
+    // 120-second client-side timeout
+    const timeoutId = setTimeout(() => {
+      setGeneratingSheet(false);
+      toast.error("Speech notes regeneration timed out. Please try again.");
+    }, 120_000);
+
     try {
       const res = await apiFetch(`/cheat-sheets/${selectedModule.id}/regenerate`, {
         method: "POST",
@@ -1060,6 +1126,7 @@ export default function RoadmapPage() {
     } catch {
       toast.error("Failed to regenerate AI speech notes.");
     } finally {
+      clearTimeout(timeoutId);
       setGeneratingSheet(false);
     }
   };
@@ -1077,7 +1144,7 @@ export default function RoadmapPage() {
             if (!isMountedRef.current) return;
             el.pause();
             setIsPlaying(false);
-          }).catch(() => {});
+          }).catch(() => { });
           playPromiseRef.current = null;
         } else {
           el.pause();
@@ -1196,6 +1263,15 @@ export default function RoadmapPage() {
       <div className="absolute top-10 left-1/4 w-80 h-80 bg-primary/5 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-secondary/5 rounded-full blur-3xl -z-10" />
 
+      {/* Fullscreen AI spinner — initial load or track-change generation */}
+      {(loading || aiLoading) && (
+        <AiSpinner
+          variant="fullscreen"
+          label={aiLoading ? "Generating your AI learning path…" : tr("loadingRoadmap")}
+          subLabel={aiLoading ? " This takes 10–20 seconds." : undefined}
+        />
+      )}
+
       {/* Page Title Header */}
       <div className="text-center max-w-3xl mx-auto mb-8 space-y-3 select-none">
         <div className="badge bg-indigo-600 text-white gap-2 p-3.5 font-bold uppercase tracking-wider text-xs shadow-md border-none select-none">
@@ -1222,13 +1298,13 @@ export default function RoadmapPage() {
             glow: string;
             hoverBg: string;
           }[] = [
-            { key: 'web',      label: tr("trackWeb"),      Icon: Globe,       gradient: 'from-indigo-500 to-violet-500',  glow: '80, 70, 229',   hoverBg: 'hover:bg-indigo-500/10' },
-            { key: 'mobile',   label: tr("trackMobile"),   Icon: Smartphone,  gradient: 'from-emerald-500 to-teal-500',   glow: '16, 185, 129',  hoverBg: 'hover:bg-emerald-500/10' },
-            { key: 'ai',       label: tr("trackAI"),       Icon: Bot,         gradient: 'from-fuchsia-500 to-pink-500',   glow: '217, 70, 239',  hoverBg: 'hover:bg-fuchsia-500/10' },
-            { key: 'backend',  label: tr("trackBackend"),  Icon: Server,      gradient: 'from-orange-500 to-amber-500',   glow: '249, 115, 22',  hoverBg: 'hover:bg-orange-500/10' },
-            { key: 'devops',   label: tr("trackDevOps"),   Icon: Cloud,       gradient: 'from-sky-500 to-cyan-400',       glow: '14, 165, 233',  hoverBg: 'hover:bg-sky-500/10' },
-            { key: 'database', label: tr("trackDatabase"), Icon: Database,    gradient: 'from-rose-500 to-red-400',       glow: '244, 63, 94',   hoverBg: 'hover:bg-rose-500/10' },
-          ];
+              { key: 'web', label: tr("trackWeb"), Icon: Globe, gradient: 'from-indigo-500 to-violet-500', glow: '80, 70, 229', hoverBg: 'hover:bg-indigo-500/10' },
+              { key: 'mobile', label: tr("trackMobile"), Icon: Smartphone, gradient: 'from-emerald-500 to-teal-500', glow: '16, 185, 129', hoverBg: 'hover:bg-emerald-500/10' },
+              { key: 'ai', label: tr("trackAI"), Icon: Bot, gradient: 'from-fuchsia-500 to-pink-500', glow: '217, 70, 239', hoverBg: 'hover:bg-fuchsia-500/10' },
+              { key: 'backend', label: tr("trackBackend"), Icon: Server, gradient: 'from-orange-500 to-amber-500', glow: '249, 115, 22', hoverBg: 'hover:bg-orange-500/10' },
+              { key: 'devops', label: tr("trackDevOps"), Icon: Cloud, gradient: 'from-sky-500 to-cyan-400', glow: '14, 165, 233', hoverBg: 'hover:bg-sky-500/10' },
+              { key: 'database', label: tr("trackDatabase"), Icon: Database, gradient: 'from-rose-500 to-red-400', glow: '244, 63, 94', hoverBg: 'hover:bg-rose-500/10' },
+            ];
           return (
             <div className="relative w-full max-w-3xl select-none">
               {/* Container card */}
@@ -1243,12 +1319,14 @@ export default function RoadmapPage() {
                       <button
                         key={track.key}
                         onClick={() => handleTrackChange(track.key)}
+                        disabled={aiLoading}
                         style={active ? {
                           boxShadow: `0 4px 18px rgba(${track.glow}, 0.45)`,
                         } : undefined}
                         className={[
                           'group relative flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl',
-                          'text-[11px] font-extrabold tracking-wide transition-all duration-200 cursor-pointer',
+                          'text-[11px] font-extrabold tracking-wide transition-all duration-200',
+                          aiLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
                           active
                             ? `bg-gradient-to-r ${track.gradient} text-white`
                             : `text-base-content/55 ${track.hoverBg} hover:text-base-content`,
@@ -1277,22 +1355,20 @@ export default function RoadmapPage() {
         <div className="bg-base-200 p-1 rounded-full border border-base-300 shadow-sm flex gap-1 select-none">
           <button
             onClick={() => setViewMode('tree')}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              viewMode === 'tree'
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'tree'
                 ? 'bg-base-100 text-base-content shadow-sm'
                 : 'text-base-content/50 hover:text-base-content'
-            }`}
+              }`}
           >
             <GitBranch className="w-3.5 h-3.5" />
             <span>{tr("treeView")}</span>
           </button>
           <button
             onClick={() => setViewMode('timeline')}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              viewMode === 'timeline'
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'timeline'
                 ? 'bg-base-100 text-base-content shadow-sm'
                 : 'text-base-content/50 hover:text-base-content'
-            }`}
+              }`}
           >
             <Grid3X3 className="w-3.5 h-3.5" />
             <span>{tr("timelineView")}</span>
@@ -1350,16 +1426,14 @@ export default function RoadmapPage() {
                       setActiveCategory(cat);
                       setSelectedModule(null);
                     }}
-                    className={`group flex flex-col items-center gap-2 cursor-pointer transition-transform duration-200 ${
-                      isActiveCat ? 'scale-105 animate-none' : 'hover:scale-105 hover:animate-none'
-                    }`}
+                    className={`group flex flex-col items-center gap-2 cursor-pointer transition-transform duration-200 ${isActiveCat ? 'scale-105 animate-none' : 'hover:scale-105 hover:animate-none'
+                      }`}
                   >
                     <div
-                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.5rem] flex items-center justify-center shadow-md border-2 transition-all duration-200 ${
-                        isActiveCat
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.5rem] flex items-center justify-center shadow-md border-2 transition-all duration-200 ${isActiveCat
                           ? `bg-${meta.color} text-${meta.color}-content border-${meta.color} shadow-lg`
                           : 'bg-base-200 text-base-content/50 border-base-300 group-hover:border-base-content/30'
-                      }`}
+                        }`}
                     >
                       <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
                     </div>
@@ -1387,27 +1461,24 @@ export default function RoadmapPage() {
                           <div className="hidden sm:block absolute left-1/2 -translate-x-full w-3 h-px bg-base-300" />
                           <button
                             onClick={() => handleNodeClick(node, cat)}
-                            className={`w-full p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 group select-none ${
-                              isSelected
+                            className={`w-full p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 group select-none ${isSelected
                                 ? `bg-${meta.color}/10 border-${meta.color} shadow-sm`
                                 : 'bg-base-100 border-base-300 hover:bg-base-200/60 hover:border-base-content/20'
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <div
-                                className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[10px] font-black ${
-                                  isSelected
+                                className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[10px] font-black ${isSelected
                                     ? `bg-${meta.color} text-${meta.color}-content`
                                     : 'bg-base-200 text-base-content/60 border border-base-300'
-                                }`}
+                                  }`}
                               >
                                 {idx + 1}
                               </div>
                               <div className="min-w-0">
                                 <h5
-                                  className={`text-xs font-extrabold truncate transition-colors ${
-                                    isSelected ? `text-${meta.color}` : 'text-base-content group-hover:text-indigo-600'
-                                  }`}
+                                  className={`text-xs font-extrabold truncate transition-colors ${isSelected ? `text-${meta.color}` : 'text-base-content group-hover:text-indigo-600'
+                                    }`}
                                 >
                                   {node.title}
                                 </h5>
@@ -1433,7 +1504,7 @@ export default function RoadmapPage() {
       {/* ── VIEW MODE 2: TIMELINE PIPELINE GANTT LAYOUT ─ */}
       {viewMode === 'timeline' && (
         <div className="max-w-5xl mx-auto space-y-6">
-          
+
           {/* Mockup Folder Search Graphic */}
           <div className="text-center space-y-2 mb-6 select-none">
             <FolderSearchIllustration title={roadmap?.title || "Design Upgrade Roadmap"} />
@@ -1454,7 +1525,7 @@ export default function RoadmapPage() {
             {/* Timeline Gantt Grid Container */}
             <div className="bg-base-100 border border-base-300 rounded-[2rem] p-6 shadow-sm overflow-x-auto select-none">
               <div className="min-w-[800px] relative">
-                
+
                 {/* Blue Header: Quarters (Q1 - Q4) */}
                 <div className="grid grid-cols-12 bg-indigo-600 text-white font-extrabold text-center rounded-t-2xl py-3.5 border-b border-indigo-700/20 shadow-sm text-sm">
                   <div className="col-span-3 border-r border-white/10">Q1</div>
@@ -1462,7 +1533,7 @@ export default function RoadmapPage() {
                   <div className="col-span-3 border-r border-white/10">Q3</div>
                   <div className="col-span-3">Q4</div>
                 </div>
-                
+
                 {/* Grey Subheader: Months (Jan - Dec) */}
                 <div className="grid grid-cols-12 bg-base-350 text-base-content/60 font-bold text-[10px] uppercase text-center py-2 border-b border-base-300">
                   <div className="border-r border-base-300/40">Jan</div>
@@ -1493,7 +1564,7 @@ export default function RoadmapPage() {
                     {roadmap?.modules.map((m, idx) => {
                       const totalCols = 12;
                       const barWidth = 2; // Each task spans 2 months
-                      
+
                       // Calculate diagonal start column
                       const startCol = Math.min(
                         totalCols - barWidth + 1,
@@ -1563,9 +1634,8 @@ export default function RoadmapPage() {
               animate={{ x: 0 }}
               exit={{ x: isAr ? "-100%" : "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className={`fixed top-0 ${
-                isAr ? 'left-0' : 'right-0'
-              } h-full w-full sm:w-[420px] bg-base-100 z-50 shadow-2xl p-6 sm:p-8 flex flex-col gap-6 overflow-y-auto`}
+              className={`fixed top-0 ${isAr ? 'left-0' : 'right-0'
+                } h-full w-full sm:w-[420px] bg-base-100 z-50 shadow-2xl p-6 sm:p-8 flex flex-col gap-6 overflow-y-auto`}
             >
               {/* Drawer Header */}
               <div className="flex items-center justify-between">
@@ -1640,7 +1710,7 @@ export default function RoadmapPage() {
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>{tr("referenceCheatsheet")}</span>
                 </h4>
-                
+
                 {cheatSheet ? (
                   <div className="space-y-2">
                     {/* Version history picker */}
@@ -1681,7 +1751,7 @@ export default function RoadmapPage() {
                         className="btn btn-outline border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-[10px] font-extrabold h-9"
                       >
                         {generatingSheet ? (
-                          <span className="loading loading-spinner loading-xs" />
+                          <AiSpinner variant="inline" label={isAr ? "جاري…" : "Generating…"} />
                         ) : (
                           <>
                             <RotateCw className="w-3.5 h-3.5 mr-1" />
@@ -1706,7 +1776,7 @@ export default function RoadmapPage() {
                     className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-block rounded-xl text-xs font-extrabold h-11"
                   >
                     {generatingSheet ? (
-                      <span className="loading loading-spinner loading-xs" />
+                      <AiSpinner variant="inline" label={isAr ? "جاري التوليد…" : "Generating…"} />
                     ) : (
                       <>
                         <Zap className="w-3.5 h-3.5 mr-1 fill-amber-400 text-amber-500" />
@@ -1769,11 +1839,8 @@ export default function RoadmapPage() {
                 ) : audioSummary?.status === 'pending' || generatingAudio ? (
                   /* Pending — still synthesising */
                   <div className="bg-base-200 border border-base-300 p-4 rounded-2xl flex items-center gap-3">
-                    <span className="loading loading-spinner loading-sm text-primary" />
-                    <div>
-                      <p className="text-xs font-extrabold text-base-content">{tr("synthesising")}</p>
-                      <p className="text-[10px] text-base-content/50">This takes 15–30 seconds. Hang tight.</p>
-                    </div>
+                    <AiSpinner variant="inline" label={tr("synthesising")} />
+                    <p className="text-[10px] text-base-content/50">This takes 15–30 seconds. Hang tight.</p>
                   </div>
                 ) : (
                   /* Not generated yet */

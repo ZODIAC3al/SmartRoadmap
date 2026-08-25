@@ -46,7 +46,7 @@ export class ScopeClassifierService {
       return {
         allowed: false,
         reason:
-          'I can only help with SmartRoadmap-related questions, such as jobs, companies, resources, courses, applications, and career recommendations.',
+          'I can only help with Devotopia-related questions, such as jobs, companies, resources, courses, applications, and career recommendations.',
         topicCategory: 'out_of_scope',
       };
     }
@@ -104,7 +104,7 @@ export class ScopeClassifierService {
     return {
       allowed: false,
       reason:
-        'I can only help with SmartRoadmap-related questions, such as jobs, companies, resources, courses, applications, and career recommendations.',
+        'I can only help with Devotopia-related questions, such as jobs, companies, resources, courses, applications, and career recommendations.',
       topicCategory: 'out_of_scope',
     };
   }

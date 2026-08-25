@@ -37,6 +37,10 @@ import { EventsModule } from './modules/events/events.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { MentorModule } from './modules/mentor/mentor.module';
 import { RecommendationModule } from './modules/recommendation/recommendation.module';
+import { CheatSheetModule } from './modules/cheat-sheet/cheat-sheet.module';
+import { AudioSummaryModule } from './modules/audio-summary/audio-summary.module';
+import { CommunityModule } from './modules/community/community.module';
+import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
 
 @Module({
   imports: [
@@ -93,6 +97,10 @@ import { RecommendationModule } from './modules/recommendation/recommendation.mo
     SearchModule,
     MentorModule,
     RecommendationModule,
+    CheatSheetModule,
+    AudioSummaryModule,
+    CommunityModule,
+    VoiceAgentModule,
   ],
   controllers: [AppController],
   providers: [

@@ -62,13 +62,7 @@ export class AiProviderFactory {
       return this.providers.get(name)!;
     }
 
-    // Default fallback resolution path
-    if (
-      this.providers.has('openai') &&
-      !(this.providers.get('openai') instanceof MockProvider)
-    ) {
-      return this.providers.get('openai')!;
-    }
+    // Default fallback resolution: Gemini → Groq → HuggingFace → OpenAI → Mock
     if (
       this.providers.has('gemini') &&
       !(this.providers.get('gemini') instanceof MockProvider)
@@ -87,13 +81,20 @@ export class AiProviderFactory {
     ) {
       return this.providers.get('huggingface')!;
     }
+    if (
+      this.providers.has('openai') &&
+      !(this.providers.get('openai') instanceof MockProvider)
+    ) {
+      return this.providers.get('openai')!;
+    }
 
     return this.providers.get('mock')!;
   }
 
   getProvidersChain(): AiProvider[] {
     const chain: AiProvider[] = [];
-    const order = ['gemini', 'groq', 'openai', 'huggingface'];
+    // Gemini-first: ensures GEMINI_API_KEY is used before any other provider
+    const order = ['gemini', 'groq', 'huggingface', 'openai'];
     for (const name of order) {
       const p = this.providers.get(name);
       if (p && p.constructor.name !== 'MockProvider') {

@@ -34,9 +34,10 @@ export class GeminiProvider implements AiProvider {
     const modelsToTry = Array.from(
       new Set([
         this.model,
-        'gemini-2.5-flash',
-        'gemini-1.5-flash',
-        'gemini-1.5-pro',
+        'gemini-3.6-flash',
+        'gemini-3.6-pro',
+        'gemini-1.5-pro-latest',
+        'gemini-1.5-flash-latest',
       ]),
     );
     let lastError: Error | null = null;
@@ -94,9 +95,10 @@ export class GeminiProvider implements AiProvider {
     const modelsToTry = Array.from(
       new Set([
         this.model,
-        'gemini-2.5-flash',
-        'gemini-1.5-flash',
-        'gemini-1.5-pro',
+        'gemini-3.6-flash',
+        'gemini-3.6-pro',
+        'gemini-1.5-pro-latest',
+        'gemini-1.5-flash-latest',
       ]),
     );
     let lastError: Error | null = null;

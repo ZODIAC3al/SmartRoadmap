@@ -1,7 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type OpenAI from 'openai';
-import { createOpenAIClient } from './openai.client';
 import { AiProviderFactory } from './ai-provider.factory';
 import { AppCacheService } from '../common/cache/app-cache.service';
 import { RAGService } from './rag.service';
@@ -9,19 +7,13 @@ import { RAGService } from './rag.service';
 @Injectable()
 export class LLMService {
   private readonly logger = new Logger(LLMService.name);
-  private readonly isMockMode: boolean;
-  private readonly client: OpenAI | null;
 
   constructor(
     private readonly config: ConfigService,
     private readonly aiProviderFactory: AiProviderFactory,
     private readonly cache: AppCacheService,
     private readonly ragService: RAGService,
-  ) {
-    const { isMockMode, client } = createOpenAIClient(config, this.logger);
-    this.isMockMode = isMockMode;
-    this.client = client;
-  }
+  ) {}
 
   // ───────────────────────────── Mock builders ─────────────────────────────
 

@@ -210,7 +210,7 @@ export class ChatbotService {
     if (!scope.allowed) {
       const rejectionMsg =
         scope.reason ||
-        'I am Study Buddy! Please ask a question related to your SmartRoadmap learning path, programming concepts, or career skills.';
+        'I am Study Buddy! Please ask a question related to your Devotopia learning path, programming concepts, or career skills.';
       session.messages.push({
         role: 'model',
         content: rejectionMsg,
@@ -318,12 +318,12 @@ export class ChatbotService {
     }
 
     // Build System Prompt
-    const systemPrompt = `You are the SmartRoadmap AI Assistant.
+    const systemPrompt = `You are the Devotopia AI Assistant.
     User Role: ${userRole}.
     ${contextStr ? `Current Context Info:\n${contextStr}` : ''}
     Always follow these instructions:
-    - You can answer questions only about: SmartRoadmap jobs, Companies, Resources, Courses, Applications, Candidate/job matching, Career recommendations, The authenticated user's SmartRoadmap data, programming concept/code.
-    - For unrelated general-knowledge questions, do NOT answer the question. Respond EXACTLY with: "I can only help with SmartRoadmap-related questions, such as jobs, companies, resources, courses, applications, and career recommendations."
+    - You can answer questions only about: Devotopia jobs, Companies, Resources, Courses, Applications, Candidate/job matching, Career recommendations, The authenticated user's Devotopia data, programming concept/code.
+    - For unrelated general-knowledge questions, do NOT answer the question. Respond EXACTLY with: "I can only help with Devotopia-related questions, such as jobs, companies, resources, courses, applications, and career recommendations."
     - If [Database Tool Grounded Data (Real MongoDB Result)] is present in the context, state the exact numbers/information provided from MongoDB. Do NOT invent, hardcode, or simulate numbers.
     - If explaining programming concepts or debugging, provide clear explanations with code examples.
     - Reply in the same language the user writes in (English or Arabic). Make responses engaging, professional, and clear.`;
@@ -361,7 +361,7 @@ export class ChatbotService {
         });
       } catch (err: any) {
         this.logger.debug(
-          `Gemini API provider chat fallback (${err.message}). Using SmartRoadmap simulation response.`,
+          `Gemini API provider chat fallback (${err.message}). Using Devotopia simulation response.`,
         );
         responseText = '';
       }
@@ -412,8 +412,8 @@ export class ChatbotService {
         lower.includes('سلام')
       ) {
         responseText = isArabic
-          ? `أهلاً وسهلاً بك في SmartRoadmap! 🚀 أنا رفيقك التعليمي الذكي. كيف يمكنني مساعدتك اليوم في مسارك الدراسي أو أسئلتك البرمجية؟`
-          : `Hello and welcome to SmartRoadmap! 🚀 I'm your AI Study Buddy. How can I help you today with your learning path, quizzes, or programming questions?`;
+          ? `أهلاً وسهلاً بك في Devotopia! 🚀 أنا رفيقك التعليمي الذكي. كيف يمكنني مساعدتك اليوم في مسارك الدراسي أو أسئلتك البرمجية؟`
+          : `Hello and welcome to Devotopia! 🚀 I'm your AI Study Buddy. How can I help you today with your learning path, quizzes, or programming questions?`;
       } else {
         responseText = isArabic
           ? `شكراً لاستفسارك! بصفتي رفيقك التعليمي الذكي، يمكنني مساعدتك في شرح المفاهيم البرمجية، مراجعة المشاريع، واستكشاف الأخطاء البرمجية.`
