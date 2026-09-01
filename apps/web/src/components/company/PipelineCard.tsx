@@ -41,7 +41,7 @@ export function PipelineCard({
       </div>
 
       <PlanGate requiredPlan="growth" fallbackText="Upgrade to Growth to see match %">
-        <div className="flex justify-between items-center bg-primary/10 px-2.5 py-1.5 rounded-lg border border-primary/20">
+        <div className="flex justify-between items-center bg-primary/10 px-2.5 py-1.5 rounded-2xl border border-primary/20">
           <span className="text-[10px] font-semibold text-primary uppercase">
             Match Score
           </span>

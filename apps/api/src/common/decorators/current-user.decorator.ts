@@ -5,6 +5,8 @@ export interface JwtUser {
   sub: string;
   email: string;
   role: AppRole;
+  companyId?: string;
+  companyStatus?: string;
 }
 
 /**

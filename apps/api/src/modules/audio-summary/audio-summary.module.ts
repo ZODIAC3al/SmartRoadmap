@@ -9,8 +9,11 @@ import { AudioSummaryService } from './audio-summary.service';
 import { AudioSummaryController } from './audio-summary.controller';
 import { AudioModule } from '../audio/audio.module';
 
+import { BillingModule } from '../billing/billing.module';
+
 @Module({
   imports: [
+    BillingModule,
     MongooseModule.forFeature([
       { name: AudioSummary.name, schema: AudioSummarySchema },
       { name: Roadmap.name, schema: RoadmapSchema },

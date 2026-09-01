@@ -3,12 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { m, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
-import { apiFetch, getCachedUser, hasSession, API_BASE } from "@/lib/api";
+import { useAppUi } from "@/store/hooks/useAppUi";
+import { apiFetch, apiJson, getCachedUser, hasSession, API_BASE } from "@/lib/api";
 import InterviewAssistant from "@/components/InterviewAssistant";
 import VoiceTutorModal from "@/components/VoiceTutorModal";
+import AiSpinner from "@/components/AiSpinner";
 import {
   Sparkles,
   Compass,
@@ -35,12 +36,15 @@ import {
   RotateCw,
   Zap,
   Music,
+  Tv,
   Cpu,
   Calendar,
   Layers,
   FileText,
   Download,
+  Lock,
 } from "lucide-react";
+import { calculateRoadmapProgression } from "@/lib/roadmapProgression";
 
 // ─── Module and Roadmap Interfaces ───────────────────────────────────────────
 
@@ -141,9 +145,9 @@ const MOCK_DATABASE_MODULES: Module[] = [
 
 const dict = {
   interactiveMindmap: { en: "Interactive Learning Mindmap", ar: "خريطة التعلم التفاعلية" },
-  subtitle: { 
-    en: "Select a track and toggle views to explore your custom learning modules, AI speech notes, assessments, and voice-narrated audio summaries.", 
-    ar: "اختر مساراً وبدل طرق العرض لاستكشاف وحدات التعلم المخصصة وملاحظات الكلام والتقييمات والملخصات الصوتية بصوت المعلم." 
+  subtitle: {
+    en: "Select a track and toggle views to explore your custom learning modules, AI speech notes, assessments, and voice-narrated audio summaries.",
+    ar: "اختر مساراً وبدل طرق العرض لاستكشاف وحدات التعلم المخصصة وملاحظات الكلام والتقييمات والملخصات الصوتية بصوت المعلم."
   },
   trackWeb: { en: "Web Development", ar: "تطوير الويب" },
   trackMobile: { en: "Mobile App Development", ar: "تطوير تطبيقات الهواتف" },
@@ -184,16 +188,16 @@ const FolderSearchIllustration = ({ title }: { title: string }) => (
       {/* Folder tab */}
       <div className="absolute -top-3 left-6 w-14 h-6 bg-indigo-100 rounded-t-xl" />
       {/* Folder front tab white insert */}
-      <div className="absolute inset-2 bg-white/70 rounded-[1.5rem] flex flex-col justify-center px-4 space-y-1">
+      <div className="absolute inset-2 bg-base-100/70 rounded-[1.5rem] flex flex-col justify-center px-4 space-y-1">
         {/* Mock browser address line */}
-        <div className="h-5 bg-slate-50 rounded-lg flex items-center px-1.5 gap-1 border border-slate-200">
+        <div className="h-5 bg-base-200 rounded-2xl flex items-center px-1.5 gap-1 border border-base-300">
           <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
           <div className="h-1 bg-slate-200 rounded-full flex-grow" />
         </div>
       </div>
     </div>
     {/* Magnifying Glass floating in front */}
-    <div className="absolute -top-2 z-10 w-16 h-16 text-indigo-600 flex items-center justify-center animate-bounce">
+    <div className="absolute -top-2 z-10 w-16 h-16 text-primary flex items-center justify-center animate-bounce">
       <svg className="w-12 h-12 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
@@ -205,7 +209,7 @@ const FolderSearchIllustration = ({ title }: { title: string }) => (
 
 export default function RoadmapPage() {
   const router = useRouter();
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isAr = locale === "ar";
   const tr = (key: DictKey) => dict[key][isAr ? "ar" : "en"];
 
@@ -217,6 +221,10 @@ export default function RoadmapPage() {
   const [activeTrack, setActiveTrack] = useState<'web' | 'mobile' | 'ai' | 'backend' | 'devops' | 'database'>('web');
   const [activeCategory, setActiveCategory] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
   const [viewMode, setViewMode] = useState<'tree' | 'timeline'>('tree');
+
+  // Prevent duplicate AI generation requests while one is already in-flight
+  const trackChangingRef = useRef(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Slide-over Details states
   const [cheatSheet, setCheatSheet] = useState<any>(null);
@@ -232,6 +240,41 @@ export default function RoadmapPage() {
   // Tracks the in-flight play() promise so we can safely pause after it resolves
   const playPromiseRef = useRef<Promise<void> | null>(null);
   const isMountedRef = useRef(true);
+
+  // YouTube educational videos state
+  const [youtubeVideos, setYoutubeVideos] = useState<any[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<any | null>(null);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+
+  // Automatically find top 5 relevant YouTube educational videos when lecture/module is selected
+  useEffect(() => {
+    if (!selectedModule?.title) {
+      setYoutubeVideos([]);
+      return;
+    }
+
+    let isSubscribed = true;
+    setLoadingVideos(true);
+
+    apiJson<any[]>(`/resources/youtube-videos?topic=${encodeURIComponent(selectedModule.title)}`)
+      .then((videos) => {
+        if (isSubscribed) {
+          setYoutubeVideos(Array.isArray(videos) ? videos.slice(0, 5) : []);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load YouTube educational videos", err);
+        if (isSubscribed) setYoutubeVideos([]);
+      })
+      .finally(() => {
+        if (isSubscribed) setLoadingVideos(false);
+      });
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [selectedModule?.id, selectedModule?.title]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -267,7 +310,7 @@ export default function RoadmapPage() {
       if (res.ok) {
         const data: Roadmap = await res.json();
         setRoadmap(data);
-        
+
         // Auto-detect track from targetRole description
         const role = data.targetRole.toLowerCase();
         if (role.includes("mobile") || role.includes("ios") || role.includes("flutter") || role.includes("android")) {
@@ -309,10 +352,13 @@ export default function RoadmapPage() {
 
   // Triggers backend AI roadmap generation on track tab switch (if logged in)
   const handleTrackChange = async (track: 'web' | 'mobile' | 'ai' | 'backend' | 'devops' | 'database') => {
+    // Prevent duplicate requests while a generation is already running
+    if (trackChangingRef.current) return;
+
     setActiveTrack(track);
     setSelectedModule(null);
     setIsPlaying(false);
-    
+
     // Map track keys to backend generator role requests
     const roleMap = {
       web: "Fullstack Web Developer",
@@ -349,7 +395,27 @@ export default function RoadmapPage() {
       return;
     }
 
+    trackChangingRef.current = true;
     setLoading(true);
+    setAiLoading(true);
+
+    // 30-second client-side timeout guard
+    const timeoutId = setTimeout(() => {
+      if (trackChangingRef.current) {
+        trackChangingRef.current = false;
+        setLoading(false);
+        setAiLoading(false);
+        toast.error("Roadmap generation timed out. Falling back to preview.");
+        setRoadmap({
+          _id: `mock-${track}-id`,
+          title: roleMap[track],
+          targetRole,
+          totalEstimatedHours: 180,
+          modules: getMockModules(track)
+        });
+      }
+    }, 30_000);
+
     try {
       const res = await apiFetch("/roadmap/generate", {
         method: "POST",
@@ -359,7 +425,7 @@ export default function RoadmapPage() {
       if (res.ok) {
         const data = await res.json();
         setRoadmap(data);
-        toast.success(`Generated dynamic AI learning path for: ${targetRole}`);
+        toast.success(`Generated AI learning path for: ${targetRole}`);
       } else {
         throw new Error();
       }
@@ -373,7 +439,10 @@ export default function RoadmapPage() {
         modules: getMockModules(track)
       });
     } finally {
+      clearTimeout(timeoutId);
+      trackChangingRef.current = false;
       setLoading(false);
+      setAiLoading(false);
     }
   };
 
@@ -386,7 +455,7 @@ export default function RoadmapPage() {
       playPromiseRef.current.then(() => {
         el.pause();
         el.currentTime = 0;
-      }).catch(() => {});
+      }).catch(() => { });
       playPromiseRef.current = null;
     } else {
       el.pause();
@@ -416,7 +485,7 @@ export default function RoadmapPage() {
     setCheatSheetHistory([]);
     setSelectedHistoryVersion(null);
     setAudioSummary(null);
-    
+
     // Skip db queries if we are playing mock items
     if (!user || selectedModule.id.startsWith("web-") || selectedModule.id.startsWith("mob-") || selectedModule.id.startsWith("ai-") || selectedModule.id.startsWith("backend-") || selectedModule.id.startsWith("devops-") || selectedModule.id.startsWith("db-")) {
       return;
@@ -432,33 +501,48 @@ export default function RoadmapPage() {
         if (sr.ok) { const d = await sr.json(); setCheatSheet(d.data); }
         if (hr.ok) { const d = await hr.json(); setCheatSheetHistory(d.data || []); }
         if (ar.ok) { const d = await ar.json(); setAudioSummary(d.data); }
-      } catch {}
+      } catch { }
     })();
   }, [selectedModule]);
 
   // Audio summary synthesis trigger
   const generateAudioSummary = async () => {
     if (!selectedModule) return;
+    if (generatingAudio) return; // duplicate-request guard
     if (!user) {
       toast.warn("Please log in to generate dynamic AI audio narrations.");
       return;
     }
     setGeneratingAudio(true);
+
+    // 60-second client-side timeout guard for audio synthesis
+    const timeoutId = setTimeout(() => {
+      setGeneratingAudio(false);
+      toast.error("Audio synthesis timed out. Please try again.");
+    }, 60_000);
+
     try {
       const res = await apiFetch(`/audio-summaries/${selectedModule.id}/generate`, { method: "POST" });
       if (res.ok) {
         const d = await res.json();
         setAudioSummary(d.data);
         toast.info("Synthesising audio summary...");
-        pollAudio(selectedModule.id);
+        pollAudio(selectedModule.id, timeoutId);
+      } else {
+        clearTimeout(timeoutId);
+        setGeneratingAudio(false);
+        toast.error("Audio synthesis generation failed.");
       }
     } catch {
+      clearTimeout(timeoutId);
       toast.error("Audio synthesis generation failed.");
       setGeneratingAudio(false);
     }
   };
 
-  const pollAudio = (mid: string) => {
+
+
+  const pollAudio = (mid: string, timeoutId?: ReturnType<typeof setTimeout>) => {
     const timer = setInterval(async () => {
       try {
         const res = await apiFetch(`/audio-summaries/${mid}`);
@@ -468,16 +552,19 @@ export default function RoadmapPage() {
             setAudioSummary(d.data);
             setGeneratingAudio(false);
             clearInterval(timer);
+            if (timeoutId) clearTimeout(timeoutId);
             toast.success("AI voice summary ready!");
           }
           if (d.data?.status === "failed") {
             setGeneratingAudio(false);
             clearInterval(timer);
+            if (timeoutId) clearTimeout(timeoutId);
             toast.error("AI audio generation failed.");
           }
         }
       } catch {
         clearInterval(timer);
+        if (timeoutId) clearTimeout(timeoutId);
         setGeneratingAudio(false);
       }
     }, 2500);
@@ -543,8 +630,8 @@ export default function RoadmapPage() {
     const contentText = selectedHistoryVersion
       ? selectedHistoryVersion.content
       : typeof cheatSheet === 'string'
-      ? cheatSheet
-      : cheatSheet.content || '';
+        ? cheatSheet
+        : cheatSheet.content || '';
 
     const formattedHTML = formatMarkdownToExecutiveHTML(contentText);
 
@@ -959,11 +1046,19 @@ export default function RoadmapPage() {
   // Cheat sheet dynamic generation trigger
   const generateReferenceGuide = async () => {
     if (!selectedModule) return;
+    if (generatingSheet) return; // duplicate-request guard
     if (!user) {
       toast.warn("Please log in to generate AI speech notes.");
       return;
     }
     setGeneratingSheet(true);
+
+    // 120-second client-side timeout
+    const timeoutId = setTimeout(() => {
+      setGeneratingSheet(false);
+      toast.error("Speech notes generation timed out. Please try again.");
+    }, 120_000);
+
     try {
       const res = await apiFetch(`/cheat-sheets/${selectedModule.id}/generate`, {
         method: "POST",
@@ -988,17 +1083,26 @@ export default function RoadmapPage() {
     } catch {
       toast.error("Failed to generate AI speech notes.");
     } finally {
+      clearTimeout(timeoutId);
       setGeneratingSheet(false);
     }
   };
 
   const regenerateReferenceGuide = async () => {
     if (!selectedModule) return;
+    if (generatingSheet) return; // duplicate-request guard
     if (!user) {
       toast.warn("Please log in to regenerate AI speech notes.");
       return;
     }
     setGeneratingSheet(true);
+
+    // 120-second client-side timeout
+    const timeoutId = setTimeout(() => {
+      setGeneratingSheet(false);
+      toast.error("Speech notes regeneration timed out. Please try again.");
+    }, 120_000);
+
     try {
       const res = await apiFetch(`/cheat-sheets/${selectedModule.id}/regenerate`, {
         method: "POST",
@@ -1024,6 +1128,7 @@ export default function RoadmapPage() {
     } catch {
       toast.error("Failed to regenerate AI speech notes.");
     } finally {
+      clearTimeout(timeoutId);
       setGeneratingSheet(false);
     }
   };
@@ -1041,7 +1146,7 @@ export default function RoadmapPage() {
             if (!isMountedRef.current) return;
             el.pause();
             setIsPlaying(false);
-          }).catch(() => {});
+          }).catch(() => { });
           playPromiseRef.current = null;
         } else {
           el.pause();
@@ -1100,7 +1205,19 @@ export default function RoadmapPage() {
     }
   };
 
+  // Derived game-like progressive unlock state
+  const progression = React.useMemo(() => {
+    return calculateRoadmapProgression(roadmap?.modules || []);
+  }, [roadmap?.modules]);
+
   const handleNodeClick = (node: Module, cat: 'beginner' | 'intermediate' | 'advanced') => {
+    const nodeInfo = progression.getNodeInfo(node.id);
+    if (nodeInfo && !nodeInfo.isUnlocked) {
+      toast.info(`🔒 ${nodeInfo.lockReason || "Complete the previous node first to unlock."}`, {
+        toastId: `locked-${node.id}`,
+      });
+      return;
+    }
     setActiveCategory(cat);
     setSelectedModule(node);
   };
@@ -1160,17 +1277,50 @@ export default function RoadmapPage() {
       <div className="absolute top-10 left-1/4 w-80 h-80 bg-primary/5 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-secondary/5 rounded-full blur-3xl -z-10" />
 
+      {/* Fullscreen AI spinner — initial load or track-change generation */}
+      {(loading || aiLoading) && (
+        <AiSpinner
+          variant="fullscreen"
+          label={aiLoading ? "Generating your AI learning path…" : tr("loadingRoadmap")}
+          subLabel={aiLoading ? " This takes 10–20 seconds." : undefined}
+        />
+      )}
+
       {/* Page Title Header */}
-      <div className="text-center max-w-3xl mx-auto mb-8 space-y-3 select-none">
-        <div className="badge bg-indigo-600 text-white gap-2 p-3.5 font-bold uppercase tracking-wider text-xs shadow-md border-none select-none">
-          <Sparkles className="w-3.5 h-3.5 fill-white text-white" /> {tr("interactiveMindmap")}
+      <div className="bg-[#E8C999]/20 border border-[#E8C999]/40 rounded-[2rem] p-8 sm:p-10 flex flex-col md:flex-row justify-between items-center gap-8 max-w-5xl mx-auto mb-10 shadow-sm select-none">
+        {/* Left Side */}
+        <div className="space-y-4 text-start flex-1 max-w-xl">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full border border-primary/20">
+            <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+            NEXT-GEN LEARNING ENGINE
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-base-content leading-tight">
+            {roadmap?.title || tr("trackWeb")}
+          </h1>
+          <p className="text-sm font-semibold text-base-content/60 leading-relaxed max-w-md">
+            {tr("subtitle")}
+          </p>
         </div>
-        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-base-content leading-tight">
-          {roadmap?.title || tr("trackWeb")}
-        </h1>
-        <p className="text-xs md:text-sm text-base-content/60 font-semibold max-w-lg mx-auto leading-relaxed">
-          {tr("subtitle")}
-        </p>
+
+        {/* Right Side: AI Assistant Graphic */}
+        <div className="hidden md:flex flex-col items-center justify-center relative w-64 shrink-0">
+          <div className="absolute -top-4 -left-4 bg-base-100 border border-base-300 shadow-sm rounded-full px-4 py-2 text-[10px] font-bold text-base-content whitespace-nowrap z-10">
+            Select a track below! 👇
+          </div>
+          <div className="w-32 h-32 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center relative bg-base-100 shadow-sm">
+            <Bot className="w-14 h-14 text-primary" />
+            <div className="absolute -left-3 top-12 w-6 h-6 rounded-full bg-[#F8EEDF] border border-base-300 shadow-sm flex items-center justify-center">
+              <span className="w-2 h-2 rounded-full bg-primary/50"></span>
+            </div>
+            <div className="absolute -right-3 top-12 w-6 h-6 rounded-full bg-[#F8EEDF] border border-base-300 shadow-sm flex items-center justify-center">
+              <span className="w-2 h-2 rounded-full bg-primary/50"></span>
+            </div>
+          </div>
+          <span className="mt-4 px-3 py-1 bg-base-100 border border-[#8E1616]/30 text-[#8E1616] text-[9px] font-black uppercase tracking-widest rounded-full flex items-center gap-1.5 shadow-sm">
+            <span className="w-1.5 h-1.5 bg-[#8E1616] rounded-full"></span>
+            AI Active
+          </span>
+        </div>
       </div>
 
       {/* Action Selectors Row: Tracks + Layout Switcher */}
@@ -1186,13 +1336,13 @@ export default function RoadmapPage() {
             glow: string;
             hoverBg: string;
           }[] = [
-            { key: 'web',      label: tr("trackWeb"),      Icon: Globe,       gradient: 'from-indigo-500 to-violet-500',  glow: '80, 70, 229',   hoverBg: 'hover:bg-indigo-500/10' },
-            { key: 'mobile',   label: tr("trackMobile"),   Icon: Smartphone,  gradient: 'from-emerald-500 to-teal-500',   glow: '16, 185, 129',  hoverBg: 'hover:bg-emerald-500/10' },
-            { key: 'ai',       label: tr("trackAI"),       Icon: Bot,         gradient: 'from-fuchsia-500 to-pink-500',   glow: '217, 70, 239',  hoverBg: 'hover:bg-fuchsia-500/10' },
-            { key: 'backend',  label: tr("trackBackend"),  Icon: Server,      gradient: 'from-orange-500 to-amber-500',   glow: '249, 115, 22',  hoverBg: 'hover:bg-orange-500/10' },
-            { key: 'devops',   label: tr("trackDevOps"),   Icon: Cloud,       gradient: 'from-sky-500 to-cyan-400',       glow: '14, 165, 233',  hoverBg: 'hover:bg-sky-500/10' },
-            { key: 'database', label: tr("trackDatabase"), Icon: Database,    gradient: 'from-rose-500 to-red-400',       glow: '244, 63, 94',   hoverBg: 'hover:bg-rose-500/10' },
-          ];
+              { key: 'web', label: tr("trackWeb"), Icon: Globe, gradient: 'from-indigo-500 to-violet-500', glow: '80, 70, 229', hoverBg: 'hover:bg-primary text-primary-content/10' },
+              { key: 'mobile', label: tr("trackMobile"), Icon: Smartphone, gradient: 'from-[#8E1616] to-teal-500', glow: '16, 185, 129', hoverBg: 'hover:bg-[#8E1616]/10' },
+              { key: 'ai', label: tr("trackAI"), Icon: Bot, gradient: 'from-fuchsia-500 to-pink-500', glow: '217, 70, 239', hoverBg: 'hover:bg-fuchsia-500/10' },
+              { key: 'backend', label: tr("trackBackend"), Icon: Server, gradient: 'from-orange-500 to-amber-500', glow: '249, 115, 22', hoverBg: 'hover:bg-orange-500/10' },
+              { key: 'devops', label: tr("trackDevOps"), Icon: Cloud, gradient: 'from-sky-500 to-cyan-400', glow: '14, 165, 233', hoverBg: 'hover:bg-sky-500/10' },
+              { key: 'database', label: tr("trackDatabase"), Icon: Database, gradient: 'from-rose-500 to-red-400', glow: '244, 63, 94', hoverBg: 'hover:bg-rose-500/10' },
+            ];
           return (
             <div className="relative w-full max-w-3xl select-none">
               {/* Container card */}
@@ -1207,12 +1357,14 @@ export default function RoadmapPage() {
                       <button
                         key={track.key}
                         onClick={() => handleTrackChange(track.key)}
+                        disabled={aiLoading}
                         style={active ? {
                           boxShadow: `0 4px 18px rgba(${track.glow}, 0.45)`,
                         } : undefined}
                         className={[
                           'group relative flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl',
-                          'text-[11px] font-extrabold tracking-wide transition-all duration-200 cursor-pointer',
+                          'text-[11px] font-extrabold tracking-wide transition-all duration-200',
+                          aiLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
                           active
                             ? `bg-gradient-to-r ${track.gradient} text-white`
                             : `text-base-content/55 ${track.hoverBg} hover:text-base-content`,
@@ -1226,7 +1378,7 @@ export default function RoadmapPage() {
                         <span className="whitespace-nowrap">{track.label}</span>
                         {/* Active dot */}
                         {active && (
-                          <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-white/70 shadow-sm" />
+                          <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-base-100/70 shadow-sm" />
                         )}
                       </button>
                     );
@@ -1241,22 +1393,20 @@ export default function RoadmapPage() {
         <div className="bg-base-200 p-1 rounded-full border border-base-300 shadow-sm flex gap-1 select-none">
           <button
             onClick={() => setViewMode('tree')}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              viewMode === 'tree'
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'tree'
                 ? 'bg-base-100 text-base-content shadow-sm'
                 : 'text-base-content/50 hover:text-base-content'
-            }`}
+              }`}
           >
             <GitBranch className="w-3.5 h-3.5" />
             <span>{tr("treeView")}</span>
           </button>
           <button
             onClick={() => setViewMode('timeline')}
-            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-              viewMode === 'timeline'
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${viewMode === 'timeline'
                 ? 'bg-base-100 text-base-content shadow-sm'
                 : 'text-base-content/50 hover:text-base-content'
-            }`}
+              }`}
           >
             <Grid3X3 className="w-3.5 h-3.5" />
             <span>{tr("timelineView")}</span>
@@ -1269,7 +1419,7 @@ export default function RoadmapPage() {
         <div className="relative max-w-5xl mx-auto pb-10">
           {/* Root node */}
           <div className="flex flex-col items-center mb-2 relative z-10 select-none">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[2.5rem] bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-500/20 border-4 border-base-100">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-[2.5rem] bg-primary text-primary-content text-white flex items-center justify-center shadow-xl shadow-indigo-500/20 border-4 border-base-100">
               <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 fill-white text-white" />
             </div>
             <span className="mt-3 text-xs sm:text-sm font-black uppercase tracking-wider text-base-content/70 text-center px-4">
@@ -1305,31 +1455,53 @@ export default function RoadmapPage() {
               const Icon = meta.icon;
               const data = partition[cat] || [];
               const isActiveCat = activeCategory === cat;
+              const catState = progression.moduleStates[cat];
+              const isCatLocked = catState === 'LOCKED';
+              const isCatCompleted = catState === 'COMPLETED';
 
               return (
                 <div key={cat} className="flex flex-col items-center">
                   {/* Category branch node button */}
                   <button
                     onClick={() => {
+                      if (isCatLocked) {
+                        toast.info(`🔒 ${catLabels[cat]} module is locked. Complete all previous module nodes first.`, {
+                          toastId: `cat-locked-${cat}`,
+                        });
+                        return;
+                      }
                       setActiveCategory(cat);
                       setSelectedModule(null);
                     }}
-                    className={`group flex flex-col items-center gap-2 cursor-pointer transition-transform duration-200 ${
-                      isActiveCat ? 'scale-105 animate-none' : 'hover:scale-105 hover:animate-none'
+                    className={`group relative flex flex-col items-center gap-2 cursor-pointer transition-transform duration-200 ${
+                      isCatLocked ? 'opacity-60 blur-[0.5px] cursor-not-allowed' : isActiveCat ? 'scale-105' : 'hover:scale-105'
                     }`}
                   >
                     <div
-                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.5rem] flex items-center justify-center shadow-md border-2 transition-all duration-200 ${
-                        isActiveCat
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[1.5rem] flex items-center justify-center shadow-md border-2 transition-all duration-200 relative ${
+                        isCatLocked
+                          ? 'bg-base-300 text-base-content/40 border-base-400'
+                          : isActiveCat
                           ? `bg-${meta.color} text-${meta.color}-content border-${meta.color} shadow-lg`
                           : 'bg-base-200 text-base-content/50 border-base-300 group-hover:border-base-content/30'
                       }`}
                     >
                       <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
+                      {isCatLocked && (
+                        <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-base-300 border border-base-400 text-base-content/60 flex items-center justify-center shadow-sm">
+                          <Lock className="w-3 h-3 text-base-content/60" />
+                        </div>
+                      )}
+                      {isCatCompleted && (
+                        <div className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-success text-white flex items-center justify-center shadow-sm">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        </div>
+                      )}
                     </div>
                     <div className="text-center select-none">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-base-content/40">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-base-content/40 flex items-center justify-center gap-1">
                         {catLabels[cat]}
+                        {isCatLocked && <span className="text-[9px] font-bold text-amber-600 dark:text-amber-400">🔒 LOCKED</span>}
                       </h4>
                       <p className="text-xs sm:text-sm font-extrabold text-base-content mt-0.5 max-w-[160px] leading-snug">
                         {catLabels[cat]} Modules
@@ -1346,34 +1518,59 @@ export default function RoadmapPage() {
 
                     {data.map((node: Module, idx: number) => {
                       const isSelected = selectedModule?.id === node.id;
+                      const nodeInfo = progression.getNodeInfo(node.id);
+                      const isUnlocked = nodeInfo?.isUnlocked ?? false;
+                      const isFirstAvailable = nodeInfo?.isFirstAvailable ?? false;
+                      const isCompleted = node.status === 'completed';
+
                       return (
                         <div key={node.id} className="relative flex items-center">
                           <div className="hidden sm:block absolute left-1/2 -translate-x-full w-3 h-px bg-base-300" />
                           <button
                             onClick={() => handleNodeClick(node, cat)}
-                            className={`w-full p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 group select-none ${
-                              isSelected
-                                ? `bg-${meta.color}/10 border-${meta.color} shadow-sm`
-                                : 'bg-base-100 border-base-300 hover:bg-base-200/60 hover:border-base-content/20'
+                            aria-disabled={!isUnlocked}
+                            className={`w-full p-4 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between gap-3 group select-none ${
+                              !isUnlocked
+                                ? 'opacity-50 blur-[0.8px] cursor-not-allowed bg-base-200/40 border-base-300/80 shadow-none'
+                                : isSelected
+                                ? `bg-${meta.color}/10 border-${meta.color} shadow-md`
+                                : isFirstAvailable
+                                ? 'ring-2 ring-primary/40 shadow-lg shadow-primary/10 bg-primary/5 border-primary cursor-pointer'
+                                : 'bg-base-100 border-base-300 hover:bg-base-200/60 hover:border-base-content/20 cursor-pointer'
                             }`}
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <div
                                 className={`w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[10px] font-black ${
-                                  isSelected
+                                  !isUnlocked
+                                    ? 'bg-base-300 text-base-content/40'
+                                    : isCompleted
+                                    ? 'bg-success/20 text-success border border-success/40'
+                                    : isFirstAvailable
+                                    ? 'bg-primary text-white shadow-sm'
+                                    : isSelected
                                     ? `bg-${meta.color} text-${meta.color}-content`
                                     : 'bg-base-200 text-base-content/60 border border-base-300'
                                 }`}
                               >
-                                {idx + 1}
+                                {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5 text-success" /> : idx + 1}
                               </div>
                               <div className="min-w-0">
                                 <h5
-                                  className={`text-xs font-extrabold truncate transition-colors ${
-                                    isSelected ? `text-${meta.color}` : 'text-base-content group-hover:text-indigo-600'
+                                  className={`text-xs font-extrabold truncate transition-colors flex items-center gap-1.5 ${
+                                    !isUnlocked
+                                      ? 'text-base-content/50'
+                                      : isSelected
+                                      ? `text-${meta.color}`
+                                      : 'text-base-content group-hover:text-primary'
                                   }`}
                                 >
-                                  {node.title}
+                                  <span>{node.title}</span>
+                                  {isFirstAvailable && (
+                                    <span className="px-1.5 py-0.5 rounded bg-primary/20 text-primary text-[8px] font-black uppercase tracking-wider animate-pulse">
+                                      OPEN ✨
+                                    </span>
+                                  )}
                                 </h5>
                                 <span className="text-[9px] text-base-content/45 font-bold flex items-center gap-1 mt-0.5">
                                   <Clock className="w-2.5 h-2.5" />
@@ -1381,7 +1578,13 @@ export default function RoadmapPage() {
                                 </span>
                               </div>
                             </div>
-                            <ArrowRight className="w-3.5 h-3.5 text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+                            {!isUnlocked ? (
+                              <Lock className="w-3.5 h-3.5 text-base-content/40 shrink-0 animate-pulse" />
+                            ) : isCompleted ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
+                            ) : (
+                              <ArrowRight className="w-3.5 h-3.5 text-base-content/30 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+                            )}
                           </button>
                         </div>
                       );
@@ -1397,14 +1600,14 @@ export default function RoadmapPage() {
       {/* ── VIEW MODE 2: TIMELINE PIPELINE GANTT LAYOUT ─ */}
       {viewMode === 'timeline' && (
         <div className="max-w-5xl mx-auto space-y-6">
-          
+
           {/* Mockup Folder Search Graphic */}
           <div className="text-center space-y-2 mb-6 select-none">
             <FolderSearchIllustration title={roadmap?.title || "Design Upgrade Roadmap"} />
-            <h2 className="text-2xl font-black text-slate-800 tracking-tight dark:text-white uppercase">
+            <h2 className="text-2xl font-black text-base-content tracking-tight dark:text-white uppercase">
               Design Upgrade Roadmap
             </h2>
-            <p className="text-[11px] font-extrabold text-indigo-600 tracking-widest uppercase">
+            <p className="text-[11px] font-extrabold text-primary tracking-widest uppercase">
               FOR {roadmap?.targetRole.toUpperCase() || "SNAPBUY"}
             </p>
           </div>
@@ -1418,15 +1621,15 @@ export default function RoadmapPage() {
             {/* Timeline Gantt Grid Container */}
             <div className="bg-base-100 border border-base-300 rounded-[2rem] p-6 shadow-sm overflow-x-auto select-none">
               <div className="min-w-[800px] relative">
-                
+
                 {/* Blue Header: Quarters (Q1 - Q4) */}
-                <div className="grid grid-cols-12 bg-indigo-600 text-white font-extrabold text-center rounded-t-2xl py-3.5 border-b border-indigo-700/20 shadow-sm text-sm">
+                <div className="grid grid-cols-12 bg-primary text-primary-content text-white font-extrabold text-center rounded-t-2xl py-3.5 border-b border-indigo-700/20 shadow-sm text-sm">
                   <div className="col-span-3 border-r border-white/10">Q1</div>
                   <div className="col-span-3 border-r border-white/10">Q2</div>
                   <div className="col-span-3 border-r border-white/10">Q3</div>
                   <div className="col-span-3">Q4</div>
                 </div>
-                
+
                 {/* Grey Subheader: Months (Jan - Dec) */}
                 <div className="grid grid-cols-12 bg-base-350 text-base-content/60 font-bold text-[10px] uppercase text-center py-2 border-b border-base-300">
                   <div className="border-r border-base-300/40">Jan</div>
@@ -1457,7 +1660,9 @@ export default function RoadmapPage() {
                     {roadmap?.modules.map((m, idx) => {
                       const totalCols = 12;
                       const barWidth = 2; // Each task spans 2 months
-                      
+                      const nodeInfo = progression.getNodeInfo(m.id);
+                      const isUnlocked = nodeInfo?.isUnlocked ?? false;
+
                       // Calculate diagonal start column
                       const startCol = Math.min(
                         totalCols - barWidth + 1,
@@ -1475,14 +1680,29 @@ export default function RoadmapPage() {
                       return (
                         <div key={m.id} className="grid grid-cols-12 items-center h-10">
                           <button
-                            onClick={() => { setSelectedModule(m); }}
-                            className={`col-span-${barWidth} rounded-xl py-2.5 px-4 text-left font-black text-xs shadow-md border flex items-center justify-between cursor-pointer transition-all hover:scale-[1.03] select-none truncate ${colorClass}`}
+                            onClick={() => {
+                              if (!isUnlocked) {
+                                toast.info(`🔒 ${nodeInfo?.lockReason || "Complete previous modules first."}`, {
+                                  toastId: `gantt-locked-${m.id}`,
+                                });
+                                return;
+                              }
+                              setSelectedModule(m);
+                            }}
+                            className={`col-span-${barWidth} rounded-xl py-2.5 px-4 text-left font-black text-xs shadow-md border flex items-center justify-between transition-all select-none truncate ${
+                              !isUnlocked
+                                ? 'bg-base-300 text-base-content/40 opacity-50 blur-[0.8px] cursor-not-allowed border-dashed'
+                                : `${colorClass} cursor-pointer hover:scale-[1.03]`
+                            }`}
                             style={{
                               gridColumnStart: startCol,
                               gridColumnEnd: startCol + barWidth,
                             }}
                           >
-                            <span className="truncate">{m.title}</span>
+                            <span className="truncate flex items-center gap-1">
+                              {!isUnlocked && <Lock className="w-3 h-3 text-base-content/40 shrink-0" />}
+                              <span>{m.title}</span>
+                            </span>
                             <span className="text-[9px] opacity-75 font-mono ml-1 shrink-0">{m.estimatedHours}h</span>
                           </button>
                         </div>
@@ -1501,7 +1721,7 @@ export default function RoadmapPage() {
       {/* Helper message when no module is active */}
       {!selectedModule && (
         <div className="text-center max-w-md mx-auto mt-10 space-y-2 text-base-content/40 select-none">
-          <HelpCircle className="w-6 h-6 mx-auto animate-pulse text-indigo-500" />
+          <HelpCircle className="w-6 h-6 mx-auto animate-pulse text-primary" />
           <p className="text-xs font-extrabold leading-relaxed">
             {tr("tapAnyNode")}
           </p>
@@ -1513,7 +1733,7 @@ export default function RoadmapPage() {
         {selectedModule && (
           <>
             {/* Backdrop Overlay */}
-            <m.div
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -1522,14 +1742,13 @@ export default function RoadmapPage() {
             />
 
             {/* Slide-over Drawer Panel */}
-            <m.div
+            <motion.div
               initial={{ x: isAr ? "-100%" : "100%" }}
               animate={{ x: 0 }}
               exit={{ x: isAr ? "-100%" : "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className={`fixed top-0 ${
-                isAr ? 'left-0' : 'right-0'
-              } h-full w-full sm:w-[420px] bg-base-100 z-50 shadow-2xl p-6 sm:p-8 flex flex-col gap-6 overflow-y-auto`}
+              className={`fixed top-0 ${isAr ? 'left-0' : 'right-0'
+                } h-full w-full sm:w-[420px] bg-base-100 z-50 shadow-2xl p-6 sm:p-8 flex flex-col gap-6 overflow-y-auto`}
             >
               {/* Drawer Header */}
               <div className="flex items-center justify-between">
@@ -1538,7 +1757,7 @@ export default function RoadmapPage() {
                 </span>
                 <button
                   onClick={() => setSelectedModule(null)}
-                  className="btn btn-sm btn-ghost btn-circle text-base-content/40 hover:text-base-content hover:bg-base-200"
+                  className="btn btn-sm btn-ghost btn-circle text-base-content/40 hover:text-base-content hover:bg-base-200 transition-all duration-300 ease-in-out"
                   aria-label="Close"
                 >
                   <X className="w-4 h-4" />
@@ -1562,7 +1781,7 @@ export default function RoadmapPage() {
                     <Clock className="w-3.5 h-3.5" />
                     {tr("estimatedDuration")}
                   </span>
-                  <span className="text-indigo-600 font-black">{selectedModule.estimatedHours} hrs</span>
+                  <span className="text-primary font-black">{selectedModule.estimatedHours} hrs</span>
                 </div>
                 <div className="flex items-center justify-between text-xs font-bold text-base-content/60">
                   <span className="flex items-center gap-1.5">
@@ -1590,7 +1809,7 @@ export default function RoadmapPage() {
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedModule.topics.map((t, i) => (
-                      <span key={i} className="px-2.5 py-1 text-[10px] font-bold bg-base-200 border border-base-300 rounded-lg">
+                      <span key={i} className="px-2.5 py-1 text-[10px] font-bold bg-base-200 border border-base-300 rounded-2xl">
                         {t}
                       </span>
                     ))}
@@ -1604,7 +1823,7 @@ export default function RoadmapPage() {
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>{tr("referenceCheatsheet")}</span>
                 </h4>
-                
+
                 {cheatSheet ? (
                   <div className="space-y-2">
                     {/* Version history picker */}
@@ -1622,7 +1841,7 @@ export default function RoadmapPage() {
                               setSelectedHistoryVersion(found || null);
                             }
                           }}
-                          className="select select-bordered select-xs bg-base-200 text-[10px] rounded-lg border-base-300"
+                          className="select select-bordered select-xs bg-base-200 text-[10px] rounded-2xl border-base-300"
                         >
                           <option value="current">{isAr ? "النسخة الحالية" : "Current Version"}</option>
                           {cheatSheetHistory.map((h, i) => (
@@ -1642,10 +1861,10 @@ export default function RoadmapPage() {
                       <button
                         onClick={regenerateReferenceGuide}
                         disabled={generatingSheet}
-                        className="btn btn-outline border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-[10px] font-extrabold h-9"
+                        className="btn btn-outline border-primary text-primary hover:bg-primary text-primary-content hover:text-white rounded-xl text-[10px] font-extrabold h-9 transition-all duration-300 ease-in-out"
                       >
                         {generatingSheet ? (
-                          <span className="loading loading-spinner loading-xs" />
+                          <AiSpinner variant="inline" label={isAr ? "جاري…" : "Generating…"} />
                         ) : (
                           <>
                             <RotateCw className="w-3.5 h-3.5 mr-1" />
@@ -1667,10 +1886,10 @@ export default function RoadmapPage() {
                   <button
                     onClick={generateReferenceGuide}
                     disabled={generatingSheet}
-                    className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-block rounded-xl text-xs font-extrabold h-11"
+                    className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-block rounded-xl text-xs font-extrabold h-11 transition-all duration-300 ease-in-out"
                   >
                     {generatingSheet ? (
-                      <span className="loading loading-spinner loading-xs" />
+                      <AiSpinner variant="inline" label={isAr ? "جاري التوليد…" : "Generating…"} />
                     ) : (
                       <>
                         <Zap className="w-3.5 h-3.5 mr-1 fill-amber-400 text-amber-500" />
@@ -1733,17 +1952,14 @@ export default function RoadmapPage() {
                 ) : audioSummary?.status === 'pending' || generatingAudio ? (
                   /* Pending — still synthesising */
                   <div className="bg-base-200 border border-base-300 p-4 rounded-2xl flex items-center gap-3">
-                    <span className="loading loading-spinner loading-sm text-primary" />
-                    <div>
-                      <p className="text-xs font-extrabold text-base-content">{tr("synthesising")}</p>
-                      <p className="text-[10px] text-base-content/50">This takes 15–30 seconds. Hang tight.</p>
-                    </div>
+                    <AiSpinner variant="inline" label={tr("synthesising")} />
+                    <p className="text-[10px] text-base-content/50">This takes 15–30 seconds. Hang tight.</p>
                   </div>
                 ) : (
                   /* Not generated yet */
                   <button
                     onClick={generateAudioSummary}
-                    className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-block rounded-xl text-xs font-extrabold h-11"
+                    className="btn btn-outline border-base-300 text-base-content hover:bg-base-200 btn-block rounded-xl text-xs font-extrabold h-11 transition-all duration-300 ease-in-out"
                   >
                     <Music className="w-4 h-4 mr-1" />
                     {tr("generateAudio")}
@@ -1751,13 +1967,79 @@ export default function RoadmapPage() {
                 )}
               </div>
 
+              {/* Educational YouTube Video Tutorials Section (Top 5 for selected lecture) */}
+              <div className="space-y-2.5 pt-2">
+                <h4 className="text-xs font-extrabold uppercase tracking-widest text-base-content/40 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Tv className="w-3.5 h-3.5 text-red-500" />
+                    <span>{isAr ? "فيديوهات تعليمية (YouTube) 📺" : "YouTube Video Lessons 📺"}</span>
+                  </span>
+                  <span className="badge badge-xs badge-error text-white font-black text-[9px]">TOP 5</span>
+                </h4>
+
+                {loadingVideos ? (
+                  <div className="bg-base-200 border border-base-300 p-4 rounded-2xl flex items-center justify-center gap-2.5">
+                    <span className="loading loading-spinner loading-xs text-red-500" />
+                    <span className="text-xs font-bold text-base-content/60">
+                      {isAr ? "جاري البحث عن أفضل الفيديوهات..." : "Finding top 5 YouTube videos..."}
+                    </span>
+                  </div>
+                ) : youtubeVideos.length > 0 ? (
+                  <div className="space-y-2">
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                      {youtubeVideos.map((video) => (
+                        <div
+                          key={video.id}
+                          onClick={() => {
+                            setSelectedVideo(video);
+                            setShowVideoModal(true);
+                          }}
+                          className="group bg-base-200 hover:bg-base-300/80 border border-base-300 rounded-xl p-2 flex items-center gap-3 transition-all cursor-pointer select-none"
+                        >
+                          <div className="relative w-20 h-12 shrink-0 rounded-2xl overflow-hidden bg-base-300 shadow-sm border border-base-300">
+                            <img
+                              src={video.thumbnailUrl}
+                              alt={video.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            />
+                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/10 transition-colors">
+                              <div className="w-6 h-6 rounded-full bg-red-600 text-white flex items-center justify-center shadow-md">
+                                <Play className="w-3 h-3 fill-white translate-x-0.5" />
+                              </div>
+                            </div>
+                            {video.duration && (
+                              <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[8px] font-black px-1 rounded">
+                                {video.duration}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <h5 className="text-[11px] font-extrabold text-base-content line-clamp-1 group-hover:text-red-500 transition-colors">
+                              {video.title}
+                            </h5>
+                            <div className="flex items-center gap-2 mt-0.5 text-[9px] font-bold text-base-content/50">
+                              <span className="truncate text-red-600/90 font-black">{video.channelTitle}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-base-200 border border-base-300 p-3 rounded-xl text-center text-xs text-base-content/50 font-semibold">
+                    {isAr ? "لا توجد فيديوهات متاحة حالياً" : "No video tutorials found"}
+                  </div>
+                )}
+              </div>
+
               {/* Talk to Voice Tutor Trigger */}
               <div className="pt-2">
                 <button
                   onClick={() => setShowVoiceTutor(true)}
-                  className="btn btn-outline border-indigo-650 text-indigo-600 hover:bg-indigo-600 hover:text-white btn-block rounded-xl text-xs font-extrabold h-11 flex items-center justify-center gap-2"
+                  className="btn btn-outline border-indigo-650 text-primary hover:bg-primary text-primary-content hover:text-white btn-block rounded-xl text-xs font-extrabold h-11 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out"
                 >
-                  <Mic className="w-4 h-4 text-indigo-600 group-hover:text-white" />
+                  <Mic className="w-4 h-4 text-primary group-hover:text-white transition-all duration-300 ease-in-out" />
                   {isAr ? "التحدث مع المعلم الصوتي 🎙️" : "Talk to Voice Tutor 🎙️"}
                 </button>
               </div>
@@ -1768,12 +2050,12 @@ export default function RoadmapPage() {
                   setSelectedModule(null);
                   router.push(`/quiz/${selectedModule.id}`);
                 }}
-                className="btn bg-indigo-600 hover:bg-indigo-700 border-none btn-block rounded-xl text-white font-extrabold text-xs shadow-lg shadow-indigo-500/10 mt-auto h-12 flex items-center justify-center gap-1.5"
+                className="btn bg-primary text-primary-content hover:bg-indigo-700 border-none btn-block rounded-xl text-white font-extrabold text-xs shadow-lg shadow-indigo-500/10 mt-auto h-12 flex items-center justify-center gap-1.5 transition-all duration-300 ease-in-out"
               >
                 <span>{tr("startChallenge")}</span>
                 <ArrowRight className="w-4 h-4 text-white" />
               </button>
-            </m.div>
+            </motion.div>
           </>
         )}
       </AnimatePresence>
@@ -1787,6 +2069,62 @@ export default function RoadmapPage() {
         onEnded={() => setIsPlaying(false)}
         style={{ display: 'none' }}
       />
+
+      {/* Interactive YouTube Video Player Modal */}
+      <AnimatePresence>
+        {showVideoModal && selectedVideo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-base-100 border border-base-300 rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl space-y-0 relative z-50"
+            >
+              <div className="p-4 border-b border-base-300 flex items-center justify-between bg-base-200/50">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                    <Tv className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-extrabold text-base-content truncate">{selectedVideo.title}</h3>
+                    <p className="text-[10px] font-bold text-base-content/50">{selectedVideo.channelTitle}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowVideoModal(false)}
+                  className="btn btn-circle btn-ghost btn-xs text-base-content/60 hover:text-base-content transition-all duration-300 ease-in-out"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="relative aspect-video w-full bg-slate-950">
+                <iframe
+                  src={`${selectedVideo.embedUrl}?autoplay=1`}
+                  title={selectedVideo.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full border-none"
+                />
+              </div>
+
+              <div className="p-4 bg-base-100 flex items-center justify-between gap-3">
+                <span className="text-xs font-bold text-base-content/60 truncate">
+                  {isAr ? "الموضوع: " : "Lecture Topic: "} <strong className="text-base-content">{selectedModule?.title}</strong>
+                </span>
+                <a
+                  href={selectedVideo.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-xs btn-outline border-red-600 text-red-600 hover:bg-red-600 hover:text-white rounded-2xl gap-1 font-extrabold shrink-0 transition-all duration-300 ease-in-out"
+                >
+                  <span>{isAr ? "مشاهدة في يوتيوب ↗" : "Watch on YouTube ↗"}</span>
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* AssemblyAI Voice Agent Modal overlay */}
       {selectedModule && (

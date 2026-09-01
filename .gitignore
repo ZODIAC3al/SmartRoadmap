@@ -8,6 +8,9 @@ packages/shared/node_modules/
 .env
 .env.*
 !.env.example
+env.txt
+
+
 # Next.js build and cache
 .next/
 apps/web/.next/
@@ -35,12 +38,7 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
-# Playwright
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-/playwright/.auth/
-
-# Playwright perf artifacts
-/output/perf/
+# Local runtime data (MongoDB dbpath, logs, scratch PDFs, audio cache) — never commit
+tmp/
+output/run-check/
+apps/api/public/audio/

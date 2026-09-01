@@ -39,14 +39,14 @@ export class NotificationsService {
     const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
 
     const notification = await this.notificationModel.create({
-      userId: userIdObj,
+      recipient: userIdObj,
       type: payload.type,
-      title: payload.title.trim(),
-      body: payload.body.trim(),
-      linkTo: payload.linkTo || '/dashboard',
-      isRead: false,
-      meta: payload.meta || {},
-      expiresAt,
+      titleEn: payload.title.trim(),
+      titleAr: payload.title.trim(),
+      contentEn: payload.body.trim(),
+      contentAr: payload.body.trim(),
+      link: payload.linkTo || '/dashboard',
+      read: false,
     });
 
     // Push live WebSocket event
@@ -74,21 +74,21 @@ export class NotificationsService {
 
       const notification = await this.notificationModel.findOneAndUpdate(
         {
-          userId: adminIdObj,
+          recipient: adminIdObj,
           type: 'certificate_verified',
-          isRead: false,
+          read: false,
         },
         {
           $set: {
-            title: 'Pending Certificates Review Queue 📜',
-            body: `${pendingCount} certificate submission${pendingCount > 1 ? 's' : ''} awaiting admin verification.`,
+            titleEn: 'Pending Certificates Review Queue 📜',
+            titleAr: 'قائمة مراجعة الشهادات المعلقة 📜',
+            contentEn: `${pendingCount} certificate submission${pendingCount > 1 ? 's' : ''} awaiting admin verification.`,
+            contentAr: `يوجد ${pendingCount} شهادة في انتظار التحقق من المسؤول.`,
             createdAt: new Date(),
-            expiresAt,
-            meta: { count: pendingCount },
           },
           $setOnInsert: {
-            linkTo: '/admin/certificates?status=pending',
-            isRead: false,
+            link: '/admin/certificates?status=pending',
+            read: false,
           },
         },
         { upsert: true, new: true },
@@ -113,31 +113,31 @@ export class NotificationsService {
     before?: string,
   ): Promise<Notification[]> {
     const userObjId = new Types.ObjectId(userId);
-    const query: any = { userId: userObjId };
-    if (unreadOnly) query.isRead = false;
+    const query: any = { recipient: userObjId };
+    if (unreadOnly) query.read = false;
     if (before && Types.ObjectId.isValid(before)) {
       query._id = { $lt: new Types.ObjectId(before) };
     }
 
     return this.notificationModel
       .find(query)
-      .sort({ isRead: 1, createdAt: -1 })
+      .sort({ read: 1, createdAt: -1 })
       .limit(limit)
       .exec();
   }
 
   async markRead(id: string, userId: string): Promise<Notification | null> {
     return this.notificationModel.findOneAndUpdate(
-      { _id: new Types.ObjectId(id), userId: new Types.ObjectId(userId) },
-      { $set: { isRead: true } },
+      { _id: new Types.ObjectId(id), recipient: new Types.ObjectId(userId) },
+      { $set: { read: true } },
       { new: true },
     );
   }
 
   async markAllRead(userId: string): Promise<{ success: boolean; modifiedCount: number }> {
     const res = await this.notificationModel.updateMany(
-      { userId: new Types.ObjectId(userId), isRead: false },
-      { $set: { isRead: true } },
+      { recipient: new Types.ObjectId(userId), read: false },
+      { $set: { read: true } },
     );
     return { success: true, modifiedCount: res.modifiedCount };
   }

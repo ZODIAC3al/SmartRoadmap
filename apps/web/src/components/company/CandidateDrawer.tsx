@@ -101,7 +101,7 @@ export function CandidateDrawer({
                 {notes.map((n) => (
                   <div
                     key={n.id}
-                    className="p-3 rounded-lg bg-base-200/60 border border-base-300 text-xs flex flex-col gap-1"
+                    className="p-3 rounded-2xl bg-base-200/60 border border-base-300 text-xs flex flex-col gap-1"
                   >
                     <div className="flex justify-between items-center text-[10px] text-base-content/50">
                       <span className="font-semibold text-base-content">{n.author}</span>

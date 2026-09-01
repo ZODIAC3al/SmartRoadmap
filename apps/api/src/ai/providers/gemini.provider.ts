@@ -11,9 +11,9 @@ export class GeminiProvider implements AiProvider {
   constructor(private readonly config: ConfigService) {
     this.apiKey = (this.config.get<string>('GEMINI_API_KEY') || '').trim();
     this.model =
-      (this.config.get<string>('GEMINI_MODEL') || 'gemini-2.5-flash').trim();
+      (this.config.get<string>('GEMINI_MODEL') || 'gemini-1.5-flash').trim();
     this.ttsModel =
-      (this.config.get<string>('GEMINI_TTS_MODEL') || 'gemini-2.5-flash').trim();
+      (this.config.get<string>('GEMINI_TTS_MODEL') || 'gemini-1.5-flash').trim();
   }
 
   private getModelUrl(modelName: string): string {
@@ -34,7 +34,6 @@ export class GeminiProvider implements AiProvider {
     const modelsToTry = Array.from(
       new Set([
         this.model,
-        'gemini-2.5-flash',
         'gemini-1.5-flash',
         'gemini-1.5-pro',
       ]),
@@ -94,7 +93,6 @@ export class GeminiProvider implements AiProvider {
     const modelsToTry = Array.from(
       new Set([
         this.model,
-        'gemini-2.5-flash',
         'gemini-1.5-flash',
         'gemini-1.5-pro',
       ]),

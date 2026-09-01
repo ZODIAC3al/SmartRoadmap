@@ -134,7 +134,7 @@ export default function TalentSearchPage() {
                     {cand.skills.map((skill: string) => (
                       <span
                         key={skill}
-                        className="px-2 py-0.5 rounded-md bg-base-200 text-xs font-medium text-base-content/80"
+                        className="px-2 py-0.5 rounded-xl bg-base-200 text-xs font-medium text-base-content/80"
                       >
                         {skill}
                       </span>
@@ -149,16 +149,16 @@ export default function TalentSearchPage() {
                     requiredPlan="growth"
                     fallbackText="Upgrade to Growth to unlock AI candidate match scores."
                   >
-                    <div className="flex justify-between items-center bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
-                      <span className="text-xs font-semibold text-emerald-500 uppercase">
+                    <div className="flex justify-between items-center bg-[#8E1616]/10 p-2.5 rounded-xl border border-[#8E1616]/20">
+                      <span className="text-xs font-semibold text-[#8E1616] uppercase">
                         AI Match Score
                       </span>
-                      <span className="text-lg font-bold text-emerald-500 font-mono">
+                      <span className="text-lg font-bold text-[#8E1616] font-mono">
                         {evaluations[cand.id]?.score !== undefined ? `${evaluations[cand.id].score}%` : `${cand.matchScore}%`}
                       </span>
                     </div>
                     {evaluations[cand.id]?.reason && (
-                      <p className="text-[11px] text-base-content/70 italic mt-1 bg-base-200 p-2 rounded-lg border border-base-300">
+                      <p className="text-[11px] text-base-content/70 italic mt-1 bg-base-200 p-2 rounded-2xl border border-base-300">
                         🤖 {evaluations[cand.id].reason}
                       </p>
                     )}
@@ -200,7 +200,7 @@ export default function TalentSearchPage() {
                     onClick={() => setCurrentPage(page)}
                     className={`w-8 h-8 rounded-xl font-bold text-xs flex items-center justify-center transition-all ${
                       currentPage === page
-                        ? 'bg-emerald-500 text-white shadow-xs'
+                        ? 'bg-[#8E1616] text-white shadow-xs'
                         : 'bg-base-200 text-base-content/70 hover:bg-base-300'
                     }`}
                   >

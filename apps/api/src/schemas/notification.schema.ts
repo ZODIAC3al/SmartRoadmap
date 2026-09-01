@@ -2,63 +2,54 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
 export type NotificationType =
-  | 'message_received'
-  | 'pipeline_stage_changed'
-  | 'certificate_verified'
-  | 'certificate_rejected'
-  | 'job_application_received'
-  | 'roadmap_module_unlocked'
-  | 'assessment_remedial_assigned'
-  | 'subscription_past_due'
-  | 'subscription_upgraded'
-  | 'admin_broadcast';
+  | 'general'
+  | 'roadmap_update'
+  | 'job_match'
+  | 'message'
+  | 'streak_reminder'
+  | 'calendar_reminder'
+  | 'achievement'
+  | 'quiz_result'
+  | 'system';
 
 @Schema({ timestamps: true })
 export class Notification extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
-  userId!: Types.ObjectId;
+  recipient!: Types.ObjectId;
+
+  @Prop({ required: true })
+  titleEn!: string;
+
+  @Prop({ required: true })
+  titleAr!: string;
+
+  @Prop({ required: true })
+  contentEn!: string;
+
+  @Prop({ required: true })
+  contentAr!: string;
 
   @Prop({
-    type: String,
+    default: 'general',
     enum: [
-      'message_received',
-      'pipeline_stage_changed',
-      'certificate_verified',
-      'certificate_rejected',
-      'job_application_received',
-      'roadmap_module_unlocked',
-      'assessment_remedial_assigned',
-      'subscription_past_due',
-      'subscription_upgraded',
-      'admin_broadcast',
+      'general',
+      'roadmap_update',
+      'job_match',
+      'message',
+      'streak_reminder',
+      'calendar_reminder',
+      'achievement',
+      'quiz_result',
+      'system',
     ],
-    required: true,
   })
   type!: NotificationType;
 
-  @Prop({ required: true })
-  title!: string;
+  @Prop({ default: false })
+  read!: boolean;
 
-  @Prop({ required: true })
-  body!: string;
-
-  @Prop({ default: '/dashboard' })
-  linkTo!: string;
-
-  @Prop({ default: false, index: true })
-  isRead!: boolean;
-
-  @Prop({ type: Object, default: {} })
-  meta?: Record<string, any>;
-
-  @Prop({ type: Date })
-  expiresAt?: Date;
+  @Prop()
+  link?: string;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);
-
-// Explicit compound index for fast bell dropdown queries
-NotificationSchema.index({ userId: 1, isRead: 1, createdAt: -1 });
-
-// Production TTL cleanup index for auto-expiring 90-day notification retention
-NotificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });

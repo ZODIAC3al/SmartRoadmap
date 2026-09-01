@@ -28,7 +28,7 @@ export function InvoiceTable() {
         </thead>
         <tbody className="divide-y divide-base-200">
           {MOCK_INVOICES.map((inv) => (
-            <tr key={inv.id} className="hover:bg-base-200/40">
+            <tr key={inv.id} className="hover:bg-base-200/40 transition-all duration-300 ease-in-out">
               <td className="font-mono text-base-content/60">{inv.date}</td>
               <td className="font-semibold text-base-content">{inv.plan}</td>
               <td className="font-mono font-bold text-base-content">{inv.amount}</td>

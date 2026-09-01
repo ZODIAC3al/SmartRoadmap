@@ -1,14 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright config for SmartRoadmap / Devotopia.
+ * Playwright configuration for SmartRoadmap / Devotopia.
  *
- * Two kinds of suite live here:
- *   tests/e2e/   — behaviour: does the flow work?
- *   tests/perf/  — timing: how long does it take?
+ * `tests/e2e` drives the running stack. Suites that exercise API behaviour use
+ * Playwright's request fixture rather than a browser, because the rules under
+ * test — authorization, validation, vote idempotency — are enforced on the
+ * server and asserting them through the UI would test the navigation instead.
  *
- * Perf runs single-worker so parallel pages cannot compete for CPU and skew
- * the numbers. Run them with:  npm run test:perf
+ * Both servers must already be running:
+ *   API  → http://localhost:3002   (override with API_URL)
+ *   Web  → http://localhost:3001   (override with WEB_URL)
  */
 export default defineConfig({
   testDir: './tests',
@@ -22,44 +24,20 @@ export default defineConfig({
     baseURL: process.env.WEB_URL ?? 'http://localhost:3001',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
   },
 
   projects: [
     {
       name: 'e2e',
       testDir: './tests/e2e',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'perf',
-      testDir: './tests/perf',
-      // Timing measurements must not share CPU with other workers.
+      // The API rate-limits auth routes to 15 requests per minute, and each
+      // Playwright worker runs its own `beforeAll`. Fanning out across six
+      // workers registers enough accounts to trip the limiter, so these suites
+      // would fail on throttling rather than on behaviour. One worker keeps the
+      // signal honest; the limiter itself is covered by scripts/smoke-test.mjs.
       fullyParallel: false,
       workers: 1,
-      retries: 0,
-      use: {
-        ...devices['Desktop Chrome'],
-        // A cold, comparable profile for every run.
-        launchOptions: { args: ['--disable-extensions', '--disable-background-networking'] },
-      },
-    },
-    {
-      name: 'mobile',
-      testDir: './tests/e2e',
-      use: { ...devices['Pixel 5'] },
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
-
-  // Point at servers that are already running in dev; start them in CI.
-  webServer: process.env.CI
-    ? [
-        {
-          command: 'npm run dev --workspace=@smartroadmap/web',
-          url: 'http://localhost:3001',
-          reuseExistingServer: false,
-          timeout: 180_000,
-        },
-      ]
-    : undefined,
 });

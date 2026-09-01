@@ -2,11 +2,11 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useGetJobsQuery } from '@/store/api/jobsApi';
+import { useGetMyJobsQuery } from '@/store/api/jobsApi';
 import { Loader2 } from 'lucide-react';
 
 export default function JobsListPage() {
-  const { data: jobsData, isLoading } = useGetJobsQuery();
+  const { data: jobsData, isLoading } = useGetMyJobsQuery();
 
   const jobsList = React.useMemo(() => {
     if (!jobsData) return [];
@@ -40,7 +40,7 @@ export default function JobsListPage() {
             Manage jobs, review candidates, and trigger candidate boosts dynamically.
           </p>
         </div>
-        <Link href="/company/jobs?action=new" className="btn btn-sm btn-primary shadow-xs rounded-xl font-bold">
+        <Link href="/company?action=new" className="btn btn-sm btn-primary shadow-xs rounded-xl font-bold">
           + Post Job
         </Link>
       </div>
@@ -51,7 +51,7 @@ export default function JobsListPage() {
           <p className="text-xs text-base-content/60 max-w-sm">
             Create your first job posting to start receiving verified candidate applications.
           </p>
-          <Link href="/company/jobs?action=new" className="btn btn-sm btn-primary rounded-xl font-bold mt-2">
+          <Link href="/company?action=new" className="btn btn-sm btn-primary rounded-xl font-bold mt-2">
             Create First Job Posting
           </Link>
         </div>
@@ -97,7 +97,7 @@ export default function JobsListPage() {
                         ⚡ BOOSTED
                       </span>
                     ) : (
-                      <button className="btn btn-xs btn-outline btn-warning rounded-lg">
+                      <button className="btn btn-xs btn-outline btn-warning rounded-2xl">
                         ⚡ Boost ($15)
                       </button>
                     )}
@@ -105,7 +105,7 @@ export default function JobsListPage() {
                   <td>
                     <Link
                       href={`/company/jobs/${job.id}`}
-                      className="btn btn-xs btn-primary btn-outline rounded-lg font-bold"
+                      className="btn btn-xs btn-primary btn-outline rounded-2xl font-bold"
                     >
                       Open Kanban Board
                     </Link>

@@ -1,14 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
-import { m, motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from "recharts";
-import CountdownRing from "@/components/CountdownRing";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser } from "@/lib/api";
-import { useApp } from "@/components/AppContext";
-import { apiFetch, getCachedUser } from "@/lib/api";
+import { calculateRoadmapProgression } from "@/lib/roadmapProgression";
 
 type QuestionPayload = {
   sessionId: string;
@@ -67,7 +65,7 @@ type DictKey = keyof typeof dict;
 
 export default function QuizPage({ params }: { params: { moduleId: string } }) {
   const { moduleId } = params;
-  const { locale } = useApp();
+  const { locale } = useAppUi();
   const isAr = locale === "ar";
   const tr = (key: DictKey, vars?: Record<string, string>) => {
     let s = dict[key][isAr ? "ar" : "en"];
@@ -88,6 +86,8 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
   const [timer, setTimer] = useState<number>(30);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
+  const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [lockReason, setLockReason] = useState<string>("");
   const [moduleTitle, setModuleTitle] = useState<string>("Assessment");
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -99,12 +99,27 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
       try {
         const roadmapRes = await apiFetch("/roadmap/me");
         let moduleTopic = "General Foundations";
+        let modulesList: any[] = [];
+
         if (roadmapRes.ok) {
           const roadmapData = await roadmapRes.json();
-          const activeModule = roadmapData.modules.find((m: any) => m.id === moduleId);
+          modulesList = roadmapData.modules || [];
+          const activeModule = modulesList.find((m: any) => m.id === moduleId);
           if (activeModule) {
             setModuleTitle(activeModule.title);
             moduleTopic = activeModule.title;
+          }
+        }
+
+        // Navigation Guard: Verify progression unlock rules
+        if (modulesList.length > 0) {
+          const progression = calculateRoadmapProgression(modulesList);
+          if (!progression.isNodeUnlocked(moduleId)) {
+            const info = progression.getNodeInfo(moduleId);
+            setIsLocked(true);
+            setLockReason(info?.lockReason || "Complete prerequisite modules first to unlock.");
+            setLoading(false);
+            return;
           }
         }
 
@@ -212,6 +227,25 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
     );
   }
 
+  if (isLocked) {
+    return (
+      <div className="flex flex-col min-h-screen bg-base-100 items-center justify-center p-4 text-center gap-4 select-none">
+        <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-3xl mb-2 animate-bounce border border-amber-500/20">
+          🔒
+        </div>
+        <h2 className="text-2xl font-black uppercase tracking-tight text-base-content">
+          {isAr ? "الموديول مغلق" : "Module Locked"}
+        </h2>
+        <p className="text-sm text-base-content/60 max-w-md leading-relaxed font-medium">
+          {lockReason || (isAr ? "يرجى إكمال الاختبارات السابقة لفتح هذا المسار." : "Please complete the prerequisite node exams first to unlock this module.")}
+        </p>
+        <Link href="/roadmap" className="btn btn-primary font-extrabold px-8 gap-2 mt-3 shadow-lg shadow-primary/20">
+          <i className={isAr ? "lni lni-arrow-right" : "lni lni-arrow-left"} /> {tr("backToRoadmap")}
+        </Link>
+      </div>
+    );
+  }
+
   if (error || !session) {
     return (
       <div className="flex flex-col min-h-screen bg-base-100 items-center justify-center p-4 text-center gap-4">
@@ -227,12 +261,14 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
     );
   }
 
+  const timerData = [{ name: "timer", value: (timer / 30) * 100, fill: timer <= 10 ? "#ef4444" : "#6366f1" }];
+
   return (
     <div dir={isAr ? "rtl" : "ltr"} className="flex flex-col min-h-screen bg-base-100 text-base-content pb-12 px-4">
       <div className="max-w-4xl mx-auto w-full">
         {/* Header */}
         <div className="mb-8 pt-6">
-          <Link href="/roadmap" className="text-xs text-indigo-600 hover:underline font-mono font-bold flex items-center gap-1.5 w-fit">
+          <Link href="/roadmap" className="text-xs text-primary hover:underline font-mono font-bold flex items-center gap-1.5 w-fit transition-all duration-300 ease-in-out">
             <i className={isAr ? "lni lni-arrow-right" : "lni lni-arrow-left"} /> {tr("backToRoadmap")}
           </Link>
           <h1 className="text-2xl sm:text-3xl font-bold mt-2 truncate">{moduleTitle}</h1>
@@ -241,7 +277,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
         {!isFinished ? (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             {/* MAIN QUESTION PANEL */}
-            <m.div
+            <motion.div
               key={session.currentQuestionIndex}
               initial={prefersReducedMotion ? undefined : { opacity: 0, x: isAr ? 16 : -16 }}
               animate={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
@@ -272,7 +308,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                         btnStyle = "btn-ghost opacity-50";
                       }
                     } else {
-                      btnStyle += " hover:border-indigo-500";
+                      btnStyle += " hover:border-primary";
                     }
 
                     return (
@@ -291,7 +327,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
 
                 <AnimatePresence>
                   {answerSubmitted && (
-                    <m.div
+                    <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
@@ -316,23 +352,34 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                           </button>
                         )}
                       </div>
-                    </m.div>
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-            </m.div>
+            </motion.div>
 
             {/* RIGHT PANEL — countdown ring + live progress list */}
             <div className="md:col-span-4 space-y-4">
               <div className="card bg-base-200 border border-base-300 shadow-sm">
                 <div className="card-body p-5 items-center">
                   <div className="relative w-24 h-24">
-                    <CountdownRing
-                      percent={(timer / 30) * 100}
-                      color={timer <= 10 ? "#ef4444" : "#6366f1"}
-                    />
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadialBarChart
+                        cx="50%"
+                        cy="50%"
+                        innerRadius="72%"
+                        outerRadius="100%"
+                        barSize={8}
+                        data={timerData}
+                        startAngle={90}
+                        endAngle={-270}
+                      >
+                        <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                        <RadialBar background dataKey="value" cornerRadius={8} />
+                      </RadialBarChart>
+                    </ResponsiveContainer>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className={`text-xl font-black font-mono ${timer <= 10 ? "text-error" : "text-indigo-600"}`}>
+                      <span className={`text-xl font-black font-mono ${timer <= 10 ? "text-error" : "text-primary"}`}>
                         {timer}s
                       </span>
                     </div>
@@ -352,8 +399,8 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                       return (
                         <div
                           key={i}
-                          className={`flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold ${isCurrent
-                            ? "bg-indigo-600/10 text-indigo-600 border border-indigo-600/30"
+                          className={`flex items-center gap-3 rounded-2xl px-3 py-2 text-xs font-semibold ${isCurrent
+                            ? "bg-primary text-primary-content/10 text-primary border border-primary/30"
                             : entry
                               ? entry.correct
                                 ? "text-success"
@@ -363,7 +410,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                         >
                           <span
                             className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 ${isCurrent
-                              ? "bg-indigo-600 text-white"
+                              ? "bg-primary text-primary-content text-white"
                               : entry
                                 ? entry.correct
                                   ? "bg-success text-white"
@@ -388,7 +435,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
           </div>
         ) : (
           /* RESULTS */
-          <m.div
+          <motion.div
             initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.97 }}
             animate={prefersReducedMotion ? undefined : { opacity: 1, scale: 1 }}
             className="card bg-base-200 border border-base-300 shadow-sm text-center max-w-2xl mx-auto"
@@ -424,7 +471,7 @@ export default function QuizPage({ params }: { params: { moduleId: string } }) {
                 </Link>
               </div>
             </div>
-          </m.div>
+          </motion.div>
         )}
       </div>
     </div>

@@ -269,7 +269,7 @@ Reply with ONLY the raw Markdown content.
     const system =
       'You are a distinguished Principal Software Architect and Master Technical Curriculum Designer. Your sole purpose is to produce comprehensive, ultra-detailed, production-ready study guides that enable engineers to achieve absolute mastery over complex engineering topics.';
 
-    const provider = this.aiProviderFactory.getProvider('groq');
+    const provider = this.aiProviderFactory.getProvider('gemini');
     this.logger.log(
       `${isRegen ? 'Regenerating' : 'Generating'} speech notes for Module ${moduleId}...`,
     );
@@ -305,7 +305,7 @@ Reply with ONLY the raw Markdown content.
       {
         $set: {
           content,
-          generatedByProvider: 'groq',
+          generatedByProvider: 'gemini',
           regeneratedCount: count,
         },
         ...versionsUpdate,

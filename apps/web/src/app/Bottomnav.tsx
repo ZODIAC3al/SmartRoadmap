@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -139,7 +139,7 @@ export default function BottomNav() {
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
       aria-label="Primary mobile navigation"
     >
-      <div className="relative bg-base-200 border border-base-300 rounded-[28px] shadow-[0_8px_30px_rgba(16,185,129,0.1)] h-16 grid grid-cols-5 max-w-sm mx-auto">
+      <div className="relative bg-base-200 border border-base-300 rounded-[28px] shadow-[0_8px_30px_rgba(142,22,22,0.15)] h-16 grid grid-cols-5 max-w-sm mx-auto">
         {TABS.map((tab, i) => {
           const active = i === activeIndex;
           return (
@@ -150,18 +150,18 @@ export default function BottomNav() {
             >
               {active && (
                 <span
-                  className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-base-200 border border-base-300 shadow-[0_4px_16px_rgba(16,185,129,0.25)] flex items-center justify-center text-primary"
+                  className="absolute -top-7 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-base-200 border border-base-300 shadow-[0_4px_16px_rgba(142,22,22,0.3)] flex items-center justify-center text-primary"
                   aria-hidden="true"
                 >
-                  <span className="absolute inset-0 rounded-full bg-primary/10 scale-125" />
+                  <span className="absolute inset-0 rounded-full bg-primary/15 scale-125" />
                   <span className="relative">{tab.icon(true)}</span>
                 </span>
               )}
-              <span className={active ? "opacity-0" : "text-base-content/40"}>
+              <span className={active ? "opacity-0" : "text-base-content/70 dark:text-stone-400 font-medium"}>
                 {!active && tab.icon(false)}
               </span>
               <span
-                className={`text-[11px] font-medium ${active ? "text-primary mt-5" : "text-base-content/40"}`}
+                className={`text-[11px] font-medium ${active ? "text-primary mt-5" : "text-base-content/70 dark:text-stone-400 font-medium"}`}
               >
                 {tab.label}
               </span>

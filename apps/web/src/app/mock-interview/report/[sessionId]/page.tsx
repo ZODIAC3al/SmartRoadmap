@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import { apiJson } from "@/lib/api";
@@ -67,7 +67,7 @@ export default function InterviewReportPage({ params }: { params: { sessionId: s
               {report.strengths.map((s: string, i: number) => <li key={i}>{s}</li>)}
             </ul>
           ) : (
-            <p className="text-sm text-base-content/60">No distinct strengths identified.</p>
+            <p className="text-sm text-base-content/70 dark:text-stone-300 font-medium">No distinct strengths identified.</p>
           )}
         </div>
         <div>
@@ -77,7 +77,7 @@ export default function InterviewReportPage({ params }: { params: { sessionId: s
               {report.weaknesses.map((w: string, i: number) => <li key={i}>{w}</li>)}
             </ul>
           ) : (
-            <p className="text-sm text-base-content/60">No distinct weaknesses identified.</p>
+            <p className="text-sm text-base-content/70 dark:text-stone-300 font-medium">No distinct weaknesses identified.</p>
           )}
         </div>
       </div>
@@ -99,14 +99,14 @@ export default function InterviewReportPage({ params }: { params: { sessionId: s
               <h3 className="font-semibold text-lg flex-1">Q{i + 1}: {q.questionText}</h3>
             </div>
             
-            <div className="bg-base-200 p-4 rounded-lg">
-              <span className="font-semibold text-sm text-base-content/70 uppercase tracking-wider">Your Answer:</span>
-              <p className="mt-1">{q.answer || <span className="italic text-base-content/50">Skipped or no answer provided.</span>}</p>
+            <div className="bg-base-200 p-4 rounded-2xl">
+              <span className="font-semibold text-sm text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wider">Your Answer:</span>
+              <p className="mt-1">{q.answer || <span className="italic text-base-content/70 dark:text-stone-300 font-medium">Skipped or no answer provided.</span>}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <span className="font-semibold text-sm text-base-content/70 uppercase tracking-wider">Feedback:</span>
+                <span className="font-semibold text-sm text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wider">Feedback:</span>
                 <p className="text-sm">{q.feedback}</p>
               </div>
               <div className="space-y-2">
@@ -116,7 +116,7 @@ export default function InterviewReportPage({ params }: { params: { sessionId: s
             </div>
             
             {q.improvementTips && (
-              <div className="bg-warning/10 p-3 rounded-md mt-2">
+              <div className="bg-warning/10 p-3 rounded-xl mt-2">
                 <span className="font-semibold text-sm text-warning-content uppercase tracking-wider">Tips:</span>
                 <p className="text-sm mt-1">{q.improvementTips}</p>
               </div>

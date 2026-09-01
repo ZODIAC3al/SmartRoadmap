@@ -55,7 +55,7 @@ export default function PublicCompanyPage({ params }: PublicCompanyProps) {
         <div>
           <Link
             href="/company/jobs"
-            className="text-xs font-bold text-primary hover:underline inline-flex items-center gap-1"
+            className="text-xs font-bold text-primary hover:underline inline-flex items-center gap-1 transition-all duration-300 ease-in-out"
           >
             ← Back to Job Postings
           </Link>

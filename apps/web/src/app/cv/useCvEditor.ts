@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useApp } from "@/components/AppContext";
+import { useAppUi } from "@/store/hooks/useAppUi";
 import { apiFetch, getCachedUser, getUserId } from "@/lib/api";
 import type { CVData } from "./types";
 
@@ -13,7 +13,7 @@ import type { CVData } from "./types";
  * presentation, and this logic is unit-testable on its own.
  */
 export function useCvEditor() {
-  const { t, locale } = useApp();
+  const { t, locale } = useAppUi();
   const [userId, setUserId] = useState("654321098765432109876543"); // Default fallback test ID
   const [activeTab, setActiveTab] = useState<
     "fillin" | "guidance" | "analysis" | "matching"
@@ -253,7 +253,7 @@ export function useCvEditor() {
         body: JSON.stringify({
           title: `New Resume ${cvList.length + 1}`,
           template: 'modern',
-          personal: cv.personal,
+          personal: {},
         }),
       });
       if (res.ok) {
@@ -283,6 +283,7 @@ export function useCvEditor() {
           targetJobTitle: targetTitle || professionalTitle || 'Software Engineer',
           jobDescription,
           forceRegenerate,
+          cvData: { ...cv, _id: undefined, id: undefined },
         }),
       });
       if (!res.ok) {
@@ -335,6 +336,24 @@ export function useCvEditor() {
       }
     } catch {
       toast.error('Failed to duplicate CV');
+    }
+  };
+
+  const handleMakeDefault = async (targetCvId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    try {
+      const res = await apiFetch(`/cv/${targetCvId}/make-default`, { method: 'POST' });
+      if (res.ok) {
+        setCvList((prev) =>
+          prev.map((item) => ({
+            ...item,
+            isDefault: (item._id || item.id) === targetCvId,
+          }))
+        );
+        toast.success(locale === 'en' ? 'Set as Main CV!' : 'تم التعيين كسيرة ذاتية رئيسية!');
+      }
+    } catch {
+      toast.error(locale === 'en' ? 'Failed to set main CV' : 'فشل في تعيين السيرة الذاتية');
     }
   };
 
@@ -999,13 +1018,12 @@ export function useCvEditor() {
 
     setIsTailoring(true);
     try {
-      const response = await apiFetch('/cv/generate-tailored', {
+      const response = await apiFetch('/cv/generate-from-profile', {
         method: 'POST',
         body: JSON.stringify({
           targetJobTitle: title,
           jobDescription: desc,
-          includeProjects: true,
-          includeCertificates: true,
+          forceRegenerate: true,
           cvData: cv,
         }),
       });
@@ -1015,37 +1033,11 @@ export function useCvEditor() {
       const tailored = resData.data;
 
       if (tailored) {
-        const genTitle = tailored.personal?.title || title;
-        const updatedCv: CVData = {
-          ...cv,
-          personal: {
-            ...cv.personal,
-            title: genTitle,
-            summary: tailored.personal?.summary || cv.personal.summary,
-            name: tailored.personal?.name || cv.personal.name,
-            email: tailored.personal?.email || cv.personal.email,
-            phone: tailored.personal?.phone || cv.personal.phone,
-          },
-          experience: tailored.experience?.length ? tailored.experience : cv.experience,
-          education: tailored.education?.length ? tailored.education : cv.education,
-          skills: tailored.skills?.length ? tailored.skills : cv.skills,
-          projects: tailored.projects?.length ? tailored.projects : cv.projects,
-          certifications: tailored.certifications?.length ? tailored.certifications : cv.certifications,
-          courses: tailored.courses?.length ? tailored.courses : cv.courses,
-          languages: tailored.languages?.length ? tailored.languages : cv.languages,
-          references: tailored.references?.length ? tailored.references : cv.references,
-          hobbies: tailored.hobbies?.length ? tailored.hobbies : cv.hobbies,
-        };
-        setCv(updatedCv);
-        setProfessionalTitle(genTitle);
-
-        if (tailored.personal?.name) {
-          const nameParts = tailored.personal.name.split(' ');
-          setFirstName(nameParts[0] || '');
-          setLastName(nameParts.slice(1).join(' ') || '');
-        }
-
+        setCvList((prev) => [tailored, ...prev]);
+        populateActiveCv(tailored);
+        
         setShowTailorModal(false);
+        setCurrentView('editor');
         toast.success(locale === 'en' ? 'Resume generated successfully with AI!' : 'تم إنشاء السيرة الذاتية بنجاح بالذكاء الاصطناعي!');
       }
     } catch (err: any) {
@@ -1154,6 +1146,7 @@ export function useCvEditor() {
     handleSelectCv,
     handleDuplicateCv,
     handleDeleteCv,
+    handleMakeDefault,
     addCustomSection,
     removeCustomSection,
     updateCustomSectionTitle,

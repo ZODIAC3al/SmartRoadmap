@@ -30,6 +30,9 @@ export interface PublicUser {
   bio?: string;
   plan: string;
   subscriptionStatus: string;
+  /** Only present for company accounts */
+  companyStatus?: 'pending' | 'accepted' | 'rejected' | 'blocked';
+  companyRejectionReason?: string;
 }
 
 @Injectable()
@@ -60,11 +63,15 @@ export class AuthService {
   }
 
   private async issueTokens(user: User) {
-    const base = {
+    const base: any = {
       sub: user._id.toString(),
       email: user.email,
       role: user.role,
     };
+    // Include company approval state in access token so guards don't need a DB hit.
+    if (user.role === 'company') {
+      base.companyStatus = user.companyStatus ?? 'pending';
+    }
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(
@@ -212,13 +219,16 @@ export class AuthService {
       throw new BadRequestException('User with this email already exists.');
     }
 
+    const isCompany = dto.role === 'company';
     const user = await new this.userModel({
       email,
       name: dto.name.trim(),
       passwordHash: await this.hashPassword(dto.password),
       // Defence in depth: even if the DTO layer were bypassed, only these two
       // roles are reachable through public registration. 'admin' never is.
-      role: dto.role === 'company' ? 'company' : 'learner',
+      role: isCompany ? 'company' : 'learner',
+      // New company accounts start PENDING until an admin approves them.
+      ...(isCompany ? { companyStatus: 'pending' } : {}),
       provider: 'local',
       isVerified: false,
     }).save();
@@ -465,7 +475,7 @@ export class AuthService {
   }
 
   toPublicUser(user: User): PublicUser {
-    return {
+    const pub: PublicUser = {
       id: user._id.toString(),
       email: user.email,
       name: user.name,
@@ -477,5 +487,10 @@ export class AuthService {
       plan: user.plan ?? 'free',
       subscriptionStatus: user.subscriptionStatus ?? 'inactive',
     };
+    if (user.role === 'company') {
+      pub.companyStatus = user.companyStatus ?? 'pending';
+      pub.companyRejectionReason = user.companyRejectionReason;
+    }
+    return pub;
   }
 }

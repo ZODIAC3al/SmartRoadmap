@@ -18,7 +18,7 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-      QDRANT_URL: http://qdrant:6333
+      QDRANT_URL: ${QDRANT_URL}
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
       PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
       PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET}
@@ -29,8 +29,6 @@ services:
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
-    depends_on:
-      - qdrant
 
   web:
     build:
@@ -45,11 +43,7 @@ services:
     depends_on:
       - api
 
-  qdrant:
-    image: qdrant/qdrant:v1.12.4
-    restart: unless-stopped
-    volumes:
-      - qdrant_data:/qdrant/storage
+  # qdrant: hosted on Qdrant Cloud — set QDRANT_URL + QDRANT_API_KEY in your secrets.
 
 volumes:
-  qdrant_data:
+  # qdrant_data: removed — no longer running Qdrant locally

@@ -621,24 +621,18 @@ export function AppContextProvider({
     const token = typeof window !== "undefined" ? localStorage.getItem("token") || undefined : undefined;
     dispatch(connectSocket({ token }));
 
-    const savedTheme = localStorage.getItem("smart_theme") as Theme;
-    const savedLocale = localStorage.getItem("smart_locale") as Locale;
-
-    const initialTheme = savedTheme || "smartdark";
-    setThemeState(initialTheme);
-    dispatch(setReduxTheme(initialTheme));
-    document.documentElement.setAttribute("data-theme", initialTheme);
-
-    if (initialTheme === "smartlight") {
+    if (savedTheme) {
+      setThemeState(savedTheme);
+      dispatch(setReduxTheme(savedTheme));
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      if (savedTheme === "smartdark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } else {
+      document.documentElement.setAttribute("data-theme", "smartlight");
       document.documentElement.classList.remove("dark");
-      document.documentElement.classList.add("light");
-    } else {
-      document.documentElement.classList.remove("light");
-      document.documentElement.classList.add("dark");
-    }
-    } else {
-      document.documentElement.classList.remove("light");
-      document.documentElement.classList.add("dark");
     }
 
     if (savedLocale) {
@@ -705,12 +699,10 @@ export function AppContextProvider({
     dispatch(setReduxTheme(newTheme));
     localStorage.setItem("smart_theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
-    if (newTheme === "smartlight") {
-      document.documentElement.classList.remove("dark");
-      document.documentElement.classList.add("light");
-    } else {
-      document.documentElement.classList.remove("light");
+    if (newTheme === "smartdark") {
       document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
   };
 

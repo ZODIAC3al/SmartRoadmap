@@ -452,10 +452,10 @@ export default function PricingPage() {
       : FEATURE_SECTIONS(tLocal);
 
   return (
-    <div className="bg-base-100 text-base-content min-h-screen font-sans selection:bg-[#10B981] selection:text-white">
+    <div className="bg-base-100 text-base-content min-h-screen font-sans selection:bg-[#8E1616] selection:text-white">
       {/* Header */}
       <section className="pb-8 px-4 text-center max-w-3xl mx-auto space-y-4 pt-6">
-        <span className="inline-flex items-center gap-2 bg-[#10B981]/10 border border-[#10B981]/25 text-[#059669] px-4 py-1 rounded-full font-mono text-[10px] uppercase tracking-wider font-semibold">
+        <span className="inline-flex items-center gap-2 bg-[#8E1616]/10 border border-[#8E1616]/25 text-[#8E1616] px-4 py-1 rounded-full font-mono text-[10px] uppercase tracking-wider font-semibold">
           Transparent Subscriptions
         </span>
         <h1 className="text-display-lg tracking-tight font-extrabold text-base-content leading-none">
@@ -465,7 +465,7 @@ export default function PricingPage() {
               : "Recruiter & Company Sourcing Tiers"
             : tLocal("pricing.title")}
         </h1>
-        <p className="text-body-md text-base-content/70 max-w-xl mx-auto">
+        <p className="text-body-md text-base-content/70 dark:text-stone-300 font-medium max-w-xl mx-auto">
           {audience === "company"
             ? locale === "ar"
               ? "استقطب أفضل الكوادر البرمجية المعتمدة، واستفد من تقييمات الذكاء الاصطناعي وشارة الشريك المعتمد."
@@ -481,7 +481,7 @@ export default function PricingPage() {
               className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 audience === "learner"
                   ? "bg-primary text-primary-content shadow-xs"
-                  : "text-base-content/70 hover:text-base-content"
+                  : "text-base-content/70 dark:text-stone-300 font-medium hover:text-base-content"
               }`}
             >
               {locale === "ar" ? "للباحثين والطلاب (Learners)" : "For Learners"}
@@ -491,7 +491,7 @@ export default function PricingPage() {
               className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 audience === "company"
                   ? "bg-primary text-primary-content shadow-xs"
-                  : "text-base-content/70 hover:text-base-content"
+                  : "text-base-content/70 dark:text-stone-300 font-medium hover:text-base-content"
               }`}
             >
               {locale === "ar" ? "للشركات والتوظيف (Companies)" : "For Companies"}
@@ -521,10 +521,10 @@ export default function PricingPage() {
               <div className="border border-base-300 bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-primary/30 transition-all text-start">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider font-mono">
+                    <h3 className="text-xs font-bold text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wider font-mono">
                       {tLocal("company_starter.title")}
                     </h3>
-                    <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
+                    <p className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium font-mono mt-0.5">
                       {tLocal("company_starter.desc")}
                     </p>
                   </div>
@@ -532,34 +532,34 @@ export default function PricingPage() {
                     <span className="text-4xl font-black font-mono text-base-content">
                       {tLocal("company_starter.price")}
                     </span>
-                    <span className="text-base-content/50 text-xs font-mono">
+                    <span className="text-base-content/70 dark:text-stone-300 font-medium text-xs font-mono">
                       {tLocal("company_starter.period")}
                     </span>
                   </div>
-                  <ul className="space-y-3 text-xs text-base-content/85">
+                  <ul className="space-y-3 text-xs text-base-content dark:text-stone-200 font-medium">
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_starter.f1")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_starter.f2")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_starter.f3")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_starter.f4")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_starter.f5")}
                     </li>
                   </ul>
                 </div>
-                <button className="w-full btn btn-outline border-base-300 text-base-content/40 hover:bg-transparent rounded-xl btn-sm mt-8 h-10 min-h-0 cursor-not-allowed">
+                <button className="w-full btn btn-outline border-base-300 text-base-content/70 dark:text-stone-400 font-medium hover:bg-transparent rounded-xl btn-sm mt-8 h-10 min-h-0 cursor-not-allowed transition-all duration-300 ease-in-out">
                   {tLocal("company_starter.cta")}
                 </button>
               </div>
@@ -571,10 +571,10 @@ export default function PricingPage() {
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider font-mono">
+                    <h3 className="text-xs font-bold text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wider font-mono">
                       {tLocal("company_growth.title")}
                     </h3>
-                    <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
+                    <p className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium font-mono mt-0.5">
                       {tLocal("company_growth.desc")}
                     </p>
                   </div>
@@ -582,36 +582,36 @@ export default function PricingPage() {
                     <span className="text-4xl font-black font-mono text-primary">
                       {tLocal("company_growth.price")}
                     </span>
-                    <span className="text-base-content/50 text-xs font-mono">
+                    <span className="text-base-content/70 dark:text-stone-300 font-medium text-xs font-mono">
                       {tLocal("company_growth.period")}
                     </span>
                   </div>
-                  <ul className="space-y-3 text-xs text-base-content/85">
+                  <ul className="space-y-3 text-xs text-base-content dark:text-stone-200 font-medium">
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_growth.f1")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_growth.f2")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_growth.f3")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_growth.f4")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_growth.f5")}
                     </li>
                   </ul>
                 </div>
                 <button
-                  onClick={() => handleInitiateUpgrade("pro")}
-                  className="w-full btn bg-primary hover:bg-primary/80 border-none text-primary-content rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold"
+                  onClick={() => handleInitiateUpgrade("growth")}
+                  className="w-full btn bg-primary hover:bg-primary/80 border-none text-primary-content rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold transition-all duration-300 ease-in-out"
                 >
                   {tLocal("company_growth.cta")}
                 </button>
@@ -621,10 +621,10 @@ export default function PricingPage() {
               <div className="border border-base-300 bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-primary/30 transition-all text-start">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider font-mono">
+                    <h3 className="text-xs font-bold text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wider font-mono">
                       {tLocal("company_scale.title")}
                     </h3>
-                    <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
+                    <p className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium font-mono mt-0.5">
                       {tLocal("company_scale.desc")}
                     </p>
                   </div>
@@ -632,36 +632,36 @@ export default function PricingPage() {
                     <span className="text-4xl font-black font-mono text-base-content">
                       {tLocal("company_scale.price")}
                     </span>
-                    <span className="text-base-content/50 text-xs font-mono">
+                    <span className="text-base-content/70 dark:text-stone-300 font-medium text-xs font-mono">
                       {tLocal("company_scale.period")}
                     </span>
                   </div>
-                  <ul className="space-y-3 text-xs text-base-content/85">
+                  <ul className="space-y-3 text-xs text-base-content dark:text-stone-200 font-medium">
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_scale.f1")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_scale.f2")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_scale.f3")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_scale.f4")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_scale.f5")}
                     </li>
                   </ul>
                 </div>
                 <button
                   onClick={() => handleInitiateUpgrade("scale")}
-                  className="w-full btn btn-outline border-base-300 text-base-content hover:bg-base-300 rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold"
+                  className="w-full btn btn-outline border-base-300 text-base-content hover:bg-base-300 rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold transition-all duration-300 ease-in-out"
                 >
                   {tLocal("company_scale.cta")}
                 </button>
@@ -671,10 +671,10 @@ export default function PricingPage() {
               <div className="border border-base-300 bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-primary/30 transition-all text-start">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider font-mono">
+                    <h3 className="text-xs font-bold text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wider font-mono">
                       {tLocal("company_ent.title")}
                     </h3>
-                    <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
+                    <p className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium font-mono mt-0.5">
                       {tLocal("company_ent.desc")}
                     </p>
                   </div>
@@ -683,26 +683,26 @@ export default function PricingPage() {
                       {tLocal("company_ent.price")}
                     </span>
                   </div>
-                  <ul className="space-y-3 text-xs text-base-content/85">
+                  <ul className="space-y-3 text-xs text-base-content dark:text-stone-200 font-medium">
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_ent.f1")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_ent.f2")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_ent.f3")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("company_ent.f4")}
                     </li>
                   </ul>
                 </div>
-                <button className="w-full btn bg-neutral hover:bg-neutral/80 text-neutral-content border-none rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold">
+                <button className="w-full btn bg-neutral hover:bg-neutral/80 text-neutral-content border-none rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold transition-all duration-300 ease-in-out">
                   {tLocal("company_ent.cta")}
                 </button>
               </div>
@@ -711,13 +711,13 @@ export default function PricingPage() {
             /* Learner Audience Tiers */
             <>
               {/* Free Tier */}
-              <div className="border border-base-300 bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-[#10B981]/30 transition-all text-start">
+              <div className="border border-base-300 bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-[#8E1616]/30 transition-all text-start">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider font-mono">
+                    <h3 className="text-xs font-bold text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wider font-mono">
                       {tLocal("free.title")}
                     </h3>
-                    <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
+                    <p className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium font-mono mt-0.5">
                       {tLocal("free.desc")}
                     </p>
                   </div>
@@ -725,99 +725,99 @@ export default function PricingPage() {
                     <span className="text-4xl font-black font-mono text-base-content">
                       {tLocal("free.price")}
                     </span>
-                    <span className="text-base-content/50 text-xs font-mono">
+                    <span className="text-base-content/70 dark:text-stone-300 font-medium text-xs font-mono">
                       {tLocal("free.period")}
                     </span>
                   </div>
-                  <ul className="space-y-3 text-xs text-base-content/85">
+                  <ul className="space-y-3 text-xs text-base-content dark:text-stone-200 font-medium">
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("free.f1")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("free.f2")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("free.f3")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("free.f4")}
                     </li>
-                    <li className="flex gap-2 text-base-content/30">
+                    <li className="flex gap-2 text-base-content/70 dark:text-stone-400 font-medium">
                       <span>–</span>
                       {tLocal("free.f5")}
                     </li>
                   </ul>
                 </div>
-                <button className="w-full btn btn-outline border-base-300 text-base-content/40 hover:bg-transparent rounded-xl btn-sm mt-8 h-10 min-h-0 cursor-not-allowed">
+                <button className="w-full btn btn-outline border-base-300 text-base-content/70 dark:text-stone-400 font-medium hover:bg-transparent rounded-xl btn-sm mt-8 h-10 min-h-0 cursor-not-allowed transition-all duration-300 ease-in-out">
                   {tLocal("free.cta")}
                 </button>
               </div>
 
               {/* Pro Tier */}
-              <div className="border-2 border-[#10B981] bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-md relative text-start">
-                <div className="absolute top-0 right-0 bg-[#10B981] text-white text-[9px] uppercase tracking-widest font-mono font-bold px-3 py-1 rounded-bl-xl">
+              <div className="border-2 border-[#8E1616] bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-md relative text-start">
+                <div className="absolute top-0 right-0 bg-[#8E1616] text-white text-[9px] uppercase tracking-widest font-mono font-bold px-3 py-1 rounded-bl-xl">
                   Learner Pick
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider font-mono">
+                    <h3 className="text-xs font-bold text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wider font-mono">
                       {tLocal("pro.title")}
                     </h3>
-                    <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
+                    <p className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium font-mono mt-0.5">
                       {tLocal("pro.desc")}
                     </p>
                   </div>
                   <div className="flex items-baseline gap-1.5 border-b border-base-300 pb-4">
-                    <span className="text-4xl font-black font-mono text-[#059669]">
+                    <span className="text-4xl font-black font-mono text-[#8E1616]">
                       {tLocal("pro.price")}
                     </span>
-                    <span className="text-base-content/50 text-xs font-mono">
+                    <span className="text-base-content/70 dark:text-stone-300 font-medium text-xs font-mono">
                       {tLocal("pro.period")}
                     </span>
                   </div>
-                  <ul className="space-y-3 text-xs text-base-content/85">
+                  <ul className="space-y-3 text-xs text-base-content dark:text-stone-200 font-medium">
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("free.f1")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("pro.f1")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("pro.f2")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("pro.f3")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("pro.f4")}
                     </li>
                   </ul>
                 </div>
                 <button
                   onClick={() => handleInitiateUpgrade("pro")}
-                  className="w-full btn bg-[#10B981] hover:bg-[#059669] border-none text-white rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold"
+                  className="w-full btn bg-[#8E1616] hover:bg-[#8E1616] border-none text-white rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold transition-all duration-300 ease-in-out"
                 >
                   {tLocal("pro.cta")}
                 </button>
               </div>
 
               {/* Scale Tier */}
-              <div className="border border-base-300 bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-[#10B981]/30 transition-all text-start">
+              <div className="border border-base-300 bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-[#8E1616]/30 transition-all text-start">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider font-mono">
+                    <h3 className="text-xs font-bold text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wider font-mono">
                       {tLocal("scale.title")}
                     </h3>
-                    <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
+                    <p className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium font-mono mt-0.5">
                       {tLocal("scale.desc")}
                     </p>
                   </div>
@@ -825,49 +825,49 @@ export default function PricingPage() {
                     <span className="text-4xl font-black font-mono text-base-content">
                       {tLocal("scale.price")}
                     </span>
-                    <span className="text-base-content/50 text-xs font-mono">
+                    <span className="text-base-content/70 dark:text-stone-300 font-medium text-xs font-mono">
                       {tLocal("scale.period")}
                     </span>
                   </div>
-                  <ul className="space-y-3 text-xs text-base-content/85">
+                  <ul className="space-y-3 text-xs text-base-content dark:text-stone-200 font-medium">
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("scale.f1")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("scale.f2")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("scale.f3")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("scale.f4")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("free.f5")}
                     </li>
                   </ul>
                 </div>
                 <button
                   onClick={() => handleInitiateUpgrade("scale")}
-                  className="w-full btn btn-outline border-base-300 text-base-content hover:bg-base-300 rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold"
+                  className="w-full btn btn-outline border-base-300 text-base-content hover:bg-base-300 rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold transition-all duration-300 ease-in-out"
                 >
                   {tLocal("scale.cta")}
                 </button>
               </div>
 
               {/* Enterprise Tier */}
-              <div className="border border-base-300 bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-[#10B981]/30 transition-all text-start">
+              <div className="border border-base-300 bg-base-200 rounded-2xl p-6 flex flex-col justify-between shadow-sm hover:border-[#8E1616]/30 transition-all text-start">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold text-base-content/50 uppercase tracking-wider font-mono">
+                    <h3 className="text-xs font-bold text-base-content/70 dark:text-stone-300 font-medium uppercase tracking-wider font-mono">
                       {tLocal("ent.title")}
                     </h3>
-                    <p className="text-[10px] text-base-content/50 font-mono mt-0.5">
+                    <p className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium font-mono mt-0.5">
                       {tLocal("ent.desc")}
                     </p>
                   </div>
@@ -876,26 +876,26 @@ export default function PricingPage() {
                       {tLocal("ent.price")}
                     </span>
                   </div>
-                  <ul className="space-y-3 text-xs text-base-content/85">
+                  <ul className="space-y-3 text-xs text-base-content dark:text-stone-200 font-medium">
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("ent.f1")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("ent.f2")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("ent.f3")}
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-[#059669]">✓</span>
+                      <span className="text-[#8E1616]">✓</span>
                       {tLocal("ent.f4")}
                     </li>
                   </ul>
                 </div>
-                <button className="w-full btn bg-neutral hover:bg-neutral/80 text-neutral-content border-none rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold">
+                <button className="w-full btn bg-neutral hover:bg-neutral/80 text-neutral-content border-none rounded-xl btn-sm mt-8 h-10 min-h-0 font-bold transition-all duration-300 ease-in-out">
                   {tLocal("ent.cta")}
                 </button>
               </div>
@@ -916,14 +916,14 @@ export default function PricingPage() {
                 <table className="w-full text-xs text-start">
                   <thead>
                     <tr className="border-b border-base-300 bg-base-100">
-                      <th className="text-start font-bold text-base-content/60 py-3 px-4 uppercase tracking-wider font-mono">
+                      <th className="text-start font-bold text-base-content/70 dark:text-stone-300 font-medium py-3 px-4 uppercase tracking-wider font-mono">
                         Parameters
                       </th>
                       {audience === "company"
                         ? ["Free", "Growth", "Scale", "Enterprise"].map((t) => (
                             <th
                               key={t}
-                              className="text-center font-bold text-base-content/60 py-3 px-4 w-24 uppercase tracking-wider font-mono"
+                              className="text-center font-bold text-base-content/70 dark:text-stone-300 font-medium py-3 px-4 w-24 uppercase tracking-wider font-mono"
                             >
                               {t}
                             </th>
@@ -931,7 +931,7 @@ export default function PricingPage() {
                         : ["Free", "Pro", "Scale", "Enterprise"].map((t) => (
                             <th
                               key={t}
-                              className="text-center font-bold text-base-content/60 py-3 px-4 w-24 uppercase tracking-wider font-mono"
+                              className="text-center font-bold text-base-content/70 dark:text-stone-300 font-medium py-3 px-4 w-24 uppercase tracking-wider font-mono"
                             >
                               {t}
                             </th>
@@ -975,19 +975,19 @@ export default function PricingPage() {
 
       {/* Add-ons Section */}
       <section className="px-4 pb-20 max-w-5xl mx-auto">
-        <div className="border border-[#10B981]/30 bg-[#10B981]/5 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-start">
+        <div className="border border-[#8E1616]/30 bg-[#8E1616]/5 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 text-start">
           <div className="space-y-2 max-w-2xl">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#059669]">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8E1616]">
               {tLocal("addons.title")}
             </span>
             <h3 className="text-base font-extrabold text-base-content">
               {tLocal("addons.box_title")}
             </h3>
-            <p className="text-xs text-base-content/70 leading-relaxed">
+            <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium leading-relaxed">
               {tLocal("addons.box_desc")}
             </p>
           </div>
-          <button className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl btn-sm h-10 px-6 shrink-0 font-bold">
+          <button className="btn bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl btn-sm h-10 px-6 shrink-0 font-bold transition-all duration-300 ease-in-out">
             {tLocal("addons.btn")}
           </button>
         </div>
@@ -1011,12 +1011,12 @@ export default function PricingPage() {
                   className="w-full p-4 text-start font-semibold text-xs text-base-content flex justify-between items-center gap-4"
                 >
                   <span>{faq.q[locale as "en" | "ar"] || faq.q.en}</span>
-                  <span className="text-base-content/50 font-mono text-base leading-none">
+                  <span className="text-base-content/70 dark:text-stone-300 font-medium font-mono text-base leading-none">
                     {isOpen ? "−" : "+"}
                   </span>
                 </button>
                 {isOpen && (
-                  <div className="px-4 pb-4 text-xs text-base-content/70 border-t border-base-300/50 pt-3 leading-relaxed">
+                  <div className="px-4 pb-4 text-xs text-base-content/70 dark:text-stone-300 font-medium border-t border-base-300/50 pt-3 leading-relaxed">
                     {faq.a[locale as "en" | "ar"] || faq.a.en}
                   </div>
                 )}
@@ -1034,12 +1034,12 @@ export default function PricingPage() {
               key={idx}
               className="border border-base-300 bg-base-200 rounded-2xl p-6 flex flex-col justify-between space-y-4"
             >
-              <p className="text-xs italic text-base-content/80 leading-relaxed">
+              <p className="text-xs italic text-base-content dark:text-stone-200 font-medium leading-relaxed">
                 &quot;{t.quote[locale as "en" | "ar"] || t.quote.en}&quot;
               </p>
               <div>
                 <h4 className="text-xs font-bold text-base-content">{t.name}</h4>
-                <p className="text-[10px] text-base-content/50 font-mono">
+                <p className="text-[10px] text-base-content/70 dark:text-stone-300 font-medium font-mono">
                   {t.role[locale as "en" | "ar"] || t.role.en}
                 </p>
               </div>
@@ -1050,7 +1050,7 @@ export default function PricingPage() {
 
       {/* Logos Strip */}
       <section className="px-4 pb-20 max-w-5xl mx-auto text-center border-t border-base-300 pt-12">
-        <p className="text-[10px] font-mono uppercase tracking-widest text-base-content/40 mb-6 font-bold">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-base-content/70 dark:text-stone-400 font-medium mb-6 font-bold">
           Trusted by engineers & teams at
         </p>
         <div className="flex flex-wrap items-center justify-center gap-8 opacity-40 grayscale hover:grayscale-0 transition-all text-xs font-mono font-black text-base-content">
@@ -1069,13 +1069,13 @@ export default function PricingPage() {
             <h2 className="text-2xl font-extrabold text-base-content font-heading tracking-tight">
               {tLocal("cta.title")}
             </h2>
-            <p className="text-xs text-base-content/70">
+            <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">
               {tLocal("cta.desc")}
             </p>
           </div>
           <button
             onClick={() => (window.location.href = "/auth/signup")}
-            className="btn bg-[#10B981] hover:bg-[#059669] text-white border-none rounded-xl px-8 font-bold text-xs"
+            className="btn bg-[#8E1616] hover:bg-[#8E1616] text-white border-none rounded-xl px-8 font-bold text-xs transition-all duration-300 ease-in-out"
           >
             {tLocal("cta.btn")}
           </button>
@@ -1089,15 +1089,24 @@ export default function PricingPage() {
             <div className="flex justify-between items-center border-b border-base-300 pb-4">
               <div>
                 <h3 className="font-extrabold text-base font-heading text-base-content">
-                  Upgrade to {selectedPlan === "pro" ? "Premium Pro" : "Recruiter Scale"}
+                  Upgrade to{" "}
+                  {selectedPlan === "pro" || selectedPlan === "learner_pro"
+                    ? "Learner Pro"
+                    : selectedPlan === "growth"
+                    ? "Company Growth"
+                    : "Company Scale"}
                 </h3>
-                <p className="text-xs text-base-content/60">
-                  {selectedPlan === "pro" ? "$19.99 / month" : "$99.99 / month"}
+                <p className="text-xs text-base-content/70 dark:text-stone-300 font-medium">
+                  {selectedPlan === "pro" || selectedPlan === "learner_pro"
+                    ? "$15.00 / month"
+                    : selectedPlan === "growth"
+                    ? "$49.00 / month"
+                    : "$199.00 / month"}
                 </p>
               </div>
               <button
                 onClick={handleCancelUpgrade}
-                className="text-base-content/50 hover:text-base-content font-mono text-sm"
+                className="text-base-content/70 dark:text-stone-300 font-medium hover:text-base-content font-mono text-sm transition-all duration-300 ease-in-out"
               >
                 ✕
               </button>
@@ -1107,7 +1116,7 @@ export default function PricingPage() {
               <button
                 onClick={triggerPayPalCheckout}
                 disabled={isProcessingCheckout}
-                className="w-full btn bg-[#0070BA] hover:bg-[#003087] text-white border-none rounded-xl font-bold flex items-center justify-center gap-2"
+                className="w-full btn bg-[#0070BA] hover:bg-[#003087] text-white border-none rounded-xl font-bold flex items-center justify-center gap-2 transition-all duration-300 ease-in-out"
               >
                 {isProcessingCheckout ? (
                   <span className="loading loading-spinner loading-xs" />
@@ -1118,7 +1127,7 @@ export default function PricingPage() {
 
               <div className="relative flex py-2 items-center">
                 <div className="flex-grow border-t border-base-300" />
-                <span className="flex-shrink mx-4 text-[10px] font-mono uppercase text-base-content/40">
+                <span className="flex-shrink mx-4 text-[10px] font-mono uppercase text-base-content/70 dark:text-stone-400 font-medium">
                   Or Simulate Card
                 </span>
                 <div className="flex-grow border-t border-base-300" />
@@ -1157,7 +1166,7 @@ export default function PricingPage() {
                 <button
                   onClick={captureSimulatedPayment}
                   disabled={isProcessingCheckout}
-                  className="w-full btn btn-outline border-base-300 text-base-content hover:bg-base-200 rounded-xl btn-sm font-bold mt-2"
+                  className="w-full btn btn-outline border-base-300 text-base-content hover:bg-base-200 rounded-xl btn-sm font-bold mt-2 transition-all duration-300 ease-in-out"
                 >
                   Simulate Payment Approval
                 </button>

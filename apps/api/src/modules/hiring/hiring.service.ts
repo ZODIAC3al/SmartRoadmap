@@ -34,6 +34,8 @@ import {
   UpdateApplicationStatusDto,
 } from './dto/hiring.dto';
 
+import { AiUsageService } from '../billing/ai-usage.service';
+
 @Injectable()
 export class HiringService implements OnModuleInit {
   private readonly logger = new Logger(HiringService.name);
@@ -63,6 +65,7 @@ export class HiringService implements OnModuleInit {
     private readonly embeddingService: EmbeddingService,
     private readonly cache: AppCacheService,
     private readonly aiGateway: AiGatewayService,
+    private readonly aiUsageService: AiUsageService,
   ) {}
 
   /**
@@ -99,12 +102,8 @@ export class HiringService implements OnModuleInit {
             salaryMin: 80000,
             salaryMax: 110000,
             remote: true,
-            workType: 'remote',
-            jobType: 'full-time',
-            experienceLevel: 'mid',
             description:
               'Join our premium product team to build and design stunning human-resource workflow visualizations. Requires strong experience in React and TypeScript design tokens.',
-            postedAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
           },
           {
             title: 'NodeJS Backend Developer',
@@ -123,12 +122,8 @@ export class HiringService implements OnModuleInit {
             salaryMin: 70000,
             salaryMax: 95000,
             remote: true,
-            workType: 'hybrid',
-            jobType: 'full-time',
-            experienceLevel: 'mid',
             description:
               'Help build scalable accounting microservices, integrate MongoDB, design secure authentication pipelines, and deploy using containerized Docker engines.',
-            postedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
           },
           {
             title: 'Full Stack Engineer',
@@ -147,12 +142,8 @@ export class HiringService implements OnModuleInit {
             salaryMin: 25000,
             salaryMax: 40000,
             remote: false,
-            workType: 'onsite',
-            jobType: 'full-time',
-            experienceLevel: 'entry',
             description:
               'We are seeking a generalist software developer to help support client websites. Work across React frontends and Node/Mongoose API layers.',
-            postedAt: new Date(Date.now() - 7 * 60 * 60 * 1000),
           },
           {
             title: 'Data & Analytics Engineer',
@@ -164,46 +155,8 @@ export class HiringService implements OnModuleInit {
             salaryMin: 95000,
             salaryMax: 130000,
             remote: true,
-            workType: 'remote',
-            jobType: 'full-time',
-            experienceLevel: 'senior',
             description:
               'Maintain vector database connections (Qdrant), orchestrate ETL data pipelines in Python, and align client event streams dynamically.',
-            postedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          },
-          {
-            title: 'Next.js Product Engineer',
-            company: 'Linear App SAS',
-            location: 'Paris',
-            country: 'FR',
-            requiredSkills: ['React', 'TypeScript', 'Next.js', 'CSS'],
-            technologies: ['Next.js', 'TypeScript', 'GraphQL', 'Linear SDK'],
-            salaryMin: 90000,
-            salaryMax: 120000,
-            remote: false,
-            workType: 'hybrid',
-            jobType: 'full-time',
-            experienceLevel: 'mid',
-            description:
-              'Join our client interface team to build fast keyboard-driven features. Focus on design tokens alignment and clean, type-safe API consumption.',
-            postedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-          },
-          {
-            title: 'React Prototyping Engineer',
-            company: 'Vercel, Inc.',
-            location: 'Remote',
-            country: 'US',
-            requiredSkills: ['React', 'Next.js', 'JavaScript', 'Docker'],
-            technologies: ['Next.js', 'Vercel Edge', 'React Server Components'],
-            salaryMin: 110000,
-            salaryMax: 135000,
-            remote: true,
-            workType: 'remote',
-            jobType: 'full-time',
-            experienceLevel: 'senior',
-            description:
-              'Seeking a developer focused on rendering pipeline optimization and edge-computing templates. Docker configuration experience is nice to have.',
-            postedAt: new Date(Date.now() - 30 * 60 * 1000),
           },
         ]);
         for (const job of saved) {
@@ -570,7 +523,107 @@ export class HiringService implements OnModuleInit {
     };
   }
 
-  // ── Application Pipeline Methods ────────────────────────────────────────────
+  async getCandidatePassport(userId: string): Promise<any> {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new BadRequestException('Invalid user ID');
+    }
+    const pool = await this.collectLearnerSkillsPool(userId);
+    if (!pool.user) {
+      throw new NotFoundException('Candidate user not found');
+    }
+
+    const completedCount = pool.roadmap?.modules
+      ? pool.roadmap.modules.filter((m: any) => m.status === 'completed').length
+      : 0;
+    const totalCount = pool.roadmap?.modules?.length || 0;
+
+    let totalQuizScore = 0;
+    pool.quizSessions.forEach((q) => {
+      if (q.score !== null && q.score !== undefined) totalQuizScore += q.score;
+    });
+
+    const averageScore =
+      pool.quizSessions.length > 0
+        ? Math.round(totalQuizScore / pool.quizSessions.length)
+        : null;
+
+    return {
+      userId,
+      name: pool.user.name,
+      email: pool.user.email,
+      avatarUrl: pool.user.avatarUrl,
+      targetRole: pool.roadmap?.targetRole || 'Software Professional',
+      progress: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
+      completedMilestones: completedCount,
+      verifiedSkills: pool.verifiedSkills,
+      averageQuizScore: averageScore,
+      quizzesPassed: pool.quizSessions.filter((q) => q.passed).length,
+      cvUploaded: !!pool.cv,
+      projects: pool.projects.map((p) => ({
+        name: p.name || p.title || 'Verified Project',
+        description: p.description || '',
+        githubUrl: p.githubUrl || p.repositoryUrl || '',
+        auditPassed: p.auditPassed !== false,
+      })),
+      roadmap: pool.roadmap,
+    };
+  }
+
+  async getCandidates(): Promise<any[]> {
+    this.logger.log(
+      'Fetching pre-vetted candidates pipeline for company portal',
+    );
+
+    const learners = await this.userModel
+      .find({ role: 'learner' })
+      .lean()
+      .exec();
+    const candidates: any[] = [];
+
+    for (const learner of learners) {
+      const learnerId = learner._id.toString();
+      const pool = await this.collectLearnerSkillsPool(learnerId);
+
+      const completedCount = pool.roadmap?.modules
+        ? pool.roadmap.modules.filter((m: any) => m.status === 'completed')
+            .length
+        : 0;
+      const totalCount = pool.roadmap?.modules?.length || 0;
+
+      let totalQuizScore = 0;
+      let passedQuizCount = 0;
+      pool.quizSessions.forEach((q) => {
+        if (q.score !== null && q.score !== undefined)
+          totalQuizScore += q.score;
+        if (q.passed) passedQuizCount++;
+      });
+
+      const averageScore =
+        pool.quizSessions.length > 0
+          ? Math.round(totalQuizScore / pool.quizSessions.length)
+          : null;
+
+      candidates.push({
+        userId: learnerId,
+        name: learner.name,
+        email: learner.email,
+        avatarUrl: learner.avatarUrl,
+        targetRole: pool.roadmap?.targetRole || 'Software Professional',
+        progress:
+          totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
+        completedMilestones: completedCount,
+        verifiedSkills: pool.verifiedSkills,
+        averageQuizScore: averageScore,
+        quizzesPassed: passedQuizCount,
+        cvUploaded: !!pool.cv,
+        certificationsCount:
+          pool.trackCertifications.length + pool.verifiedCertificates.length,
+        projectsCount: pool.projects.length,
+      });
+    }
+
+    return candidates;
+  }
 
   private normalizeApplicationStatus(status?: string): ApplicationStatus {
     if (!status) return 'Applied';
@@ -616,6 +669,16 @@ export class HiringService implements OnModuleInit {
         .lean()
         .exec();
     }
+    
+    // First fallback: default CV
+    if (!cvRecord) {
+      cvRecord = await this.cvModel
+        .findOne({ userId: userObjId, isDefault: true })
+        .lean()
+        .exec();
+    }
+    
+    // Second fallback: latest CV
     if (!cvRecord) {
       cvRecord = await this.cvModel
         .findOne({ userId: userObjId })
@@ -629,6 +692,8 @@ export class HiringService implements OnModuleInit {
       (cvRecord
         ? {
             title: cvRecord.title || 'Career Resume',
+            template: cvRecord.template || 'modern',
+            sectionOrder: cvRecord.sectionOrder || ['summary', 'experience', 'projects', 'skills', 'education', 'certifications', 'courses', 'languages', 'volunteerExperience', 'publications', 'awards', 'references', 'hobbies'],
             personal: cvRecord.personal,
             experience: cvRecord.experience || [],
             education: cvRecord.education || [],
@@ -912,64 +977,6 @@ export class HiringService implements OnModuleInit {
     return app.save();
   }
 
-  // ────────────────────────────────────────────────────────────────────────────
-
-  async getCandidates(): Promise<any[]> {
-    this.logger.log(
-      'Fetching pre-vetted candidates pipeline for company portal',
-    );
-
-    const learners = await this.userModel
-      .find({ role: 'learner' })
-      .lean()
-      .exec();
-    const candidates: any[] = [];
-
-    for (const learner of learners) {
-      const learnerId = learner._id.toString();
-      const pool = await this.collectLearnerSkillsPool(learnerId);
-
-      const completedCount = pool.roadmap?.modules
-        ? pool.roadmap.modules.filter((m: any) => m.status === 'completed')
-            .length
-        : 0;
-      const totalCount = pool.roadmap?.modules?.length || 0;
-
-      let totalQuizScore = 0;
-      let passedQuizCount = 0;
-      pool.quizSessions.forEach((q) => {
-        if (q.score !== null && q.score !== undefined)
-          totalQuizScore += q.score;
-        if (q.passed) passedQuizCount++;
-      });
-
-      const averageScore =
-        pool.quizSessions.length > 0
-          ? Math.round(totalQuizScore / pool.quizSessions.length)
-          : null;
-
-      candidates.push({
-        userId: learnerId,
-        name: learner.name,
-        email: learner.email,
-        avatarUrl: learner.avatarUrl,
-        targetRole: pool.roadmap?.targetRole || 'Software Professional',
-        progress:
-          totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0,
-        completedMilestones: completedCount,
-        verifiedSkills: pool.verifiedSkills,
-        averageQuizScore: averageScore,
-        quizzesPassed: passedQuizCount,
-        cvUploaded: !!pool.cv,
-        certificationsCount:
-          pool.trackCertifications.length + pool.verifiedCertificates.length,
-        projectsCount: pool.projects.length,
-      });
-    }
-
-    return candidates;
-  }
-
   // ── Saved Searches & Analytics ─────────────────────────────────────────────
 
   async createSavedSearch(user: JwtUser, dto: any): Promise<SavedSearch> {
@@ -1028,16 +1035,44 @@ export class HiringService implements OnModuleInit {
     };
   }
 
-  async evaluateCandidateWithAi(candidateSkills: string[], requiredSkills?: string[]): Promise<any> {
-    const reqs = requiredSkills && requiredSkills.length > 0
-      ? requiredSkills
-      : ['React', 'TypeScript', 'Node.js', 'NestJS', 'Docker'];
+  async evaluateCandidateWithAi(
+    user: JwtUser,
+    candidateSkills: string[],
+    requiredSkills?: string[],
+  ): Promise<any> {
+    const reqs =
+      requiredSkills && requiredSkills.length > 0
+        ? requiredSkills
+        : ['React', 'TypeScript', 'Node.js', 'NestJS', 'Docker'];
 
-    const aiResult = await this.aiGateway.run({
-      task: 'skill_match',
-      input: { candidateSkills, requiredSkills: reqs },
-    });
+    let reservation: any;
+    if (user) {
+      reservation = await this.aiUsageService.reserve(user, 'AI_CANDIDATE_MATCH');
+    }
 
-    return aiResult;
+    try {
+      const aiResult = await this.aiGateway.run({
+        task: 'skill_match',
+        input: { candidateSkills, requiredSkills: reqs },
+      });
+
+      if (reservation) {
+        await this.aiUsageService.finalize(reservation.reservationId, {
+          provider: 'groq',
+          model: 'llama-3.3-70b-versatile',
+          inputTokens: 250,
+          outputTokens: 150,
+          totalTokens: 400,
+          status: 'success',
+        });
+      }
+
+      return aiResult;
+    } catch (err: any) {
+      if (reservation) {
+        await this.aiUsageService.release(reservation.reservationId, err.message);
+      }
+      throw err;
+    }
   }
 }

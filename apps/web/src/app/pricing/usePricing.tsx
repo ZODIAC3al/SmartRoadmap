@@ -23,9 +23,9 @@ export function usePricing() {
 
   // Checkout variables
   const [user, setUser] = useState<any>(null);
-  const [selectedPlan, setSelectedPlan] = useState<"pro" | "scale" | null>(
-    null,
-  );
+  const [selectedPlan, setSelectedPlan] = useState<
+    "pro" | "learner_pro" | "growth" | "scale" | null
+  >(null);
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
   const [paypalOrder, setPaypalOrder] = useState<any>(null);
   const [showSimulatedModal, setShowSimulatedModal] = useState(false);
@@ -53,8 +53,30 @@ export function usePricing() {
     window.location.href = "/auth/login";
   };
 
-  const handleInitiateUpgrade = (plan: "pro" | "scale") => {
-    setSelectedPlan(plan);
+  const handleInitiateUpgrade = async (plan: "pro" | "learner_pro" | "growth" | "scale") => {
+    if (!user) {
+      toast.info("Please sign in to upgrade your subscription.");
+      window.location.href = "/auth/login";
+      return;
+    }
+
+    const backendPlan = plan === "pro" ? "learner_pro" : plan;
+    setIsProcessingCheckout(true);
+    try {
+      const res = await apiFetch("/billing/checkout-session", {
+        method: "POST",
+        body: JSON.stringify({ plan: backendPlan }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to create checkout session");
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Upgrade checkout failed. Please try again.");
+    } finally {
+      setIsProcessingCheckout(false);
+    }
   };
 
   const handleCancelUpgrade = () => {
@@ -72,7 +94,9 @@ export function usePricing() {
 
     setIsProcessingCheckout(true);
     const backendPlanName =
-      selectedPlan === "pro" ? "pro_learner" : "company_tier";
+      selectedPlan === "pro" || selectedPlan === "learner_pro"
+        ? "learner_pro"
+        : selectedPlan || "growth";
 
     try {
       const response = await apiFetch("/payment/orders", {
@@ -108,38 +132,54 @@ export function usePricing() {
   };
 
   const captureSimulatedPayment = async () => {
-    if (!paypalOrder) return;
     setIsProcessingCheckout(true);
 
-    try {
-      const response = await apiFetch("/payment/orders/capture", {
-        method: "POST",
-        body: JSON.stringify({ orderId: paypalOrder.id }),
-      });
+    const isLearnerPlan = selectedPlan === "pro" || selectedPlan === "learner_pro";
+    const targetRole = isLearnerPlan ? "learner" : "company";
+    const planNameDisplay =
+      selectedPlan === "pro" || selectedPlan === "learner_pro"
+        ? "Learner Pro"
+        : selectedPlan === "growth"
+        ? "Company Growth"
+        : "Company Scale";
 
-      if (!response.ok) throw new Error("Capture failed");
+    const targetPlanName =
+      selectedPlan === "pro" || selectedPlan === "learner_pro"
+        ? "learner_pro"
+        : selectedPlan === "growth"
+        ? "growth"
+        : "scale";
+
+    try {
+      if (paypalOrder) {
+        await apiFetch("/payment/orders/capture", {
+          method: "POST",
+          body: JSON.stringify({ orderId: paypalOrder.id }),
+        });
+      } else {
+        await apiFetch("/billing/checkout-session", {
+          method: "POST",
+          body: JSON.stringify({ plan: targetPlanName }),
+        });
+      }
 
       const upgradedUser = {
         ...user,
-        role: selectedPlan === "pro" ? "learner" : "company",
+        role: targetRole,
       };
       cacheUser(upgradedUser);
       setUser(upgradedUser);
 
-      toast.success(
-        `Payment captured! Upgraded to ${selectedPlan === "pro" ? "Premium Pro" : "Recruiter Scale"} Tier!`,
-      );
+      toast.success(`Payment captured! Upgraded to ${planNameDisplay} Tier!`);
       handleCancelUpgrade();
     } catch (e) {
       const upgradedUser = {
         ...user,
-        role: selectedPlan === "pro" ? "learner" : "company",
+        role: targetRole,
       };
       cacheUser(upgradedUser);
       setUser(upgradedUser);
-      toast.success(
-        `Simulation completed! Upgraded to ${selectedPlan === "pro" ? "Premium Pro" : "Recruiter Scale"}!`,
-      );
+      toast.success(`Simulation completed! Upgraded to ${planNameDisplay}!`);
       handleCancelUpgrade();
     }
   };
@@ -153,13 +193,13 @@ export function usePricing() {
   const translateFeatureVal = (value: boolean | string) => {
     if (value === true) {
       return (
-        <span className="inline-flex w-5 h-5 rounded-full bg-[#10B981]/15 text-[#059669] items-center justify-center text-xs font-bold font-mono">
+        <span className="inline-flex w-5 h-5 rounded-full bg-[#8E1616]/15 text-[#8E1616] items-center justify-center text-xs font-bold font-mono">
           ✓
         </span>
       );
     }
     if (value === false) {
-      return <span className="text-base-content/30 text-xs font-mono">–</span>;
+      return <span className="text-base-content/70 dark:text-stone-400 font-medium text-xs font-mono">–</span>;
     }
     if (value === "No limit") {
       return locale === "ar" ? "بدون حد" : "No limit";

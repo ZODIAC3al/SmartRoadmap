@@ -24,29 +24,10 @@ import { InterviewModule } from './modules/interview/interview.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { MessageModule } from './modules/message/message.module';
 import { ProfileImportModule } from './modules/profile-import/profile-import.module';
-import { PortfolioModule } from './modules/portfolio/portfolio.module';
-import { SalaryModule } from './modules/salary/salary.module';
-import { RecommendationModule } from './modules/recommendation/recommendation.module';
-import { ProgressModule } from './modules/progress/progress.module';
-import { StreakModule } from './modules/streak/streak.module';
-import { AchievementModule } from './modules/achievement/achievement.module';
-import { CalendarModule } from './modules/calendar/calendar.module';
-import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { CheatSheetModule } from './modules/cheat-sheet/cheat-sheet.module';
-import { AudioSummaryModule } from './modules/audio-summary/audio-summary.module';
-import { CodeExecutionModule } from './modules/code-execution/code-execution.module';
-import { CodeDraftModule } from './modules/code-draft/code-draft.module';
-import { CodingChallengeModule } from './modules/coding-challenge/coding-challenge.module';
-import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
-import { AudioModule } from './modules/audio/audio.module';
-import { ContactModule } from './modules/contact/contact.module';
-import { ExportModule } from './export/export.module';
 import { ResourceModule } from './modules/resource/resource.module';
-import { CommunityModule } from './modules/community/community.module';
-import { MentorModule } from './modules/mentor/mentor.module';
-import { AdminModule } from './modules/admin/admin.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
 import { SearchModule } from './modules/search/search.module';
+import { PortfolioModule } from './modules/portfolio/portfolio.module';
 
 import { BillingModule } from './modules/billing/billing.module';
 import { CompanyModule } from './modules/company/company.module';
@@ -54,6 +35,16 @@ import { PipelineModule } from './modules/pipeline/pipeline.module';
 import { MessagingModule } from './modules/messaging/messaging.module';
 import { EventsModule } from './modules/events/events.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { MentorModule } from './modules/mentor/mentor.module';
+import { RecommendationModule } from './modules/recommendation/recommendation.module';
+import { CheatSheetModule } from './modules/cheat-sheet/cheat-sheet.module';
+import { AudioSummaryModule } from './modules/audio-summary/audio-summary.module';
+import { CommunityModule } from './modules/community/community.module';
+import { VoiceAgentModule } from './modules/voice-agent/voice-agent.module';
+import { SalaryModule } from './modules/salary/salary.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { CacheModule } from './modules/cache/cache.module';
+import { QueueModule } from './modules/queue/queue.module';
 
 @Module({
   imports: [
@@ -91,6 +82,8 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     CompanyModule,
     PipelineModule,
     MessagingModule,
+    EventsModule,
+    NotificationsModule,
     AIModule,
     PaymentModule,
     RoadmapModule,
@@ -103,28 +96,19 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     NotificationModule,
     MessageModule,
     ProfileImportModule,
-    SalaryModule,
-    RecommendationModule,
-    ProgressModule,
-    StreakModule,
-    AchievementModule,
-    CalendarModule,
-    DashboardModule,
-    CheatSheetModule,
-    AudioSummaryModule,
-    CodeExecutionModule,
-    CodeDraftModule,
-    CodingChallengeModule,
-    VoiceAgentModule,
-    AudioModule,
-    ContactModule,
-    ExportModule,
     ResourceModule,
-    CommunityModule,
-    MentorModule,
-    AdminModule,
     ChatbotModule,
     SearchModule,
+    MentorModule,
+    RecommendationModule,
+    CheatSheetModule,
+    AudioSummaryModule,
+    CommunityModule,
+    VoiceAgentModule,
+    SalaryModule,
+    DashboardModule,
+    CacheModule,
+    QueueModule,
   ],
   controllers: [AppController],
   providers: [

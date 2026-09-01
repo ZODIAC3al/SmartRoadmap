@@ -45,7 +45,7 @@ export default function CompanyLayout({
             <NotificationBell />
 
             {/* Profile Avatar Dropdown */}
-            <div className="flex items-center gap-2.5 pl-3 border-l border-base-300 cursor-pointer">
+            <div className="flex items-center gap-2.5 pl-3 border-l border-base-300 cursor-pointer transition-all duration-300 ease-in-out">
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary text-primary-content flex items-center justify-center font-bold text-xs shadow-xs">
                 {userInitials}
               </div>

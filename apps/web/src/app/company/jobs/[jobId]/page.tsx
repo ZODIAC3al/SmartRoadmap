@@ -15,7 +15,7 @@ export default function JobKanbanPage({ params }: { params: { jobId: string } })
       <div className="flex justify-between items-center">
         <div>
           <div className="flex items-center gap-2 text-xs text-base-content/60 mb-1">
-            <Link href="/company/jobs" className="hover:underline text-primary">
+            <Link href="/company/jobs" className="hover:underline text-primary transition-all duration-300 ease-in-out">
               ← Jobs List
             </Link>
             <span>/</span>

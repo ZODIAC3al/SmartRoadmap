@@ -31,10 +31,11 @@ export const pipelineApi = baseApi.injectEndpoints({
         jobId ? `/hiring/applications/company?jobId=${jobId}` : `/hiring/candidates`,
       transformResponse: (response: any[]) => {
         const mapped: CandidatePipelineItem[] = (response || []).map((item: any) => ({
+          ...item,
           id: item.id || item._id || item.userId || `cand-${Math.random()}`,
           jobId: item.jobId || '',
-          candidateName: item.candidateName || item.name || 'Verified Talent',
-          candidateAvatar: item.avatarUrl || item.candidateAvatar,
+          candidateName: item.candidateName || item.userId?.name || item.name || 'Verified Talent',
+          candidateAvatar: item.avatarUrl || item.candidateAvatar || item.userId?.avatarUrl,
           matchScore: item.matchScore || item.progress || 88,
           stage: item.stage || item.status || 'applied',
           appliedAt: item.appliedAt || item.createdAt || new Date().toISOString(),
@@ -88,11 +89,34 @@ export const pipelineApi = baseApi.injectEndpoints({
         body,
       }),
     }),
+    getCompanyApplications: builder.query<
+      EntityState<CandidatePipelineItem, string>,
+      void
+    >({
+      query: () => `/hiring/applications/company`,
+      transformResponse: (response: any[]) => {
+        const mapped: CandidatePipelineItem[] = (response || []).map((item: any) => ({
+          ...item,
+          id: item.id || item._id || `app-${Math.random()}`,
+          jobId: item.jobId || '',
+          jobTitle: item.jobTitle || '',
+          company: item.company || '',
+          candidateName: item.candidateName || item.userId?.name || item.name || 'Applicant',
+          candidateAvatar: item.avatarUrl || item.candidateAvatar || item.userId?.avatarUrl,
+          matchScore: item.matchScore || 0,
+          stage: item.stage || item.status || 'applied',
+          appliedAt: item.appliedAt || item.createdAt || new Date().toISOString(),
+        }));
+        return pipelineAdapter.setAll(pipelineAdapter.getInitialState(), mapped);
+      },
+      providesTags: [{ type: 'CandidatePipeline', id: 'COMPANY_LIST' }],
+    }),
   }),
 });
 
 export const {
   useGetCandidatesQuery,
+  useGetCompanyApplicationsQuery,
   useUpdateStageMutation,
   useEvaluateCandidateAiMutation,
 } = pipelineApi;

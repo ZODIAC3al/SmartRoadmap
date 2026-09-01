@@ -18,6 +18,15 @@ export class Message extends Document {
   attachmentUrl?: string;
 
   @Prop()
+  attachmentName?: string;
+
+  @Prop()
+  attachmentType?: string;
+
+  @Prop()
+  attachmentSize?: number;
+
+  @Prop()
   readAt?: Date;
 
   @Prop({
@@ -49,4 +58,10 @@ export class Message extends Document {
 export const MessageSchema = SchemaFactory.createForClass(Message);
 
 MessageSchema.index({ threadId: 1, createdAt: -1 });
-MessageSchema.index({ threadId: 1, clientNonce: 1 }, { unique: true, sparse: true });
+MessageSchema.index(
+  { threadId: 1, clientNonce: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { clientNonce: { $type: 'string' } },
+  },
+);

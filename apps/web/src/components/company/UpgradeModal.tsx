@@ -104,12 +104,12 @@ export function UpgradeModal({
           <div
             className={`p-4 rounded-xl border flex flex-col justify-between ${
               targetPlan === 'scale'
-                ? 'border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/30'
+                ? 'border-primary bg-primary text-primary-content/10 ring-2 ring-purple-500/30'
                 : 'border-base-300 bg-base-100'
             }`}
           >
             <div>
-              <h3 className="font-bold text-sm text-purple-500">Scale</h3>
+              <h3 className="font-bold text-sm text-primary">Scale</h3>
               <p className="text-xl font-bold font-mono mt-1">$199 <span className="text-xs font-normal">/ mo</span></p>
               <ul className="mt-3 space-y-1.5 text-xs text-base-content/80">
                 <li>✓ Unlimited Job Posts</li>
