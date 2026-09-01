@@ -89,5 +89,9 @@ export class GenerateFromProfileDto {
   @IsOptional()
   @IsBoolean()
   forceRegenerate?: boolean;
+
+  @IsOptional()
+  @IsObject()
+  cvData?: Record<string, any>;
 }
 

@@ -669,6 +669,16 @@ export class HiringService implements OnModuleInit {
         .lean()
         .exec();
     }
+    
+    // First fallback: default CV
+    if (!cvRecord) {
+      cvRecord = await this.cvModel
+        .findOne({ userId: userObjId, isDefault: true })
+        .lean()
+        .exec();
+    }
+    
+    // Second fallback: latest CV
     if (!cvRecord) {
       cvRecord = await this.cvModel
         .findOne({ userId: userObjId })
@@ -682,6 +692,8 @@ export class HiringService implements OnModuleInit {
       (cvRecord
         ? {
             title: cvRecord.title || 'Career Resume',
+            template: cvRecord.template || 'modern',
+            sectionOrder: cvRecord.sectionOrder || ['summary', 'experience', 'projects', 'skills', 'education', 'certifications', 'courses', 'languages', 'volunteerExperience', 'publications', 'awards', 'references', 'hobbies'],
             personal: cvRecord.personal,
             experience: cvRecord.experience || [],
             education: cvRecord.education || [],

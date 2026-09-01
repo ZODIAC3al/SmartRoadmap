@@ -8,6 +8,7 @@ import { useCompanyDashboard } from "./useCompanyDashboard";
 import CompanyPendingScreen from "@/components/CompanyPendingScreen";
 import { useGetOrCreateThreadMutation } from "@/store/api/messagesApi";
 import { AiUsageDashboard } from "@/components/dashboard/AiUsageDashboard";
+import { CvRenderer } from "@/app/cv/_components/CvRenderer";
 
 const STATUS_BADGES: Record<string, { bg: string; text: string; icon: string }> = {
   Applied: { bg: "bg-[#8E1616]/10 border-[#8E1616]/20", text: "text-[#701111]", icon: "🚀" },
@@ -933,46 +934,48 @@ function CompanyPageContent() {
             {/* Submitted CV Snapshot */}
             {selectedApplication.cvSnapshot && (
               <div className="space-y-2">
-                <span className="text-[10px] text-base-content/50 font-bold uppercase font-mono block">
-                  📄 Submitted Resume (CV)
-                </span>
-                <div className="bg-base-100 border border-base-300 rounded-xl p-4 text-xs space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="font-black text-sm text-base-content">{selectedApplication.cvSnapshot.title || "Resume Snapshot"}</span>
-                    <span className="text-[10px] font-mono text-[#8E1616]">Transmitted with Application</span>
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-[10px] text-base-content/50 font-bold uppercase font-mono">
+                    📄 Submitted Resume (CV)
+                  </span>
+                  <button 
+                    onClick={() => {
+                      const content = document.getElementById('cv-print-area')?.innerHTML;
+                      if (!content) return;
+                      const printWindow = window.open('', '_blank');
+                      if (printWindow) {
+                        printWindow.document.write(`
+                          <html>
+                            <head>
+                              <title>Resume - ${selectedApplication.cvSnapshot?.personal?.name || 'Candidate'}</title>
+                              <style>
+                                body { background: white; margin: 0; padding: 20px; font-family: sans-serif; }
+                                @media print { body { padding: 0; } }
+                                /* basic utility classes since tailwind might not load instantly */
+                                .flex { display: flex; } .flex-col { flex-direction: column; } .gap-2 { gap: 0.5rem; }
+                                .text-xs { font-size: 0.75rem; } .text-sm { font-size: 0.875rem; } .font-bold { font-weight: bold; }
+                              </style>
+                            </head>
+                            <body>
+                              ${content}
+                              <script>
+                                setTimeout(() => window.print(), 500);
+                              </script>
+                            </body>
+                          </html>
+                        `);
+                        printWindow.document.close();
+                      }
+                    }}
+                    className="btn btn-xs bg-primary hover:bg-[#701111] text-white rounded font-bold transition-all"
+                  >
+                    Download CV (PDF)
+                  </button>
+                </div>
+                <div className="bg-base-100 border border-base-300 rounded-xl p-4 shadow-inner max-h-[600px] overflow-y-auto">
+                  <div id="cv-print-area" className="w-full max-w-[595px] mx-auto bg-white text-black shadow-sm border border-base-200 print:border-none print:shadow-none">
+                    <CvRenderer cv={selectedApplication.cvSnapshot} />
                   </div>
-
-                  {selectedApplication.cvSnapshot.summary && (
-                    <div className="bg-base-200 p-3 rounded-2xl text-base-content/80 italic">
-                      &quot;{selectedApplication.cvSnapshot.summary}&quot;
-                    </div>
-                  )}
-
-                  {selectedApplication.cvSnapshot.experience && selectedApplication.cvSnapshot.experience.length > 0 && (
-                    <div>
-                      <span className="text-[10px] font-bold uppercase font-mono text-base-content/50 block mb-1">Work Experience:</span>
-                      <div className="space-y-2">
-                        {selectedApplication.cvSnapshot.experience.map((exp: any, i: number) => (
-                          <div key={i} className="border-l-2 border-[#8E1616] pl-3 py-0.5">
-                            <span className="font-bold text-xs block">{exp.role || exp.title} at {exp.company}</span>
-                            <span className="text-[10px] text-base-content/50">{exp.startDate} - {exp.endDate || "Present"}</span>
-                            {exp.description && <p className="text-[11px] text-base-content/70 mt-1">{exp.description}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedApplication.cvSnapshot.skills && (
-                    <div>
-                      <span className="text-[10px] font-bold uppercase font-mono text-base-content/50 block mb-1">Candidate Skills:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {selectedApplication.cvSnapshot.skills.map((s: string, i: number) => (
-                          <span key={i} className="badge badge-xs badge-neutral text-[9px] font-mono">{s}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             )}

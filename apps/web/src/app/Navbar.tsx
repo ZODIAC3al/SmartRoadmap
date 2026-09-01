@@ -433,8 +433,24 @@ export default function Navbar() {
             </>
           )}
 
+          {/* Pricing & Contact - Always visible directly in navbar */}
+          <Link
+            href="/pricing"
+            className={`transition-colors hover:text-primary ${isLinkActive("/pricing") ? "text-primary font-black" : "text-base-content/70"
+              }`}
+          >
+            {t("nav.pricing")}
+          </Link>
+          <Link
+            href="/contact"
+            className={`transition-colors hover:text-primary ${isLinkActive("/contact") ? "text-primary font-black" : "text-base-content/70"
+              }`}
+          >
+            {t("nav.contact")}
+          </Link>
+
           {/* Explore Dropdown */}
-          {user?.role !== "admin" && (
+          {!!user && user.role !== "admin" && (
             <div className="dropdown dropdown-hover dropdown-bottom dropdown-end">
               <label
                 tabIndex={0}
@@ -514,18 +530,6 @@ export default function Navbar() {
                     </Link>
                   </li>
                 )}
-                <li className="border-t border-base-300 pt-1">
-                  <Link href="/pricing" className={`flex items-center gap-2.5 ${isLinkActive("/pricing") ? "text-[#8E1616] font-bold" : ""}`}>
-                    <Gem className="w-4 h-4 text-cyan-500 shrink-0" />
-                    <span>{t("nav.pricing")}</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className={`flex items-center gap-2.5 ${isLinkActive("/contact") ? "text-[#8E1616] font-bold" : ""}`}>
-                    <Mail className="w-4 h-4 text-orange-500 shrink-0" />
-                    <span>{t("nav.contact")}</span>
-                  </Link>
-                </li>
               </ul>
             </div>
           )}

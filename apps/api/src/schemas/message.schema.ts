@@ -58,4 +58,10 @@ export class Message extends Document {
 export const MessageSchema = SchemaFactory.createForClass(Message);
 
 MessageSchema.index({ threadId: 1, createdAt: -1 });
-MessageSchema.index({ threadId: 1, clientNonce: 1 }, { unique: true, sparse: true });
+MessageSchema.index(
+  { threadId: 1, clientNonce: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { clientNonce: { $type: 'string' } },
+  },
+);

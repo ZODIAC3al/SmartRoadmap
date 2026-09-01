@@ -57,9 +57,9 @@ export class AiUsageReportService {
       const doc = new PDFDocument({ margin: 40, size: 'A4' });
       const buffers: Buffer[] = [];
 
-      doc.on('data', (buffer) => buffers.push(buffer));
+      doc.on('data', (buffer: Buffer) => buffers.push(buffer));
       doc.on('end', () => resolve(Buffer.concat(buffers)));
-      doc.on('error', (err) => reject(err));
+      doc.on('error', (err: Error) => reject(err));
 
       const pageWidth = doc.page.width;
       const margin = 40;
