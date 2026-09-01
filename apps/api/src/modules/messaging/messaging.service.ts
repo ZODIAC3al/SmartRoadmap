@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -18,7 +19,7 @@ import { CreateThreadDto, SendMessageDto } from './messaging.dto';
 export { CreateThreadDto, SendMessageDto };
 
 @Injectable()
-export class MessagingService {
+export class MessagingService implements OnModuleInit {
   constructor(
     @InjectModel(MessageThread.name)
     private readonly threadModel: Model<MessageThread>,
@@ -31,6 +32,11 @@ export class MessagingService {
     private readonly notificationsService: NotificationsService,
     private readonly eventsGateway: EventsGateway,
   ) {}
+
+  async onModuleInit() {
+    // Automatically drop outdated MongoDB indexes and rebuild with partialFilterExpression
+    await this.messageModel.syncIndexes().catch(() => {});
+  }
 
   private sortParticipants(id1: string | Types.ObjectId, id2: string | Types.ObjectId): Types.ObjectId[] {
     if (!id1 || !id2) {
@@ -206,7 +212,7 @@ export class MessagingService {
 
     try {
       // Create Message Document with optional clientNonce idempotency key
-      message = await this.messageModel.create({
+      const createPayload: any = {
         threadId: thread._id,
         senderId: senderObjId,
         body: dto.body,
@@ -214,9 +220,12 @@ export class MessagingService {
         attachmentName: dto.attachmentName,
         attachmentType: dto.attachmentType,
         attachmentSize: dto.attachmentSize,
-        clientNonce: dto.clientNonce,
         deliveredVia: 'socket',
-      });
+      };
+      if (dto.clientNonce) {
+        createPayload.clientNonce = dto.clientNonce;
+      }
+      message = await this.messageModel.create(createPayload);
     } catch (err: any) {
       if (err.code === 11000 && dto.clientNonce) {
         // Idempotency match: Return existing message instead of duplicating or erroring
